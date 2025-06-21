@@ -1,103 +1,342 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import JobBoardCards from "@/components/job-board-card";
+import { Moon, Search, Sun } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { User } from "lucide-react";
+import SortPopover from "@/components/SortPopover";
+import DateRangePopover from "@/components/DateRangePopover";
+import ApplyFormSelect from "@/components/ApplyFormSelect";
+// Custom debounce hook
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+const filterTags = [
+  "Departments",
+  "Salary",
+  "Commitment",
+  "Experience",
+  "Job Titles & Keywords",
+  "Education",
+  "Licenses & Certifications",
+  "Security Clearance",
+  "Languages",
+  "Shifts & Schedules",
+  "Travel Requirement",
+  "Benefits & Perks",
+  "Encouraged to Apply",
+];
+
+const companyTags = [
+  "Company",
+  "Industry",
+  "Stage & Funding",
+  "Size",
+  "Founding Year",
+];
+
+export default function Page() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [customTimeValue, setCustomTimeValue] = useState("3");
+  const [customTimeUnit, setCustomTimeUnit] = useState("days");
+  const [isAllTime, setIsAllTime] = useState(false);
+  const [sortCategory, setSortCategory] = useState("relevance");
+  const [isAscending, setIsAscending] = useState(true);
+  const [applyFormValue, setApplyFormValue] = useState("all");
+
+  const debouncedTimeValue = useDebounce(customTimeValue, 500);
+
+  const getTimeUnitLimits = (unit: string) => {
+    const limits: { [key: string]: { min: number; max: number } } = {
+      hours: { min: 1, max: 24 },
+      days: { min: 1, max: 7 },
+      weeks: { min: 1, max: 3 },
+      months: { min: 1, max: 11 },
+      years: { min: 1, max: 10 },
+    };
+    return limits[unit] || { min: 1, max: 100 };
+  };
+
+  const handleNumberChange = (value: string) => {
+    const numValue = parseInt(value) || 0;
+    const limits = getTimeUnitLimits(customTimeUnit);
+
+    if (numValue < limits.min) {
+      setCustomTimeValue(limits.min.toString());
+    } else if (numValue > limits.max) {
+      setCustomTimeValue(limits.max.toString());
+    } else {
+      setCustomTimeValue(value);
+    }
+  };
+
+  const handleTimeUnitChangeWithValidation = (unit: string) => {
+    if (unit === "all-time") {
+      setIsAllTime(true);
+      setCustomTimeUnit("days");
+      return;
+    }
+
+    setIsAllTime(false);
+    setCustomTimeUnit(unit);
+
+    const defaults: { [key: string]: string } = {
+      hours: "24",
+      days: "3",
+      weeks: "2",
+      months: "1",
+      years: "1",
+    };
+
+    const currentValue = parseInt(customTimeValue) || 0;
+    const newLimits = getTimeUnitLimits(unit);
+
+    if (currentValue >= newLimits.min && currentValue <= newLimits.max) {
+    } else {
+      setCustomTimeValue(defaults[unit] || "1");
+    }
+  };
+
+  useEffect(() => {
+    if (debouncedTimeValue && customTimeUnit) {
+      console.log(`Time filter: ${debouncedTimeValue} ${customTimeUnit}`);
+    }
+  }, [debouncedTimeValue, customTimeUnit]);
+
+  const getSortDisplayText = () => {
+    let orderText;
+    if (sortCategory === "salary") {
+      orderText = isAscending ? "Lowest" : "Highest";
+    } else {
+      orderText = isAscending ? "Most" : "Least";
+    }
+    const categoryText =
+      sortCategory === "relevance"
+        ? "Relevant"
+        : sortCategory === "recent"
+        ? "Recent"
+        : sortCategory === "salary"
+        ? "Salary"
+        : sortCategory === "experience"
+        ? "Experience"
+        : "Relevant";
+    return `${orderText} ${categoryText}`;
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div>
+      <div
+        className={`min-h-screen transition-all duration-300 ${
+          isDarkMode ? "dark" : ""
+        }`}
+      >
+        <div className="bg-white dark:bg-gray-900 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
+              <div className="flex items-center justify-between h-16">
+                {/* Logo */}
+                <div className="flex items-center space-x-3">
+                  <div className="w-fit text-white bg-pink-500 rounded-full p-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                      data-slot="icon"
+                      className="h-5 w-5 flex-none"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"
+                      ></path>
+                    </svg>
+                  </div>
+                  {/* <span className="text-xl font-semibold text-gray-900 dark:text-white">
+                    HiringCafe
+                  </span> */}
+                </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+                {/* Search Bars */}
+                <div className="flex-1 mx-8">
+                  <div className="flex space-x-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        placeholder="Search"
+                        className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    {/* <div className="relative flex-1">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        placeholder="Remote • Hybrid • Onsite • All Environments"
+                        className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
+                      />
+                    </div> */}
+                  </div>
+                </div>
+
+                {/* Right Side */}
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="border-gray-200 dark:border-gray-600"
+                  >
+                    {isDarkMode ? (
+                      <Sun className="w-4 h-4 stroke-[1.5px] text-gray-600 dark:text-gray-300" />
+                    ) : (
+                      <Moon className="w-4 h-4 stroke-[1.5px] text-gray-600 dark:text-gray-300" />
+                    )}
+                  </Button>
+                  <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Filter Tags */}
+          <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-4">
+              <div className="flex flex-wrap gap-2">
+                {filterTags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300 cursor-pointer"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                <span className="text-gray-500/25 dark:text-gray-400/25 -translate-y-0.5">
+                  •
+                </span>
+                {companyTags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="bg-orange-100 dark:bg-orange-900 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800 transition-all duration-300 cursor-pointer"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-scroll overflow-x-hidden h-full">
+            <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-4">
+              <div className="flex items-center justify-between">
+                {/* Controls */}
+                <div className="flex flex-wrap items-center space-x-4">
+                  <SortPopover
+                    sortCategory={sortCategory}
+                    setSortCategory={setSortCategory}
+                    isAscending={isAscending}
+                    setIsAscending={setIsAscending}
+                    isDarkMode={isDarkMode}
+                    getSortDisplayText={getSortDisplayText}
+                  />
+                  <DateRangePopover
+                    customTimeValue={customTimeValue}
+                    customTimeUnit={customTimeUnit}
+                    isAllTime={isAllTime}
+                    getTimeUnitLimits={getTimeUnitLimits}
+                    handleNumberChange={handleNumberChange}
+                    handleTimeUnitChangeWithValidation={
+                      handleTimeUnitChangeWithValidation
+                    }
+                    isDarkMode={isDarkMode}
+                  />
+                  <ApplyFormSelect
+                    value={applyFormValue}
+                    onValueChange={setApplyFormValue}
+                    isDarkMode={isDarkMode}
+                  />
+                  {/* <span className="text-sm text-gray-700 dark:text-gray-200 mr-1">
+                    Exclude:
+                  </span>
+                  <ToggleGroup type="multiple" className="">
+                    <ToggleGroupItem
+                      value="saved"
+                      className="px-1.5 py-1 text-sm transition-all duration-300  hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      Saved
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="applied"
+                      className="px-1.5 py-1 text-sm transition-all duration-300  hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      Applied
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="viewed"
+                      className="px-1.5 py-1 text-sm transition-all duration-300  hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      Viewed
+                    </ToggleGroupItem>
+                  </ToggleGroup> */}
+                </div>
+                {/* <div className="flex items-center space-x-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                  >
+                    <a
+                      href="https://www.reddit.com/r/hiringcafe"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Join our community
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                  >
+                    <a
+                      href="https://hiring.cafe/talent-network"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Talent Network
+                    </a>
+                  </Button>
+                </div> */}
+              </div>
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                2,057,770 jobs • 72,936 companies • Latest jobs in United States
+              </div>
+            </div>
+            <JobBoardCards />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
