@@ -12,27 +12,95 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import React from "react";
+import React, { useState, useEffect } from "react";
+
+// Custom debounce hook
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 type DateRangePopoverProps = {
-  customTimeValue: string;
-  customTimeUnit: string;
-  isAllTime: boolean;
-  getTimeUnitLimits: (unit: string) => { min: number; max: number };
-  handleNumberChange: (value: string) => void;
-  handleTimeUnitChangeWithValidation: (unit: string) => void;
   isDarkMode: boolean;
 };
 
 export default function DateRangePopover({
-  customTimeValue,
-  customTimeUnit,
-  isAllTime,
-  getTimeUnitLimits,
-  handleNumberChange,
-  handleTimeUnitChangeWithValidation,
   isDarkMode,
 }: DateRangePopoverProps) {
+  const [customTimeValue, setCustomTimeValue] = useState("3");
+  const [customTimeUnit, setCustomTimeUnit] = useState("days");
+  const [isAllTime, setIsAllTime] = useState(false);
+
+  const debouncedTimeValue = useDebounce(customTimeValue, 500);
+
+  const getTimeUnitLimits = (unit: string) => {
+    const limits: { [key: string]: { min: number; max: number } } = {
+      hours: { min: 1, max: 24 },
+      days: { min: 1, max: 7 },
+      weeks: { min: 1, max: 3 },
+      months: { min: 1, max: 11 },
+      years: { min: 1, max: 10 },
+    };
+    return limits[unit] || { min: 1, max: 100 };
+  };
+
+  const handleNumberChange = (value: string) => {
+    const numValue = parseInt(value) || 0;
+    const limits = getTimeUnitLimits(customTimeUnit);
+
+    if (numValue < limits.min) {
+      setCustomTimeValue(limits.min.toString());
+    } else if (numValue > limits.max) {
+      setCustomTimeValue(limits.max.toString());
+    } else {
+      setCustomTimeValue(value);
+    }
+  };
+
+  const handleTimeUnitChangeWithValidation = (unit: string) => {
+    if (unit === "all-time") {
+      setIsAllTime(true);
+      setCustomTimeUnit("days");
+      return;
+    }
+
+    setIsAllTime(false);
+    setCustomTimeUnit(unit);
+
+    const defaults: { [key: string]: string } = {
+      hours: "24",
+      days: "3",
+      weeks: "2",
+      months: "1",
+      years: "1",
+    };
+
+    const currentValue = parseInt(customTimeValue) || 0;
+    const newLimits = getTimeUnitLimits(unit);
+
+    if (currentValue >= newLimits.min && currentValue <= newLimits.max) {
+    } else {
+      setCustomTimeValue(defaults[unit] || "1");
+    }
+  };
+
+  useEffect(() => {
+    if (debouncedTimeValue && customTimeUnit) {
+      console.log(`Time filter: ${debouncedTimeValue} ${customTimeUnit}`);
+    }
+  }, [debouncedTimeValue, customTimeUnit]);
+
   return (
     <Popover>
       <PopoverTrigger asChild>

@@ -13,25 +13,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import React from "react";
+import React, { useState } from "react";
 
 type SortPopoverProps = {
-  sortCategory: string;
-  setSortCategory: (value: string) => void;
-  isAscending: boolean;
-  setIsAscending: (value: boolean) => void;
   isDarkMode: boolean;
-  getSortDisplayText: () => string;
 };
 
-export default function SortPopover({
-  sortCategory,
-  setSortCategory,
-  isAscending,
-  setIsAscending,
-  isDarkMode,
-  getSortDisplayText,
-}: SortPopoverProps) {
+export default function SortPopover({ isDarkMode }: SortPopoverProps) {
+  const [sortCategory, setSortCategory] = useState("relevance");
+  const [isAscending, setIsAscending] = useState(true);
+
+  const getSortDisplayText = () => {
+    let orderText;
+    if (sortCategory === "salary") {
+      orderText = isAscending ? "Lowest" : "Highest";
+    } else {
+      orderText = isAscending ? "Most" : "Least";
+    }
+    const categoryText =
+      sortCategory === "relevance"
+        ? "Relevant"
+        : sortCategory === "recent"
+        ? "Recent"
+        : sortCategory === "salary"
+        ? "Salary"
+        : sortCategory === "experience"
+        ? "Experience"
+        : "Relevant";
+    return `${orderText} ${categoryText}`;
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>

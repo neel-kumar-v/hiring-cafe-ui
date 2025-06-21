@@ -11,21 +11,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import React from "react";
+import React, { useState } from "react";
 
 type ApplyFormSelectProps = {
-  value: string;
-  onValueChange: (value: string) => void;
-  isDarkMode?: boolean;
+  isDarkMode: boolean;
 };
 
-export default function ApplyFormSelect({
-  value,
-  onValueChange,
-  isDarkMode = false,
-}: ApplyFormSelectProps) {
+export default function ApplyFormSelect({ isDarkMode }: ApplyFormSelectProps) {
+  const [applyFormValue, setApplyFormValue] = useState("all");
+
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={applyFormValue} onValueChange={setApplyFormValue}>
       <SelectTrigger className="w-fit transition-all duration-300 rounded px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
         <SelectValue placeholder="All apply forms" />
       </SelectTrigger>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import JobBoardCards from "@/components/job-board-card";
 import { Moon, Search, Sun } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,22 +10,6 @@ import { User } from "lucide-react";
 import SortPopover from "@/components/SortPopover";
 import DateRangePopover from "@/components/DateRangePopover";
 import ApplyFormSelect from "@/components/ApplyFormSelect";
-// Custom debounce hook
-function useDebounce(value: string, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
 
 const filterTags = [
   "Departments",
@@ -53,91 +37,6 @@ const companyTags = [
 
 export default function Page() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [customTimeValue, setCustomTimeValue] = useState("3");
-  const [customTimeUnit, setCustomTimeUnit] = useState("days");
-  const [isAllTime, setIsAllTime] = useState(false);
-  const [sortCategory, setSortCategory] = useState("relevance");
-  const [isAscending, setIsAscending] = useState(true);
-  const [applyFormValue, setApplyFormValue] = useState("all");
-
-  const debouncedTimeValue = useDebounce(customTimeValue, 500);
-
-  const getTimeUnitLimits = (unit: string) => {
-    const limits: { [key: string]: { min: number; max: number } } = {
-      hours: { min: 1, max: 24 },
-      days: { min: 1, max: 7 },
-      weeks: { min: 1, max: 3 },
-      months: { min: 1, max: 11 },
-      years: { min: 1, max: 10 },
-    };
-    return limits[unit] || { min: 1, max: 100 };
-  };
-
-  const handleNumberChange = (value: string) => {
-    const numValue = parseInt(value) || 0;
-    const limits = getTimeUnitLimits(customTimeUnit);
-
-    if (numValue < limits.min) {
-      setCustomTimeValue(limits.min.toString());
-    } else if (numValue > limits.max) {
-      setCustomTimeValue(limits.max.toString());
-    } else {
-      setCustomTimeValue(value);
-    }
-  };
-
-  const handleTimeUnitChangeWithValidation = (unit: string) => {
-    if (unit === "all-time") {
-      setIsAllTime(true);
-      setCustomTimeUnit("days");
-      return;
-    }
-
-    setIsAllTime(false);
-    setCustomTimeUnit(unit);
-
-    const defaults: { [key: string]: string } = {
-      hours: "24",
-      days: "3",
-      weeks: "2",
-      months: "1",
-      years: "1",
-    };
-
-    const currentValue = parseInt(customTimeValue) || 0;
-    const newLimits = getTimeUnitLimits(unit);
-
-    if (currentValue >= newLimits.min && currentValue <= newLimits.max) {
-    } else {
-      setCustomTimeValue(defaults[unit] || "1");
-    }
-  };
-
-  useEffect(() => {
-    if (debouncedTimeValue && customTimeUnit) {
-      console.log(`Time filter: ${debouncedTimeValue} ${customTimeUnit}`);
-    }
-  }, [debouncedTimeValue, customTimeUnit]);
-
-  const getSortDisplayText = () => {
-    let orderText;
-    if (sortCategory === "salary") {
-      orderText = isAscending ? "Lowest" : "Highest";
-    } else {
-      orderText = isAscending ? "Most" : "Least";
-    }
-    const categoryText =
-      sortCategory === "relevance"
-        ? "Relevant"
-        : sortCategory === "recent"
-        ? "Recent"
-        : sortCategory === "salary"
-        ? "Salary"
-        : sortCategory === "experience"
-        ? "Experience"
-        : "Relevant";
-    return `${orderText} ${categoryText}`;
-  };
 
   return (
     <div>
@@ -171,9 +70,6 @@ export default function Page() {
                       ></path>
                     </svg>
                   </div>
-                  {/* <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                    HiringCafe
-                  </span> */}
                 </div>
 
                 {/* Search Bars */}
@@ -186,13 +82,6 @@ export default function Page() {
                         className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
                       />
                     </div>
-                    {/* <div className="relative flex-1">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        placeholder="Remote • Hybrid • Onsite • All Environments"
-                        className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
-                      />
-                    </div> */}
                   </div>
                 </div>
 
@@ -252,82 +141,10 @@ export default function Page() {
               <div className="flex items-center justify-between">
                 {/* Controls */}
                 <div className="flex flex-wrap items-center space-x-4">
-                  <SortPopover
-                    sortCategory={sortCategory}
-                    setSortCategory={setSortCategory}
-                    isAscending={isAscending}
-                    setIsAscending={setIsAscending}
-                    isDarkMode={isDarkMode}
-                    getSortDisplayText={getSortDisplayText}
-                  />
-                  <DateRangePopover
-                    customTimeValue={customTimeValue}
-                    customTimeUnit={customTimeUnit}
-                    isAllTime={isAllTime}
-                    getTimeUnitLimits={getTimeUnitLimits}
-                    handleNumberChange={handleNumberChange}
-                    handleTimeUnitChangeWithValidation={
-                      handleTimeUnitChangeWithValidation
-                    }
-                    isDarkMode={isDarkMode}
-                  />
-                  <ApplyFormSelect
-                    value={applyFormValue}
-                    onValueChange={setApplyFormValue}
-                    isDarkMode={isDarkMode}
-                  />
-                  {/* <span className="text-sm text-gray-700 dark:text-gray-200 mr-1">
-                    Exclude:
-                  </span>
-                  <ToggleGroup type="multiple" className="">
-                    <ToggleGroupItem
-                      value="saved"
-                      className="px-1.5 py-1 text-sm transition-all duration-300  hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      Saved
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="applied"
-                      className="px-1.5 py-1 text-sm transition-all duration-300  hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      Applied
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="viewed"
-                      className="px-1.5 py-1 text-sm transition-all duration-300  hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      Viewed
-                    </ToggleGroupItem>
-                  </ToggleGroup> */}
+                  <SortPopover isDarkMode={isDarkMode} />
+                  <DateRangePopover isDarkMode={isDarkMode} />
+                  <ApplyFormSelect isDarkMode={isDarkMode} />
                 </div>
-                {/* <div className="flex items-center space-x-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                  >
-                    <a
-                      href="https://www.reddit.com/r/hiringcafe"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Join our community
-                    </a>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                  >
-                    <a
-                      href="https://hiring.cafe/talent-network"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Talent Network
-                    </a>
-                  </Button>
-                </div> */}
               </div>
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 2,057,770 jobs • 72,936 companies • Latest jobs in United States

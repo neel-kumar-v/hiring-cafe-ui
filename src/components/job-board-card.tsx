@@ -88,10 +88,18 @@ export function JobBoardCard({
     companyName: string,
     location: string
   ): string => {
+    const toCapitalCase = (str: string) =>
+      str
+        .toLowerCase()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+
     const rawTitle = jobTitle || "";
     const company = companyName || "";
 
+    console.log(rawTitle);
+
     let title = rawTitle;
+
     if (company && title.toLowerCase().includes(company.toLowerCase())) {
       // Remove company name and any following punctuation/whitespace
       const regex = new RegExp(
@@ -100,6 +108,10 @@ export function JobBoardCard({
       );
       title = title.replace(regex, "");
     }
+
+    // Remove anything in parentheses (including the parentheses themselves), globally
+    title = title.replace(/\s*\([^)]*\)/g, "").trim();
+
     // Remove location if present after a dash, comma, or pipe
     // e.g. "Manager - New York, NY", "Manager | Remote", "Manager, San Francisco"
     title = title.replace(/[-|,:]\s*[\w\s\.,\-&\/\(\)]+$/, "").trim();
@@ -107,6 +119,9 @@ export function JobBoardCard({
 
     // Remove trailing whitespace and punctuation
     title = title.replace(/[\s\-|,:]+$/, "").trim();
+
+    // Convert to Capital Case
+    title = toCapitalCase(title);
 
     return title;
   };
