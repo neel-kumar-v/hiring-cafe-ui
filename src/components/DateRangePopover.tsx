@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import React, { useState, useEffect } from "react";
+import { useDarkMode } from "@/contexts/DarkModeContext";
 
 // Custom debounce hook
 function useDebounce(value: string, delay: number) {
@@ -31,13 +32,8 @@ function useDebounce(value: string, delay: number) {
   return debouncedValue;
 }
 
-type DateRangePopoverProps = {
-  isDarkMode: boolean;
-};
-
-export default function DateRangePopover({
-  isDarkMode,
-}: DateRangePopoverProps) {
+export default function DateRangePopover() {
+  const { isDarkMode } = useDarkMode();
   const [customTimeValue, setCustomTimeValue] = useState("3");
   const [customTimeUnit, setCustomTimeUnit] = useState("days");
   const [isAllTime, setIsAllTime] = useState(false);

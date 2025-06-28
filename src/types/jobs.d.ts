@@ -12,6 +12,21 @@ export interface JobInformation {
   savedFromUsers?: string[];
 }
 
+export interface CompensationRange {
+  yearly_max_compensation: number | null;
+  yearly_min_compensation: number | null;
+  monthly_max_compensation: number | null;
+  monthly_min_compensation: number | null;
+  weekly_max_compensation: number | null;
+  weekly_min_compensation: number | null;
+  hourly_max_compensation: number | null;
+  hourly_min_compensation: number | null;
+  "bi-weekly_min_compensation": number | null;
+  "bi-weekly_max_compensation": number | null;
+  daily_min_compensation: number | null;
+  daily_max_compensation: number | null;
+}
+
 export interface V5ProcessedJobData {
   core_job_title: string;
   requirements_summary: string;

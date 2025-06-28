@@ -14,12 +14,11 @@ import {
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
 import React, { useState } from "react";
+import { useDarkMode } from "@/contexts/DarkModeContext";
 
-type SortPopoverProps = {
-  isDarkMode: boolean;
-};
 
-export default function SortPopover({ isDarkMode }: SortPopoverProps) {
+export default function SortPopover() {
+  const { isDarkMode } = useDarkMode();
   const [sortCategory, setSortCategory] = useState("relevance");
   const [isAscending, setIsAscending] = useState(true);
 

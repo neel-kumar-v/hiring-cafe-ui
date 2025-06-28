@@ -1,13 +1,36 @@
-import { Moon, Search, Sun, User } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  Moon,
+  Sun,
+  User,
+  Bookmark,
+  Briefcase,
+  Settings,
+  Users,
+  Mail,
+  Building,
+  Info,
+  ExternalLink,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useDarkMode } from "@/contexts/DarkModeContext";
+import SearchBar from "./SearchBar";
+import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-interface HeaderProps {
-  isDarkMode: boolean;
-  setIsDarkMode: (value: boolean) => void;
-}
+export default function Header() {
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
-export default function Header({ isDarkMode, setIsDarkMode }: HeaderProps) {
+  const handleSearch = (value: string) => {
+    // Handle search functionality here
+    console.log("Searching for:", value);
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
@@ -32,38 +55,82 @@ export default function Header({ isDarkMode, setIsDarkMode }: HeaderProps) {
                 ></path>
               </svg>
             </div>
+            <Link href="/" className="text-xl font-bold text-pink-500">
+              HiringCafe
+            </Link>
           </div>
 
-          {/* Search Bars */}
+          {/* Search Bar */}
           <div className="flex-1 mx-8">
             <div className="flex space-x-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search"
-                  className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
-                />
-              </div>
+              <SearchBar onSearch={handleSearch} />
             </div>
           </div>
 
           {/* Right Side */}
           <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="border-gray-200 dark:border-gray-600"
-            >
-              {isDarkMode ? (
-                <Sun className="w-4 h-4 stroke-[1.5px] text-gray-600 dark:text-gray-300" />
-              ) : (
-                <Moon className="w-4 h-4 stroke-[1.5px] text-gray-600 dark:text-gray-300" />
-              )}
-            </Button>
-            <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-8 h-8 p-0 rounded-full bg-pink-500 hover:bg-pink-600"
+                >
+                  <User className="w-4 h-4 text-white" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem>
+                  <Bookmark className="mr-2 h-4 w-4" />
+                  Saved Searches
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Saved Jobs
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Account
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem>
+                  <Users className="mr-2 h-4 w-4" />
+                  Talent Network
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Inbox
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Building className="mr-2 h-4 w-4" />
+                  Employers
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem>
+                  <Info className="mr-2 h-4 w-4" />
+                  About Us
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Follow on Reddit
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={toggleDarkMode}>
+                  {isDarkMode ? (
+                    <Sun className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Moon className="mr-2 h-4 w-4" />
+                  )}
+                  {isDarkMode ? "Light Mode" : "Dark Mode"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

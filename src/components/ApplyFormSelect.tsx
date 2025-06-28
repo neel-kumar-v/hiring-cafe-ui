@@ -12,12 +12,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import React, { useState } from "react";
+import { useDarkMode } from "@/contexts/DarkModeContext";
 
-type ApplyFormSelectProps = {
-  isDarkMode: boolean;
-};
-
-export default function ApplyFormSelect({ isDarkMode }: ApplyFormSelectProps) {
+export default function ApplyFormSelect() {
+  const { isDarkMode } = useDarkMode();
   const [applyFormValue, setApplyFormValue] = useState("all");
 
   return (
