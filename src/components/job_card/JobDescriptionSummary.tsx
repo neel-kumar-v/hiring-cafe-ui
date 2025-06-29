@@ -2,7 +2,7 @@ import React from "react";
 import JobRequirementsSummary from "./JobRequirementsSummary";
 import TechnicalTools from "./TechnicalTools";
 
-const JobDescription = ({
+const JobDescriptionSummary = ({
   requirementsSummary,
   technicalTools,
 }: {
@@ -19,4 +19,4 @@ const JobDescription = ({
   );
 };
 
-export default JobDescription;
+export default JobDescriptionSummary;
