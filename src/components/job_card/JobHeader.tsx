@@ -7,6 +7,13 @@ import {
 } from "@/components/ui/tooltip";
 import { CompensationRange } from "@/types/jobs";
 
+const LocationBadge = ({ location }: { location: string }) => (
+  <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 rounded-md w-fit pl-1 px-2 py-0.5">
+    <MapPin className="w-3 h-3 text-gray-400 dark:text-gray-500" />
+    {location}
+  </span>
+);
+
 const JobHeader = ({
   jobTitle,
   companyName,
@@ -185,6 +192,15 @@ const JobHeader = ({
     return location;
   };
 
+  const getLocations = (location: string) => {
+    // Split by " or " to handle multiple locations
+    const locations = location
+      .split(" or ")
+      .map((loc) => loc.trim())
+      .filter((loc) => loc.length > 0);
+    return locations.map((loc) => getLocation(loc));
+  };
+
   const formatState = (state: string) => {
     const stateAbbreviations: { [key: string]: string } = {
       Alabama: "AL",
@@ -259,10 +275,9 @@ const JobHeader = ({
           {getCleanJobTitle(jobTitle, companyName, location)}
         </h3>
         <span className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1 ">
-          <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 rounded-md w-fit pl-1 px-2 py-0.5">
-            <MapPin className="w-3 h-3 text-gray-400 dark:text-gray-500" />
-            {getLocation(location)}
-          </span>
+          {getLocations(location).map((loc, index) => (
+            <LocationBadge key={index} location={loc} />
+          ))}
           {getCompensation(compensation) && (
             <span className="flex items-center bg-pink-400/75 dark:bg-gray-700/75 rounded-md w-fit pl-1 px-2 py-0.5 text-black dark:text-pink-500/85">
               <DollarSign className="w-3 h-3 " />
