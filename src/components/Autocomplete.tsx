@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
-import Filters from "./Filters";
+import SearchFilters from "./SearchFilters";
 
 interface AutocompleteProps {
   options: string[];
@@ -172,7 +172,7 @@ export default function Autocomplete({
             {/* Filters section */}
             <div className="w-1/2 border-l border-gray-200 dark:border-gray-600 overflow-y-auto">
               <div className="p-3">
-                <Filters />
+                <SearchFilters />
               </div>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function Autocomplete({
             </div>
             <div className="w-64 border-l border-gray-200 dark:border-gray-600 overflow-y-auto">
               <div className="p-3">
-                <Filters />
+                <SearchFilters />
               </div>
             </div>
           </div>

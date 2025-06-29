@@ -5,8 +5,9 @@ import SortPopover from "@/components/SortPopover";
 import DateRangePopover from "@/components/DateRangePopover";
 import ApplyFormSelect from "@/components/ApplyFormSelect";
 import Header from "@/components/Header";
-import Filters from "@/components/Filters";
+import SearchFilters from "@/components/SearchFilters";
 import { useState } from "react";
+import Filters from "@/components/Filters";
 
 export default function Page() {
   const [jobCount, setJobCount] = useState(2057770);
