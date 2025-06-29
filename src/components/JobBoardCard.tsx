@@ -1,23 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Bookmark,
-  Send,
-  ExternalLink,
-  Share2,
-  EyeOff,
-  Flag,
-  Link2,
-} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import jobsData from "@/data/jobs_data.json";
 import { Job, JobCollection } from "@/types/jobs";
 import JobHeader from "./job_card/JobHeader";
@@ -25,31 +9,14 @@ import CompanyInfo from "./job_card/CompanyInfo";
 import JobDescriptionSummary from "./job_card/JobDescriptionSummary";
 import JobStats from "./job_card/JobStats";
 import JobNavigation from "./job_card/JobNavigation";
+import JobContextMenuProvider from "./job_card/JobContextMenuProvider";
 
 const JobContent = ({
   currentJob,
   isTransitioning,
-  isBookmarked,
-  isApplied,
-  currentJobIndex,
-  totalJobs,
-  onBookmarkClick,
-  onApplyClick,
-  onPreviousJob,
-  onNextJob,
-  onJobSelect,
 }: {
   currentJob: Job;
   isTransitioning: boolean;
-  isBookmarked: boolean;
-  isApplied: boolean;
-  currentJobIndex: number;
-  totalJobs: number;
-  onBookmarkClick: (e: React.MouseEvent) => void;
-  onApplyClick: (e: React.MouseEvent) => void;
-  onPreviousJob: () => void;
-  onNextJob: () => void;
-  onJobSelect: (index: number) => void;
 }) => {
   return (
     <div className="flex flex-col h-full">
@@ -100,25 +67,6 @@ const JobContent = ({
             currentJob.v5_processed_job_data.requirements_summary
           }
           technicalTools={currentJob.v5_processed_job_data.technical_tools}
-        />
-      </div>
-
-      <div className="grid grid-cols-3 items-center mt-auto">
-        <JobStats
-          viewedByUsers={currentJob.job_information.viewedByUsers}
-          savedFromUsers={currentJob.job_information.savedFromUsers}
-          appliedFromUsers={currentJob.job_information.appliedFromUsers}
-          isBookmarked={isBookmarked}
-          isApplied={isApplied}
-          onBookmarkToggle={onBookmarkClick}
-          onApplyToggle={onApplyClick}
-        />
-        <JobNavigation
-          currentJobIndex={currentJobIndex}
-          totalJobs={totalJobs}
-          onPrevious={onPreviousJob}
-          onNext={onNextJob}
-          onJobSelect={onJobSelect}
         />
       </div>
     </div>
@@ -196,70 +144,43 @@ export function JobBoardCard({
   };
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <Card
-          key={jobCollection.source_and_board_token}
-          className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-all duration-300 ease-in cursor-pointer"
-        >
-          <CardContent className="p-4 flex flex-col h-full">
-            <JobContent
-              currentJob={currentJob}
-              isTransitioning={isTransitioning}
+    <JobContextMenuProvider
+      currentJob={currentJob}
+      isBookmarked={isBookmarked}
+      isApplied={isApplied}
+      onBookmarkClick={handleBookmarkClick}
+      onApplyClick={handleApplyClick}
+    >
+      <Card
+        key={jobCollection.source_and_board_token}
+        className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-all duration-300 ease-in cursor-pointer"
+      >
+        <CardContent className="p-4 flex flex-col h-full">
+          <JobContent
+            currentJob={currentJob}
+            isTransitioning={isTransitioning}
+          />
+          <div className="grid grid-cols-3 items-center mt-auto">
+            <JobStats
+              viewedByUsers={currentJob.job_information.viewedByUsers}
+              savedFromUsers={currentJob.job_information.savedFromUsers}
+              appliedFromUsers={currentJob.job_information.appliedFromUsers}
               isBookmarked={isBookmarked}
               isApplied={isApplied}
+              onBookmarkToggle={handleBookmarkClick}
+              onApplyToggle={handleApplyClick}
+            />
+            <JobNavigation
               currentJobIndex={currentJobIndex}
               totalJobs={jobCollection.jobs.length}
-              onBookmarkClick={handleBookmarkClick}
-              onApplyClick={handleApplyClick}
-              onPreviousJob={handlePreviousJob}
-              onNextJob={handleNextJob}
+              onPrevious={handlePreviousJob}
+              onNext={handleNextJob}
               onJobSelect={handleJobSelect}
             />
-          </CardContent>
-        </Card>
-      </ContextMenuTrigger>
-      <ContextMenuContent className="min-w-64">
-        <ContextMenuItem onClick={handleBookmarkClick}>
-          {isBookmarked ? (
-            <Bookmark className="mr-2 h-4 w-4 fill-current text-pink-500 dark:text-pink-400" />
-          ) : (
-            <Bookmark className="mr-2 h-4 w-4" />
-          )}
-          {isBookmarked ? "Unsave Job" : "Save Job"}
-        </ContextMenuItem>
-        <ContextMenuItem onClick={handleApplyClick}>
-          {isApplied ? (
-            <Send className="mr-2 h-4 w-4 text-pink-500 dark:text-pink-400 fill-pink-500 dark:fill-pink-400" />
-          ) : (
-            <Send className="mr-2 h-4 w-4" />
-          )}
-          {isApplied ? "Unmark Applied" : "Apply Directly"}
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem>
-          <ExternalLink className="mr-2 h-4 w-4" />
-          View all Jobs from {currentJob.v5_processed_company_data.name}
-        </ContextMenuItem>
-        <ContextMenuItem>
-          <Link2 className="mr-2 h-4 w-4" />
-          Go to Company Website
-        </ContextMenuItem>
-        <ContextMenuItem>
-          <Share2 className="mr-2 h-4 w-4" />
-          Share Job
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem>
-          <EyeOff className="mr-2 h-4 w-4" />
-          Hide Job
-        </ContextMenuItem>
-        <ContextMenuItem>
-          <Flag className="mr-2 h-4 w-4" />
-          Report Job
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+          </div>
+        </CardContent>
+      </Card>
+    </JobContextMenuProvider>
   );
 }
 
