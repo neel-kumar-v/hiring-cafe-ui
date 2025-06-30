@@ -1,0 +1,450 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { CompensationRange } from "@/types/jobs";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+// Job formatting functions moved from JobHeader
+export const getCleanJobTitle = (
+  jobTitle: string,
+  companyName: string,
+  location: string
+): string => {
+  const rawTitle = jobTitle || "";
+  const company = companyName || "";
+
+  let title = rawTitle;
+
+  if (company && title.toLowerCase().includes(company.toLowerCase())) {
+    // Remove company name and any following punctuation/whitespace
+    const regex = new RegExp(
+      company.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:[,-:|]|- | -)*\\s*",
+      "i"
+    );
+    title = title.replace(regex, "");
+  }
+
+  // Remove anything in parentheses (including the parentheses themselves), globally
+  title = title.replace(/\s*\([^)]*\)/g, "").trim();
+
+  // Remove location if present after a dash, comma, or pipe
+  // e.g. "Manager - New York, NY", "Manager | Remote", "Manager, San Francisco"
+  // Only remove if the dash is surrounded by spaces (e.g., " - "), not if it's like "Manager-Remote"
+  title = title.replace(/(?:\s[-|,:]\s+)[\w\s\.,\-&\/\(\)]+$/, "").trim();
+  title = title.replace(location, "").trim();
+
+  // Remove trailing whitespace and punctuation
+  title = title.replace(/[\s\-|,:]+$/, "").trim();
+
+  return title;
+};
+
+// Returns a string like "6h", "2d", "3w", "1mo", "2y" for how long since the date
+export function getTimeSince(dateString: string): string {
+  if (!dateString) return "";
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+
+  if (isNaN(diffMs)) return "";
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30.44); // average month
+  const years = Math.floor(days / 365.25);
+
+  if (years > 0) return `${years}y`;
+  if (months > 0) return `${months}mo`;
+  if (weeks > 0) return `${weeks}w`;
+  if (days > 0) return `${days}d`;
+  if (hours > 0) return `${hours}h`;
+  if (minutes > 0) return `${minutes}m`;
+  return `${seconds}s`;
+}
+
+export const getCompensation = (compensation: CompensationRange) => {
+  const format = (min: number | null, max: number | null, unit: string) => {
+    const minNum = typeof min === "string" ? parseFloat(min) : min;
+    const maxNum = typeof max === "string" ? parseFloat(max) : max;
+
+    const formatValue = (val: number | null, isHourly = false) => {
+      if (val == null) return null;
+      if (isHourly) {
+        return Math.round(val).toLocaleString();
+      }
+      if (val >= 1000) {
+        const rounded = Math.round(val / 1000);
+        return `${rounded}k`;
+      }
+      return Math.round(val).toLocaleString();
+    };
+
+    const displayUnit = `/${unit}`;
+
+    const isHourly = unit === "hr";
+
+    if (minNum != null && maxNum != null) {
+      if (minNum === maxNum)
+        return `${formatValue(minNum, isHourly)}${displayUnit}`;
+      if (minNum >= 1000 && maxNum >= 1000) {
+        const minRounded = Math.round(minNum / 1000);
+        const maxRounded = Math.round(maxNum / 1000);
+        return `${minRounded}K-${maxRounded}K${displayUnit}`;
+      }
+      return `${formatValue(minNum, isHourly)}-${formatValue(
+        maxNum,
+        isHourly
+      )}${displayUnit}`;
+    }
+    if (minNum != null) return `${formatValue(minNum, isHourly)}${displayUnit}`;
+    if (maxNum != null) return `${formatValue(maxNum, isHourly)}${displayUnit}`;
+    return null;
+  };
+
+  const yearly = format(
+    compensation.yearly_min_compensation,
+    compensation.yearly_max_compensation,
+    "yr"
+  );
+  if (yearly) return yearly;
+
+  const monthly = format(
+    compensation.monthly_min_compensation,
+    compensation.monthly_max_compensation,
+    "mo"
+  );
+  if (monthly) return monthly;
+
+  const biweekly = format(
+    compensation["bi-weekly_min_compensation"],
+    compensation["bi-weekly_max_compensation"],
+    "bi-wk"
+  );
+  if (biweekly) return biweekly;
+
+  const weekly = format(
+    compensation.weekly_min_compensation,
+    compensation.weekly_max_compensation,
+    "wk"
+  );
+  if (weekly) return weekly;
+
+  const daily = format(
+    compensation.daily_min_compensation,
+    compensation.daily_max_compensation,
+    "day"
+  );
+  if (daily) return daily;
+
+  const hourly = format(
+    compensation.hourly_min_compensation,
+    compensation.hourly_max_compensation,
+    "hr"
+  );
+  if (hourly) return hourly;
+
+  return null;
+};
+
+export const getLocation = (location: string) => {
+  const splitLocation = location.split(",");
+  if (splitLocation.length > 2)
+    return splitLocation[0] + ", " + formatState(splitLocation[1]);
+  return location;
+};
+
+export const getLocations = (location: string) => {
+  // Split by " or " to handle multiple locations
+  const locations = location
+    .split(" or ")
+    .map((loc) => loc.trim())
+    .filter((loc) => loc.length > 0);
+  return locations.map((loc) => getLocation(loc));
+};
+
+export const formatState = (state: string) => {
+  const stateAbbreviations: { [key: string]: string } = {
+    Alabama: "AL",
+    Alaska: "AK",
+    Arizona: "AZ",
+    Arkansas: "AR",
+    California: "CA",
+    Colorado: "CO",
+    Connecticut: "CT",
+    Delaware: "DE",
+    Florida: "FL",
+    Georgia: "GA",
+    Hawaii: "HI",
+    Idaho: "ID",
+    Illinois: "IL",
+    Indiana: "IN",
+    Iowa: "IA",
+    Kansas: "KS",
+    Kentucky: "KY",
+    Louisiana: "LA",
+    Maine: "ME",
+    Maryland: "MD",
+    Massachusetts: "MA",
+    Michigan: "MI",
+    Minnesota: "MN",
+    Mississippi: "MS",
+    Missouri: "MO",
+    Montana: "MT",
+    Nebraska: "NE",
+    Nevada: "NV",
+    "New Hampshire": "NH",
+    "New Jersey": "NJ",
+    "New Mexico": "NM",
+    "New York": "NY",
+    "North Carolina": "NC",
+    "North Dakota": "ND",
+    Ohio: "OH",
+    Oklahoma: "OK",
+    Oregon: "OR",
+    Pennsylvania: "PA",
+    "Rhode Island": "RI",
+    "South Carolina": "SC",
+    "South Dakota": "SD",
+    Tennessee: "TN",
+    Texas: "TX",
+    Utah: "UT",
+    Vermont: "VT",
+    Virginia: "VA",
+    Washington: "WA",
+    "West Virginia": "WV",
+    Wisconsin: "WI",
+    Wyoming: "WY",
+    "District of Columbia": "DC",
+  };
+
+  const cleanState = state.trim();
+  const found = Object.entries(stateAbbreviations).find(
+    ([full, abbr]) =>
+      full.toLowerCase() === cleanState.toLowerCase() ||
+      abbr.toLowerCase() === cleanState.toLowerCase()
+  );
+  if (found) {
+    return found[1];
+  }
+  return state;
+};
+
+export const formatCompanyName = (companyName: string) => {
+  if (!companyName) return "(No Company Name Listed)";
+  return companyName.replace(/\s*\(.*?\)\s*/g, " ").trim();
+};
+
+export const getCompanyAbbreviation = (companyName: string) => {
+  if (!companyName) return "";
+  return companyName
+    .split(" ")
+    .map((word) => {
+      if (!word) return "";
+      let abbrev = word[0];
+      abbrev += word
+        .slice(1)
+        .split("")
+        .filter((c) => c >= "A" && c <= "Z")
+        .join("");
+      return abbrev;
+    })
+    .join("")
+    .slice(0, 4);
+};
+
+export const renderCompanyAbbreviationGrid = (companyName: string) => {
+  if (companyName.length !== 4) return companyName;
+  const letters = companyName.split("").map((letter) => letter.toUpperCase());
+  return (
+    <span className="inline-grid grid-cols-2 grid-rows-2 gap-x-0.5">
+      <span className="font-bold">{letters[0]}</span>
+      <span className="font-bold">{letters[1]}</span>
+      <span className="font-bold">{letters[2]}</span>
+      <span className="font-bold">{letters[3]}</span>
+    </span>
+  );
+};
+
+export const formatJobDescription = (description: string): string => {
+  if (!description) return "";
+
+  // Decode URL-encoded characters safely
+  let formatted = description;
+  try {
+    formatted = decodeURIComponent(description);
+  } catch {
+    // If decodeURIComponent fails, try to handle common malformed sequences
+    formatted = description
+      .replace(/%[0-9A-Fa-f]{2}/g, (match) => {
+        try {
+          return decodeURIComponent(match);
+        } catch {
+          return match; // Keep original if it can't be decoded
+        }
+      })
+      .replace(/%[^0-9A-Fa-f]/g, ""); // Remove invalid percent sequences
+  }
+
+  // Replace common HTML entities
+  const htmlEntities: { [key: string]: string } = {
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "&#39;": "'",
+    "&apos;": "'",
+    "&nbsp;": " ",
+    "&rsquo;": "'",
+    "&lsquo;": "'",
+    "&rdquo;": '"',
+    "&ldquo;": '"',
+    "&sbquo;": "‚",
+    "&bdquo;": "„",
+    "&hellip;": "...",
+    "&mdash;": "—",
+    "&ndash;": "–",
+    "&copy;": "©",
+    "&reg;": "®",
+    "&trade;": "™",
+    "&deg;": "°",
+    "&plusmn;": "±",
+    "&times;": "×",
+    "&divide;": "÷",
+    "&frac12;": "½",
+    "&frac14;": "¼",
+    "&frac34;": "¾",
+    "&sup1;": "¹",
+    "&sup2;": "²",
+    "&sup3;": "³",
+    "&micro;": "µ",
+    "&para;": "¶",
+    "&sect;": "§",
+    "&bull;": "•",
+    "&middot;": "·",
+    "&dagger;": "†",
+    "&Dagger;": "‡",
+    "&permil;": "‰",
+    "&lsaquo;": "‹",
+    "&rsaquo;": "›",
+    "&euro;": "€",
+    "&larr;": "←",
+    "&rarr;": "→",
+    "&uarr;": "↑",
+    "&darr;": "↓",
+    "&harr;": "↔",
+    "&crarr;": "↵",
+    "&lArr;": "⇐",
+    "&rArr;": "⇒",
+    "&uArr;": "⇑",
+    "&dArr;": "⇓",
+    "&hArr;": "⇔",
+    "&forall;": "∀",
+    "&part;": "∂",
+    "&exist;": "∃",
+    "&empty;": "∅",
+    "&nabla;": "∇",
+    "&isin;": "∈",
+    "&notin;": "∉",
+    "&ni;": "∋",
+    "&prod;": "∏",
+    "&sum;": "∑",
+    "&minus;": "−",
+    "&lowast;": "∗",
+    "&radic;": "√",
+    "&prop;": "∝",
+    "&infin;": "∞",
+    "&ang;": "∠",
+    "&and;": "∧",
+    "&or;": "∨",
+    "&cap;": "∩",
+    "&cup;": "∪",
+    "&int;": "∫",
+    "&there4;": "∴",
+    "&sim;": "∼",
+    "&cong;": "≅",
+    "&asymp;": "≈",
+    "&ne;": "≠",
+    "&equiv;": "≡",
+    "&le;": "≤",
+    "&ge;": "≥",
+    "&sub;": "⊂",
+    "&sup;": "⊃",
+    "&nsub;": "⊄",
+    "&sube;": "⊆",
+    "&supe;": "⊇",
+    "&oplus;": "⊕",
+    "&otimes;": "⊗",
+    "&perp;": "⊥",
+    "&sdot;": "⋅",
+    "&lceil;": "⌈",
+    "&rceil;": "⌉",
+    "&lfloor;": "⌊",
+    "&rfloor;": "⌋",
+    "&lang;": "⟨",
+    "&rang;": "⟩",
+    "&loz;": "◊",
+    "&spades;": "♠",
+    "&clubs;": "♣",
+    "&hearts;": "♥",
+    "&diams;": "♦",
+    "&OElig;": "Œ",
+    "&oelig;": "œ",
+    "&Scaron;": "Š",
+    "&scaron;": "š",
+    "&Yuml;": "Ÿ",
+    "&circ;": "ˆ",
+    "&tilde;": "˜",
+    "&ensp;": " ",
+    "&emsp;": " ",
+    "&thinsp;": " ",
+    "&zwnj;": "",
+    "&zwj;": "",
+    "&lrm;": "",
+    "&rlm;": "",
+  };
+
+  // Replace HTML entities
+  Object.entries(htmlEntities).forEach(([entity, replacement]) => {
+    formatted = formatted.replace(new RegExp(entity, "g"), replacement);
+  });
+
+  // Clean up extra whitespace and line breaks
+  formatted = formatted
+    .replace(/\s+/g, " ") // Replace multiple spaces with single space
+    .replace(/\n\s*\n/g, "\n") // Replace multiple line breaks with single
+    .trim();
+
+
+  formatted = formatted.replace(
+    /style\s*=\s*(['"])(.*?)\1/gi,
+    (match, quote, styleContent) => {
+      // Remove color-related properties from the style attribute
+      const cleaned = styleContent
+        .split(";")
+        .map((rule: string) => rule.trim())
+        .filter((rule: string) => {
+          // Remove if rule starts with any color-related property
+          return !/^(color|background|background-color|background-image|background-gradient|border-color|border-top-color|border-right-color|border-bottom-color|border-left-color|fill|stroke)\s*:/i.test(
+            rule
+          );
+        })
+        .join("; ");
+      // If nothing left, remove the style attribute entirely
+      if (!cleaned.trim()) return "";
+      return `style=${quote}${cleaned}${quote}`;
+    }
+  );
+
+  // Also remove color-related HTML attributes (e.g., color="red", bgcolor="blue")
+  formatted = formatted.replace(
+    /\s*(color|bgcolor|bordercolor|fill|stroke)\s*=\s*(['"])[^'"]*\2/gi,
+    ""
+  );
+
+  return formatted;
+};
