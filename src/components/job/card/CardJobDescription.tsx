@@ -1,10 +1,7 @@
 import React from "react";
 import CardRequirementsSummary from "./CardRequirementsSummary";
 import CardTechnicalTools from "./CardTechnicalTools";
-import {
-  MorphingJobDescription,
-  MorphingJobTechnicalTools,
-} from "@/components/ui/morphing-dialog";
+import { MorphingJobDescription } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const CardJobDescription = ({
@@ -26,15 +23,9 @@ const CardJobDescription = ({
           <CardRequirementsSummary requirementsSummary={requirementsSummary} />
         </div>
       )}
-      {technicalTools &&
-        technicalTools.length > 0 &&
-        (isDesktop ? (
-          <MorphingJobTechnicalTools>
-            <CardTechnicalTools technicalTools={technicalTools} />
-          </MorphingJobTechnicalTools>
-        ) : (
-          <CardTechnicalTools technicalTools={technicalTools} />
-        ))}
+      {technicalTools && technicalTools.length > 0 && (
+        <CardTechnicalTools technicalTools={technicalTools} />
+      )}
     </div>
   );
 };

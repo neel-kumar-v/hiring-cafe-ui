@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import SearchBar from "./SearchBar";
+import SearchBar from "./search/SearchBar";
 import Link from "next/link";
 import {
   DropdownMenu,

@@ -1,8 +1,8 @@
 import React from "react";
 import { getTimeSince } from "@/lib/utils";
 import { MorphingTime, MorphingJobStats } from "../../ui/morphing-dialog";
-import ScrapeTime from "../ScrapeTime";
-import StatGroup from "../StatGroup";
+import ScrapeTime from "../util/ScrapeTime";
+import StatGroup from "../util/StatGroup";
 
 const DialogStats = ({
   publishDate,

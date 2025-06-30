@@ -419,17 +419,17 @@ export const formatJobDescription = (description: string): string => {
     .replace(/\n\s*\n/g, "\n") // Replace multiple line breaks with single
     .trim();
 
-
+  // Consolidated style removal: remove color, font-size, font-family, line-height properties and related HTML attributes
   formatted = formatted.replace(
     /style\s*=\s*(['"])(.*?)\1/gi,
     (match, quote, styleContent) => {
-      // Remove color-related properties from the style attribute
+      // Remove specified CSS properties from the style attribute
       const cleaned = styleContent
         .split(";")
         .map((rule: string) => rule.trim())
         .filter((rule: string) => {
-          // Remove if rule starts with any color-related property
-          return !/^(color|background|background-color|background-image|background-gradient|border-color|border-top-color|border-right-color|border-bottom-color|border-left-color|fill|stroke)\s*:/i.test(
+          // Remove if rule starts with any of the specified properties
+          return !/^(color|background|background-color|background-image|background-gradient|border-color|border-top-color|border-right-color|border-bottom-color|border-left-color|fill|stroke|font-size|font-family|line-height)\s*:/i.test(
             rule
           );
         })
@@ -440,7 +440,7 @@ export const formatJobDescription = (description: string): string => {
     }
   );
 
-  // Also remove color-related HTML attributes (e.g., color="red", bgcolor="blue")
+  // Remove color-related HTML attributes (e.g., color="red", bgcolor="blue")
   formatted = formatted.replace(
     /\s*(color|bgcolor|bordercolor|fill|stroke)\s*=\s*(['"])[^'"]*\2/gi,
     ""

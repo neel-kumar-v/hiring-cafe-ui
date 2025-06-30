@@ -1,7 +1,7 @@
 import React from "react";
 import { MorphingJobStats } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { StatGroup } from "../StatGroup";
+import { StatGroup } from "../util/StatGroup";
 
 const CardStats = ({
   viewedByUsers = [],

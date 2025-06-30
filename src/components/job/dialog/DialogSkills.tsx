@@ -16,7 +16,7 @@ const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
             {technicalTools.map((tool, index) => (
               <span
                 key={index}
-                className="bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg px-3 py-1 text-sm"
+                className="text-black/65 dark:text-pink-400 bg-pink-100 dark:bg-pink-700/50 px-3 py-1 rounded-md text-sm"
               >
                 {tool}
               </span>
@@ -28,7 +28,7 @@ const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
           {technicalTools.map((tool, index) => (
             <span
               key={index}
-              className="bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg px-3 py-1 text-sm"
+              className="text-black/65 dark:text-pink-400 bg-pink-100 dark:bg-pink-700/50 rounded-lg px-3 py-1 text-sm"
             >
               {tool}
             </span>

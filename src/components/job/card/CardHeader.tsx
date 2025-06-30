@@ -9,7 +9,7 @@ import {
 import { getCleanJobTitle, getLocations, getCompensation } from "@/lib/utils";
 import { CompensationRange } from "@/types/jobs";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import ScrapeTime from "../ScrapeTime";
+import ScrapeTime from "../util/ScrapeTime";
 
 const LocationBadge = ({ location }: { location: string }) => (
   <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs">

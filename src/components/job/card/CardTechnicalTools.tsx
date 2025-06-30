@@ -12,14 +12,11 @@ const CardTechnicalTools = ({
 
   return (
     <div className="flex items-center flex-wrap gap-1 min-w-0">
-      <MorphingJobTechnicalTools
-        className="flex flex-wrap gap-1 min-w-0"
-        style={{ flex: 1 }}
-      >
+      <MorphingJobTechnicalTools className="flex flex-wrap gap-1 min-w-0">
         {technicalTools.map((skill, skillIndex) => (
           <span
             key={skillIndex}
-            className="text-xs text-black/65 dark:text-pink-400 truncate max-w-xs bg-pink-100 dark:bg-pink-700/50 px-1.5 py-0.5 rounded-md"
+            className="text-xs max-w-xs truncate cursor-text text-black/65 dark:text-pink-400 bg-pink-100 dark:bg-pink-700/50 px-1.5 py-0.5 rounded-md"
             style={{ whiteSpace: "nowrap" }}
             title={skill}
           >

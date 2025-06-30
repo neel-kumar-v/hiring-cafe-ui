@@ -63,14 +63,33 @@ const CardNavigation = ({
 
   return (
     <div className="flex items-center justify-center space-x-1 cursor-pointer px-2">
+      {/* Left Chevron */}
       <div
         data-nav="left"
-        className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-6 w-6 p-0 cursor-pointer transition-all duration-200 ease-in-out"
+        className={`text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-6 w-6 p-0 cursor-pointer transition-all duration-200 ease-in-out
+          ${totalJobs <= 1 ||
+            (totalJobs === 2 && currentJobIndex === 1) ||
+            (totalJobs === 2 && currentJobIndex === 2)
+            ? ''
+            : 'invisible'}
+          ${(totalJobs === 2 && currentJobIndex === 2) ? '' : (totalJobs === 2 && currentJobIndex === 1) ? 'invisible' : ''}
+        `}
         onClick={handleLeftClick}
+        style={{
+          visibility:
+            totalJobs <= 1
+              ? "hidden"
+              : totalJobs === 2
+                ? currentJobIndex === 2
+                  ? "visible"
+                  : "hidden"
+                : "visible"
+        }}
       >
         <ChevronLeft className="w-3 h-3" />
       </div>
 
+      {/* Dots */}
       <div
         className="flex space-x-1 h-6 items-center"
         onClick={handleGeneralClick}
@@ -88,10 +107,28 @@ const CardNavigation = ({
         ))}
       </div>
 
+      {/* Right Chevron */}
       <div
         data-nav="right"
-        className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-6 w-6 p-0 cursor-pointer transition-all duration-200 ease-in-out"
+        className={`text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-6 w-6 p-0 cursor-pointer transition-all duration-200 ease-in-out
+          ${totalJobs <= 1 ||
+            (totalJobs === 2 && currentJobIndex === 1) ||
+            (totalJobs === 2 && currentJobIndex === 2)
+            ? ''
+            : 'invisible'}
+          ${(totalJobs === 2 && currentJobIndex === 1) ? '' : (totalJobs === 2 && currentJobIndex === 2) ? 'invisible' : ''}
+        `}
         onClick={handleRightClick}
+        style={{
+          visibility:
+            totalJobs <= 1
+              ? "hidden"
+              : totalJobs === 2
+                ? currentJobIndex === 1
+                  ? "visible"
+                  : "hidden"
+                : "visible"
+        }}
       >
         <ChevronRight className="w-3 h-3" />
       </div>
