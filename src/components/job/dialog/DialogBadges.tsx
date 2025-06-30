@@ -43,9 +43,6 @@ const DialogBadges = ({
             </span>
           )
         )}
-        <span className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300">
-          {workType}
-        </span>
         {commitments.map((commitment, index) => (
           <span
             key={index}
@@ -54,16 +51,19 @@ const DialogBadges = ({
             {commitment}
           </span>
         ))}
+        <span className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300">
+          {workType}
+        </span>
         {getCompensation(compensation) &&
           (isDesktop ? (
             <MorphingSalary>
-              <span className="flex items-center gap-2 bg-pink-100 dark:bg-pink-900/20 rounded-lg px-3 py-2 text-pink-700 dark:text-pink-300">
+              <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 dark:bg-gray-700/75 text-black dark:text-pink-500/85">
                 <DollarSign className="w-4 h-4" />
                 {getCompensation(compensation)}
               </span>
             </MorphingSalary>
           ) : (
-            <span className="flex items-center gap-2 bg-pink-100 dark:bg-pink-900/20 rounded-lg px-3 py-2 text-pink-700 dark:text-pink-300">
+            <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 dark:bg-gray-700/75 text-black dark:text-pink-500/85">
               <DollarSign className="w-4 h-4" />
               {getCompensation(compensation)}
             </span>

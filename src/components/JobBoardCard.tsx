@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/morphing-dialog";
 import jobsData from "@/data/jobs_data.json";
 import { Job, JobCollection } from "@/types/jobs";
-import JobHeader from "./job/card/JobHeader";
-import CompanyInfo from "./job/card/CompanyInfo";
-import JobDescriptionSummary from "./job/card/JobDescriptionSummary";
-import JobStats from "./job/card/JobStats";
-import JobNavigation from "./job/card/JobNavigation";
-import JobContextMenuProvider from "./job/card/JobContextMenuProvider";
+import CardHeader from "./job/card/CardHeader";
+import CardCompanyInfo from "./job/card/CardCompanyInfo";
+import CardJobDescription from "./job/card/CardJobDescription";
+import CardStats from "./job/card/CardStats";
+import CardNavigation from "./job/card/CardNavigation";
+import CardContextMenuProvider from "./job/card/CardContextMenuProvider";
 
 // Dialog components
 import {
@@ -247,7 +247,7 @@ const JobCardContent = ({
           isTransitioning ? "opacity-0" : "opacity-100"
         }`}
       >
-        <JobHeader
+        <CardHeader
           jobTitle={currentJob.job_information.title}
           companyName={currentJob.v5_processed_company_data.name}
           location={
@@ -284,9 +284,9 @@ const JobCardContent = ({
           postedAt={currentJob.v5_processed_job_data.estimated_publish_date}
         />
 
-        <CompanyInfo companyData={currentJob.v5_processed_company_data} />
+        <CardCompanyInfo companyData={currentJob.v5_processed_company_data} />
 
-        <JobDescriptionSummary
+        <CardJobDescription
           requirementsSummary={
             currentJob.v5_processed_job_data.requirements_summary
           }
@@ -384,7 +384,7 @@ export function JobBoardCard({
                 isTransitioning={isTransitioning}
               />
               <div className="grid grid-cols-3 items-center mt-auto">
-                <JobStats
+                <CardStats
                   viewedByUsers={currentJob.job_information.viewedByUsers}
                   savedFromUsers={currentJob.job_information.savedFromUsers}
                   appliedFromUsers={currentJob.job_information.appliedFromUsers}
@@ -399,7 +399,7 @@ export function JobBoardCard({
                     setIsApplied(!isApplied);
                   }}
                 />
-                <JobNavigation
+                <CardNavigation
                   currentJobIndex={currentJobIndex}
                   totalJobs={jobCollection.jobs.length}
                   onPrevious={() =>
@@ -441,7 +441,7 @@ export function JobBoardCard({
         damping: 34,
       }}
     >
-      <JobContextMenuProvider
+      <CardContextMenuProvider
         currentJob={currentJob}
         isBookmarked={isBookmarked}
         isApplied={isApplied}
@@ -464,7 +464,7 @@ export function JobBoardCard({
                 isTransitioning={isTransitioning}
               />
               <div className="grid grid-cols-3 items-center mt-auto">
-                <JobStats
+                <CardStats
                   viewedByUsers={currentJob.job_information.viewedByUsers}
                   savedFromUsers={currentJob.job_information.savedFromUsers}
                   appliedFromUsers={currentJob.job_information.appliedFromUsers}
@@ -473,7 +473,7 @@ export function JobBoardCard({
                   onBookmarkToggle={handleBookmarkClick}
                   onApplyToggle={handleApplyClick}
                 />
-                <JobNavigation
+                <CardNavigation
                   currentJobIndex={currentJobIndex}
                   totalJobs={jobCollection.jobs.length}
                   onPrevious={handlePreviousJob}
@@ -484,7 +484,7 @@ export function JobBoardCard({
             </CardContent>
           </Card>
         </MorphingDialogTrigger>
-      </JobContextMenuProvider>
+      </CardContextMenuProvider>
 
       <MorphingDialogContainer>
         <MorphingDialogContent

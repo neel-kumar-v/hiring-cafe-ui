@@ -42,7 +42,7 @@ const SalaryBadge = ({ compensation }: { compensation: CompensationRange }) => {
   );
 };
 
-const JobHeader = ({
+const CardHeader = ({
   jobTitle,
   companyName,
   location,
@@ -109,4 +109,4 @@ const JobHeader = ({
   );
 };
 
-export default JobHeader;
+export default CardHeader;

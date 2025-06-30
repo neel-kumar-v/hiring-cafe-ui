@@ -1,13 +1,13 @@
 import React from "react";
-import JobRequirementsSummary from "./JobRequirementsSummary";
-import TechnicalTools from "./TechnicalTools";
+import CardRequirementsSummary from "./CardRequirementsSummary";
+import CardTechnicalTools from "./CardTechnicalTools";
 import {
   MorphingJobDescription,
   MorphingJobTechnicalTools,
 } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-const JobDescriptionSummary = ({
+const CardJobDescription = ({
   requirementsSummary,
   technicalTools,
 }: {
@@ -19,24 +19,24 @@ const JobDescriptionSummary = ({
     <div className="mb-3 flex flex-col gap-2">
       {isDesktop ? (
         <MorphingJobDescription>
-          <JobRequirementsSummary requirementsSummary={requirementsSummary} />
+          <CardRequirementsSummary requirementsSummary={requirementsSummary} />
         </MorphingJobDescription>
       ) : (
         <div>
-          <JobRequirementsSummary requirementsSummary={requirementsSummary} />
+          <CardRequirementsSummary requirementsSummary={requirementsSummary} />
         </div>
       )}
       {technicalTools &&
         technicalTools.length > 0 &&
         (isDesktop ? (
           <MorphingJobTechnicalTools>
-            <TechnicalTools technicalTools={technicalTools} />
+            <CardTechnicalTools technicalTools={technicalTools} />
           </MorphingJobTechnicalTools>
         ) : (
-          <TechnicalTools technicalTools={technicalTools} />
+          <CardTechnicalTools technicalTools={technicalTools} />
         ))}
     </div>
   );
 };
 
-export default JobDescriptionSummary;
+export default CardJobDescription;

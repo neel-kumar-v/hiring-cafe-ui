@@ -1,7 +1,7 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const JobNavigation = ({
+const CardNavigation = ({
   currentJobIndex,
   totalJobs,
   onPrevious,
@@ -17,15 +17,14 @@ const JobNavigation = ({
   const handleGeneralClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     const container = e.currentTarget;
-    const dots = Array.from(container.querySelectorAll("[data-dot-index]")) as HTMLElement[];
-    const left = container.querySelector('[data-nav="left"]') as HTMLElement | null;
-    const right = container.querySelector('[data-nav="right"]') as HTMLElement | null;
+    const dots = Array.from(
+      container.querySelectorAll("[data-dot-index]")
+    ) as HTMLElement[];
     const clickX = e.clientX;
     const clickY = e.clientY;
 
     type Target = {
       el: HTMLElement;
-      type: "dot" | "left" | "right";
       index?: number;
     };
     const targets: Target[] = [
@@ -34,8 +33,6 @@ const JobNavigation = ({
         type: "dot" as const,
         index: Number(dot.dataset.dotIndex),
       })),
-      ...(left ? [{ el: left, type: "left" as const }] : []),
-      ...(right ? [{ el: right, type: "right" as const }] : []),
     ];
 
     const closest = targets.reduce(
@@ -50,30 +47,34 @@ const JobNavigation = ({
       { target: null as Target | null, dist: Infinity }
     );
 
-    if (closest.target) {
-      if (closest.target.type === "dot" && typeof closest.target.index === "number") {
-        onJobSelect(closest.target.index);
-      } else if (closest.target.type === "left") {
-        onPrevious();
-      } else if (closest.target.type === "right") {
-        onNext();
-      }
-    }
+    if (!closest.target || typeof closest.target.index !== "number") return;
+    onJobSelect(closest.target.index);
+  };
+
+  const handleLeftClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    onPrevious();
+  };
+
+  const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    onNext();
   };
 
   return (
-    <div
-      className="flex items-center justify-center space-x-1 cursor-pointer"
-      onClick={handleGeneralClick}
-    >
+    <div className="flex items-center justify-center space-x-1 cursor-pointer px-2">
       <div
         data-nav="left"
         className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-6 w-6 p-0 cursor-pointer transition-all duration-200 ease-in-out"
+        onClick={handleLeftClick}
       >
         <ChevronLeft className="w-3 h-3" />
       </div>
 
-      <div className="flex space-x-1">
+      <div
+        className="flex space-x-1 h-6 items-center"
+        onClick={handleGeneralClick}
+      >
         {Array.from({ length: totalJobs }).map((_, jobIndex) => (
           <div
             key={jobIndex}
@@ -90,6 +91,7 @@ const JobNavigation = ({
       <div
         data-nav="right"
         className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-6 w-6 p-0 cursor-pointer transition-all duration-200 ease-in-out"
+        onClick={handleRightClick}
       >
         <ChevronRight className="w-3 h-3" />
       </div>
@@ -97,4 +99,4 @@ const JobNavigation = ({
   );
 };
 
-export default JobNavigation;
+export default CardNavigation;

@@ -1,6 +1,6 @@
 import React from "react";
 
-const JobRequirementsSummary = ({
+const CardRequirementsSummary = ({
   requirementsSummary,
 }: {
   requirementsSummary: string;
@@ -12,4 +12,4 @@ const JobRequirementsSummary = ({
   );
 };
 
-export default JobRequirementsSummary;
+export default CardRequirementsSummary;

@@ -1,8 +1,22 @@
 import { Job } from "@/types/jobs";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { Bookmark, Send, ExternalLink, Share2, EyeOff, Flag, Link2 } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  Bookmark,
+  Send,
+  ExternalLink,
+  Share2,
+  EyeOff,
+  Flag,
+  Link2,
+} from "lucide-react";
 
-const JobContextMenuProvider = ({
+const CardContextMenuProvider = ({
   children,
   currentJob,
   isBookmarked,
@@ -64,4 +78,4 @@ const JobContextMenuProvider = ({
   );
 };
 
-export default JobContextMenuProvider;
+export default CardContextMenuProvider;

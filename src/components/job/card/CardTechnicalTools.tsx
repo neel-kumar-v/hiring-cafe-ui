@@ -1,7 +1,11 @@
 import React from "react";
 import { MorphingJobTechnicalTools } from "../../ui/morphing-dialog";
 
-const TechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
+const CardTechnicalTools = ({
+  technicalTools,
+}: {
+  technicalTools: string[];
+}) => {
   if (!technicalTools || technicalTools.length === 0) {
     return null;
   }
@@ -27,4 +31,4 @@ const TechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
   );
 };
 
-export default TechnicalTools;
+export default CardTechnicalTools;

@@ -4,7 +4,7 @@ import { MorphingTime, MorphingJobStats } from "../../ui/morphing-dialog";
 import ScrapeTime from "../ScrapeTime";
 import StatGroup from "../StatGroup";
 
-const DialogTime = ({
+const DialogStats = ({
   publishDate,
   viewedByUsers,
   savedFromUsers,
@@ -38,7 +38,7 @@ const DialogTime = ({
 
       <MorphingJobStats className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
         <StatGroup
-          viewedCount={viewedByUsers?.length || 0}
+          viewedCount={(viewedByUsers?.length || 0) + 1}
           savedCount={savedFromUsers?.length || 0}
           appliedCount={appliedFromUsers?.length || 0}
           isBookmarked={isBookmarked}
@@ -53,4 +53,4 @@ const DialogTime = ({
   );
 };
 
-export default DialogTime;
+export default DialogStats;

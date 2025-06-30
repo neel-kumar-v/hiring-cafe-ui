@@ -3,7 +3,7 @@ import { MorphingJobStats } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { StatGroup } from "../StatGroup";
 
-const JobStats = ({
+const CardStats = ({
   viewedByUsers = [],
   savedFromUsers = [],
   appliedFromUsers = [],
@@ -70,4 +70,4 @@ const JobStats = ({
   );
 };
 
-export default JobStats;
+export default CardStats;

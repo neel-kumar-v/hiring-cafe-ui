@@ -17,7 +17,7 @@ import {
   formatCompanyName,
 } from "@/lib/utils";
 
-const CompanyInfo = ({
+const CardCompanyInfo = ({
   companyData,
 }: {
   companyData: V5ProcessedCompanyData;
@@ -92,7 +92,7 @@ const CompanyInfo = ({
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-fit font-medium text-gray-900 dark:text-white text-sm line-clamp-1 hover:underline transition-all duration-200 inline-flex items-center"
+                    className="w-fit font-medium text-gray-900 dark:text-white text-sm line-clamp-1 hover:underline inline-flex items-center"
                     tabIndex={0}
                     style={{ overflow: "visible" }}
                     onClick={(e) => {
@@ -150,4 +150,4 @@ const CompanyInfo = ({
   );
 };
 
-export default CompanyInfo;
+export default CardCompanyInfo;

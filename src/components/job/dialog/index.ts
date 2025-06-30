@@ -5,5 +5,5 @@ export { default as DialogRequirements } from "./DialogRequirements";
 export { default as DialogSkills } from "./DialogSkills";
 export { default as DialogJobDescription } from "./DialogJobDescription";
 export { default as DialogFooter } from "./DialogFooter";
-export { default as DialogTime } from "./DialogTime";
+export { default as DialogStats } from "./DialogStats";
 export { default as DialogCompanyLogoCard } from "./DialogCompanyLogoCard";
