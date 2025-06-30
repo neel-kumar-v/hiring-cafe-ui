@@ -2,6 +2,7 @@ import { Job, JobCollection } from "@/types/jobs";
 import jobsData from "@/data/jobs_data.json";
 import { useState, useEffect } from "react";
 import JobBoardCard from "./job/JobBoardCard";
+import JobBoardCardSkeleton from "./job/JobBoardCardSkeleton";
 
 const JobBoard = () => {
   const [jobCollections, setJobCollections] = useState<JobCollection[]>([]);
@@ -37,7 +38,13 @@ const JobBoard = () => {
   }, [setJobCollections]);
 
   if (jobCollections.length === 0) {
-    return <div>Loading...</div>;
+    return (
+      <>
+        {Array.from({ length: 12 }).map((_, index) => (
+          <JobBoardCardSkeleton key={index} />
+        ))}
+      </>
+    );
   }
 
   return (
