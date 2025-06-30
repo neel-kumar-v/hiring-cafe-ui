@@ -1,0 +1,9 @@
+export { default as DialogJobTitle } from "./DialogJobTitle";
+export { default as DialogCompanyDescription } from "./DialogCompanyDescription";
+export { default as DialogBadges } from "./DialogBadges";
+export { default as DialogRequirements } from "./DialogRequirements";
+export { default as DialogSkills } from "./DialogSkills";
+export { default as DialogJobDescription } from "./DialogJobDescription";
+export { default as DialogFooter } from "./DialogFooter";
+export { default as DialogTime } from "./DialogTime";
+export { default as DialogCompanyLogoCard } from "./DialogCompanyLogoCard";

@@ -1,4 +1,5 @@
 import React from "react";
+import { MorphingJobTechnicalTools } from "../../ui/morphing-dialog";
 
 const TechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
   if (!technicalTools || technicalTools.length === 0) {
@@ -7,7 +8,10 @@ const TechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
 
   return (
     <div className="flex items-center flex-wrap gap-1 min-w-0">
-      <div className="flex flex-wrap gap-1 min-w-0" style={{ flex: 1 }}>
+      <MorphingJobTechnicalTools
+        className="flex flex-wrap gap-1 min-w-0"
+        style={{ flex: 1 }}
+      >
         {technicalTools.map((skill, skillIndex) => (
           <span
             key={skillIndex}
@@ -18,7 +22,7 @@ const TechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
             {skill.charAt(0).toUpperCase() + skill.slice(1)}
           </span>
         ))}
-      </div>
+      </MorphingJobTechnicalTools>
     </div>
   );
 };

@@ -1,35 +1,35 @@
-import React from "react";
-import { Eye, Bookmark, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Bookmark, Send, Eye } from "lucide-react";
 import StatIcon from "./StatIcon";
+import { cn } from "@/lib/utils";
 
-const JobStats = ({
-  viewedByUsers = [],
-  savedFromUsers = [],
-  appliedFromUsers = [],
-  isBookmarked = false,
-  isApplied = false,
-  onBookmarkToggle,
-  onApplyToggle,
+export const StatGroup = ({
+  viewedCount,
+  savedCount,
+  appliedCount,
+  isBookmarked,
+  isApplied,
+  handleBookmarkClick,
+  handleApplyClick,
+  iconClassName="w-3 h-3",
+  textClassName="text-sm",
 }: {
-  viewedByUsers?: string[];
-  savedFromUsers?: string[];
-  appliedFromUsers?: string[];
-  isBookmarked?: boolean;
-  isApplied?: boolean;
-  onBookmarkToggle: (e: React.MouseEvent) => void;
-  onApplyToggle: (e: React.MouseEvent) => void;
+  viewedCount: number;
+  savedCount: number;
+  appliedCount: number;
+  isBookmarked: boolean;
+  isApplied: boolean;
+  handleBookmarkClick: (e: React.MouseEvent) => void;
+  handleApplyClick: (e: React.MouseEvent) => void;
+  iconClassName?: string;
+  textClassName?: string;
 }) => {
-  const viewedCount = viewedByUsers.length + 1; // +1 for current user
-  const savedCount = savedFromUsers.length + (isBookmarked ? 1 : 0);
-  const appliedCount = appliedFromUsers.length + (isApplied ? 1 : 0);
-
   return (
-    <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+    <>
       <StatIcon
         icon={Eye}
         count={viewedCount}
@@ -43,14 +43,14 @@ const JobStats = ({
         <TooltipTrigger asChild>
           <span
             className="flex items-center space-x-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            onClick={onBookmarkToggle}
+            onClick={handleBookmarkClick}
           >
             {isBookmarked ? (
-              <Bookmark className="w-3 h-3 inline text-pink-500 dark:text-pink-400 fill-current" />
+              <Bookmark className={cn("inline text-pink-500 dark:text-pink-400 fill-current", iconClassName)} />
             ) : (
-              <Bookmark className="w-3 h-3 inline text-gray-500 dark:text-gray-400" />
+              <Bookmark className={cn("inline text-gray-500 dark:text-gray-400", iconClassName)} />
             )}
-            <span>{savedCount}</span>
+            <span className={textClassName}>{savedCount}</span>
           </span>
         </TooltipTrigger>
         <TooltipContent>
@@ -67,14 +67,14 @@ const JobStats = ({
         <TooltipTrigger asChild>
           <span
             className="flex items-center space-x-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            onClick={onApplyToggle}
+            onClick={handleApplyClick}
           >
             {isApplied ? (
-              <Send className="w-3 h-3 inline text-pink-500 dark:text-pink-400 fill-pink-500 dark:fill-pink-400" />
+              <Send className={cn("inline text-pink-500 dark:text-pink-400 fill-pink-500 dark:fill-pink-400", iconClassName)} />
             ) : (
-              <Send className="w-3 h-3 inline text-gray-500 dark:text-gray-400" />
+              <Send className={cn("inline text-gray-500 dark:text-gray-400", iconClassName)} />
             )}
-            <span>{appliedCount}</span>
+            <span className={textClassName}>{appliedCount}</span>
           </span>
         </TooltipTrigger>
         <TooltipContent>
@@ -87,8 +87,8 @@ const JobStats = ({
           </p>
         </TooltipContent>
       </Tooltip>
-    </div>
+    </>
   );
 };
 
-export default JobStats;
+export default StatGroup;

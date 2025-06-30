@@ -41,6 +41,10 @@ function useMorphingDialog() {
   return context;
 }
 
+function useMorphingDialogSafe() {
+  return useContext(MorphingDialogContext);
+}
+
 export type MorphingDialogProviderProps = {
   children: React.ReactNode;
   transition?: Transition;
@@ -257,94 +261,6 @@ function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
   );
 }
 
-export type MorphingDialogTitleProps = {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-};
-
-function MorphingDialogTitle({
-  children,
-  className,
-  style,
-}: MorphingDialogTitleProps) {
-  const { uniqueId } = useMorphingDialog();
-
-  return (
-    <motion.div
-      layoutId={`dialog-title-container-${uniqueId}`}
-      className={className}
-      style={style}
-      layout
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export type MorphingDialogSubtitleProps = {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-};
-
-function MorphingDialogSubtitle({
-  children,
-  className,
-  style,
-}: MorphingDialogSubtitleProps) {
-  const { uniqueId } = useMorphingDialog();
-
-  return (
-    <motion.div
-      layoutId={`dialog-subtitle-container-${uniqueId}`}
-      className={className}
-      style={style}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export type MorphingDialogDescriptionProps = {
-  children: React.ReactNode;
-  className?: string;
-  disableLayoutAnimation?: boolean;
-  variants?: {
-    initial: Variant;
-    animate: Variant;
-    exit: Variant;
-  };
-};
-
-function MorphingDialogDescription({
-  children,
-  className,
-  variants,
-  disableLayoutAnimation,
-}: MorphingDialogDescriptionProps) {
-  const { uniqueId } = useMorphingDialog();
-
-  return (
-    <motion.div
-      key={`dialog-description-${uniqueId}`}
-      layoutId={
-        disableLayoutAnimation
-          ? undefined
-          : `dialog-description-content-${uniqueId}`
-      }
-      variants={variants}
-      className={className}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      id={`dialog-description-${uniqueId}`}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 export type MorphingDialogImageProps = {
   src: string;
   alt: string;
@@ -368,6 +284,295 @@ function MorphingDialogImage({
       layoutId={`dialog-img-${uniqueId}`}
       style={style}
     />
+  );
+}
+
+// Custom morphing components for job cards
+export type MorphingJobTitleProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingJobTitle({
+  children,
+  className,
+  style,
+}: MorphingJobTitleProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-title-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingLocationProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingLocation({
+  children,
+  className,
+  style,
+}: MorphingLocationProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-location-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingSalaryProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingSalary({
+  children,
+  className,
+  style,
+}: MorphingSalaryProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-salary-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingCompanyLogoProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingCompanyLogo({
+  children,
+  className,
+  style,
+}: MorphingCompanyLogoProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`company-logo-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingTimeProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingTime({
+  children,
+  className,
+  style,
+}: MorphingTimeProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-time-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingCompanyNameProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingCompanyName({
+  children,
+  className,
+  style,
+}: MorphingCompanyNameProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`company-name-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingJobDescriptionProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingJobDescription({
+  children,
+  className,
+  style,
+}: MorphingJobDescriptionProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-description-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingJobTechnicalToolsProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingJobTechnicalTools({
+  children,
+  className,
+  style,
+}: MorphingJobTechnicalToolsProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-technical-tools-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingJobStatsProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingJobStats({
+  children,
+  className,
+  style,
+}: MorphingJobStatsProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-stats-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -398,7 +603,10 @@ function MorphingDialogClose({
       type="button"
       aria-label="Close dialog"
       key={`dialog-close-${uniqueId}`}
-      className={cn("absolute top-6 right-6", className)}
+      className={cn(
+        "absolute top-6 right-6 rounded-full p-2 z-30 hover:bg-black/20 dark:hover:bg-white/20 transition-colors duration-300 ease-in-out",
+        className
+      )}
       initial="initial"
       animate="animate"
       exit="exit"
@@ -415,8 +623,5 @@ export {
   MorphingDialogContainer,
   MorphingDialogContent,
   MorphingDialogClose,
-  MorphingDialogTitle,
-  MorphingDialogSubtitle,
-  MorphingDialogDescription,
   MorphingDialogImage,
 };
