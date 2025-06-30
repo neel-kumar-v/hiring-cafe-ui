@@ -1,5 +1,6 @@
 import React from "react";
 import { MorphingJobTechnicalTools } from "../../ui/morphing-dialog";
+import { formatTool } from "@/lib/utils";
 
 const CardTechnicalTools = ({
   technicalTools,
@@ -20,7 +21,7 @@ const CardTechnicalTools = ({
             style={{ whiteSpace: "nowrap" }}
             title={skill}
           >
-            {skill.charAt(0).toUpperCase() + skill.slice(1)}
+            {formatTool(skill)}
           </span>
         ))}
       </MorphingJobTechnicalTools>

@@ -1,6 +1,7 @@
 import React from "react";
 import { MorphingJobTechnicalTools } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { formatTool } from "@/lib/utils";
 
 const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
   const isDesktop = useMediaQuery("(min-width: 640px)");
@@ -18,7 +19,7 @@ const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
                 key={index}
                 className="text-black/65 dark:text-pink-400 bg-pink-100 dark:bg-pink-700/50 px-3 py-1 rounded-md text-sm"
               >
-                {tool}
+                {formatTool(tool)}
               </span>
             ))}
           </div>
@@ -30,7 +31,7 @@ const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
               key={index}
               className="text-black/65 dark:text-pink-400 bg-pink-100 dark:bg-pink-700/50 rounded-lg px-3 py-1 text-sm"
             >
-              {tool}
+              {formatTool(tool)}
             </span>
           ))}
         </div>

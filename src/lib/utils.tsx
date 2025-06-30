@@ -448,3 +448,11 @@ export const formatJobDescription = (description: string): string => {
 
   return formatted;
 };
+
+export const formatTool = (tool: string) => {
+  if (!tool) return tool;
+  return tool
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
