@@ -58,15 +58,10 @@ export const DialogActionButtons = ({
         {isBookmarked ? "Saved" : "Save"}
       </Button>
 
-      <Button variant="outline" size="sm" className="flex items-center gap-2">
-        <BookUser className="w-4 h-4" />
-        Contact Recruiter
-      </Button>
-
       <Button
         variant="outline"
         size="sm"
-        className="flex items-center gap-2 text-pink-700 dark:text-white hover:text-white dark:hover:text-white border-pink-500 hover:bg-pink-600 hover:border-pink-600"
+        className="flex items-center gap-2 text-pink-700 dark:text-pink-400 hover:text-white dark:hover:text-white border-pink-500 dark:border-pink-400 hover:bg-pink-600 hover:border-pink-600 dark:hover:bg-pink-800 dark:hover:border-pink-800"
       >
         <Send className="w-4 h-4" />
         Apply Now
@@ -83,6 +78,11 @@ export const DialogActionButtons = ({
       </Button>
 
       <div className="mx-1 bg-border w-px min-h-[2rem] align-self-stretch" />
+
+      <Button variant="outline" size="sm" className="flex items-center gap-2">
+        <BookUser className="w-4 h-4" />
+        Contact Recruiter
+      </Button>
 
       <Button variant="outline" size="sm" className="flex items-center gap-2">
         <Share2 className="w-4 h-4" />
