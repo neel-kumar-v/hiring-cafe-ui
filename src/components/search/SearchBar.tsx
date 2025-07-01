@@ -5,18 +5,13 @@ import {
   MapPin,
   SlidersHorizontal,
   LucideIcon,
+  X,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import jobsData from "@/data/jobs_data.json";
 import { jobTitles as fallbackJobTitles } from "@/data/jobTitles";
 import Autocomplete from "./Autocomplete";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import UniversalTooltip from "../util/UniversalTooltip";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -43,22 +38,15 @@ function SearchBarIcon({
   const isVisible =
     inputValue.trim() === ""
       ? "sm:opacity-100 opacity-0"
-      : "sm:opacity-0 opacity-0";
+      : "sm:opacity-0 opacity-0 cursor-pointer pointer-events-none";
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Icon
-            className={`w-4 h-4 text-gray-400 cursor-pointer hover:text-pink-500 transition-all ${delay} ${isVisible}`}
-            onClick={onClick}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{tooltipContent}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <UniversalTooltip content={tooltipContent}>
+      <Icon
+        className={`w-4 h-4 text-gray-400 cursor-pointer hover:text-pink-500 transition-all ${delay} ${isVisible}`}
+        onClick={onClick}
+      />
+    </UniversalTooltip>
   );
 }
 
@@ -110,7 +98,7 @@ export default function SearchBar({
         maxVisible={7}
         maxTotal={20}
       />
-      <div className="flex gap-1.5 absolute right-3 top-1/2 -translate-y-1/2 z-10">
+      <div className="flex gap-1.5 absolute justify-end right-3 top-1/2 -translate-y-1/2 z-10">
         <SearchBarIcon
           icon={MapPin}
           tooltipContent="Location"
@@ -121,26 +109,34 @@ export default function SearchBar({
           icon={DollarSign}
           tooltipContent="Salary"
           inputValue={inputValue}
-          delay="delay-100"
+          delay="delay-100 hover:delay-0"
         />
         <SearchBarIcon
           icon={BriefcaseBusiness}
           tooltipContent="Job Type"
           inputValue={inputValue}
-          delay="delay-200"
+          delay="delay-200 hover:delay-0"
         />
         <SearchBarIcon
           icon={SlidersHorizontal}
           tooltipContent="Filters"
           inputValue={inputValue}
-          delay="delay-300"
+          delay="delay-300 hover:delay-0"
         />
         <SearchBarIcon
           icon={BookMarked}
           tooltipContent="Saved"
           inputValue={inputValue}
-          delay="delay-400"
+          delay="delay-400 hover:delay-0"
         />
+        {inputValue && (
+          <UniversalTooltip content="Delete Search">
+            <X
+              className={`w-4 h-4 text-gray-400 cursor-pointer hover:text-pink-500 transition-all`}
+              onClick={() => setInputValue("")}
+            />
+          </UniversalTooltip>
+        )}
       </div>
     </div>
   );

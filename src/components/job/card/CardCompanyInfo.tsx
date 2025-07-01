@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import { Link2, ExternalLink } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import UniversalTooltip from "../../util/UniversalTooltip";
 import {
   MorphingCompanyLogo,
   MorphingCompanyName,
@@ -80,56 +76,50 @@ const CardCompanyInfo = ({
         <div className="overflow-visible whitespace-nowrap group-hover:backdrop-blur-xl rounded group-hover:w-fit">
           {companyData.name ? (
             <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <a
-                    href={
-                      companyData.website
-                        ? companyData.website.startsWith("http")
-                          ? companyData.website
-                          : `https://${companyData.website}`
-                        : "#"
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-fit font-medium text-gray-900 dark:text-white text-sm line-clamp-1 hover:underline inline-flex items-center"
-                    tabIndex={0}
-                    style={{ overflow: "visible" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+              <UniversalTooltip content="Visit company site">
+                <a
+                  href={
+                    companyData.website
+                      ? companyData.website.startsWith("http")
+                        ? companyData.website
+                        : `https://${companyData.website}`
+                      : "#"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-fit font-medium text-gray-900 dark:text-white text-sm line-clamp-1 hover:underline inline-flex items-center"
+                  tabIndex={0}
+                  style={{ overflow: "visible" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <span
+                    className="flex items-center transition-all duration-300 ease-out group-hover:translate-x-0 -translate-x-3   opacity-0 group-hover:opacity-100 -mr-3 group-hover:-mr-1"
+                    aria-hidden="true"
                   >
-                    <span
-                      className="flex items-center transition-all duration-300 ease-out group-hover:translate-x-0 -translate-x-3   opacity-0 group-hover:opacity-100 -mr-3 group-hover:-mr-1"
-                      aria-hidden="true"
-                    >
-                      <Link2 className="size-3 text-gray-400 dark:text-gray-300 -rotate-45" />
-                    </span>
-                    <MorphingCompanyName className="transition-transform duration-300 ease-out group-hover:translate-x-2 inline-block">
-                      {formatCompanyName(companyData.name)}
-                    </MorphingCompanyName>
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent>Visit company site</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className="ml-2 group-hover:ml-4 opacity-0 group-hover:opacity-100 transition-all duration-200 text-gray-500 dark:text-pink-400 dark:hover:text-pink-300 p-1 h-auto hover:underline font-normal text-xs leading-none inline-flex items-center gap-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      // Handle view all jobs logic here
-                    }}
-                  >
-                    <ExternalLink className="size-3 text-gray-400 dark:text-gray-300" />
-                    View All
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  View all jobs from {companyData.name}
-                </TooltipContent>
-              </Tooltip>
+                    <Link2 className="size-3 text-gray-400 dark:text-gray-300 -rotate-45" />
+                  </span>
+                  <MorphingCompanyName className="transition-transform duration-300 ease-out group-hover:translate-x-2 inline-block">
+                    {formatCompanyName(companyData.name)}
+                  </MorphingCompanyName>
+                </a>
+              </UniversalTooltip>
+              <UniversalTooltip
+                content={`View all jobs from ${companyData.name}`}
+              >
+                <div
+                  className="ml-2 group-hover:ml-4 opacity-0 group-hover:opacity-100 transition-all duration-200 text-gray-500 dark:text-pink-400 dark:hover:text-pink-300 p-1 h-auto hover:underline font-normal text-xs leading-none inline-flex items-center gap-1"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Handle view all jobs logic here
+                  }}
+                >
+                  <ExternalLink className="size-3 text-gray-400 dark:text-gray-300" />
+                  View All
+                </div>
+              </UniversalTooltip>
             </>
           ) : isDesktop ? (
             <MorphingCompanyName className="w-fit font-medium text-gray-900 dark:text-white text-sm line-clamp-1 transition-all duration-200 inline-flex items-center">

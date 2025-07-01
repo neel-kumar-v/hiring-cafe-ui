@@ -1,13 +1,13 @@
 import React from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import UniversalTooltip from "../../util/UniversalTooltip";
 import { cn } from "@/lib/utils";
 
 const StatIcon = ({
   icon: Icon,
   count,
   tooltipText,
-  iconClassName="w-3 h-3",
-  textClassName="text-sm",
+  iconClassName = "w-3 h-3",
+  textClassName = "text-sm",
 }: {
   icon: React.ComponentType<{ className?: string }>;
   count: number;
@@ -16,18 +16,18 @@ const StatIcon = ({
   textClassName?: string;
 }) => {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="flex items-center space-x-1">
-          <Icon className={cn("inline text-gray-500 dark:text-gray-400", iconClassName)} />
-          <span className={textClassName}>{count}</span>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltipText}</p>
-      </TooltipContent>
-    </Tooltip>
+    <UniversalTooltip content={tooltipText}>
+      <span className="flex items-center space-x-1">
+        <Icon
+          className={cn(
+            "inline text-gray-500 dark:text-gray-400",
+            iconClassName
+          )}
+        />
+        <span className={textClassName}>{count}</span>
+      </span>
+    </UniversalTooltip>
   );
 };
 
-export default StatIcon; 
+export default StatIcon;
