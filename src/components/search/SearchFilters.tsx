@@ -25,13 +25,17 @@ const companyTags = [
 ];
 
 export default function SearchFilters() {
-  return (
-    // <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-    //   <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-4">
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
-    //   </div>
-    // </div>
-    <div className="flex flex-wrap gap-2">
+  return (
+    <div
+      className="flex flex-wrap gap-2"
+      onClick={handleClick}
+      onMouseDown={handleClick}
+    >
       {filterTags.map((tag, index) => (
         <Badge
           key={index}
@@ -41,9 +45,9 @@ export default function SearchFilters() {
           {tag}
         </Badge>
       ))}
-      <span className="text-gray-500/25 dark:text-gray-400/25 text-2xl h-min leading-none">
+      {/* <span className="text-gray-500/25 dark:text-gray-400/25 text-2xl h-min leading-none">
         •
-      </span>
+      </span> */}
       {companyTags.map((tag, index) => (
         <Badge
           key={index}

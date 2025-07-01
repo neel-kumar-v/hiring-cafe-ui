@@ -137,7 +137,7 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
         <div onClick={() => setDrawerOpen(true)} className="cursor-pointer">
           <Card
             key={jobCollection.source_and_board_token}
-            className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-all duration-300 ease-in cursor-pointer"
+            className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-shadow transition-colors duration-300 ease-in cursor-pointer"
           >
             <CardContent className="p-4 flex flex-col h-full">
               <JobCardContent
