@@ -4,10 +4,27 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
+import urllib.parse
 
 # --- Configuration ---
-SESSION_URL = "https://hiring.cafe/"
-POST_URL = "https://hiring.cafe/api/search-jobs"
+SEARCH_STATE = (
+    '{"locations":[{"formatted_address":"United States","types":["country"],'
+    '"geometry":{"location":{"lat":"40.0146","lon":"-75.7136"}},'
+    '"id":"user_country","address_components":[{"long_name":"United States",'
+    '"short_name":"US","types":["country"]}],"options":{"flexible_regions":'
+    '["anywhere_in_continent","anywhere_in_world"]}}],"commitmentTypes":'
+    '["Full Time","Part Time","Contract","Internship"],"departments":'
+    '["Engineering","Software Development","Information Technology",'
+    '"Data and Analytics","Product Management"],"roleTypes":'
+    '["Individual Contributor"],"mastersDegreeRequirements":'
+    '["Not Mentioned"],"doctorateDegreeRequirements":["Not Mentioned"],'
+    '"seniorityLevel":["No Prior Experience Required","Entry Level"],'
+    '"jobTitleQuery":"\\"software engineer\\" OR \\"application developer\\" OR \\"frontend developer\\" OR \\"backend engineer\\" OR \\"full stack developer\\" OR \\"android developer\\" OR \\"ios developer\\" OR \\"ai engineer\\""}'
+)
+ENCODED_SEARCH_STATE = urllib.parse.quote(SEARCH_STATE, safe='')
+
+SESSION_URL = f"https://hiring.cafe/?searchState={ENCODED_SEARCH_STATE}"
+POST_URL = f"https://hiring.cafe/api/search-jobs?searchState={ENCODED_SEARCH_STATE}"
 
 # More specific Chrome user agent
 headers = {
