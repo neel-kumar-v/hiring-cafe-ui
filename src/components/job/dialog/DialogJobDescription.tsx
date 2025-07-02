@@ -10,10 +10,46 @@ const DialogJobDescription = ({ description }: { description: string }) => {
 
   const handleCopyDescription = async () => {
     try {
-      // Create a temporary element to get clean text content
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = formatJobDescription(description);
-      const cleanText = tempDiv.textContent || tempDiv.innerText || "";
+      const jobDescriptionElement = document.getElementById("job-description");
+      if (!jobDescriptionElement) return;
+
+      // Helper to recursively extract text with line breaks for block elements
+      function getTextWithLineBreaks(node: Node): string {
+        let text = "";
+        if (node.nodeType === Node.TEXT_NODE) {
+          return (node as Text).data;
+        }
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const tag = (node as HTMLElement).tagName.toLowerCase();
+          const blockTags = [
+            "p",
+            "div",
+            "br",
+            "li",
+            "ul",
+            "ol",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "pre",
+            "blockquote",
+            "tr"
+          ];
+          if (blockTags.includes(tag) && text.length > 0) text += "\n";
+          if (tag === "br") text += "\n";
+          for (const child of Array.from(node.childNodes)) text += getTextWithLineBreaks(child);
+          if (blockTags.includes(tag)) text += "\n";
+        }
+        return text;
+      }
+
+      const cleanText = getTextWithLineBreaks(jobDescriptionElement)
+        .replace(/\n{3,}/g, "\n\n") // Collapse 3+ newlines to 2
+        .replace(/[ \t]+\n/g, "\n") // Remove trailing spaces before newlines
+        .trim();
 
       await navigator.clipboard.writeText(cleanText);
       toast.success("Job description copied to clipboard");
@@ -40,6 +76,7 @@ const DialogJobDescription = ({ description }: { description: string }) => {
       </div>
       <div
         className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-gray dark:prose-invert max-w-none"
+        id="job-description"
         dangerouslySetInnerHTML={{ __html: formatJobDescription(description) }}
       />
     </div>
