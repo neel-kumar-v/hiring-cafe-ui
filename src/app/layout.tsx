@@ -1,40 +1,40 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { DarkModeProvider } from "@/contexts/DarkModeContext";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { DarkModeProvider } from "@/contexts/DarkModeContext";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: "--font-geist-sans",
+	subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+	variable: "--font-geist-mono",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Hiring Cafe Clone",
-  description: "Hiring Cafe Clone",
+	title: "Hiring Cafe Clone",
+	description: "Hiring Cafe Clone",
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <DarkModeProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </DarkModeProvider>
-        <Toaster />
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+			>
+				<DarkModeProvider>
+					<TooltipProvider>{children}</TooltipProvider>
+				</DarkModeProvider>
+				<Toaster />
+			</body>
+		</html>
+	);
 }

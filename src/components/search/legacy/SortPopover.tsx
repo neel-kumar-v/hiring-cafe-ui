@@ -1,98 +1,97 @@
-import { ChevronsUp, ChevronsDown } from "lucide-react";
+import { ChevronsDown, ChevronsUp } from "lucide-react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import React, { useState } from "react";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 
-
 export default function SortPopover() {
-  const { isDarkMode } = useDarkMode();
-  const [sortCategory, setSortCategory] = useState("relevance");
-  const [isAscending, setIsAscending] = useState(true);
+	const { isDarkMode } = useDarkMode();
+	const [sortCategory, setSortCategory] = useState("relevance");
+	const [isAscending, setIsAscending] = useState(true);
 
-  const getSortDisplayText = () => {
-    let orderText;
-    if (sortCategory === "salary") {
-      orderText = isAscending ? "Lowest" : "Highest";
-    } else {
-      orderText = isAscending ? "Most" : "Least";
-    }
-    const categoryText =
-      sortCategory === "relevance"
-        ? "Relevant"
-        : sortCategory === "recent"
-        ? "Recent"
-        : sortCategory === "salary"
-        ? "Salary"
-        : sortCategory === "experience"
-        ? "Experience"
-        : "Relevant";
-    return `${orderText} ${categoryText}`;
-  };
+	const getSortDisplayText = () => {
+		let orderText;
+		if (sortCategory === "salary") {
+			orderText = isAscending ? "Lowest" : "Highest";
+		} else {
+			orderText = isAscending ? "Most" : "Least";
+		}
+		const categoryText =
+			sortCategory === "relevance"
+				? "Relevant"
+				: sortCategory === "recent"
+					? "Recent"
+					: sortCategory === "salary"
+						? "Salary"
+						: sortCategory === "experience"
+							? "Experience"
+							: "Relevant";
+		return `${orderText} ${categoryText}`;
+	};
 
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-fit transition-all duration-300 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white flex items-center space-x-2"
-        >
-          <span>{getSortDisplayText()}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className={`dark:bg-gray-800 dark:border-gray-600 ${
-          isDarkMode ? "dark" : ""
-        }`}
-      >
-        <div className="space-x-3 flex">
-          <div>
-            <Select
-              value={sortCategory}
-              onValueChange={(value) => {
-                setSortCategory(value);
-                if (value === "relevance") {
-                  setIsAscending(true);
-                }
-              }}
-            >
-              <SelectTrigger className="w-full text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className={isDarkMode ? "dark" : ""}>
-                <SelectItem value="relevance">Relevance</SelectItem>
-                <SelectItem value="recent">Recent</SelectItem>
-                <SelectItem value="salary">Salary</SelectItem>
-                <SelectItem value="experience">Experience</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Toggle
-            type="button"
-            className="flex items-center justify-center w-full rounded bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => setIsAscending(!isAscending)}
-            disabled={sortCategory === "relevance"}
-          >
-            {isAscending ? (
-              <ChevronsUp className="size-4" />
-            ) : (
-              <ChevronsDown className="size-4" />
-            )}
-          </Toggle>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<Button
+					className="flex w-fit items-center space-x-2 rounded bg-white text-gray-900 text-sm transition-all duration-300 dark:bg-gray-800 dark:text-white"
+					variant="outline"
+				>
+					<span>{getSortDisplayText()}</span>
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent
+				className={`dark:border-gray-600 dark:bg-gray-800 ${
+					isDarkMode ? "dark" : ""
+				}`}
+			>
+				<div className="flex space-x-3">
+					<div>
+						<Select
+							onValueChange={(value) => {
+								setSortCategory(value);
+								if (value === "relevance") {
+									setIsAscending(true);
+								}
+							}}
+							value={sortCategory}
+						>
+							<SelectTrigger className="w-full border-gray-200 bg-white text-gray-900 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent className={isDarkMode ? "dark" : ""}>
+								<SelectItem value="relevance">Relevance</SelectItem>
+								<SelectItem value="recent">Recent</SelectItem>
+								<SelectItem value="salary">Salary</SelectItem>
+								<SelectItem value="experience">Experience</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<Toggle
+						className="flex w-full items-center justify-center rounded bg-gray-100 text-gray-900 transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+						disabled={sortCategory === "relevance"}
+						onClick={() => setIsAscending(!isAscending)}
+						type="button"
+					>
+						{isAscending ? (
+							<ChevronsUp className="size-4" />
+						) : (
+							<ChevronsDown className="size-4" />
+						)}
+					</Toggle>
+				</div>
+			</PopoverContent>
+		</Popover>
+	);
 }

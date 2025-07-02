@@ -1,32 +1,32 @@
 import React from "react";
-import { MorphingJobTechnicalTools } from "../../ui/morphing-dialog";
 import { formatTool } from "@/lib/utils";
+import { MorphingJobTechnicalTools } from "../../ui/morphing-dialog";
 
 const CardTechnicalTools = ({
-  technicalTools,
+	technicalTools,
 }: {
-  technicalTools: string[];
+	technicalTools: string[];
 }) => {
-  if (!technicalTools || technicalTools.length === 0) {
-    return null;
-  }
+	if (!technicalTools || technicalTools.length === 0) {
+		return null;
+	}
 
-  return (
-    <div className="flex items-center flex-wrap gap-1 min-w-0">
-      <MorphingJobTechnicalTools className="flex flex-wrap gap-1 min-w-0 max-h-12 overflow-y-hidden">
-        {technicalTools.map((skill, skillIndex) => (
-          <span
-            key={skillIndex}
-            className="text-xs max-w-xs truncate cursor-text text-black/65 dark:text-pink-400 bg-pink-100 dark:bg-pink-700/50 px-1.5 py-0.5 rounded-md"
-            style={{ whiteSpace: "nowrap" }}
-            title={skill}
-          >
-            {formatTool(skill)}
-          </span>
-        ))}
-      </MorphingJobTechnicalTools>
-    </div>
-  );
+	return (
+		<div className="flex min-w-0 flex-wrap items-center gap-1">
+			<MorphingJobTechnicalTools className="flex max-h-12 min-w-0 flex-wrap gap-1 overflow-y-hidden">
+				{technicalTools.map((skill, skillIndex) => (
+					<span
+						className="max-w-xs cursor-text truncate rounded-md bg-pink-100 px-1.5 py-0.5 text-black/65 text-xs dark:bg-pink-700/50 dark:text-pink-400"
+						key={skillIndex}
+						style={{ whiteSpace: "nowrap" }}
+						title={skill}
+					>
+						{formatTool(skill)}
+					</span>
+				))}
+			</MorphingJobTechnicalTools>
+		</div>
+	);
 };
 
 export default CardTechnicalTools;
