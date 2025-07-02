@@ -1,12 +1,19 @@
 import { Card, CardContent } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
+import { useState, useEffect } from "react";
 
 const JobBoardCardSkeleton = () => {
-  const randomTagCount = Math.floor(Math.random() * 4) + 1;
-  const randomJobLines = Math.floor(Math.random() * 3);
+  const [randomTagCount, setRandomTagCount] = useState(2); // Default fallback
+  const [randomJobLines, setRandomJobLines] = useState(1); // Default fallback
+
+  useEffect(() => {
+    setRandomTagCount(Math.floor(Math.random() * 4) + 1);
+    setRandomJobLines(Math.floor(Math.random() * 3));
+  }, []);
+
   return (
     <Card className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm">
-      <CardContent className="p-4 flex flex-col h-full">
+      <CardContent className="p-4 py-3 flex flex-col h-full">
         <div className="flex items-center justify-between mb-2">
           <Skeleton className="h-8 w-3/4" />
           <Skeleton className="h-4 w-1/12 -translate-y-2" />
