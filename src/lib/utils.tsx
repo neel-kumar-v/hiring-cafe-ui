@@ -29,11 +29,49 @@ export const getCleanJobTitle = (
   // Remove anything in parentheses (including the parentheses themselves), globally
   title = title.replace(/\s*\([^)]*\)/g, "").trim();
 
-  // Remove location if present after a dash, comma, or pipe
-  // e.g. "Manager - New York, NY", "Manager | Remote", "Manager, San Francisco"
+  // Remove location if present after a dash, comma, pipe, or ' at '
+  // e.g. "Manager - New York, NY", "Manager | Remote", "Manager, San Francisco", "Manager at Google"
   // Only remove if the dash is surrounded by spaces (e.g., " - "), not if it's like "Manager-Remote"
   title = title.replace(/(?:\s[-|,:]\s+)[\w\s\.,\-&\/\(\)]+$/, "").trim();
+  // Remove ' at ' and anything after it (e.g., "Manager at Google")
+  title = title.replace(/\s+at+.*$/i, "").trim();
   title = title.replace(location, "").trim();
+  // Remove generic titles like "Remote", "Full Time", "Part Time", etc.
+  // This is a non-exhaustive list; add more as needed.
+  const GENERIC_TITLES = [
+    "remote",
+    "full time",
+    "full-time",
+    "fulltime",
+    "part time",
+    "part-time",
+    "parttime",
+    "on site",
+    "on-site",
+    "onsite",
+    "hybrid",
+    "consultant",
+    "consulting",
+    "volunteer",
+    "volunteering",
+    "entry level",
+    "entry-level",
+  ];
+
+  // Remove if the title is exactly one of these generic titles
+  if (GENERIC_TITLES.includes(title.trim().toLowerCase())) {
+    title = "";
+  } else {
+    // Remove if the title ends or starts with one of these, or is separated by dash, pipe, or comma
+    const genericPattern = new RegExp(
+      `(?:^|[-|,:\\s])\\s*(${GENERIC_TITLES.join("|")})\\s*(?:$|[-|,:\\s])`,
+      "gi"
+    );
+    title = title
+      .replace(genericPattern, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
 
   // Remove trailing whitespace and punctuation
   title = title.replace(/[\s\-|,:]+$/, "").trim();
@@ -153,18 +191,16 @@ export const getCompensation = (compensation: CompensationRange) => {
 
 export const getLocation = (location: string) => {
   const splitLocation = location.split(",");
-  if (splitLocation.length > 2)
+  if (splitLocation.length > 2) {
     return splitLocation[0] + ", " + formatState(splitLocation[1]);
+  }
   return location;
 };
 
-export const getLocations = (location: string) => {
-  // Split by " or " to handle multiple locations
-  const locations = location
-    .split(" or ")
-    .map((loc) => loc.trim())
-    .filter((loc) => loc.length > 0);
-  return locations.map((loc) => getLocation(loc));
+export const getLocations = (workplaceCities: string[]) => {
+  return workplaceCities
+    .filter((city) => city && city.length > 0)
+    .map((city) => getLocation(city));
 };
 
 export const formatState = (state: string) => {
@@ -241,7 +277,7 @@ export const formatCompanyName = (companyName: string) => {
 
 export const getCompanyAbbreviation = (companyName: string) => {
   if (!companyName) return "";
-  return companyName
+  return formatCompanyName(companyName)
     .split(" ")
     .map((word) => {
       if (!word) return "";
@@ -453,6 +489,6 @@ export const formatTool = (tool: string) => {
   if (!tool) return tool;
   return tool
     .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };

@@ -52,11 +52,11 @@ const JobDialogContent = ({
       <DialogJobTitle
         jobTitle={currentJob.job_information.title}
         companyName={currentJob.v5_processed_company_data.name}
-        location={currentJob.v5_processed_job_data.formatted_workplace_location}
+        workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
       />
 
       <DialogBadges
-        location={currentJob.v5_processed_job_data.formatted_workplace_location}
+        workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
         workType={currentJob.v5_processed_job_data.workplace_type}
         commitments={currentJob.v5_processed_job_data.commitment}
         compensation={{

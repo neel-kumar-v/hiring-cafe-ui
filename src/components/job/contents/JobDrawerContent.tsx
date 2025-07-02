@@ -10,6 +10,8 @@ import {
 } from "../dialog";
 import { DialogActionButtons } from "../dialog/DialogFooter";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { DialogTitle } from "@/components/ui/dialog";
 
 const JobDrawerContent = ({
   currentJob,
@@ -31,7 +33,10 @@ const JobDrawerContent = ({
   return (
     <Drawer open={open} onOpenChange={onClose}>
       <DrawerContent className="max-w-full w-full rounded-t-xl">
-        <div className="sticky top-0 z-10 p-2 ">
+        <VisuallyHidden>
+          <DialogTitle>Job Details</DialogTitle>
+        </VisuallyHidden>
+        <div className="sticky top-0 z-10 p-2 max-sm:border-b border-gray-200 dark:border-gray-700">
           <DialogActionButtons
             onBookmarkToggle={onBookmarkToggle}
             isBookmarked={isBookmarked}
@@ -43,17 +48,13 @@ const JobDrawerContent = ({
           <DialogJobTitle
             jobTitle={currentJob.job_information.title}
             companyName={currentJob.v5_processed_company_data.name}
-            location={
-              currentJob.v5_processed_job_data.formatted_workplace_location
-            }
+            workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
           />
           <DialogCompanyLogoCard
             companyData={currentJob.v5_processed_company_data}
           />
           <DialogBadges
-            location={
-              currentJob.v5_processed_job_data.formatted_workplace_location
-            }
+            workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
             workType={currentJob.v5_processed_job_data.workplace_type}
             commitments={currentJob.v5_processed_job_data.commitment}
             compensation={{

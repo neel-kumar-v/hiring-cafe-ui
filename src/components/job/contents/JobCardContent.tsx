@@ -21,9 +21,7 @@ const JobCardContent = ({
         <CardHeader
           jobTitle={currentJob.job_information.title}
           companyName={currentJob.v5_processed_company_data.name}
-          location={
-            currentJob.v5_processed_job_data.formatted_workplace_location
-          }
+          workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
           compensation={{
             yearly_min_compensation:
               currentJob.v5_processed_job_data.yearly_min_compensation,

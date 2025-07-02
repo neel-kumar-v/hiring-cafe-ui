@@ -9,12 +9,74 @@ import {
   MorphingDialogContainer,
   MorphingDialogClose,
 } from "@/components/ui/morphing-dialog";
-import { JobCollection } from "@/types/jobs";
+import { JobCollection, Job } from "@/types/jobs";
 import CardStats from "./card/CardStats";
 import CardNavigation from "./card/CardNavigation";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { JobDrawerContent, JobDialogContent, JobCardContent } from "./contents";
+
+// Extracted JobCard component
+const JobCard = ({
+  jobCollection,
+  currentJob,
+  currentJobIndex,
+  isTransitioning,
+  isBookmarked,
+  isApplied,
+  onBookmarkToggle,
+  onApplyToggle,
+  onPrevious,
+  onNext,
+  onJobSelect,
+  onClick,
+}: {
+  jobCollection: JobCollection;
+  currentJob: Job;
+  currentJobIndex: number;
+  isTransitioning: boolean;
+  isBookmarked: boolean;
+  isApplied: boolean;
+  onBookmarkToggle: (e: React.MouseEvent) => void;
+  onApplyToggle: (e: React.MouseEvent) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  onJobSelect: (index: number) => void;
+  onClick: () => void;
+}) => {
+  return (
+    <Card
+      key={jobCollection.source_and_board_token}
+      className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-colors duration-300 ease-in cursor-pointer"
+      onClick={onClick}
+    >
+      <CardContent className="p-4 py-3 flex flex-col h-full">
+        <JobCardContent
+          currentJob={currentJob}
+          isTransitioning={isTransitioning}
+        />
+        <div className="grid grid-cols-3 items-center mt-auto">
+          <CardStats
+            viewedByUsers={currentJob.job_information.viewedByUsers}
+            savedFromUsers={currentJob.job_information.savedFromUsers}
+            appliedFromUsers={currentJob.job_information.appliedFromUsers}
+            isBookmarked={isBookmarked}
+            isApplied={isApplied}
+            onBookmarkToggle={onBookmarkToggle}
+            onApplyToggle={onApplyToggle}
+          />
+          <CardNavigation
+            currentJobIndex={currentJobIndex}
+            totalJobs={jobCollection.jobs.length}
+            onPrevious={onPrevious}
+            onNext={onNext}
+            onJobSelect={onJobSelect}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
@@ -134,53 +196,36 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
     // Render card as a trigger for the drawer
     return (
       <>
-        <div onClick={() => setDrawerOpen(true)} className="cursor-pointer">
-          <Card
-            key={jobCollection.source_and_board_token}
-            className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-shadow transition-colors duration-300 ease-in cursor-pointer"
-          >
-            <CardContent className="p-4 flex flex-col h-full">
-              <JobCardContent
-                currentJob={currentJob}
-                isTransitioning={isTransitioning}
-              />
-              <div className="grid grid-cols-3 items-center mt-auto">
-                <CardStats
-                  viewedByUsers={currentJob.job_information.viewedByUsers}
-                  savedFromUsers={currentJob.job_information.savedFromUsers}
-                  appliedFromUsers={currentJob.job_information.appliedFromUsers}
-                  isBookmarked={isBookmarked}
-                  isApplied={isApplied}
-                  onBookmarkToggle={(e) => {
-                    e.stopPropagation();
-                    setIsBookmarked(!isBookmarked);
-                  }}
-                  onApplyToggle={(e) => {
-                    e.stopPropagation();
-                    setIsApplied(!isApplied);
-                  }}
-                />
-                <CardNavigation
-                  currentJobIndex={currentJobIndex}
-                  totalJobs={jobCollection.jobs.length}
-                  onPrevious={() =>
-                    setCurrentJobIndex(
-                      (prev) =>
-                        (prev - 1 + jobCollection.jobs.length) %
-                        jobCollection.jobs.length
-                    )
-                  }
-                  onNext={() =>
-                    setCurrentJobIndex(
-                      (prev) => (prev + 1) % jobCollection.jobs.length
-                    )
-                  }
-                  onJobSelect={(index) => setCurrentJobIndex(index)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <JobCard
+          onClick={() => setDrawerOpen(true)}
+          jobCollection={jobCollection}
+          currentJob={currentJob}
+          currentJobIndex={currentJobIndex}
+          isTransitioning={isTransitioning}
+          isBookmarked={isBookmarked}
+          isApplied={isApplied}
+          onBookmarkToggle={(e) => {
+            e.stopPropagation();
+            setIsBookmarked(!isBookmarked);
+          }}
+          onApplyToggle={(e) => {
+            e.stopPropagation();
+            setIsApplied(!isApplied);
+          }}
+          onPrevious={() =>
+            setCurrentJobIndex(
+              (prev) =>
+                (prev - 1 + jobCollection.jobs.length) %
+                jobCollection.jobs.length
+            )
+          }
+          onNext={() =>
+            setCurrentJobIndex(
+              (prev) => (prev + 1) % jobCollection.jobs.length
+            )
+          }
+          onJobSelect={(index) => setCurrentJobIndex(index)}
+        />
         <JobDrawerContent
           currentJob={currentJob}
           isBookmarked={isBookmarked}
@@ -215,35 +260,20 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
           }}
           className="w-full text-left h-full"
         >
-          <Card
-            key={jobCollection.source_and_board_token}
-            className="bg-white h-full dark:bg-gray-800 border dark:border-pink-700/20 shadow-sm hover:shadow-lg dark:hover:bg-gray-700/50 dark:hover:border-pink-700/50 transition-all duration-300 ease-in cursor-pointer"
-          >
-            <CardContent className="p-4 flex flex-col h-full">
-              <JobCardContent
-                currentJob={currentJob}
-                isTransitioning={isTransitioning}
-              />
-              <div className="grid grid-cols-3 items-center mt-auto">
-                <CardStats
-                  viewedByUsers={currentJob.job_information.viewedByUsers}
-                  savedFromUsers={currentJob.job_information.savedFromUsers}
-                  appliedFromUsers={currentJob.job_information.appliedFromUsers}
-                  isBookmarked={isBookmarked}
-                  isApplied={isApplied}
-                  onBookmarkToggle={handleBookmarkClick}
-                  onApplyToggle={handleApplyClick}
-                />
-                <CardNavigation
-                  currentJobIndex={currentJobIndex}
-                  totalJobs={jobCollection.jobs.length}
-                  onPrevious={handlePreviousJob}
-                  onNext={handleNextJob}
-                  onJobSelect={handleJobSelect}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <JobCard
+            onClick={() => {}}
+            jobCollection={jobCollection}
+            currentJob={currentJob}
+            currentJobIndex={currentJobIndex}
+            isTransitioning={isTransitioning}
+            isBookmarked={isBookmarked}
+            isApplied={isApplied}
+            onBookmarkToggle={handleBookmarkClick}
+            onApplyToggle={handleApplyClick}
+            onPrevious={handlePreviousJob}
+            onNext={handleNextJob}
+            onJobSelect={handleJobSelect}
+          />
         </MorphingDialogTrigger>
       </CardContextMenuProvider>
 
