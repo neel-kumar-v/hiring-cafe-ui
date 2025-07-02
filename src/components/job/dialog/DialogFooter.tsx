@@ -47,7 +47,7 @@ export const DialogActionButtons = ({
   isApplied: boolean;
 }) => {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3">
+    <div className="flex flex-wrap items-center justify-center gap-3 ">
       <Button
         variant="outline"
         size="sm"
@@ -79,7 +79,7 @@ export const DialogActionButtons = ({
 
       <div className="mx-1 bg-border w-px min-h-[2rem] align-self-stretch" />
 
-      <Button variant="outline" size="sm" className="flex items-center gap-2">
+      <Button variant="outline" size="sm" className="flex items-center gap-2 max-sm:hidden">
         <BookUser className="w-4 h-4" />
         Contact Recruiter
       </Button>
@@ -99,14 +99,14 @@ export const DialogActionButtons = ({
         All Jobs
       </Button>
 
-      <div className="mx-1 bg-border w-px min-h-[2rem] align-self-stretch" />
+      <div className="mx-1 bg-border w-px min-h-[2rem] align-self-stretch max-sm:hidden" />
 
-      <Button variant="outline" size="sm" className="flex items-center gap-2">
+      <Button variant="outline" size="sm" className="flex items-center gap-2 max-sm:hidden">
         <EyeOff className="w-4 h-4" />
         Hide
       </Button>
 
-      <Button variant="outline" size="sm" className="flex items-center gap-2">
+      <Button variant="outline" size="sm" className="flex items-center gap-2 max-sm:hidden">
         <MessageSquareWarning className="w-4 h-4" />
         Report
       </Button>
