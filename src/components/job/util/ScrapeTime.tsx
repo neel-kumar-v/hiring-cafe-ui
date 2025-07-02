@@ -23,7 +23,9 @@ const ScrapeTime = ({
         <Clock
           className={`text-gray-400 dark:text-gray-500 ${iconClassName}`}
         />
-        <span className={`text-gray-500 dark:text-gray-400 ${textClassName}`}>
+        <span
+          className={`text-gray-500 dark:text-gray-400 -translate-y-0.25 ${textClassName}`}
+        >
           {getTimeSince(postedAt)}
         </span>
       </span>
