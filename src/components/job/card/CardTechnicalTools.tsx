@@ -13,7 +13,7 @@ const CardTechnicalTools = ({
 
   return (
     <div className="flex items-center flex-wrap gap-1 min-w-0">
-      <MorphingJobTechnicalTools className="flex flex-wrap gap-1 min-w-0">
+      <MorphingJobTechnicalTools className="flex flex-wrap gap-1 min-w-0 max-h-12 overflow-y-hidden">
         {technicalTools.map((skill, skillIndex) => (
           <span
             key={skillIndex}

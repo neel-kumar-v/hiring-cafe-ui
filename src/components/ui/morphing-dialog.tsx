@@ -576,6 +576,70 @@ export function MorphingJobStats({
   );
 }
 
+export type MorphingCommitmentsProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingCommitments({
+  children,
+  className,
+  style,
+}: MorphingCommitmentsProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.div
+      layoutId={`job-commitments-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export type MorphingWorkTypeProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function MorphingWorkType({
+  children,
+  className,
+  style,
+}: MorphingWorkTypeProps) {
+  const context = useMorphingDialogSafe();
+  if (!context) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
+  const { uniqueId } = context;
+  return (
+    <motion.span
+      layoutId={`job-work-type-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.span>
+  );
+}
+
 export type MorphingDialogCloseProps = {
   children?: React.ReactNode;
   className?: string;
