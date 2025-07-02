@@ -10,6 +10,7 @@ import {
   Building,
   Info,
   ExternalLink,
+  ListFilterPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDarkMode } from "@/contexts/DarkModeContext";
@@ -23,7 +24,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function Header() {
+interface HeaderProps {
+  showLegacyFilters?: boolean;
+  onToggleLegacyFilters?: () => void;
+}
+
+export default function Header({
+  showLegacyFilters = false,
+  onToggleLegacyFilters,
+}: HeaderProps) {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const handleSearch = (value: string) => {
@@ -33,10 +42,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-      <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
+      <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 xl:px-12 transition-[padding] duration-500 ease-in-out">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-0 lg:space-x-3">
             <div className="w-fit text-white bg-pink-500 rounded-full p-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -55,8 +64,11 @@ export default function Header() {
                 ></path>
               </svg>
             </div>
-            <Link href="/" className="text-xl font-bold text-pink-500">
-              HiringCafe
+            <Link
+              href="/"
+              className="text-xl font-bold text-pink-500 hidden lg:block"
+            >
+              CloneCafe
             </Link>
           </div>
 
@@ -128,6 +140,13 @@ export default function Header() {
                     <Moon className="mr-2 h-4 w-4" />
                   )}
                   {isDarkMode ? "Light Mode" : "Dark Mode"}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={onToggleLegacyFilters}>
+                  <ListFilterPlus className="mr-2 h-4 w-4" />
+                  {showLegacyFilters
+                    ? "Hide Legacy Filters"
+                    : "Show Legacy Filters"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -12,7 +12,7 @@ export default function Page() {
   const [jobCount] = useState(2057770);
   const [companyCount] = useState(72936);
   const [location] = useState("United States");
-  const oldLook = false;
+  const [showLegacyFilters, setShowLegacyFilters] = useState(false);
 
   const formatNumber = (number: number, round: number = 3) => {
     return (Math.round(number / 10 ** round) * 10 ** round).toLocaleString();
@@ -23,14 +23,19 @@ export default function Page() {
       <div className="min-h-screen transition-colors duration-300">
         <div className="bg-white dark:bg-gray-900 min-h-screen">
           {/* Header */}
-          <Header />
+          <Header
+            showLegacyFilters={showLegacyFilters}
+            onToggleLegacyFilters={() =>
+              setShowLegacyFilters(!showLegacyFilters)
+            }
+          />
 
           {/* Filter Tags */}
-          {oldLook && <Filters />}
+          {showLegacyFilters && <Filters />}
 
           <div className="overflow-scroll overflow-x-hidden h-full">
-            {oldLook && (
-              <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-4">
+            {showLegacyFilters && (
+              <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap items-center space-x-4">
                     <SortPopover />
@@ -44,7 +49,7 @@ export default function Page() {
                 </div>
               </div>
             )}
-            <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-8">
+            <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-8 transition-[padding] duration-500 ease-in-out">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 md:gap-6 gap-4">
                 <JobBoard />
               </div>
