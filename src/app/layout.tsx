@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <DarkModeProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </DarkModeProvider>
+        <Toaster />
       </body>
     </html>
   );
