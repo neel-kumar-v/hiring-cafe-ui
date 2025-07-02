@@ -95,7 +95,6 @@ export default function SearchBar({
         onChange={handleInputChange}
         placeholder={placeholder}
         className={className}
-        maxVisible={7}
         maxTotal={20}
       />
       <div className="flex gap-1.5 absolute justify-end right-3 top-1/2 -translate-y-1/2 z-10">

@@ -9,7 +9,6 @@ interface AutocompleteProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
-  maxVisible?: number;
   maxTotal?: number;
 }
 
@@ -97,7 +96,6 @@ interface DesktopDropdownProps {
   filteredOptions: string[];
   displayOptions: string[];
   highlightedIndex: number;
-  maxVisible: number;
   showFilters: boolean;
   onOptionClick: (option: string) => void;
   onToggleFilters: () => void;
@@ -108,7 +106,6 @@ function DesktopDropdown({
   filteredOptions,
   displayOptions,
   highlightedIndex,
-  maxVisible,
   showFilters,
   onOptionClick,
   onToggleFilters,
@@ -128,7 +125,7 @@ function DesktopDropdown({
 
   return (
     <div
-      className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-b-md shadow-lg h-[253px] overflow-visible hidden md:flex"
+      className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-b-md shadow-lg h-[361px] overflow-visible hidden md:flex"
       onClick={handleDropdownClick}
       onMouseDown={handleDropdownClick}
       data-dropdown="autocomplete"
@@ -137,7 +134,7 @@ function DesktopDropdown({
       <div className={`overflow-y-auto ${showFilters ? "flex-1" : "w-full"}`}>
         {filteredOptions.length > 0 ? (
           displayOptions
-            .slice(0, maxVisible)
+            .slice(0, 10)
             .map((option, index) => (
               <AutocompleteOption
                 key={option}
@@ -303,7 +300,6 @@ export default function Autocomplete({
   onChange,
   placeholder = "Search",
   className = "",
-  maxVisible = 7,
   maxTotal = 20,
 }: AutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -312,7 +308,6 @@ export default function Autocomplete({
   const [showFilters, setShowFilters] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Filter options based on input value
   useEffect(() => {
     if (!value.trim()) {
       setFilteredOptions(options.slice(0, maxTotal));
@@ -323,18 +318,15 @@ export default function Autocomplete({
       setFilteredOptions(filtered);
     }
     setHighlightedIndex(-1);
-  }, [value, options, maxTotal, maxVisible]);
+  }, [value, options, maxTotal]);
 
-  // Handle input focus
+  
   const handleInputFocus = () => {
     setIsOpen(true);
   };
 
-  // Handle input blur
   const handleInputBlur = (e: React.FocusEvent) => {
-    // Only close on blur for desktop, not mobile
     if (window.innerWidth >= 768) {
-      // Check if the new focus target is within our dropdown
       const dropdownElement = document.querySelector(
         '[data-dropdown="autocomplete"]'
       );
@@ -342,7 +334,7 @@ export default function Autocomplete({
         dropdownElement &&
         dropdownElement.contains(e.relatedTarget as Node)
       ) {
-        return; // Don't close if clicking within dropdown
+        return;
       }
 
       setTimeout(() => {
@@ -351,17 +343,14 @@ export default function Autocomplete({
     }
   };
 
-  // Handle option selection
   const handleOptionClick = (option: string) => {
     onChange(option);
     setIsOpen(false);
-    // Only blur on desktop
     if (window.innerWidth >= 768) {
       inputRef.current?.blur();
     }
   };
 
-  // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
       if (e.key === "Enter" || e.key === "ArrowDown") {
@@ -394,17 +383,14 @@ export default function Autocomplete({
     }
   };
 
-  // Handle back button
   const handleBack = () => {
     setIsOpen(false);
   };
 
-  // Handle toggle filters
   const handleToggleFilters = () => {
     setShowFilters(!showFilters);
   };
 
-  // Prevent body scroll when mobile overlay is open
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
     if (isOpen && isMobile) {
@@ -418,7 +404,6 @@ export default function Autocomplete({
     };
   }, [isOpen]);
 
-  // Add "Filter Searches" option at the top when open
   const displayOptions = filteredOptions;
 
   return (
@@ -445,7 +430,6 @@ export default function Autocomplete({
           filteredOptions={filteredOptions}
           displayOptions={displayOptions}
           highlightedIndex={highlightedIndex}
-          maxVisible={maxVisible}
           showFilters={showFilters}
           onOptionClick={handleOptionClick}
           onToggleFilters={handleToggleFilters}
