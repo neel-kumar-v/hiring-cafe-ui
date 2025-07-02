@@ -7,6 +7,85 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Job formatting functions moved from JobHeader
+// --- Helper modules for getCleanJobTitle ---
+
+const removeCompanyName = (title: string, company: string): string => {
+	if (!company) return title;
+	if (!title.toLowerCase().includes(company.toLowerCase())) return title;
+	const regex = new RegExp(
+		company.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:[,-:|]|- | -)*\\s*",
+		"i"
+	);
+	return title.replace(regex, "");
+};
+
+const removeParentheses = (title: string): string => {
+	return title.replace(/\s*\([^)]*\)/g, "").trim();
+};
+
+const removeLocationAndPrepositions = (title: string, location: string): string => {
+	let t = title;
+	// Remove location after dash, comma, pipe, etc.
+	t = t.replace(/(?:\s[-|,:]\s+)[\w\s.,\-&/()]+$/, "").trim();
+	// Remove ' at ' and anything after it
+	t = t.replace(/\s+at+.*$/i, "").trim();
+	// Remove ' in ' and anything after it
+	t = t.replace(/\s+in+.*$/i, "").trim();
+	// Remove explicit location string
+	if (location) {
+		t = t.replace(location, "").trim();
+	}
+	return t;
+};
+
+const GENERIC_TITLES = [
+	"remote",
+	"full time",
+	"full-time",
+	"fulltime",
+	"part time",
+	"part-time",
+	"parttime",
+	"on site",
+	"on-site",
+	"onsite",
+	"hybrid",
+	"consultant",
+	"consulting",
+	"volunteer",
+	"volunteering",
+	"entry level",
+	"entry-level",
+];
+
+const removeGenericTitles = (title: string): string => {
+	const trimmed = title.trim().toLowerCase();
+	if (GENERIC_TITLES.includes(trimmed)) {
+		return "";
+	}
+	const genericPattern = new RegExp(
+		`(?:^|[-|,:\\s])\\s*(${GENERIC_TITLES.join("|")})\\s*(?:$|[-|,:\\s])`,
+		"gi"
+	);
+	return title
+		.replace(genericPattern, " ")
+		.replace(/\s{2,}/g, " ")
+		.trim();
+};
+
+const removeShiftTimings = (title: string): string => {
+	return title.replace(
+		/\b\d{1,2}:\d{2}\s?(?:am|pm)?\s*-\s*\d{1,2}:\d{2}\s?(?:am|pm)?\b/gi,
+		""
+	).trim();
+};
+
+const removeTrailingPunctuation = (title: string): string => {
+	return title.replace(/[\s\-|,:]+$/, "").trim();
+};
+
+// --- Master function ---
+
 export const getCleanJobTitle = (
 	jobTitle: string,
 	companyName: string,
@@ -17,64 +96,12 @@ export const getCleanJobTitle = (
 
 	let title = rawTitle;
 
-	if (company && title.toLowerCase().includes(company.toLowerCase())) {
-		// Remove company name and any following punctuation/whitespace
-		const regex = new RegExp(
-			company.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:[,-:|]|- | -)*\\s*",
-			"i"
-		);
-		title = title.replace(regex, "");
-	}
-
-	// Remove anything in parentheses (including the parentheses themselves), globally
-	title = title.replace(/\s*\([^)]*\)/g, "").trim();
-
-	// Remove location if present after a dash, comma, pipe, or ' at '
-	// e.g. "Manager - New York, NY", "Manager | Remote", "Manager, San Francisco", "Manager at Google"
-	// Only remove if the dash is surrounded by spaces (e.g., " - "), not if it's like "Manager-Remote"
-	title = title.replace(/(?:\s[-|,:]\s+)[\w\s.,\-&/()]+$/, "").trim();
-	// Remove ' at ' and anything after it (e.g., "Manager at Google")
-	title = title.replace(/\s+at+.*$/i, "").trim();
-	title = title.replace(location, "").trim();
-	// Remove generic titles like "Remote", "Full Time", "Part Time", etc.
-	// This is a non-exhaustive list; add more as needed.
-	const GENERIC_TITLES = [
-		"remote",
-		"full time",
-		"full-time",
-		"fulltime",
-		"part time",
-		"part-time",
-		"parttime",
-		"on site",
-		"on-site",
-		"onsite",
-		"hybrid",
-		"consultant",
-		"consulting",
-		"volunteer",
-		"volunteering",
-		"entry level",
-		"entry-level",
-	];
-
-	// Remove if the title is exactly one of these generic titles
-	if (GENERIC_TITLES.includes(title.trim().toLowerCase())) {
-		title = "";
-	} else {
-		// Remove if the title ends or starts with one of these, or is separated by dash, pipe, or comma
-		const genericPattern = new RegExp(
-			`(?:^|[-|,:\\s])\\s*(${GENERIC_TITLES.join("|")})\\s*(?:$|[-|,:\\s])`,
-			"gi"
-		);
-		title = title
-			.replace(genericPattern, " ")
-			.replace(/\s{2,}/g, " ")
-			.trim();
-	}
-
-	// Remove trailing whitespace and punctuation
-	title = title.replace(/[\s\-|,:]+$/, "").trim();
+	title = removeCompanyName(title, company);
+	title = removeParentheses(title);
+	title = removeLocationAndPrepositions(title, location);
+	title = removeGenericTitles(title);
+	title = removeShiftTimings(title);
+	title = removeTrailingPunctuation(title);
 
 	return title;
 };
