@@ -17,11 +17,13 @@ const DialogFooter = ({
 	isApplied,
 	onBookmarkToggle,
 	onApplyToggle,
+	applyUrl,
 }: {
 	isBookmarked: boolean;
 	isApplied: boolean;
 	onBookmarkToggle: () => void;
 	onApplyToggle: () => void;
+	applyUrl: string;
 }) => {
 	return (
 		<div className="sticky right-0 bottom-0 left-0 border-gray-200 border-t bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -30,6 +32,7 @@ const DialogFooter = ({
 				isBookmarked={isBookmarked}
 				onApplyToggle={onApplyToggle}
 				onBookmarkToggle={onBookmarkToggle}
+				applyUrl={applyUrl}
 			/>
 		</div>
 	);
@@ -40,11 +43,13 @@ export const DialogActionButtons = ({
 	isBookmarked,
 	onApplyToggle,
 	isApplied,
+	applyUrl,
 }: {
 	onBookmarkToggle: () => void;
 	isBookmarked: boolean;
 	onApplyToggle: () => void;
 	isApplied: boolean;
+	applyUrl: string;
 }) => {
 	return (
 		<div className="flex flex-wrap items-center justify-center gap-3 ">
@@ -58,14 +63,15 @@ export const DialogActionButtons = ({
 				{isBookmarked ? "Saved" : "Save"}
 			</Button>
 
-			<Button
-				className="flex items-center gap-2 border-pink-500 text-pink-700 hover:border-pink-600 hover:bg-pink-600 hover:text-white dark:border-pink-400 dark:text-pink-400 dark:hover:border-pink-800 dark:hover:bg-pink-800 dark:hover:text-white"
-				size="sm"
-				variant="outline"
+			<a
+				href={applyUrl}
+				className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-pink-500 text-pink-700 hover:border-pink-600 hover:bg-pink-600 hover:text-white dark:border-pink-400 dark:text-pink-400 dark:hover:border-pink-800 dark:hover:bg-pink-800 dark:hover:text-white px-3 py-2 h-9 gap-2"
+				tabIndex={0}
+				role="button"
 			>
 				<Send className="h-4 w-4" />
 				Apply Now
-			</Button>
+			</a>
 
 			<Button
 				className="flex items-center gap-2"

@@ -1,158 +1,171 @@
-import {
-	Bookmark,
-	Briefcase,
-	Building,
-	ExternalLink,
-	Info,
-	ListFilterPlus,
-	Mail,
-	Moon,
-	Settings,
-	Sun,
-	User,
-	Users,
-} from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDarkMode } from "@/contexts/DarkModeContext";
+import {
+  Bookmark,
+  Briefcase,
+  Building,
+  ExternalLink,
+  Info,
+  ListFilterPlus,
+  Mail,
+  Moon,
+  Settings,
+  Sun,
+  User,
+  Users,
+  Zap,
+  ZapOff,
+} from "lucide-react";
+import Link from "next/link";
 import SearchBar from "./search/SearchBar";
+import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 
 interface HeaderProps {
-	showLegacyFilters?: boolean;
-	onToggleLegacyFilters?: () => void;
+  showLegacyFilters?: boolean;
+  onToggleLegacyFilters?: () => void;
 }
 
 export default function Header({
-	showLegacyFilters = false,
-	onToggleLegacyFilters,
+  showLegacyFilters = false,
+  onToggleLegacyFilters,
 }: HeaderProps) {
-	const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { prefersReducedMotion, toggleReducedMotion } = useReducedMotion();
 
-	const handleSearch = (value: string) => {
-		// Handle search functionality here
-		console.log("Searching for:", value);
-	};
+  const handleSearch = (value: string) => {
+    // Handle search functionality here
+    console.log("Searching for:", value);
+  };
 
-	return (
-		<header className="sticky top-0 z-50 border-gray-200 border-b bg-white dark:border-gray-700 dark:bg-gray-900">
-			<div className="mx-auto max-w-full px-2 transition-[padding] duration-500 ease-in-out sm:px-4 lg:px-8 xl:px-12">
-				<div className="flex h-16 items-center justify-between">
-					{/* Logo */}
-					<div className="flex items-center space-x-0 lg:space-x-3">
-						<div className="w-fit rounded-full bg-pink-500 p-2 text-white">
-							<svg
-								aria-hidden="true"
-								className="h-5 w-5 flex-none"
-								data-slot="icon"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="1.5"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
-						<Link
-							className="hidden font-bold text-pink-500 text-xl lg:block"
-							href="/"
-						>
-							CloneCafe
-						</Link>
-					</div>
+  return (
+    <header className="sticky top-0 z-50 border-gray-200 border-b bg-white dark:border-gray-700 dark:bg-gray-900">
+      <div className="mx-auto max-w-full px-2 transition-[padding] duration-500 ease-in-out sm:px-4 lg:px-8 xl:px-12">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center space-x-0 lg:space-x-3">
+            <div className="w-fit rounded-full bg-pink-500 p-2 text-white">
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5 flex-none"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <Link
+              className="hidden font-bold text-pink-500 text-xl lg:block"
+              href="/"
+            >
+              CloneCafe
+            </Link>
+          </div>
 
-					{/* Search Bar */}
-					<div className="mx-8 flex-1">
-						<div className="flex space-x-2">
-							<SearchBar onSearch={handleSearch} />
-						</div>
-					</div>
+          {/* Search Bar */}
+          <div className="mx-8 flex-1">
+            <div className="flex space-x-2">
+              <SearchBar onSearch={handleSearch} />
+            </div>
+          </div>
 
-					{/* Right Side */}
-					<div className="flex items-center space-x-4">
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									className="h-8 w-8 rounded-full bg-pink-500 p-0 hover:bg-pink-600"
-									size="sm"
-									variant="ghost"
-								>
-									<User className="h-4 w-4 text-white" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-56">
-								<DropdownMenuItem>
-									<Bookmark className="mr-2 h-4 w-4" />
-									Saved Searches
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<Briefcase className="mr-2 h-4 w-4" />
-									Saved Jobs
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<Settings className="mr-2 h-4 w-4" />
-									Account
-								</DropdownMenuItem>
+          {/* Right Side */}
+          <div className="flex items-center space-x-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="h-8 w-8 rounded-full bg-pink-500 p-0 hover:bg-pink-600"
+                  size="sm"
+                  variant="ghost"
+                >
+                  <User className="h-4 w-4 text-white" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem>
+                  <Bookmark className="mr-2 h-4 w-4" />
+                  Saved Searches
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Saved Jobs
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Account
+                </DropdownMenuItem>
 
-								<DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-								<DropdownMenuItem>
-									<Users className="mr-2 h-4 w-4" />
-									Talent Network
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<Mail className="mr-2 h-4 w-4" />
-									Inbox
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<Building className="mr-2 h-4 w-4" />
-									Employers
-								</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Users className="mr-2 h-4 w-4" />
+                  Talent Network
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Inbox
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Building className="mr-2 h-4 w-4" />
+                  Employers
+                </DropdownMenuItem>
 
-								<DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-								<DropdownMenuItem>
-									<Info className="mr-2 h-4 w-4" />
-									About Us
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<ExternalLink className="mr-2 h-4 w-4" />
-									Follow on Reddit
-								</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Info className="mr-2 h-4 w-4" />
+                  About Us
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Follow on Reddit
+                </DropdownMenuItem>
 
-								<DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-								<DropdownMenuItem onClick={toggleDarkMode}>
-									{isDarkMode ? (
-										<Sun className="mr-2 h-4 w-4" />
-									) : (
-										<Moon className="mr-2 h-4 w-4" />
-									)}
-									{isDarkMode ? "Light Mode" : "Dark Mode"}
-								</DropdownMenuItem>
+                <DropdownMenuItem onClick={toggleDarkMode}>
+                  {isDarkMode ? (
+                    <Sun className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Moon className="mr-2 h-4 w-4" />
+                  )}
+                  {isDarkMode ? "Light Mode" : "Dark Mode"}
+                </DropdownMenuItem>
 
-								<DropdownMenuItem onClick={onToggleLegacyFilters}>
-									<ListFilterPlus className="mr-2 h-4 w-4" />
-									{showLegacyFilters
-										? "Hide Legacy Filters"
-										: "Show Legacy Filters"}
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				</div>
-			</div>
-		</header>
-	);
+                <DropdownMenuItem onClick={toggleReducedMotion}>
+                  {prefersReducedMotion ? (
+                    <Zap className="mr-2 h-4 w-4" />
+                  ) : (
+                    <ZapOff className="mr-2 h-4 w-4" />
+                  )}
+                  {prefersReducedMotion ? "Enable Animations" : "Reduce Motion"}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={onToggleLegacyFilters}>
+                  <ListFilterPlus className="mr-2 h-4 w-4" />
+                  {showLegacyFilters
+                    ? "Hide Legacy Filters"
+                    : "Show Legacy Filters"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }
