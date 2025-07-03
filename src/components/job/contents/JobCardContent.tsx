@@ -53,7 +53,10 @@ const JobCardContent = ({
 					workType={currentJob.v5_processed_job_data.workplace_type}
 				/>
 
-				<CardCompanyInfo companyData={currentJob.v5_processed_company_data} />
+				<CardCompanyInfo
+					companyData={currentJob.v5_processed_company_data}
+					tagline={currentJob.v5_processed_job_data.company_tagline || ""}
+				/>
 
 				<CardJobDescription
 					requirementsSummary={

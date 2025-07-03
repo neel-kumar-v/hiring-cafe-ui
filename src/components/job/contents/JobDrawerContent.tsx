@@ -42,6 +42,7 @@ const JobDrawerContent = ({
 						isBookmarked={isBookmarked}
 						onApplyToggle={onApplyToggle}
 						onBookmarkToggle={onBookmarkToggle}
+						applyUrl={currentJob.apply_url}
 					/>
 				</div>
 				<div className="space-y-4 overflow-y-auto p-4">

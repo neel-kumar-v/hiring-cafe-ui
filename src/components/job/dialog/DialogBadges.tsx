@@ -1,14 +1,14 @@
-import React from "react";
-import { MapPin, DollarSign } from "lucide-react";
 import {
+  MorphingCommitments,
   MorphingLocation,
   MorphingSalary,
-  MorphingCommitments,
   MorphingWorkType,
 } from "@/components/ui/morphing-dialog";
-import { getLocations, getCompensation } from "@/lib/utils";
-import { CompensationRange } from "@/types/jobs";
+import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { getCompensation, getLocations } from "@/lib/utils";
+import { CompensationRange } from "@/types/jobs";
+import { DollarSign, MapPin } from "lucide-react";
 
 const DialogBadges = ({
   workplaceCities,
@@ -24,22 +24,25 @@ const DialogBadges = ({
   compact?: boolean;
 }) => {
   const isDesktop = useMediaQuery("(min-width: 640px)");
+  const { prefersReducedMotion } = useReducedMotion();
   return (
     <div className={compact ? "" : "mb-6"}>
       <div className={`flex flex-wrap ${compact ? "space-x-1" : "space-x-3"}`}>
-        {isDesktop ? getLocations(workplaceCities).length > 0 ? (
-          <MorphingLocation className="flex flex-row flex-wrap items-center gap-2">
-            {getLocations(workplaceCities).map((loc, index) => (
-              <span
-                className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300"
-                key={index}
-              >
-                <MapPin className="w-4 h-4" />
-                {loc}
-              </span>
-            ))}
-          </MorphingLocation>
-        ) : null : (
+        {isDesktop && !prefersReducedMotion ? (
+          getLocations(workplaceCities).length > 0 ? (
+            <MorphingLocation className="flex flex-row flex-wrap items-center gap-2">
+              {getLocations(workplaceCities).map((loc, index) => (
+                <span
+                  className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300"
+                  key={index}
+                >
+                  <MapPin className="w-4 h-4" />
+                  {loc}
+                </span>
+              ))}
+            </MorphingLocation>
+          ) : null
+        ) : (
           getLocations(workplaceCities).map((loc, index) => (
             <span
               key={index}
@@ -50,7 +53,7 @@ const DialogBadges = ({
             </span>
           ))
         )}
-        {isDesktop ? (
+        {isDesktop && !prefersReducedMotion ? (
           <MorphingCommitments className="flex flex-row flex-wrap items-center gap-2">
             {commitments.map((commitment, index) => (
               <span
@@ -71,7 +74,7 @@ const DialogBadges = ({
             </span>
           ))
         )}
-        {isDesktop ? (
+        {isDesktop && !prefersReducedMotion ? (
           <MorphingWorkType className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300">
             {workType}
           </MorphingWorkType>
@@ -81,7 +84,7 @@ const DialogBadges = ({
           </span>
         )}
         {getCompensation(compensation) &&
-          (isDesktop ? (
+          (isDesktop && !prefersReducedMotion ? (
             <MorphingSalary>
               <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 dark:bg-gray-700/75 text-black dark:text-pink-500/85">
                 <DollarSign className="w-4 h-4" />

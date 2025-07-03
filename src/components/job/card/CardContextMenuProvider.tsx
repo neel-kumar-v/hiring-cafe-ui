@@ -6,6 +6,7 @@ import {
 	Link2,
 	Send,
 	Share2,
+	CheckCheck,
 } from "lucide-react";
 import {
 	ContextMenu,
@@ -23,6 +24,7 @@ const CardContextMenuProvider = ({
 	isApplied,
 	onBookmarkClick,
 	onApplyClick,
+	applyUrl,
 }: {
 	children: React.ReactNode;
 	currentJob: Job;
@@ -30,9 +32,10 @@ const CardContextMenuProvider = ({
 	isApplied: boolean;
 	onBookmarkClick: (e: React.MouseEvent) => void;
 	onApplyClick: (e: React.MouseEvent) => void;
+	applyUrl: string;
 }) => {
 	return (
-		<ContextMenu>
+		<ContextMenu className="transition-all duration-300 ease-in-out">
 			<ContextMenuTrigger>{children}</ContextMenuTrigger>
 			<ContextMenuContent className="min-w-64">
 				<ContextMenuItem onClick={onBookmarkClick}>
@@ -43,13 +46,15 @@ const CardContextMenuProvider = ({
 					)}
 					{isBookmarked ? "Unsave Job" : "Save Job"}
 				</ContextMenuItem>
-				<ContextMenuItem onClick={onApplyClick}>
-					{isApplied ? (
-						<Send className="mr-2 h-4 w-4 fill-pink-500 text-pink-500 dark:fill-pink-400 dark:text-pink-400" />
-					) : (
+				<ContextMenuItem>
+					<a href={applyUrl} className="flex items-center gap-2">
 						<Send className="mr-2 h-4 w-4" />
-					)}
-					{isApplied ? "Unmark Applied" : "Apply Directly"}
+						Apply Now
+					</a>	
+				</ContextMenuItem>
+				<ContextMenuItem onClick={onApplyClick}>
+					<CheckCheck className="mr-2 h-4 w-4" />
+					{isApplied ? "Unmark Applied" : "Mark Applied"}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 				<ContextMenuItem>

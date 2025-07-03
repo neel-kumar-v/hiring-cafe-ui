@@ -1,5 +1,4 @@
 export { default as DialogBadges } from "./DialogBadges";
-export { default as DialogCompanyDescription } from "./DialogCompanyDescription";
 export { default as DialogCompanyLogoCard } from "./DialogCompanyLogoCard";
 export { default as DialogFooter } from "./DialogFooter";
 export { default as DialogJobDescription } from "./DialogJobDescription";

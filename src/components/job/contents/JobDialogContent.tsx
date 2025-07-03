@@ -1,118 +1,200 @@
-import type React from "react";
-import type { Job } from "@/types/jobs";
 import {
-	DialogBadges,
-	DialogFooter,
-	DialogJobDescription,
-	DialogJobTitle,
-	DialogRequirements,
-	DialogSkills,
-	DialogStats,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  MorphingDialog,
+  MorphingDialogClose,
+  MorphingDialogContainer,
+  MorphingDialogContent,
+  MorphingDialogTrigger,
+} from "@/components/ui/morphing-dialog";
+import { useReducedMotion } from "@/contexts/ReducedMotionContext";
+import type { Job } from "@/types/jobs";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { X } from "lucide-react";
+import type React from "react";
+import {
+  DialogBadges,
+  DialogFooter,
+  DialogJobDescription,
+  DialogJobTitle,
+  DialogRequirements,
+  DialogSkills,
+  DialogStats,
 } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 
+interface JobDialogContentProps {
+  currentJob: Job;
+  isBookmarked: boolean;
+  isApplied: boolean;
+  onBookmarkToggle: () => void;
+  onApplyToggle: () => void;
+  children: React.ReactNode; // This will be the trigger element
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+}
+
 const JobDialogContent = ({
-	currentJob,
-	isBookmarked,
-	isApplied,
-	onBookmarkToggle,
-	onApplyToggle,
-}: {
-	currentJob: Job;
-	isBookmarked: boolean;
-	isApplied: boolean;
-	onBookmarkToggle: () => void;
-	onApplyToggle: () => void;
-}) => {
-	const handleBookmarkClick = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-		onBookmarkToggle();
-	};
+  currentJob,
+  isBookmarked,
+  isApplied,
+  onBookmarkToggle,
+  onApplyToggle,
+  children,
+  scrollContainerRef,
+}: JobDialogContentProps) => {
+  const { prefersReducedMotion } = useReducedMotion();
 
-	const handleApplyClick = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-		onApplyToggle();
-	};
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onBookmarkToggle();
+  };
 
-	return (
-		<div className="relative p-8 pt-16">
-			<DialogStats
-				appliedFromUsers={currentJob.job_information.appliedFromUsers}
-				isApplied={isApplied}
-				isBookmarked={isBookmarked}
-				onApplyClick={handleApplyClick}
-				onBookmarkClick={handleBookmarkClick}
-				publishDate={currentJob.v5_processed_job_data.estimated_publish_date}
-				savedFromUsers={currentJob.job_information.savedFromUsers}
-				viewedByUsers={currentJob.job_information.viewedByUsers}
-			/>
+  const handleApplyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onApplyToggle();
+  };
 
-			<DialogJobTitle
-				companyName={currentJob.v5_processed_company_data.name}
-				jobTitle={currentJob.job_information.title}
-				workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
-			/>
+  const dialogContent = (
+    <div className="relative p-8 pt-16">
+      <DialogStats
+        appliedFromUsers={currentJob.job_information.appliedFromUsers}
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        onApplyClick={handleApplyClick}
+        onBookmarkClick={handleBookmarkClick}
+        publishDate={currentJob.v5_processed_job_data.estimated_publish_date}
+        savedFromUsers={currentJob.job_information.savedFromUsers}
+        viewedByUsers={currentJob.job_information.viewedByUsers}
+      />
 
-			<DialogBadges
-				commitments={currentJob.v5_processed_job_data.commitment}
-				compensation={{
-					yearly_min_compensation:
-						currentJob.v5_processed_job_data.yearly_min_compensation,
-					yearly_max_compensation:
-						currentJob.v5_processed_job_data.yearly_max_compensation,
-					monthly_min_compensation:
-						currentJob.v5_processed_job_data.monthly_min_compensation,
-					monthly_max_compensation:
-						currentJob.v5_processed_job_data.monthly_max_compensation,
-					weekly_min_compensation:
-						currentJob.v5_processed_job_data.weekly_min_compensation,
-					weekly_max_compensation:
-						currentJob.v5_processed_job_data.weekly_max_compensation,
-					hourly_min_compensation:
-						currentJob.v5_processed_job_data.hourly_min_compensation,
-					hourly_max_compensation:
-						currentJob.v5_processed_job_data.hourly_max_compensation,
-					"bi-weekly_min_compensation":
-						currentJob.v5_processed_job_data["bi-weekly_min_compensation"],
-					"bi-weekly_max_compensation":
-						currentJob.v5_processed_job_data["bi-weekly_max_compensation"],
-					daily_min_compensation:
-						currentJob.v5_processed_job_data.daily_min_compensation,
-					daily_max_compensation:
-						currentJob.v5_processed_job_data.daily_max_compensation,
-				}}
-				workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
-				workType={currentJob.v5_processed_job_data.workplace_type}
-			/>
+      <DialogJobTitle
+        companyName={currentJob.v5_processed_company_data.name}
+        jobTitle={currentJob.job_information.title}
+        workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
+      />
 
-			<DialogCompanyLogoCard
-				companyData={currentJob.v5_processed_company_data}
-			/>
+      <DialogBadges
+        commitments={currentJob.v5_processed_job_data.commitment}
+        compensation={{
+          yearly_min_compensation:
+            currentJob.v5_processed_job_data.yearly_min_compensation,
+          yearly_max_compensation:
+            currentJob.v5_processed_job_data.yearly_max_compensation,
+          monthly_min_compensation:
+            currentJob.v5_processed_job_data.monthly_min_compensation,
+          monthly_max_compensation:
+            currentJob.v5_processed_job_data.monthly_max_compensation,
+          weekly_min_compensation:
+            currentJob.v5_processed_job_data.weekly_min_compensation,
+          weekly_max_compensation:
+            currentJob.v5_processed_job_data.weekly_max_compensation,
+          hourly_min_compensation:
+            currentJob.v5_processed_job_data.hourly_min_compensation,
+          hourly_max_compensation:
+            currentJob.v5_processed_job_data.hourly_max_compensation,
+          "bi-weekly_min_compensation":
+            currentJob.v5_processed_job_data["bi-weekly_min_compensation"],
+          "bi-weekly_max_compensation":
+            currentJob.v5_processed_job_data["bi-weekly_max_compensation"],
+          daily_min_compensation:
+            currentJob.v5_processed_job_data.daily_min_compensation,
+          daily_max_compensation:
+            currentJob.v5_processed_job_data.daily_max_compensation,
+        }}
+        workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
+        workType={currentJob.v5_processed_job_data.workplace_type}
+      />
 
-			<DialogRequirements
-				requirementsSummary={
-					currentJob.v5_processed_job_data.requirements_summary
-				}
-			/>
+      <DialogCompanyLogoCard
+        companyData={currentJob.v5_processed_company_data}
+      />
 
-			<DialogSkills
-				technicalTools={currentJob.v5_processed_job_data.technical_tools}
-			/>
+      <DialogRequirements
+        requirementsSummary={
+          currentJob.v5_processed_job_data.requirements_summary
+        }
+      />
 
-			<DialogJobDescription
-				description={currentJob.job_information.description}
-			/>
+      <DialogSkills
+        technicalTools={currentJob.v5_processed_job_data.technical_tools}
+      />
 
-			<DialogFooter
-				isApplied={isApplied}
-				isBookmarked={isBookmarked}
-				onApplyToggle={onApplyToggle}
-				onBookmarkToggle={onBookmarkToggle}
-			/>
-		</div>
-	);
+      <DialogJobDescription
+        description={currentJob.job_information.description}
+      />
+
+      <DialogFooter
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        onApplyToggle={onApplyToggle}
+        onBookmarkToggle={onBookmarkToggle}
+        applyUrl={currentJob.apply_url}
+      />
+    </div>
+  );
+
+  if (prefersReducedMotion) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="h-[90vh] w-[800px] min-w-[60vw] max-w-[90vw] border border-gray-100 bg-white p-0 dark:border-gray-700 dark:bg-gray-800">
+          <VisuallyHidden>
+            <DialogTitle>Job Details</DialogTitle>
+          </VisuallyHidden>
+          <DialogClose className="absolute top-4 right-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+          <div className="h-full overflow-y-auto" ref={scrollContainerRef}>
+            {dialogContent}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <MorphingDialog
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 34,
+      }}
+    >
+      <MorphingDialogTrigger
+        className="h-full w-full text-left"
+        style={{
+          borderRadius: "8px",
+        }}
+      >
+        {children}
+      </MorphingDialogTrigger>
+
+      <MorphingDialogContainer>
+        <MorphingDialogContent
+          className="relative h-auto w-[800px] min-w-[60vw] max-w-[90vw] translate-y-8 border border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800"
+          style={{
+            borderRadius: "12px",
+          }}
+        >
+          <div
+            className="h-[calc(90vh)] overflow-y-auto"
+            ref={scrollContainerRef}
+          >
+            {dialogContent}
+          </div>
+          <MorphingDialogClose className="text-zinc-500 dark:text-zinc-400" />
+        </MorphingDialogContent>
+      </MorphingDialogContainer>
+    </MorphingDialog>
+  );
 };
 
 export default JobDialogContent;
