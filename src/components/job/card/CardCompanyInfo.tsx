@@ -15,8 +15,10 @@ import UniversalTooltip from "../../util/UniversalTooltip";
 
 const CardCompanyInfo = ({
 	companyData,
+	tagline
 }: {
 	companyData: V5ProcessedCompanyData;
+	tagline: string;
 }) => {
 	const [imageError, setImageError] = useState(false);
 	const isDesktop = useMediaQuery("(min-width: 640px)");
@@ -133,7 +135,7 @@ const CardCompanyInfo = ({
 				</div>
 
 				<div className="line-clamp-2 cursor-text text-gray-600 text-xs dark:text-gray-400">
-					{companyData.tagline}
+					{tagline}
 				</div>
 			</div>
 		</div>
