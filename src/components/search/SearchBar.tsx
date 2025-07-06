@@ -26,6 +26,7 @@ interface SearchBarIconProps {
   delay?: string;
   onClick?: () => void;
   dataIconType?: string;
+  clickable?: boolean;
 }
 
 // SearchBarIcon component
@@ -35,11 +36,12 @@ function SearchBarIcon({
   delay = "delay-0",
   onClick,
   dataIconType,
+  clickable = true,
 }: SearchBarIconProps) {
   return (
     <UniversalTooltip content={tooltipContent}>
       <Icon
-        className={`h-4 w-4 text-neutral-400 transition-all hover:text-pink-500 ${delay} opacity-100 cursor-pointer`}
+        className={`h-4 w-4 text-neutral-400 transition-all hover:text-pink-500 ${delay} ${clickable ? "opacity-100" : "opacity-0"} cursor-pointer`}
         onClick={onClick}
         data-icon-type={dataIconType}
       />
@@ -161,6 +163,7 @@ export default function SearchBar({
           tooltipContent="Location"
           onClick={() => onIconClick?.("location")}
           dataIconType="location"
+          clickable={!inputValue}
         />
         <SearchBarIcon
           delay="delay-100 hover:delay-0"
@@ -168,6 +171,7 @@ export default function SearchBar({
           tooltipContent="Salary"
           onClick={() => onIconClick?.("salary")}
           dataIconType="salary"
+          clickable={!inputValue}
         />
         <SearchBarIcon
           delay="delay-200 hover:delay-0"
@@ -175,6 +179,7 @@ export default function SearchBar({
           tooltipContent="Job Type"
           onClick={() => onIconClick?.("commitment")}
           dataIconType="commitment"
+          clickable={!inputValue}
         />
         <SearchBarIcon
           delay="delay-300 hover:delay-0"
@@ -182,6 +187,7 @@ export default function SearchBar({
           tooltipContent="Filters"
           onClick={() => onIconClick?.("filters")}
           dataIconType="filters"
+          clickable={!inputValue}
         />
         <SearchBarIcon
           delay="delay-400 hover:delay-0"
@@ -189,6 +195,7 @@ export default function SearchBar({
           tooltipContent="Saved"
           onClick={() => onIconClick?.("saved")}
           dataIconType="saved"
+          clickable={!inputValue}
         />
         {inputValue && (
           <UniversalTooltip content="Delete Search">
