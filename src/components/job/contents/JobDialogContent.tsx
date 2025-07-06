@@ -145,7 +145,7 @@ const JobDialogContent = ({
     return (
       <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="h-[90vh] w-[800px] min-w-[60vw] max-w-[90vw] border border-gray-100 bg-white p-0 dark:border-gray-700 dark:bg-gray-800">
+        <DialogContent className="h-[90vh] w-[800px] min-w-[60vw] max-w-[90vw] border border-neutral-100 bg-white p-0 dark:border-neutral-700 dark:bg-neutral-800">
           <VisuallyHidden>
             <DialogTitle>Job Details</DialogTitle>
           </VisuallyHidden>
@@ -180,7 +180,7 @@ const JobDialogContent = ({
 
       <MorphingDialogContainer>
         <MorphingDialogContent
-          className="relative h-auto w-[800px] min-w-[60vw] max-w-[90vw] translate-y-8 border border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800"
+          className="relative h-auto w-[800px] min-w-[60vw] max-w-[90vw] translate-y-8 border border-neutral-100 bg-white dark:border-neutral-700 dark:bg-neutral-800"
           style={{
             borderRadius: "12px",
           }}
@@ -191,7 +191,7 @@ const JobDialogContent = ({
           >
             {dialogContent}
           </div>
-          <MorphingDialogClose className="text-zinc-500 dark:text-zinc-400" />
+          <MorphingDialogClose className="text-neutral-500 dark:text-neutral-400" />
         </MorphingDialogContent>
       </MorphingDialogContainer>
     </MorphingDialog>

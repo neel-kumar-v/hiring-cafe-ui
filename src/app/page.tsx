@@ -21,7 +21,7 @@ export default function Page() {
   return (
     <div>
       <div className="min-h-screen transition-colors duration-300">
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-white dark:bg-neutral-900">
           {/* Header */}
           <Header
             onToggleLegacyFilters={() =>
@@ -44,7 +44,7 @@ export default function Page() {
                   <ApplyFormSelect />
                 </div>
               </div>
-              <div className="mt-2 text-gray-600 text-sm dark:text-gray-400">
+              <div className="mt-2 text-neutral-600 text-sm dark:text-neutral-400">
                 About {formatNumber(jobCount, 3)} jobs from{" "}
                 {formatNumber(companyCount, 3)} companies in {location}
               </div>

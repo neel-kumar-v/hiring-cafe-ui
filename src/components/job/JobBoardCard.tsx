@@ -38,7 +38,7 @@ const JobCard = ({
 }) => {
   return (
     <Card
-      className="h-full cursor-pointer border bg-white shadow-sm transition-shadow duration-300 ease-in hover:shadow-lg dark:border-pink-700/20 dark:bg-gray-800 dark:transition-colors dark:hover:border-pink-700/50 dark:hover:bg-gray-700/50"
+      className="h-full cursor-pointer border bg-white shadow-sm transition-shadow duration-300 ease-in hover:shadow-lg dark:border-pink-700/20 dark:bg-neutral-800 dark:transition-colors dark:hover:border-pink-700/50 dark:hover:bg-neutral-700/50"
       key={jobCollection.source_and_board_token}
       onClick={onClick}
     >
@@ -57,13 +57,13 @@ const JobCard = ({
             savedFromUsers={currentJob.job_information.savedFromUsers}
             viewedByUsers={currentJob.job_information.viewedByUsers}
           />
-          { jobCollection.jobs.length > 1 && (
-          <CardNavigation
-            currentJobIndex={currentJobIndex}
-            onJobSelect={onJobSelect}
-            onNext={onNext}
-            onPrevious={onPrevious}
-            totalJobs={jobCollection.jobs.length}
+          {jobCollection.jobs.length > 1 && (
+            <CardNavigation
+              currentJobIndex={currentJobIndex}
+              onJobSelect={onJobSelect}
+              onNext={onNext}
+              onPrevious={onPrevious}
+              totalJobs={jobCollection.jobs.length}
             />
           )}
         </div>

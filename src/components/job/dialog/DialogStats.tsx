@@ -31,7 +31,7 @@ const DialogStats = ({
   return (
     <div className="absolute top-8 left-8 flex items-center gap-3">
       {!prefersReducedMotion ? (
-        <MorphingTime className="flex items-center gap-1 text-gray-500 text-sm dark:text-gray-400">
+        <MorphingTime className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
           <ScrapeTime
             iconClassName="w-4 h-4"
             postedAt={publishDate}
@@ -39,7 +39,7 @@ const DialogStats = ({
           />
         </MorphingTime>
       ) : (
-        <div className="flex items-center gap-1 text-gray-500 text-sm dark:text-gray-400">
+        <div className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
           <ScrapeTime
             iconClassName="w-4 h-4"
             postedAt={publishDate}
@@ -49,7 +49,7 @@ const DialogStats = ({
       )}
 
       {!prefersReducedMotion ? (
-        <MorphingJobStats className="flex items-center space-x-3 text-gray-500 text-xs dark:text-gray-400">
+        <MorphingJobStats className="flex items-center space-x-3 text-neutral-500 text-xs dark:text-neutral-400">
           <StatGroup
             appliedCount={appliedFromUsers?.length || 0}
             handleApplyClick={onApplyClick}
@@ -63,7 +63,7 @@ const DialogStats = ({
           />
         </MorphingJobStats>
       ) : (
-        <div className="flex items-center space-x-3 text-gray-500 text-xs dark:text-gray-400">
+        <div className="flex items-center space-x-3 text-neutral-500 text-xs dark:text-neutral-400">
           <StatGroup
             appliedCount={appliedFromUsers?.length || 0}
             handleApplyClick={onApplyClick}

@@ -1,15 +1,13 @@
-import React from "react";
-
 const CardRequirementsSummary = ({
-	requirementsSummary,
+  requirementsSummary,
 }: {
-	requirementsSummary: string;
+  requirementsSummary: string;
 }) => {
-	return (
-		<div className="line-clamp-3 cursor-text text-gray-700 text-xs leading-normal dark:text-gray-300">
-			{requirementsSummary}
-		</div>
-	);
+  return (
+    <div className="line-clamp-3 cursor-text text-neutral-700 text-xs leading-normal dark:text-neutral-300">
+      {requirementsSummary}
+    </div>
+  );
 };
 
 export default CardRequirementsSummary;

@@ -71,7 +71,7 @@ const DialogCompanyLogoCard = ({
       <div className="w-full flex flex-row items-center gap-x-8">
         {isDesktop && !prefersReducedMotion ? (
           <MorphingCompanyLogo
-            className={`flex aspect-square h-32 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl bg-white dark:bg-gray-900 ${
+            className={`flex aspect-square h-32 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl bg-white dark:bg-neutral-800 ${
               companyData.image_url && !imageError
                 ? ""
                 : " bg-pink-100 dark:bg-pink-800/15"
@@ -93,7 +93,7 @@ const DialogCompanyLogoCard = ({
           </MorphingCompanyLogo>
         ) : (
           <div
-            className={`flex aspect-square h-24 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl bg-white dark:bg-gray-900 ${
+            className={`flex aspect-square h-24 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl bg-white dark:bg-neutral-800 ${
               companyData.image_url && !imageError
                 ? ""
                 : " bg-pink-100 dark:bg-pink-800/15"
@@ -115,9 +115,9 @@ const DialogCompanyLogoCard = ({
           </div>
         )}
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center">
-          <p className="line-clamp-5 break-words text-gray-700 md:text-base md:leading-relaxed dark:text-gray-300">
+          <p className="line-clamp-5 break-words text-neutral-700 md:text-base md:leading-relaxed dark:text-neutral-300">
             {removeHtmlTags(companyData.tagline || "") || (
-              <span className="text-gray-400 italic">
+              <span className="text-neutral-400 italic">
                 No description provided.
               </span>
             )}
@@ -129,9 +129,9 @@ const DialogCompanyLogoCard = ({
           <DialogExtendedCompanyInfo companyData={companyData} />
         </div>
       )}
-      <div className="mt-6 border-t pt-1.5 border-gray-200 dark:border-gray-700 w-full flex justify-center">
+      <div className="mt-6 border-t pt-1.5 border-neutral-200 dark:border-neutral-700 w-full flex justify-center">
         <Button
-          className="rounded-sm border border-gray-200 bg-white shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 -my-6"
+          className="rounded-sm border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 -my-6"
           onClick={() => setShowExtended((v) => !v)}
           size="sm"
           variant="outline"

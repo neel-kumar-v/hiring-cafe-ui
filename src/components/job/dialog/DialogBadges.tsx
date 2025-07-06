@@ -33,7 +33,7 @@ const DialogBadges = ({
             <MorphingLocation className="flex flex-row flex-wrap items-center gap-2">
               {getLocations(workplaceCities).map((loc, index) => (
                 <span
-                  className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300"
+                  className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-700/50 rounded-lg px-3 py-2 text-neutral-700 dark:text-neutral-300"
                   key={index}
                 >
                   <MapPin className="w-4 h-4" />
@@ -46,7 +46,7 @@ const DialogBadges = ({
           getLocations(workplaceCities).map((loc, index) => (
             <span
               key={index}
-              className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300"
+              className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-700/50 rounded-lg px-3 py-2 text-neutral-700 dark:text-neutral-300"
             >
               <MapPin className="w-4 h-4" />
               {loc}
@@ -58,7 +58,7 @@ const DialogBadges = ({
             {commitments.map((commitment, index) => (
               <span
                 key={index}
-                className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300"
+                className="bg-neutral-100 dark:bg-neutral-700/50 rounded-lg px-3 py-2 text-neutral-700 dark:text-neutral-300"
               >
                 {commitment}
               </span>
@@ -68,31 +68,31 @@ const DialogBadges = ({
           commitments.map((commitment, index) => (
             <span
               key={index}
-              className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300"
+              className="bg-neutral-100 dark:bg-neutral-700/50 rounded-lg px-3 py-2 text-neutral-700 dark:text-neutral-300"
             >
               {commitment}
             </span>
           ))
         )}
         {isDesktop && !prefersReducedMotion ? (
-          <MorphingWorkType className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300">
+          <MorphingWorkType className="bg-neutral-100 dark:bg-neutral-700/50 rounded-lg px-3 py-2 text-neutral-700 dark:text-neutral-300">
             {workType}
           </MorphingWorkType>
         ) : (
-          <span className="bg-gray-100 dark:bg-gray-700/50 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300">
+          <span className="bg-neutral-100 dark:bg-neutral-700/50 rounded-lg px-3 py-2 text-neutral-700 dark:text-neutral-300">
             {workType}
           </span>
         )}
         {getCompensation(compensation) &&
           (isDesktop && !prefersReducedMotion ? (
             <MorphingSalary>
-              <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 dark:bg-gray-700/75 text-black dark:text-pink-500/85">
+              <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 text-black dark:text-white">
                 <DollarSign className="w-4 h-4" />
                 {getCompensation(compensation)}
               </span>
             </MorphingSalary>
           ) : (
-            <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 dark:bg-gray-700/75 text-black dark:text-pink-500/85">
+            <span className="flex items-center gap-2 rounded-lg px-3 py-2 bg-pink-400/75 text-black dark:text-white">
               <DollarSign className="w-4 h-4" />
               {getCompensation(compensation)}
             </span>

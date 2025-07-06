@@ -9,7 +9,7 @@ const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
   if (!technicalTools || technicalTools.length === 0) return null;
   return (
     <div className="mb-6">
-      <h3 className="mb-3 font-medium text-gray-900 text-lg dark:text-white">
+      <h3 className="mb-3 font-medium text-neutral-900 text-lg dark:text-white">
         Skills
       </h3>
       {isDesktop && !prefersReducedMotion ? (

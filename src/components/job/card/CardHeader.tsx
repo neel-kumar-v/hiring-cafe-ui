@@ -1,16 +1,15 @@
-import React from "react";
-import { DollarSign, MapPin } from "lucide-react";
 import {
+  MorphingCommitments,
   MorphingJobTitle,
   MorphingLocation,
   MorphingSalary,
   MorphingTime,
-  MorphingCommitments,
   MorphingWorkType,
 } from "@/components/ui/morphing-dialog";
-import { getCleanJobTitle, getLocations, getCompensation } from "@/lib/utils";
-import { CompensationRange } from "@/types/jobs";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { getCleanJobTitle, getCompensation, getLocations } from "@/lib/utils";
+import { CompensationRange } from "@/types/jobs";
+import { DollarSign, MapPin } from "lucide-react";
 import ScrapeTime from "../util/ScrapeTime";
 
 const CardHeader = ({
@@ -41,7 +40,7 @@ const CardHeader = ({
       <div className="flex flex-row justify-between items-center">
         {isDesktop ? (
           <>
-            <MorphingJobTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 flex-1">
+            <MorphingJobTitle className="text-lg font-semibold text-neutral-900 dark:text-white mb-2 line-clamp-2 flex-1">
               {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </MorphingJobTitle>
             <MorphingTime className="flex items-center space-x-1 -translate-y-0.5">
@@ -50,7 +49,7 @@ const CardHeader = ({
           </>
         ) : (
           <>
-            <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+            <div className="text-lg font-semibold text-neutral-900 dark:text-white mb-2 line-clamp-2">
               {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </div>
             <div className="flex items-center space-x-1 -translate-y-3">
@@ -59,7 +58,7 @@ const CardHeader = ({
           </>
         )}
       </div>
-      <span className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1 flex-wrap">
+      <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-2 flex items-center gap-1 flex-wrap">
         {workplaceCities.length > 0 &&
           (isDesktop ? (
             <MorphingLocation className="flex flex-row flex-wrap items-center gap-1">
@@ -68,7 +67,7 @@ const CardHeader = ({
                 .map((loc, index) => (
                   <span
                     key={index}
-                    className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs"
+                    className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
                   >
                     <MapPin className="w-3 h-3" />
                     {loc}
@@ -81,7 +80,7 @@ const CardHeader = ({
               .map((loc, index) => (
                 <span
                   key={index}
-                  className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs"
+                  className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
                 >
                   <MapPin className="w-3 h-3" />
                   {loc}
@@ -93,7 +92,7 @@ const CardHeader = ({
             {commitments.map((commitment, index) => (
               <span
                 key={index}
-                className="bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs"
+                className="bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
               >
                 {commitment}
               </span>
@@ -103,7 +102,7 @@ const CardHeader = ({
           commitments.map((commitment, index) => (
             <span
               key={index}
-              className="bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs"
+              className="bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
             >
               {commitment}
             </span>
@@ -111,25 +110,25 @@ const CardHeader = ({
         )}
         {isDesktop ? (
           <MorphingWorkType>
-            <span className="bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs">
+            <span className="bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs">
               {workType}
             </span>
           </MorphingWorkType>
         ) : (
-          <span className="bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 text-xs">
+          <span className="bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs">
             {workType}
           </span>
         )}
         {getCompensation(compensation) &&
           (isDesktop ? (
             <MorphingSalary>
-              <span className="flex items-center gap-1 bg-pink-400/75 dark:bg-gray-700/75 rounded-md px-2 py-0.5 text-black dark:text-pink-500/85 text-xs">
+              <span className="flex items-center gap-1 bg-pink-400/75 dark:bg-pink-400/60 rounded-md px-2 py-0.5 text-black dark:text-white text-xs">
                 <DollarSign className="w-3 h-3" />
                 {getCompensation(compensation)}
               </span>
             </MorphingSalary>
           ) : (
-            <span className="flex items-center gap-1 bg-pink-400/75 dark:bg-gray-700/75 rounded-md px-2 py-0.5 text-black dark:text-pink-500/85 text-xs">
+            <span className="flex items-center gap-1 bg-pink-400/75 dark:bg-pink-400/60 rounded-md px-2 py-0.5 text-black dark:text-white text-xs">
               <DollarSign className="w-3 h-3" />
               {getCompensation(compensation)}
             </span>

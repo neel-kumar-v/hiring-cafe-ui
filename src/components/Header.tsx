@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import {
   Bookmark,
   Briefcase,
@@ -25,7 +26,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import SearchBar from "./search/SearchBar";
-import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 
 interface HeaderProps {
   showLegacyFilters?: boolean;
@@ -45,7 +45,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-50 border-gray-200 border-b bg-white dark:border-gray-700 dark:bg-gray-900">
+    <header className="sticky top-0 z-50 border-neutral-200 border-b bg-white dark:border-neutral-700 dark:bg-neutral-900">
       <div className="mx-auto max-w-full px-2 transition-[padding] duration-500 ease-in-out sm:px-4 lg:px-8 xl:px-12">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
