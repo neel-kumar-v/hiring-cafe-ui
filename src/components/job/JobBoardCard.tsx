@@ -167,7 +167,8 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
   };
 
   const handleApplyToggle = () => {
-    setIsApplied(!isApplied);
+    // setIsApplied(!isApplied);
+    window.open(currentJob.apply_url, '_blank');
   };
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
@@ -192,14 +193,8 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
           isBookmarked={isBookmarked}
           isTransitioning={isTransitioning}
           jobCollection={jobCollection}
-          onApplyToggle={(e) => {
-            e.stopPropagation();
-            setIsApplied(!isApplied);
-          }}
-          onBookmarkToggle={(e) => {
-            e.stopPropagation();
-            setIsBookmarked(!isBookmarked);
-          }}
+          onApplyToggle={handleApplyToggle}
+          onBookmarkToggle={handleBookmarkToggle}
           onClick={() => setDrawerOpen(true)}
           onJobSelect={(index) => setCurrentJobIndex(index)}
           onNext={() =>
@@ -217,8 +212,8 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
           currentJob={currentJob}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
-          onApplyToggle={() => setIsApplied(!isApplied)}
-          onBookmarkToggle={() => setIsBookmarked(!isBookmarked)}
+          onApplyToggle={handleApplyToggle}
+          onBookmarkToggle={handleBookmarkToggle}
           onClose={() => setDrawerOpen(false)}
           open={drawerOpen}
         />

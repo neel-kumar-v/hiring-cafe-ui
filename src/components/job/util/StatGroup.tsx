@@ -72,7 +72,7 @@ export const StatGroup = ({
             ? "You have applied to this job"
             : appliedCount === 0
               ? "Be the first to apply to this job!"
-              : `Applied by ${appliedCount} users`
+              : `Applied by ${appliedCount} users. Click to apply.`
         }
       >
         <span
