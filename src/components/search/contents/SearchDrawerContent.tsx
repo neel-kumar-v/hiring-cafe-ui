@@ -54,7 +54,7 @@ export default function SearchDrawerContent({
         setSelectedCategory(category.id);
       }
     }
-  }, [from, open, selectedCategory]);
+  }, [from, open]);
 
   const renderContent = () => {
     switch (selectedCategory) {

@@ -55,7 +55,7 @@ export default function SearchDialogContent({
         setSelectedCategory(category.id);
       }
     }
-  }, [from, open, selectedCategory]);
+  }, [from, open]);
 
   const renderContent = () => {
     switch (selectedCategory) {
