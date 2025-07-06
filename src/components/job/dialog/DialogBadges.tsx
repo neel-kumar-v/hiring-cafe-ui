@@ -27,7 +27,9 @@ const DialogBadges = ({
   const { prefersReducedMotion } = useReducedMotion();
   return (
     <div className={compact ? "" : "mb-6"}>
-      <div className={`flex flex-wrap ${compact ? "space-x-1" : "space-x-3"}`}>
+      <div
+        className={`flex flex-wrap ${compact ? "gap-1" : "gap-3"}`}
+      >
         {isDesktop && !prefersReducedMotion ? (
           getLocations(workplaceCities).length > 0 ? (
             <MorphingLocation className="flex flex-row flex-wrap items-center gap-2">
