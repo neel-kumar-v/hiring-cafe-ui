@@ -30,11 +30,13 @@ import SearchBar from "./search/SearchBar";
 interface HeaderProps {
   showLegacyFilters?: boolean;
   onToggleLegacyFilters?: () => void;
+  onIconClick?: (category: string) => void;
 }
 
 export default function Header({
   showLegacyFilters = false,
   onToggleLegacyFilters,
+  onIconClick,
 }: HeaderProps) {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { prefersReducedMotion, toggleReducedMotion } = useReducedMotion();
@@ -79,7 +81,7 @@ export default function Header({
           {/* Search Bar */}
           <div className="mx-8 flex-1">
             <div className="flex space-x-2">
-              <SearchBar onSearch={handleSearch} />
+              <SearchBar onSearch={handleSearch} onIconClick={onIconClick} />
             </div>
           </div>
 

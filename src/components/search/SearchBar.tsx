@@ -17,6 +17,7 @@ interface SearchBarProps {
   placeholder?: string;
   className?: string;
   onSearch?: (value: string) => void;
+  onIconClick?: (category: string) => void;
 }
 
 interface SearchBarIconProps {
@@ -25,6 +26,7 @@ interface SearchBarIconProps {
   inputValue: string;
   delay?: string;
   onClick?: () => void;
+  dataIconType?: string;
 }
 
 // SearchBarIcon component
@@ -34,17 +36,17 @@ function SearchBarIcon({
   inputValue,
   delay = "delay-0",
   onClick,
+  dataIconType,
 }: SearchBarIconProps) {
-  const isVisible =
-    inputValue.trim() === ""
-      ? "sm:opacity-100 opacity-0"
-      : "sm:opacity-0 opacity-0 cursor-pointer pointer-events-none";
+  // Make icons always visible and clickable
+  const isClickable = true;
 
   return (
     <UniversalTooltip content={tooltipContent}>
       <Icon
-        className={`h-4 w-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500 ${delay} ${isVisible}`}
+        className={`h-4 w-4 text-neutral-400 transition-all hover:text-pink-500 ${delay} opacity-100 cursor-pointer`}
         onClick={onClick}
+        data-icon-type={dataIconType}
       />
     </UniversalTooltip>
   );
@@ -60,6 +62,7 @@ export default function SearchBar({
   placeholder = "Search",
   className = "",
   onSearch,
+  onIconClick,
 }: SearchBarProps) {
   const [inputValue, setInputValue] = useState("");
 
@@ -87,6 +90,61 @@ export default function SearchBar({
     }
   };
 
+  const handleGeneralClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const container = e.currentTarget;
+    const icons = Array.from(
+      container.querySelectorAll("[data-icon-type]")
+    ) as HTMLElement[];
+    const clickX = e.clientX;
+    const clickY = e.clientY;
+
+    type Target = {
+      el: HTMLElement;
+      type: string;
+    };
+    const targets: Target[] = icons.map((icon) => ({
+      el: icon,
+      type: icon.dataset.iconType || "",
+    }));
+
+    const closest = targets.reduce(
+      (min, target) => {
+        const rect = target.el.getBoundingClientRect();
+        const dist = Math.hypot(
+          rect.left + rect.width / 2 - clickX,
+          rect.top + rect.height / 2 - clickY
+        );
+        return dist < min.dist ? { target, dist } : min;
+      },
+      { target: null as Target | null, dist: Number.POSITIVE_INFINITY }
+    );
+
+    if (!closest.target) return;
+
+    // Call the appropriate handler based on the icon type
+    switch (closest.target.type) {
+      case "location":
+        onIconClick?.("location");
+        break;
+      case "salary":
+        onIconClick?.("salary");
+        break;
+      case "commitment":
+        onIconClick?.("commitment");
+        break;
+      case "filters":
+        onIconClick?.("filters");
+        break;
+      case "saved":
+        onIconClick?.("saved");
+        break;
+      case "clear":
+        setInputValue("");
+        break;
+    }
+  };
+
   return (
     <div className="relative flex-1">
       <Autocomplete
@@ -96,37 +154,51 @@ export default function SearchBar({
         options={jobTitles}
         placeholder={placeholder}
         value={inputValue}
+        onIconClick={onIconClick}
       />
-      <div className="-translate-y-1/2 absolute top-1/2 right-3 z-10 flex justify-end gap-1.5">
+      <div
+        className="-translate-y-1/2 absolute top-1/2 right-3 z-10 flex justify-end gap-1.5"
+        onClick={handleGeneralClick}
+      >
         <SearchBarIcon
           delay="delay-0"
           icon={MapPin}
           inputValue={inputValue}
           tooltipContent="Location"
+          onClick={() => onIconClick?.("location")}
+          dataIconType="location"
         />
         <SearchBarIcon
           delay="delay-100 hover:delay-0"
           icon={DollarSign}
           inputValue={inputValue}
           tooltipContent="Salary"
+          onClick={() => onIconClick?.("salary")}
+          dataIconType="salary"
         />
         <SearchBarIcon
           delay="delay-200 hover:delay-0"
           icon={BriefcaseBusiness}
           inputValue={inputValue}
           tooltipContent="Job Type"
+          onClick={() => onIconClick?.("commitment")}
+          dataIconType="commitment"
         />
         <SearchBarIcon
           delay="delay-300 hover:delay-0"
           icon={SlidersHorizontal}
           inputValue={inputValue}
           tooltipContent="Filters"
+          onClick={() => onIconClick?.("filters")}
+          dataIconType="filters"
         />
         <SearchBarIcon
           delay="delay-400 hover:delay-0"
           icon={BookMarked}
           inputValue={inputValue}
           tooltipContent="Saved"
+          onClick={() => onIconClick?.("saved")}
+          dataIconType="saved"
         />
         {inputValue && (
           <UniversalTooltip content="Delete Search">
@@ -135,6 +207,7 @@ export default function SearchBar({
                 "h-4 w-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
               }
               onClick={() => setInputValue("")}
+              data-icon-type="clear"
             />
           </UniversalTooltip>
         )}

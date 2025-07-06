@@ -11,6 +11,7 @@ interface AutocompleteProps {
   placeholder?: string;
   className?: string;
   maxTotal?: number;
+  onIconClick?: (category: string) => void;
 }
 
 // Component for individual autocomplete option
@@ -100,6 +101,7 @@ interface DesktopDropdownProps {
   showFilters: boolean;
   onOptionClick: (option: string) => void;
   onToggleFilters: () => void;
+  onIconClick?: (category: string) => void;
 }
 
 function DesktopDropdown({
@@ -110,6 +112,7 @@ function DesktopDropdown({
   showFilters,
   onOptionClick,
   onToggleFilters,
+  onIconClick,
 }: DesktopDropdownProps) {
   if (!isOpen) return null;
 
@@ -154,7 +157,7 @@ function DesktopDropdown({
       {showFilters && (
         <div className="relative w-1/2 overflow-y-hidden border-neutral-200 border-l dark:border-neutral-600">
           <div className="p-3">
-            <SearchFilters />
+            <SearchFilters onIconClick={onIconClick} />
           </div>
         </div>
       )}
@@ -302,6 +305,7 @@ export default function Autocomplete({
   placeholder = "Search",
   className = "",
   maxTotal = 20,
+  onIconClick,
 }: AutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
@@ -431,6 +435,7 @@ export default function Autocomplete({
           onOptionClick={handleOptionClick}
           onToggleFilters={handleToggleFilters}
           showFilters={showFilters}
+          onIconClick={onIconClick}
         />
       </div>
 

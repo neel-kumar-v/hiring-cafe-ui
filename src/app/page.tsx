@@ -6,16 +6,26 @@ import ApplyFormSelect from "@/components/search/legacy/ApplyFormSelect";
 import DateRangePopover from "@/components/search/legacy/DateRangePopover";
 import Filters from "@/components/search/legacy/Filters";
 import SortPopover from "@/components/search/legacy/SortPopover";
+import SearchDialog from "@/components/SearchDialog";
+import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useState } from "react";
 
 export default function Page() {
+  const { isDarkMode } = useDarkMode();
   const [jobCount] = useState(2_057_770);
   const [companyCount] = useState(72_936);
   const [location] = useState("United States");
   const [showLegacyFilters, setShowLegacyFilters] = useState(false);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchDialogFrom, setSearchDialogFrom] = useState<string>("");
 
   const formatNumber = (number: number, round = 3) => {
     return (Math.round(number / 10 ** round) * 10 ** round).toLocaleString();
+  };
+
+  const handleSearchIconClick = (category: string) => {
+    setSearchDialogFrom(category);
+    setSearchDialogOpen(true);
   };
 
   return (
@@ -28,11 +38,20 @@ export default function Page() {
               setShowLegacyFilters(!showLegacyFilters)
             }
             showLegacyFilters={showLegacyFilters}
+            onIconClick={handleSearchIconClick}
+          />
+
+          {/* Search Dialog */}
+          <SearchDialog
+            from={searchDialogFrom}
+            onOpenChange={setSearchDialogOpen}
+            open={searchDialogOpen}
+            isDarkMode={isDarkMode}
           />
 
           {/* Filter Tags */}
           <div className={showLegacyFilters ? "" : "hidden"}>
-            <Filters />
+            <Filters onIconClick={handleSearchIconClick} />
           </div>
 
           <div className={showLegacyFilters ? "" : "hidden"}>
