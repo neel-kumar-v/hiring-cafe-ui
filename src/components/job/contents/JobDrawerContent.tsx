@@ -89,6 +89,12 @@ const JobDrawerContent = ({
             requirementsSummary={
               currentJob.v5_processed_job_data.requirements_summary
             }
+            minIndustryAndRoleYoe={
+              currentJob.v5_processed_job_data.min_industry_and_role_yoe
+            }
+            minManagementAndLeadershipYoe={
+              currentJob.v5_processed_job_data.min_management_and_leadership_yoe
+            }
           />
           <DialogSkills
             technicalTools={currentJob.v5_processed_job_data.technical_tools}

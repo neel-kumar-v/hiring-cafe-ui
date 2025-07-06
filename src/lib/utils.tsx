@@ -567,3 +567,34 @@ export const formatTool = (tool: string) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };
+
+export const getExperienceInfo = (
+  minIndustryAndRoleYoe: number | null | undefined,
+  minManagementAndLeadershipYoe: number | null | undefined
+) => {
+  const hasIndustry =
+    minIndustryAndRoleYoe !== null && minIndustryAndRoleYoe !== undefined;
+  const hasLeadership =
+    minManagementAndLeadershipYoe !== null &&
+    minManagementAndLeadershipYoe !== undefined;
+
+  const industryBadge = hasIndustry ? `${minIndustryAndRoleYoe}+ YOE` : null;
+  const leadershipBadge = hasLeadership
+    ? `${minManagementAndLeadershipYoe}+ YOM`
+    : null;
+
+  const industryTooltip = hasIndustry
+    ? `This job requires ${minIndustryAndRoleYoe}+ years of experience`
+    : null;
+  const leadershipTooltip = hasLeadership
+    ? `This job requires ${minManagementAndLeadershipYoe}+ years of leadership/management experience`
+    : null;
+
+  return {
+    industryBadge,
+    leadershipBadge,
+    industryTooltip,
+    leadershipTooltip,
+    hasAny: hasIndustry || hasLeadership,
+  };
+};
