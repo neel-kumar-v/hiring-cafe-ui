@@ -33,7 +33,7 @@ const removeLocationAndPrepositions = (
 
   locationParts.forEach((part, idx) => {
     if (!part) return;
-    let patterns = [part];
+    const patterns = [part];
     if (idx === 1) {
       const abbr = formatState(part);
       if (abbr !== part) patterns.push(abbr);

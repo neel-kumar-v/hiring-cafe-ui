@@ -2,7 +2,7 @@ interface SalaryFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function SalaryFilters({ isDarkMode }: SalaryFiltersProps) {
+export default function SalaryFilters({}: SalaryFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Salary Range</h3>
@@ -26,4 +26,4 @@ export default function SalaryFilters({ isDarkMode }: SalaryFiltersProps) {
       </div>
     </div>
   );
-} 
+}

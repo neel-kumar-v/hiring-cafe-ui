@@ -3,7 +3,6 @@ interface ApplyFormFiltersProps {
 }
 
 export default function ApplyFormFilters({
-  isDarkMode,
 }: ApplyFormFiltersProps) {
   return (
     <div className="space-y-4">

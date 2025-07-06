@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { SearchDialogContent, SearchDrawerContent } from "./search/contents";
-import { Button } from "./ui/button";
 
 interface SearchDialogProps {
   open: boolean;
@@ -33,7 +32,7 @@ export default function SearchDialog({
   if (!isDesktop) {
     // Mobile: Render as drawer
     return (
-      <Drawer onOpenChange={onOpenChange} open={open} >
+      <Drawer onOpenChange={onOpenChange} open={open}>
         <DrawerContent className="overflow-y-hidden">
           <DrawerHeader className="border-neutral-200 border-b px-6 py-4 dark:border-neutral-700">
             <DrawerTitle className="text-2xl">

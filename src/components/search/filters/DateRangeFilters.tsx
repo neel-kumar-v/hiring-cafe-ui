@@ -2,9 +2,7 @@ interface DateRangeFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function DateRangeFilters({
-  isDarkMode,
-}: DateRangeFiltersProps) {
+export default function DateRangeFilters({}: DateRangeFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Date Range</h3>

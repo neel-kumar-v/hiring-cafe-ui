@@ -3,10 +3,7 @@ interface DefaultFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function DefaultFilters({
-  categoryName,
-  isDarkMode,
-}: DefaultFiltersProps) {
+export default function DefaultFilters({ categoryName }: DefaultFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">{categoryName}</h3>

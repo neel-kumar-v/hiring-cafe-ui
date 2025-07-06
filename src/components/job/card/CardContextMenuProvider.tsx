@@ -35,7 +35,7 @@ const CardContextMenuProvider = ({
 	applyUrl: string;
 }) => {
 	return (
-		<ContextMenu className="transition-all duration-300 ease-in-out">
+		<ContextMenu>
 			<ContextMenuTrigger>{children}</ContextMenuTrigger>
 			<ContextMenuContent className="min-w-64">
 				<ContextMenuItem onClick={onBookmarkClick}>

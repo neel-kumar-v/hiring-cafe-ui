@@ -22,7 +22,6 @@ interface SearchDrawerContentProps {
 
 export default function SearchDrawerContent({
   open,
-  onOpenChange,
   from,
   isDarkMode = false,
 }: SearchDrawerContentProps) {
@@ -55,7 +54,7 @@ export default function SearchDrawerContent({
         setSelectedCategory(category.id);
       }
     }
-  }, [from, open]);
+  }, [from, open, selectedCategory]);
 
   const renderContent = () => {
     switch (selectedCategory) {

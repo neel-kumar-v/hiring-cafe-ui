@@ -23,7 +23,6 @@ interface SearchBarProps {
 interface SearchBarIconProps {
   icon: LucideIcon;
   tooltipContent: string;
-  inputValue: string;
   delay?: string;
   onClick?: () => void;
   dataIconType?: string;
@@ -33,14 +32,10 @@ interface SearchBarIconProps {
 function SearchBarIcon({
   icon: Icon,
   tooltipContent,
-  inputValue,
   delay = "delay-0",
   onClick,
   dataIconType,
 }: SearchBarIconProps) {
-  // Make icons always visible and clickable
-  const isClickable = true;
-
   return (
     <UniversalTooltip content={tooltipContent}>
       <Icon
@@ -163,7 +158,6 @@ export default function SearchBar({
         <SearchBarIcon
           delay="delay-0"
           icon={MapPin}
-          inputValue={inputValue}
           tooltipContent="Location"
           onClick={() => onIconClick?.("location")}
           dataIconType="location"
@@ -171,7 +165,6 @@ export default function SearchBar({
         <SearchBarIcon
           delay="delay-100 hover:delay-0"
           icon={DollarSign}
-          inputValue={inputValue}
           tooltipContent="Salary"
           onClick={() => onIconClick?.("salary")}
           dataIconType="salary"
@@ -179,7 +172,6 @@ export default function SearchBar({
         <SearchBarIcon
           delay="delay-200 hover:delay-0"
           icon={BriefcaseBusiness}
-          inputValue={inputValue}
           tooltipContent="Job Type"
           onClick={() => onIconClick?.("commitment")}
           dataIconType="commitment"
@@ -187,7 +179,6 @@ export default function SearchBar({
         <SearchBarIcon
           delay="delay-300 hover:delay-0"
           icon={SlidersHorizontal}
-          inputValue={inputValue}
           tooltipContent="Filters"
           onClick={() => onIconClick?.("filters")}
           dataIconType="filters"
@@ -195,7 +186,6 @@ export default function SearchBar({
         <SearchBarIcon
           delay="delay-400 hover:delay-0"
           icon={BookMarked}
-          inputValue={inputValue}
           tooltipContent="Saved"
           onClick={() => onIconClick?.("saved")}
           dataIconType="saved"

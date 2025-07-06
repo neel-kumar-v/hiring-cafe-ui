@@ -2,7 +2,7 @@ interface LocationFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function LocationFilters({ isDarkMode }: LocationFiltersProps) {
+export default function LocationFilters({}: LocationFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Location</h3>

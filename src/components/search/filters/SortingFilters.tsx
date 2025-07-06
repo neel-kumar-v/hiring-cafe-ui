@@ -2,7 +2,7 @@ interface SortingFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function SortingFilters({ isDarkMode }: SortingFiltersProps) {
+export default function SortingFilters({}: SortingFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Sorting Options</h3>

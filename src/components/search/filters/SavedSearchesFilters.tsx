@@ -2,9 +2,7 @@ interface SavedSearchesFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function SavedSearchesFilters({
-  isDarkMode,
-}: SavedSearchesFiltersProps) {
+export default function SavedSearchesFilters({}: SavedSearchesFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Saved Searches</h3>

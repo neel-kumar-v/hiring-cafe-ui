@@ -2,7 +2,7 @@ interface AllFiltersProps {
   isDarkMode?: boolean;
 }
 
-export default function AllFilters({ isDarkMode }: AllFiltersProps) {
+export default function AllFilters({}: AllFiltersProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">All Filters</h3>

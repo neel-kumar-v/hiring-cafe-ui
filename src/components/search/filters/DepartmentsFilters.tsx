@@ -5,7 +5,6 @@ interface DepartmentsFiltersProps {
 }
 
 export default function DepartmentsFilters({
-  isDarkMode,
 }: DepartmentsFiltersProps) {
   return (
     <div className="space-y-4">
