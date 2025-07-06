@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-interface CardSwipeableIndicatorProps {
+interface CardSwipeIndicatorProps {
   children: React.ReactNode;
   onNext: () => void;
   onPrevious: () => void;
@@ -11,13 +11,13 @@ interface CardSwipeableIndicatorProps {
   className?: string;
 }
 
-const CardSwipeableIndicator = ({
+const CardSwipeIndicator = ({
   children,
   onNext,
   onPrevious,
   totalJobs,
   className = "",
-}: CardSwipeableIndicatorProps) => {
+}: CardSwipeIndicatorProps) => {
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
     null
   );
@@ -108,4 +108,4 @@ const CardSwipeableIndicator = ({
   );
 };
 
-export default CardSwipeableIndicator;
+export default CardSwipeIndicator;

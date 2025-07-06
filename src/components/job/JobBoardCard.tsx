@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
 import CardStats from "./card/CardStats";
-import CardSwipeableIndicator from "./card/CardSwipeableIndicator";
+import CardSwipeIndicator from "./card/CardSwipeIndicator";
 import { JobCardContent, JobDialogContent, JobDrawerContent } from "./contents";
 
 const JobCard = ({
@@ -38,7 +38,7 @@ const JobCard = ({
   onClick: () => void;
 }) => {
   return (
-    <CardSwipeableIndicator
+    <CardSwipeIndicator
       onNext={onNext}
       onPrevious={onPrevious}
       totalJobs={jobCollection.jobs.length}
@@ -82,7 +82,7 @@ const JobCard = ({
           </div>
         </CardContent>
       </Card>
-    </CardSwipeableIndicator>
+    </CardSwipeIndicator>
   );
 };
 
