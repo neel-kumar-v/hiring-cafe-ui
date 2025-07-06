@@ -90,50 +90,50 @@ export default function Header({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className="h-8 w-8 rounded-full bg-pink-500 p-0 hover:bg-pink-600"
+                  className="h-8 w-8 rounded-full bg-pink-500 p-2 hover:bg-pink-600"
                   size="sm"
                   variant="ghost"
                 >
-                  <User className="h-4 w-4 text-white" />
+                  <User className="size-5 text-white" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem>
-                  <Bookmark className="mr-2 h-4 w-4" />
+                  <Bookmark className="mr-2 size-4" />
                   Saved Searches
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Briefcase className="mr-2 h-4 w-4" />
+                  <Briefcase className="mr-2 size-4" />
                   Saved Jobs
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
+                  <Settings className="mr-2 size-4" />
                   Account
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
-                  <Users className="mr-2 h-4 w-4" />
+                  <Users className="mr-2 size-4" />
                   Talent Network
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Mail className="mr-2 h-4 w-4" />
+                  <Mail className="mr-2 size-4" />
                   Inbox
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Building className="mr-2 h-4 w-4" />
+                  <Building className="mr-2 size-4" />
                   Employers
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
-                  <Info className="mr-2 h-4 w-4" />
+                  <Info className="mr-2 size-4" />
                   About Us
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <ExternalLink className="mr-2 h-4 w-4" />
+                  <ExternalLink className="mr-2 size-4" />
                   Follow on Reddit
                 </DropdownMenuItem>
 
@@ -141,24 +141,24 @@ export default function Header({
 
                 <DropdownMenuItem onClick={toggleDarkMode}>
                   {isDarkMode ? (
-                    <Sun className="mr-2 h-4 w-4" />
+                    <Sun className="mr-2 size-4" />
                   ) : (
-                    <Moon className="mr-2 h-4 w-4" />
+                    <Moon className="mr-2 size-4" />
                   )}
                   {isDarkMode ? "Light Mode" : "Dark Mode"}
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onClick={toggleReducedMotion}>
                   {prefersReducedMotion ? (
-                    <Zap className="mr-2 h-4 w-4" />
+                    <Zap className="mr-2 size-4" />
                   ) : (
-                    <ZapOff className="mr-2 h-4 w-4" />
+                    <ZapOff className="mr-2 size-4" />
                   )}
                   {prefersReducedMotion ? "Enable Animations" : "Reduce Motion"}
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onClick={onToggleLegacyFilters}>
-                  <ListFilterPlus className="mr-2 h-4 w-4" />
+                  <ListFilterPlus className="mr-2 size-4" />
                   {showLegacyFilters
                     ? "Hide Legacy Filters"
                     : "Show Legacy Filters"}
