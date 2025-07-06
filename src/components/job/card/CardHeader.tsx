@@ -21,6 +21,7 @@ const CardHeader = ({
   workType,
   compensation,
   postedAt,
+  tools,
 }: {
   jobTitle: string;
   companyName: string;
@@ -29,6 +30,7 @@ const CardHeader = ({
   workType: string;
   compensation: CompensationRange;
   postedAt: string;
+  tools: string[];
 }) => {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   // For getCleanJobTitle, we'll use the first city or an empty string
@@ -40,7 +42,7 @@ const CardHeader = ({
         {isDesktop ? (
           <>
             <MorphingJobTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 flex-1">
-              {getCleanJobTitle(jobTitle, companyName, locationForTitle)}
+              {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </MorphingJobTitle>
             <MorphingTime className="flex items-center space-x-1 -translate-y-0.5">
               <ScrapeTime postedAt={postedAt} />
@@ -49,7 +51,7 @@ const CardHeader = ({
         ) : (
           <>
             <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-              {getCleanJobTitle(jobTitle, companyName, locationForTitle)}
+              {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </div>
             <div className="flex items-center space-x-1 -translate-y-3">
               <ScrapeTime postedAt={postedAt} />

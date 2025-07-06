@@ -57,13 +57,15 @@ const JobCard = ({
             savedFromUsers={currentJob.job_information.savedFromUsers}
             viewedByUsers={currentJob.job_information.viewedByUsers}
           />
+          { jobCollection.jobs.length > 1 && (
           <CardNavigation
             currentJobIndex={currentJobIndex}
             onJobSelect={onJobSelect}
             onNext={onNext}
             onPrevious={onPrevious}
             totalJobs={jobCollection.jobs.length}
-          />
+            />
+          )}
         </div>
       </CardContent>
     </Card>

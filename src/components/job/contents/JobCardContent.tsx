@@ -19,6 +19,7 @@ const JobCardContent = ({
 				}`}
 			>
 				<CardHeader
+					tools={currentJob.v5_processed_job_data.technical_tools}
 					commitments={currentJob.v5_processed_job_data.commitment}
 					companyName={currentJob.v5_processed_company_data.name}
 					compensation={{

@@ -78,6 +78,7 @@ const JobDialogContent = ({
         companyName={currentJob.v5_processed_company_data.name}
         jobTitle={currentJob.job_information.title}
         workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
+        tools={currentJob.v5_processed_job_data.technical_tools}
       />
 
       <DialogBadges
