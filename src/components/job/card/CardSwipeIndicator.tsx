@@ -76,7 +76,7 @@ const CardSwipeIndicator = ({
 
   return (
     <div
-      className={`relative overflow-hidden select-none ${className}`}
+      className={`relative overflow-hidden select-none h-full ${className}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
