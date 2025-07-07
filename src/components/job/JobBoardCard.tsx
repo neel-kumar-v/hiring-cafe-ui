@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/jobs";
 import { useEffect, useRef, useState } from "react";
+import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
 import CardStats from "./card/CardStats";
@@ -74,11 +75,9 @@ const JobCard = ({
             ) : (
               <div className="col-span-1"></div>
             )}
-            <div className="col-span-1 flex justify-end">
-              <span className="text-sm text-pink-600 dark:text-pink-400 hover:scale-120 dark:hover:text-pink-200 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 cursor-pointer">
-                View All
-              </span>
-            </div>
+            <CardCompanyJobs
+              companyData={currentJob.v5_processed_company_data}
+            />
           </div>
         </CardContent>
       </Card>
