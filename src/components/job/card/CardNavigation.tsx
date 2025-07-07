@@ -63,32 +63,14 @@ const CardNavigation = ({
 
   return (
     <div className="flex cursor-pointer items-center justify-center space-x-1 px-2">
-      {/* Left Chevron */}
       <div
-        className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-neutral-500 transition-all duration-200 ease-in-out hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 ${
-          totalJobs <= 1 ||
-          (totalJobs === 2 && currentJobIndex === 1) ||
-          (totalJobs === 2 && currentJobIndex === 2)
-            ? ""
-            : "invisible"
-        } ${totalJobs === 2 && currentJobIndex === 2 ? "" : totalJobs === 2 && currentJobIndex === 1 ? "invisible" : ""} `}
+        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-neutral-500 transition-all duration-200 ease-in-out hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
         data-nav="left"
         onClick={handleLeftClick}
-        style={{
-          visibility:
-            totalJobs <= 1
-              ? "hidden"
-              : totalJobs === 2
-                ? currentJobIndex === 2
-                  ? "visible"
-                  : "hidden"
-                : "visible",
-        }}
       >
         <ChevronLeft className="h-3 w-3" />
       </div>
 
-      {/* Dots */}
       <div
         className="flex h-6 items-center space-x-1"
         onClick={handleGeneralClick}
@@ -106,27 +88,10 @@ const CardNavigation = ({
         ))}
       </div>
 
-      {/* Right Chevron */}
       <div
-        className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-neutral-500 transition-all duration-200 ease-in-out hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 ${
-          totalJobs <= 1 ||
-          (totalJobs === 2 && currentJobIndex === 1) ||
-          (totalJobs === 2 && currentJobIndex === 2)
-            ? ""
-            : "invisible"
-        } ${totalJobs === 2 && currentJobIndex === 1 ? "" : totalJobs === 2 && currentJobIndex === 2 ? "invisible" : ""} `}
+        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-neutral-500 transition-all duration-200 ease-in-out hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
         data-nav="right"
         onClick={handleRightClick}
-        style={{
-          visibility:
-            totalJobs <= 1
-              ? "hidden"
-              : totalJobs === 2
-                ? currentJobIndex === 1
-                  ? "visible"
-                  : "hidden"
-                : "visible",
-        }}
       >
         <ChevronRight className="h-3 w-3" />
       </div>
