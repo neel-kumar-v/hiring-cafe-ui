@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CardSwipeIndicatorProps {
   children: React.ReactNode;
@@ -25,28 +25,48 @@ const CardSwipeIndicator = ({
     null
   );
   const [swipeProgress, setSwipeProgress] = useState(0);
+  const [hasSwiped, setHasSwiped] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      setIsTouchDevice(
+        "ontouchstart" in window || navigator.maxTouchPoints > 0
+      );
+    };
+
+    checkTouchDevice();
+    window.addEventListener("resize", checkTouchDevice);
+
+    return () => {
+      window.removeEventListener("resize", checkTouchDevice);
+    };
+  }, []);
+
+  if (!isTouchDevice || totalJobs === 1) {
+    return <>{children}</>;
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (totalJobs === 1) return;
     const touch = e.touches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
     setSwipeDirection(null);
     setSwipeProgress(0);
+    setHasSwiped(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart || totalJobs === 1) return;
+    if (!touchStart) return;
 
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
 
-    // Only show indicator for horizontal swipes
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 20) {
       const direction = deltaX > 0 ? "right" : "left";
       setSwipeDirection(direction);
-      // Calculate progress as percentage of 50px threshold
       setSwipeProgress(Math.min(Math.abs(deltaX) / 50, 1));
+      setHasSwiped(true);
     } else {
       setSwipeDirection(null);
       setSwipeProgress(0);
@@ -54,13 +74,12 @@ const CardSwipeIndicator = ({
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || totalJobs === 1) return;
+    if (!touchStart) return;
 
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
 
-    // Only trigger if horizontal swipe is more significant than vertical
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
       if (deltaX > 0) {
         onNext();
@@ -72,16 +91,20 @@ const CardSwipeIndicator = ({
     setTouchStart(null);
     setSwipeDirection(null);
     setSwipeProgress(0);
+
+    if (hasSwiped) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   return (
     <div
-      className={`relative overflow-hidden select-none h-full ${className}`}
+      className={`relative ${className}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Swipe Indicator Overlay */}
       {swipeDirection && (
         <div
           className={`absolute inset-0 flex items-center pointer-events-none z-10 transition-opacity duration-200 ${

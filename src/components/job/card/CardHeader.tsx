@@ -63,7 +63,6 @@ const CardHeader = ({
           (isDesktop ? (
             <MorphingLocation className="flex flex-row flex-wrap items-center gap-1">
               {getLocations(workplaceCities)
-                .slice(0, 4)
                 .map((loc, index) => (
                   <span
                     key={index}
@@ -76,7 +75,6 @@ const CardHeader = ({
             </MorphingLocation>
           ) : (
             getLocations(workplaceCities)
-              .slice(0, 4)
               .map((loc, index) => (
                 <span
                   key={index}

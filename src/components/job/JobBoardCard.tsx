@@ -75,9 +75,7 @@ const JobCard = ({
             ) : (
               <div className="col-span-1"></div>
             )}
-            <CardCompanyJobs
-              companyData={currentJob.v5_processed_company_data}
-            />
+            <CardCompanyJobs />
           </div>
         </CardContent>
       </Card>
@@ -227,21 +225,21 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
   }
 
   return (
-    <JobDialogContent
+    <CardContextMenuProvider
       currentJob={currentJob}
       isApplied={isApplied}
       isBookmarked={isBookmarked}
-      onApplyToggle={handleApplyToggle}
-      onBookmarkToggle={handleBookmarkToggle}
-      scrollContainerRef={scrollContainerRef}
+      onApplyClick={handleApplyClick}
+      onBookmarkClick={handleBookmarkClick}
+      applyUrl={currentJob.apply_url}
     >
-      <CardContextMenuProvider
+      <JobDialogContent
         currentJob={currentJob}
         isApplied={isApplied}
         isBookmarked={isBookmarked}
-        onApplyClick={handleApplyClick}
-        onBookmarkClick={handleBookmarkClick}
-        applyUrl={currentJob.apply_url}
+        onApplyToggle={handleApplyToggle}
+        onBookmarkToggle={handleBookmarkToggle}
+        scrollContainerRef={scrollContainerRef}
       >
         <JobCard
           currentJob={currentJob}
@@ -257,8 +255,8 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
           onNext={handleNextJob}
           onPrevious={handlePreviousJob}
         />
-      </CardContextMenuProvider>
-    </JobDialogContent>
+      </JobDialogContent>
+    </CardContextMenuProvider>
   );
 };
 
