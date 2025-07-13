@@ -90,7 +90,7 @@ export default function Header({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className="h-8 w-8 rounded-full bg-pink-500 p-2 hover:bg-pink-600"
+                  className="h-8 w-8 rounded-full bg-pink-500 p-2 hover:bg-pink-600 dark:bg-pink-500 dark:hover:bg-pink-600"
                   size="sm"
                   variant="ghost"
                 >
