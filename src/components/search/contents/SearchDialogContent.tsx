@@ -97,7 +97,7 @@ export default function SearchDialogContent({
     );
 
     return (
-      <div className="w-[30%] flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
+      <div className=" max-w-fit flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
         {/* Sticky Other Options section at top - only for desktop dialog */}
         <div className="border-neutral-200 border-b bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
           <div className="space-y-px p-2">
@@ -182,7 +182,7 @@ export default function SearchDialogContent({
   };
 
   const renderContentArea = () => (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden w-full">
       <div className="flex-1 overflow-y-auto p-6">{renderContent()}</div>
       {/* Apply Settings button - positioned at bottom right of content area */}
       <div className="px-4">

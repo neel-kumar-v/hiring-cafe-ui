@@ -126,7 +126,7 @@ export const DialogActionButtons = ({
       </div>
 
       <Button
-        className="w-full  dark:bg-white/10 dark:sm:bg-transparent dark:sm:border-y-neutral-700  sm:border-1 sm:border-x-0 sm:rounded-none dark:text-white dark:max-sm:hover:bg-white/20 dark:sm:hover:border-y-pink-400 dark:sm:hover:text-pink-400 transition-all duration-300 ease-in-out flex items-center justify-center gap-2 p-4 py-6"
+        className="w-full  dark:bg-white/10 dark:sm:bg-transparent dark:sm:border-y-neutral-700  sm:border-1 sm:border-x-0 sm:rounded-none dark:text-white dark:max-sm:hover:bg-white/20  dark:sm:hover:text-pink-400 transition-all duration-300 ease-in-out flex items-center justify-center gap-2 p-4 py-6"
         size="lg"
         variant="default"
       >

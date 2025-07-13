@@ -410,9 +410,9 @@ export default function Autocomplete({
 
   return (
     <>
-      <div className="relative">
+      <div className="relative group">
         <input
-          className={`w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 pl-10 text-neutral-900 transition-all duration-200 ease-in-out focus:rounded-b-none focus:border-neutral-200 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-neutral-600 dark:hover:border-pink-500 ${className}`}
+          className={`w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 pl-10 text-neutral-900 transition-all duration-200 ease-in-out focus:rounded-b-none focus:border-neutral-200 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-neutral-600 ${className}`}
           onBlur={handleInputBlur}
           onChange={(e) => onChange(e.target.value)}
           onFocus={handleInputFocus}
@@ -424,7 +424,7 @@ export default function Autocomplete({
         />
 
         {/* Search icon */}
-        <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-neutral-400" />
+        <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-neutral-400 group-hover:text-pink-500 transition-all duration-500 ease-in-out" />
 
         {/* Desktop dropdown */}
         <DesktopDropdown

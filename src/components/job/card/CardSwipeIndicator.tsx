@@ -100,7 +100,7 @@ const CardSwipeIndicator = ({
 
   return (
     <div
-      className={`relative ${className}`}
+      className={`relative h-full ${className}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
