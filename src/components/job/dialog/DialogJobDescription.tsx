@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatJobDescription } from "@/lib/utils";
+import { formatJobDescription } from "@/lib/job-info";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 

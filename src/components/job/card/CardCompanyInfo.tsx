@@ -7,8 +7,8 @@ import {
   formatCompanyName,
   getCompanyAbbreviation,
   renderCompanyAbbreviationGrid,
-} from "@/lib/utils";
-import type { V5ProcessedCompanyData } from "@/types/jobs";
+} from "@/lib/company-info";
+import type { V5ProcessedCompanyData } from "@/types/job";
 import { ExternalLink, Link2 } from "lucide-react";
 import { useState } from "react";
 import UniversalTooltip from "../../util/UniversalTooltip";

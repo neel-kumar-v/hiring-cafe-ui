@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Job, JobCollection } from "@/types/jobs";
+import type { Job, JobCollection } from "@/types/job";
 import { useEffect, useRef, useState } from "react";
 import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";

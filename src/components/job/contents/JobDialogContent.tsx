@@ -13,7 +13,7 @@ import {
   MorphingDialogTrigger,
 } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
-import type { Job } from "@/types/jobs";
+import type { Job } from "@/types/job";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { X } from "lucide-react";
 import type React from "react";

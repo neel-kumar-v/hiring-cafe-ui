@@ -2,7 +2,7 @@ import { MorphingJobDescription } from "@/components/ui/morphing-dialog";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getExperienceInfo } from "@/lib/utils";
+import { getExperienceInfo } from "@/lib/job-info";
 import { FileChartColumnIncreasing, FileUser } from "lucide-react";
 
 const DialogRequirements = ({

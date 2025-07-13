@@ -1,5 +1,5 @@
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
-import { getTimeSince } from "@/lib/utils";
+import { getTimeSince } from "@/lib/job-info";
 import type React from "react";
 import { MorphingJobStats, MorphingTime } from "../../ui/morphing-dialog";
 import ScrapeTime from "../util/ScrapeTime";

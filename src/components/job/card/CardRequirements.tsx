@@ -1,5 +1,5 @@
 import UniversalTooltip from "@/components/util/UniversalTooltip";
-import { getExperienceInfo } from "@/lib/utils";
+import { getExperienceInfo } from "@/lib/job-info";
 import { FileChartColumnIncreasing, FileUser } from "lucide-react";
 
 const CardRequirements = ({

@@ -97,8 +97,7 @@ export default function SearchDialogContent({
     );
 
     return (
-      <div className=" max-w-fit flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
-        {/* Sticky Other Options section at top - only for desktop dialog */}
+      <div className="w-[200px] flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
         <div className="border-neutral-200 border-b bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
           <div className="space-y-px p-2">
             <h3 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
@@ -106,7 +105,7 @@ export default function SearchDialogContent({
             </h3>
             {otherCategories.map((category) => (
               <Button
-                className={`h-auto w-full justify-start p-2 text-left ${
+                className={`h-auto w-full transition-all duration-500 ease-in-out justify-start p-2 text-left ${
                   selectedCategory === category.id
                     ? "bg-pink-600 text-white hover:bg-pink-700"
                     : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
@@ -124,7 +123,7 @@ export default function SearchDialogContent({
         </div>
 
         {/* Scrollable sections */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="overflow-y-auto">
           <div className="space-y-px p-2">
             {/* Job Filters */}
             <div className="mb-2">
@@ -133,7 +132,7 @@ export default function SearchDialogContent({
               </h3>
               {filterCategories.map((category) => (
                 <Button
-                  className={`h-auto w-full justify-start p-2 text-left ${
+                  className={`h-auto w-full transition-all duration-500 ease-in-out justify-start p-2 text-left ${
                     selectedCategory === category.id
                       ? "bg-pink-600 text-white hover:bg-pink-700"
                       : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
@@ -158,7 +157,7 @@ export default function SearchDialogContent({
               </h3>
               {companyCategories.map((category) => (
                 <Button
-                  className={`h-auto w-full justify-start p-2 text-left ${
+                  className={`h-auto w-full transition-all duration-500 ease-in-out justify-start p-2 text-left ${
                     selectedCategory === category.id
                       ? "bg-pink-600 text-white hover:bg-pink-700"
                       : "hover:bg-neutral-100 dark:hover:bg-neutral-700"

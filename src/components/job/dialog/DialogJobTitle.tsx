@@ -4,7 +4,8 @@ import {
 } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { formatCompanyName, getCleanJobTitle } from "@/lib/utils";
+import { getCleanJobTitle } from "@/lib/job-info";
+import { formatCompanyName } from "@/lib/company-info";
 
 const DialogJobTitle = ({
   jobTitle,
@@ -37,7 +38,9 @@ const DialogJobTitle = ({
     </MorphingJobTitle>
   ) : (
     <div className={className}>
-      {cleanTitle} <span>@ {formatCompanyName(companyName)}</span>
+      <span>
+        {cleanTitle}&nbsp;<span>@ {formatCompanyName(companyName)}</span>
+      </span>
     </div>
   );
 };

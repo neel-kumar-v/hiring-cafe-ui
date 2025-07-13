@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { MorphingCompanyLogo } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { V5ProcessedCompanyData } from "@/types/jobs";
+import {
+  getCompanyAbbreviation,
+  renderCompanyAbbreviationGrid,
+} from "@/lib/company-info";
+import type { V5ProcessedCompanyData } from "@/types/job";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import DialogExtendedCompanyInfo from "./DialogExtendedCompanyInfo";
-import { getCompanyAbbreviation, renderCompanyAbbreviationGrid } from "@/lib/utils";
-
 
 const DialogCompanyLogoCard = ({
   companyData,

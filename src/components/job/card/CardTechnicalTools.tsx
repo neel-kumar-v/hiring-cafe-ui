@@ -1,5 +1,5 @@
 import React from "react";
-import { formatTool } from "@/lib/utils";
+import { formatTool } from "@/lib/job-info";
 import { MorphingJobTechnicalTools } from "../../ui/morphing-dialog";
 
 const CardTechnicalTools = ({

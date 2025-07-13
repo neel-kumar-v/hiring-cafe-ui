@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
-import type { V5ProcessedCompanyData } from "@/types/jobs";
+import type { V5ProcessedCompanyData } from "@/types/job";
 import {
   BadgeDollarSign,
   Building2,
@@ -41,7 +41,9 @@ export default function DialogExtendedCompanyInfo({
 }: {
   companyData: V5ProcessedCompanyData;
 }) {
-  const linkedinUrl = /^https?:\/\//.test(companyData.linkedin_url) ? companyData.linkedin_url : `https://${companyData.linkedin_url}`;
+  const linkedinUrl = /^https?:\/\//.test(companyData.linkedin_url)
+    ? companyData.linkedin_url
+    : `https://${companyData.linkedin_url}`;
   const linkedinUrlWithoutProtocol = linkedinUrl.replace(/^https?:\/\//, "");
   return (
     <ul className="flex flex-col gap-2 py-2 pt-4 text-sm md:text-base">

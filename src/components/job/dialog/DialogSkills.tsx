@@ -1,7 +1,7 @@
 import { MorphingJobTechnicalTools } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { formatTool } from "@/lib/utils";
+import { formatTool } from "@/lib/job-info";
 
 const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
   const isDesktop = useMediaQuery("(min-width: 640px)");

@@ -1,6 +1,6 @@
 import { DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import type { Job } from "@/types/jobs";
+import type { Job } from "@/types/job";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   DialogBadges,

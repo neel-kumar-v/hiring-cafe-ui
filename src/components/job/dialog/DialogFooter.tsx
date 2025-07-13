@@ -67,7 +67,7 @@ export const DialogActionButtons = ({
 
         <a
           href={applyUrl}
-          className="flex items-center gap-2 rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-pink-500 text-pink-700 hover:border-pink-600 hover:bg-pink-600 hover:text-white dark:border-pink-400 dark:text-pink-400 dark:hover:border-pink-800 dark:hover:bg-pink-800 dark:hover:text-white px-3 py-[5px]"
+          className="flex items-center gap-2 rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-pink-400 text-pink-700 hover:border-pink-400 hover:bg-pink-400 hover:text-black dark:border-pink-400 dark:text-pink-400 dark:hover:border-pink-800 dark:hover:bg-pink-800 dark:hover:text-white px-3 py-[5px]"
           tabIndex={0}
           role="button"
         >
@@ -126,12 +126,14 @@ export const DialogActionButtons = ({
       </div>
 
       <Button
-        className="w-full  dark:bg-white/10 dark:sm:bg-transparent dark:sm:border-y-neutral-700  sm:border-1 sm:border-x-0 sm:rounded-none dark:text-white dark:max-sm:hover:bg-white/20  dark:sm:hover:text-pink-400 transition-all duration-300 ease-in-out flex items-center justify-center gap-2 p-4 py-6"
+        className="w-full bg-white/10 dark:bg-white/10 sm:bg-transparent sm:hover:bg-transparent dark:sm:border-neutral-700 sm:border-neutral-200  sm:border-1 sm:border-x-0 sm:rounded-none text-black dark:text-white max-sm:hover:bg-pink-400 dark:max-sm:hover:bg-pink-400/75  dark:sm:hover:text-pink-400 transition-all duration-300 ease-in-out flex items-center justify-center p-4 py-6"
         size="lg"
         variant="default"
       >
-        <BookUser className="h-4 w-4" />
-        Contact Recruiter
+        <span className="flex items-center justify-center gap-2 sm:hover:bg-pink-400 p-2 rounded-md transition-all duration-300 ease-in-out">
+          <BookUser className="h-4 w-4" />
+          Contact Recruiter
+        </span>
       </Button>
     </div>
   );

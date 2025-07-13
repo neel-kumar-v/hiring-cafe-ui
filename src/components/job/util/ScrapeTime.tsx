@@ -1,4 +1,4 @@
-import { getTimeSince } from "@/lib/utils";
+import { getTimeSince } from "@/lib/job-info";
 import { Clock } from "lucide-react";
 import UniversalTooltip from "../../util/UniversalTooltip";
 

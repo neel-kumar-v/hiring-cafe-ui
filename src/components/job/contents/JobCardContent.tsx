@@ -1,4 +1,4 @@
-import type { Job } from "@/types/jobs";
+import type { Job } from "@/types/job";
 import CardCompanyInfo from "../card/CardCompanyInfo";
 import CardHeader from "../card/CardHeader";
 import CardJobDescription from "../card/CardJobDescription";

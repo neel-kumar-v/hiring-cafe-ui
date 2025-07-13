@@ -89,10 +89,10 @@ export default function SearchDrawerContent({
       {/* Mobile: Stack sidebar and content vertically */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
-          <div className="scrollbar-hide mb-2 flex flex-row gap-2 space-y-1 overflow-x-auto">
+          <div className="scrollbar-hide mb-2 flex flex-row flex-wrap gap-1 overflow-x-auto">
             {settingsCategories.map((category) => (
               <Button
-                className={`h-auto w-fit justify-start px-4 py-2 text-left text-sm ${
+                className={`h-auto w-fit rounded-md border-neutral-200 dark:border-neutral-700 border-1 justify-start px-2 py-1 text-left text-sm ${
                   selectedCategory === category.id
                     ? "bg-pink-600 text-white hover:bg-pink-700"
                     : "hover:bg-neutral-100 dark:hover:bg-neutral-700"

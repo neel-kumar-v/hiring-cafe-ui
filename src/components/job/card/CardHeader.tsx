@@ -7,8 +7,8 @@ import {
   MorphingWorkType,
 } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getCleanJobTitle, getCompensation, getLocations } from "@/lib/utils";
-import { CompensationRange } from "@/types/jobs";
+import { getCleanJobTitle, getCompensation, getLocations } from "@/lib/job-info";
+import { CompensationRange } from "@/types/job";
 import { DollarSign, MapPin } from "lucide-react";
 import ScrapeTime from "../util/ScrapeTime";
 
@@ -62,20 +62,7 @@ const CardHeader = ({
         {workplaceCities.length > 0 &&
           (isDesktop ? (
             <MorphingLocation className="flex flex-row flex-wrap items-center gap-1">
-              {getLocations(workplaceCities)
-                .map((loc, index) => (
-                  <span
-                    key={index}
-                    className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
-                  >
-                    <MapPin className="w-3 h-3" />
-                    {loc}
-                  </span>
-                ))}
-            </MorphingLocation>
-          ) : (
-            getLocations(workplaceCities)
-              .map((loc, index) => (
+              {getLocations(workplaceCities).map((loc, index) => (
                 <span
                   key={index}
                   className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
@@ -83,7 +70,18 @@ const CardHeader = ({
                   <MapPin className="w-3 h-3" />
                   {loc}
                 </span>
-              ))
+              ))}
+            </MorphingLocation>
+          ) : (
+            getLocations(workplaceCities).map((loc, index) => (
+              <span
+                key={index}
+                className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 rounded-md px-2 py-0.5 text-xs"
+              >
+                <MapPin className="w-3 h-3" />
+                {loc}
+              </span>
+            ))
           ))}
         {isDesktop ? (
           <MorphingCommitments className="flex flex-row flex-wrap items-center gap-1">

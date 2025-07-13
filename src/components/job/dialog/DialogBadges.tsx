@@ -6,8 +6,8 @@ import {
 } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getCompensation, getLocations } from "@/lib/utils";
-import { CompensationRange } from "@/types/jobs";
+import { getCompensation, getLocations } from "@/lib/job-info";
+import { CompensationRange } from "@/types/job";
 import { DollarSign, MapPin } from "lucide-react";
 
 const DialogBadges = ({
@@ -27,9 +27,7 @@ const DialogBadges = ({
   const { prefersReducedMotion } = useReducedMotion();
   return (
     <div className={compact ? "" : "mb-6"}>
-      <div
-        className={`flex flex-wrap ${compact ? "gap-1" : "gap-3"}`}
-      >
+      <div className={`flex flex-wrap ${compact ? "gap-1" : "gap-3"}`}>
         {isDesktop && !prefersReducedMotion ? (
           getLocations(workplaceCities).length > 0 ? (
             <MorphingLocation className="flex flex-row flex-wrap items-center gap-2">
