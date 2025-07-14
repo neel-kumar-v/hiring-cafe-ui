@@ -321,13 +321,16 @@ export const getLocations = (workplaceCities: string[]) => {
     .map((city) => getLocation(city));
 };
 
-export function getTimeSince(dateString: string): string {
-  if (!dateString) return "";
+export function getTimeSince(dateString: string): {
+  abbreviated: string;
+  full: string;
+} {
+  if (!dateString) return { abbreviated: "", full: "" };
   const now = new Date();
   const date = new Date(dateString);
   const diffMs = now.getTime() - date.getTime();
 
-  if (isNaN(diffMs)) return "";
+  if (isNaN(diffMs)) return { abbreviated: "", full: "" };
 
   const seconds = Math.floor(diffMs / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -336,13 +339,41 @@ export function getTimeSince(dateString: string): string {
   const weeks = Math.floor(days / 7);
   const months = Math.floor(days / 30.44);
   const years = Math.floor(days / 365.25);
-  if (years > 0) return `${years}y`;
-  if (months > 0) return `${months}mo`;
-  if (weeks > 0) return `${weeks}w`;
-  if (days > 0) return `${days}d`;
-  if (hours > 0) return `${hours}h`;
-  if (minutes > 0) return `${minutes}m`;
-  return `${seconds}s`;
+
+  if (years > 0)
+    return {
+      abbreviated: `${years}y`,
+      full: `${years} year${years !== 1 ? "s" : ""}`,
+    };
+  if (months > 0)
+    return {
+      abbreviated: `${months}mo`,
+      full: `${months} month${months !== 1 ? "s" : ""}`,
+    };
+  if (weeks > 0)
+    return {
+      abbreviated: `${weeks}w`,
+      full: `${weeks} week${weeks !== 1 ? "s" : ""}`,
+    };
+  if (days > 0)
+    return {
+      abbreviated: `${days}d`,
+      full: `${days} day${days !== 1 ? "s" : ""}`,
+    };
+  if (hours > 0)
+    return {
+      abbreviated: `${hours}h`,
+      full: `${hours} hour${hours !== 1 ? "s" : ""}`,
+    };
+  if (minutes > 0)
+    return {
+      abbreviated: `${minutes}m`,
+      full: `${minutes} minute${minutes !== 1 ? "s" : ""}`,
+    };
+  return {
+    abbreviated: `${seconds}s`,
+    full: `${seconds} second${seconds !== 1 ? "s" : ""}`,
+  };
 }
 
 export const formatJobDescription = (description: string): string => {

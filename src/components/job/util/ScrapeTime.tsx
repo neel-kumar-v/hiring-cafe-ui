@@ -11,14 +11,9 @@ const ScrapeTime = ({
   iconClassName?: string;
   textClassName?: string;
 }) => {
-  const abbrevTime = getTimeSince(postedAt)
-    .replace("y", " years")
-    .replace("mo", " months")
-    .replace("d", " days")
-    .replace("h", " hours")
-    .replace("m", " minutes");
+  const { abbreviated, full } = getTimeSince(postedAt);
   return (
-    <UniversalTooltip content={`HiringCafe scraped this job ${abbrevTime} ago`}>
+    <UniversalTooltip content={`HiringCafe scraped this job ${full} ago`}>
       <span className="-translate-y-0.25 inline-flex cursor-default items-center gap-1">
         <Clock
           className={`text-neutral-400 dark:text-neutral-500 ${iconClassName}`}
@@ -26,7 +21,7 @@ const ScrapeTime = ({
         <span
           className={` text-neutral-500 dark:text-neutral-400 ${textClassName}`}
         >
-          {getTimeSince(postedAt)}
+          {abbreviated}
         </span>
       </span>
     </UniversalTooltip>

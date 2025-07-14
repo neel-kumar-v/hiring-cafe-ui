@@ -111,7 +111,7 @@ const CardCompanyInfo = ({
                 content={`View all jobs from ${companyData.name}`}
               >
                 <div
-                  className="ml-2 inline-flex h-auto items-center gap-1 p-1 font-normal text-neutral-500 text-xs leading-none opacity-0 transition-all duration-200 hover:underline group-hover:ml-4 group-hover:opacity-100 dark:text-pink-400 dark:hover:text-pink-300"
+                  className="ml-2 z-10 inline-flex h-auto items-center gap-1 p-1 font-normal text-neutral-500 text-xs leading-none opacity-0 transition-all duration-200 hover:underline group-hover:ml-4 group-hover:opacity-100 dark:text-pink-400 dark:hover:text-pink-300"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
