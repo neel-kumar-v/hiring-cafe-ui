@@ -4,12 +4,12 @@ interface AllFiltersProps {
 
 export default function AllFilters({}: AllFiltersProps) {
   return (
-    <div className="space-y-4">
-      <h3 className="font-semibold text-lg">All Filters</h3>
+    <div className="space-y-2">
+      <h3 className="font-semibold text-lg">Your Current Filters</h3>
       <p className="text-neutral-600 dark:text-neutral-400">
-        Configure all your job search filters in one place.
+        Click on a filter to remove/edit it.
       </p>
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
             <h4 className="font-medium mb-2">Job Filters</h4>

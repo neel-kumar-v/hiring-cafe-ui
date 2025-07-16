@@ -182,7 +182,7 @@ export default function SearchDialogContent({
 
   const renderContentArea = () => (
     <div className="flex-1 flex flex-col overflow-hidden w-full">
-      <div className="flex-1 overflow-y-auto p-6">{renderContent()}</div>
+      <div className="flex-1 overflow-y-auto p-6 py-1">{renderContent()}</div>
       {/* Apply Settings button - positioned at bottom right of content area */}
       <div className="px-4">
         <div className="flex justify-end">

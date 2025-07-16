@@ -126,11 +126,11 @@ export const DialogActionButtons = ({
       </div>
 
       <Button
-        className="w-full bg-white/10 dark:bg-white/10 sm:bg-transparent sm:hover:bg-transparent dark:sm:border-neutral-700 sm:border-neutral-200  sm:border-1 sm:border-x-0 sm:rounded-none text-black dark:text-white max-sm:hover:bg-pink-400 dark:max-sm:hover:bg-pink-400/75  dark:sm:hover:text-pink-400 transition-all duration-300 ease-in-out flex items-center justify-center p-4 py-6"
+        className="w-full max-sm:bg-white/10 max-sm:dark:bg-white/10 sm:bg-transparent sm:hover:bg-transparent dark:sm:border-neutral-700 sm:border-neutral-200  sm:border-1 sm:border-x-0 sm:rounded-none text-black dark:text-white max-sm:hover:bg-pink-400 dark:max-sm:hover:bg-pink-400/75 transition-all duration-300 ease-in-out flex items-center justify-center p-4 py-6"
         size="lg"
         variant="default"
       >
-        <span className="flex items-center justify-center gap-2 sm:hover:bg-pink-400 p-2 rounded-md transition-all duration-300 ease-in-out">
+        <span className="flex items-center justify-center gap-2 sm:hover:bg-pink-400 dark:sm:hover:bg-pink-400/75 p-2 rounded-md transition-all duration-300 ease-in-out">
           <BookUser className="h-4 w-4" />
           Contact Recruiter
         </span>
