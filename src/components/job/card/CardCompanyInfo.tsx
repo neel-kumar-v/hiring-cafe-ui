@@ -8,9 +8,10 @@ import {
   getCompanyAbbreviation,
   renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
+import { analyzeImageBackground, getImageBackgroundClass } from "@/lib/company-info";
 import type { V5ProcessedCompanyData } from "@/types/job";
 import { ExternalLink, Link2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UniversalTooltip from "../../util/UniversalTooltip";
 
 const CardCompanyInfo = ({
@@ -21,17 +22,26 @@ const CardCompanyInfo = ({
   tagline: string;
 }) => {
   const [imageError, setImageError] = useState(false);
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 728px)");
+
+  useEffect(() => {
+    if (companyData.image_url && !imageError) {
+      analyzeImageBackground(companyData.image_url).then(setBackgroundType);
+    }
+  }, [companyData.image_url, imageError]);
+
+  const backgroundClass = getImageBackgroundClass(
+    companyData.image_url,
+    imageError,
+    backgroundType
+  );
 
   return (
     <div className="group mb-3 flex items-start space-x-2">
       {isDesktop ? (
         <MorphingCompanyLogo
-          className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden${
-            companyData.image_url && !imageError
-              ? ""
-              : " bg-pink-100 dark:bg-pink-800/15"
-          }`}
+          className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden ${backgroundClass}`}
         >
           {companyData.image_url && !imageError ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -51,11 +61,7 @@ const CardCompanyInfo = ({
         </MorphingCompanyLogo>
       ) : (
         <div
-          className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden${
-            companyData.image_url && !imageError
-              ? ""
-              : " bg-pink-100 dark:bg-pink-800/15"
-          }`}
+          className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden ${backgroundClass}`}
         >
           {companyData.image_url && !imageError ? (
             // eslint-disable-next-line @next/next/no-img-element

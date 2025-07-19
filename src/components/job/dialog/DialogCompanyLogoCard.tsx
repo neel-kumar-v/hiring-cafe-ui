@@ -3,12 +3,14 @@ import { MorphingCompanyLogo } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
+  analyzeImageBackground,
   getCompanyAbbreviation,
+  getImageBackgroundClass,
   renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
 import type { V5ProcessedCompanyData } from "@/types/job";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DialogExtendedCompanyInfo from "./DialogExtendedCompanyInfo";
 
 const DialogCompanyLogoCard = ({
@@ -18,10 +20,23 @@ const DialogCompanyLogoCard = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [showExtended, setShowExtended] = useState(false);
+  const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
   const abbreviation = getCompanyAbbreviation(companyData.name || "");
   const initialsContent = renderCompanyAbbreviationGrid(abbreviation);
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   const { prefersReducedMotion } = useReducedMotion();
+
+  useEffect(() => {
+    if (companyData.image_url && !imageError) {
+      analyzeImageBackground(companyData.image_url).then(setBackgroundType);
+    }
+  }, [companyData.image_url, imageError]);
+
+  const backgroundClass = getImageBackgroundClass(
+    companyData.image_url,
+    imageError,
+    backgroundType
+  );
 
   const removeHtmlTags = (str: string) => {
     let result = str.replace(/<[^>]*>/g, "");
@@ -40,15 +55,11 @@ const DialogCompanyLogoCard = ({
   };
 
   return (
-    <div className="my-4 hidden min-h-[120px] items-center gap-x-8 sm:flex flex-col">
+    <div className="my-4 min-h-[120px] items-center gap-x-8 flex flex-col">
       <div className="w-full flex flex-row items-center gap-x-8">
         {isDesktop && !prefersReducedMotion ? (
           <MorphingCompanyLogo
-            className={`flex aspect-square h-32 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl bg-white dark:bg-neutral-800 ${
-              companyData.image_url && !imageError
-                ? ""
-                : " bg-pink-100 dark:bg-pink-800/15"
-            }`}
+            className={`flex aspect-square h-32 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl ${backgroundClass}`}
           >
             {companyData.image_url && !imageError ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -66,11 +77,7 @@ const DialogCompanyLogoCard = ({
           </MorphingCompanyLogo>
         ) : (
           <div
-            className={`flex aspect-square h-24 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl bg-white dark:bg-neutral-800 ${
-              companyData.image_url && !imageError
-                ? ""
-                : " bg-pink-100 dark:bg-pink-800/15"
-            }`}
+            className={`flex aspect-square h-24 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl ${backgroundClass}`}
           >
             {companyData.image_url && !imageError ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -102,7 +109,7 @@ const DialogCompanyLogoCard = ({
           <DialogExtendedCompanyInfo companyData={companyData} />
         </div>
       )}
-      <div className="mt-6 border-t pt-1.5 border-neutral-200 dark:border-neutral-700 w-full flex justify-center">
+      <div className="sm:mt-6 mt-9 mb-3 sm:mb-0 border-t pt-1.5 border-neutral-200 dark:border-neutral-700 w-full flex justify-center">
         <Button
           className="rounded-sm border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 -my-6"
           onClick={() => setShowExtended((v) => !v)}
@@ -110,9 +117,9 @@ const DialogCompanyLogoCard = ({
           variant="outline"
         >
           {showExtended ? (
-            <ChevronUp className="mr-2 h-4 w-4" />
+            <ChevronUp className="mr-2 size-4" />
           ) : (
-            <ChevronDown className="mr-2 h-4 w-4" />
+            <ChevronDown className="mr-2 size-4" />
           )}
           {showExtended ? "Show less" : "Show more company info"}
         </Button>
