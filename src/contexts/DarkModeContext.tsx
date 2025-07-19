@@ -39,9 +39,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	return (
-		<DarkModeContext.Provider
-			value={{ isDarkMode, setIsDarkMode, toggleDarkMode }}
-		>
+		<DarkModeContext.Provider value={{ isDarkMode, setIsDarkMode, toggleDarkMode }}>
 			{children}
 		</DarkModeContext.Provider>
 	);
