@@ -70,12 +70,12 @@ const CardContextMenuProvider = ({
           Share Job
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem>
-          <EyeOff className="mr-2 h-4 w-4" />
+        <ContextMenuItem className="!text-destructive">
+          <EyeOff className="mr-2 h-4 w-4 !text-destructive" />
           Hide Job
         </ContextMenuItem>
-        <ContextMenuItem>
-          <Flag className="mr-2 h-4 w-4" />
+        <ContextMenuItem className="!text-destructive">
+          <Flag className="mr-2 h-4 w-4 !text-destructive" />
           Report Job
         </ContextMenuItem>
       </ContextMenuContent>
