@@ -52,7 +52,7 @@ export const DialogActionButtons = ({
 }) => {
   return (
     <div className="flex flex-col gap-3 sm:flex-col-reverse">
-      <div className="flex flex-wrap items-center justify-center gap-3 px-4">
+      <div className="flex flex-wrap items-center justify-center gap-3 px-4 md:pb-4 pt-4 md:pt-0">
         <Button
           className="flex items-center gap-2"
           onClick={onBookmarkToggle}
@@ -104,23 +104,23 @@ export const DialogActionButtons = ({
           All Jobs
         </Button>
 
-        <div className="mx-1 min-h-[2rem] w-px bg-border align-self-stretch max-sm:hidden" />
+        <div className="mx-1 min-h-[2rem] w-px bg-border align-self-stretch max-[520px]:hidden" />
 
         <Button
-          className="flex items-center gap-2 max-sm:hidden"
+          className="flex items-center gap-2 max-[520px]:hidden !text-destructive"
           size="sm"
           variant="outline"
         >
-          <EyeOff className="h-4 w-4" />
+          <EyeOff className="h-4 w-4 !text-destructive" />
           Hide
         </Button>
 
         <Button
-          className="flex items-center gap-2 max-sm:hidden"
+          className="flex items-center gap-2 max-[520px]:hidden !text-destructive"
           size="sm"
           variant="outline"
         >
-          <MessageSquareWarning className="h-4 w-4" />
+          <MessageSquareWarning className="h-4 w-4 !text-destructive" />
           Report
         </Button>
       </div>
