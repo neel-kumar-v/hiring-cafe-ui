@@ -1,36 +1,39 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
+    Drawer,
+    DrawerContent,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
 } from "@/components/ui/drawer";
+import { SearchProvider, useSearch } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useEffect } from "react";
 import { SearchDialogContent, SearchDrawerContent } from "./search/contents";
 
 interface SearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  from?: string; // Track what caused the dialog to open
-  isDarkMode?: boolean; // Dark mode from parent
+  from?: string;
+  isDarkMode?: boolean;
 }
 
-export default function SearchDialog({
-  open,
-  onOpenChange,
-  from,
-  isDarkMode = false,
-}: SearchDialogProps) {
+function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialogProps) {
+  const { hasUnsavedChanges, syncChanges } = useSearch();
   const isDesktop = useMediaQuery("(min-width: 640px)");
 
+  useEffect(() => {
+    if (!open && hasUnsavedChanges) {
+      syncChanges();
+    }
+  }, [open, hasUnsavedChanges, syncChanges]);
+
   if (!isDesktop) {
-    // Mobile: Render as drawer
     return (
       <Drawer onOpenChange={onOpenChange} open={open}>
         <DrawerContent className="overflow-y-hidden">
@@ -49,12 +52,17 @@ export default function SearchDialog({
 
           <DrawerFooter>
             <div className={`flex justify-end ${isDarkMode ? "dark" : ""}`}>
-              <button
-                className="rounded-md border-[1px] border-black dark:border-white px-4 py-2 text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black cursor-pointer transition-all duration-300 ease-in-out"
-                onClick={() => onOpenChange(false)}
-              >
-                Apply Settings
-              </button>
+              {hasUnsavedChanges && (
+                <button
+                  className="rounded-md border-[1px] border-black dark:border-white px-4 py-2 text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black cursor-pointer transition-all duration-300 ease-in-out"
+                  onClick={() => {
+                    syncChanges();
+                    onOpenChange(false);
+                  }}
+                >
+                  Apply Settings
+                </button>
+              )}
             </div>
           </DrawerFooter>
         </DrawerContent>
@@ -62,7 +70,6 @@ export default function SearchDialog({
     );
   }
 
-  // Desktop: Render as dialog
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
@@ -82,5 +89,13 @@ export default function SearchDialog({
         />
       </DialogContent>
     </Dialog>
+  );
+}
+
+export default function SearchDialog(props: SearchDialogProps) {
+  return (
+    <SearchProvider>
+      <SearchDialogInner {...props} />
+    </SearchProvider>
   );
 }

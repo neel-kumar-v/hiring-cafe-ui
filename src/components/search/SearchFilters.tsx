@@ -1,28 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-
-const filterTags = [
-  "Departments",
-  "Salary",
-  "Commitment",
-  "Experience",
-  "Job Titles & Keywords",
-  "Education",
-  "Licenses & Certifications",
-  "Security Clearance",
-  "Languages",
-  "Shifts & Schedules",
-  "Travel Requirement",
-  "Benefits & Perks",
-  "Encouraged to Apply",
-];
-
-const companyTags = [
-  "Company",
-  "Industry",
-  "Stage & Funding",
-  "Size",
-  "Founding Year",
-];
+import { companyTags, legacyFilterTags } from "@/data/search-filters";
 
 interface SearchFiltersProps {
   onIconClick?: (category: string) => void;
@@ -35,7 +12,7 @@ export default function SearchFilters({ onIconClick }: SearchFiltersProps) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {filterTags.map((tag, index) => (
+      {legacyFilterTags.map((tag, index) => (
         <Badge
           className="cursor-pointer rounded-sm border-neutral-300 bg-white text-neutral-700 transition-all duration-300 hover:bg-neutral-100 lg:text-md 2xl:text-lg dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
           key={index}
