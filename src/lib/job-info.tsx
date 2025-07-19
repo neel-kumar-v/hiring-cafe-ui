@@ -83,6 +83,7 @@ const GENERIC_TITLES = [
   "contracting",
   "contracted",
   "contracted",
+  "copy of"
 ];
 
 const removeGenericTitles = (title: string): string => {
@@ -126,6 +127,11 @@ const removeTools = (title: string, tools: string[]): string => {
   return cleanedTitle.replace(/\s{2,}/g, " ").trim();
 };
 
+const removeIds = (title: string): string => {
+  return title.replace(/\b\d{3,}\b/g, "").replace(/\s{2,}/g, " ").trim();
+};
+
+
 export const getCleanJobTitle = (
   jobTitle: string,
   companyName: string,
@@ -142,8 +148,8 @@ export const getCleanJobTitle = (
   title = removeGenericTitles(title);
   title = removeShiftTimings(title);
   if (tools && tools.length > 0) title = removeTools(title, tools);
+  title = removeIds(title);
   title = removeTrailingPunctuation(title);
-
   return title;
 };
 
