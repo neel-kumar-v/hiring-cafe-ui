@@ -582,7 +582,7 @@ export const getExperienceInfo = (
 
   const industryBadge = hasIndustry ? `${minIndustryAndRoleYoe}+ YOE` : null;
   const leadershipBadge = hasLeadership
-    ? `${minManagementAndLeadershipYoe}+ YOM`
+    ? `${minManagementAndLeadershipYoe}+ MGMT`
     : null;
 
   const industryTooltip = hasIndustry
