@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/job";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
@@ -90,51 +90,11 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { isDesktop, isStable } = useResponsiveBreakpoint();
+  const { isDesktop } = useResponsiveBreakpoint();
   const currentJob = jobCollection.jobs[currentJobIndex];
 
   const stableKey = useMemo(() => jobCollection.source_and_board_token, [jobCollection.source_and_board_token]);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-    }
-  }, [currentJobIndex]);
-
-  useEffect(() => {
-    const resetScroll = () => {
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTop = 0;
-      }
-    };
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element;
-              if (
-                element.classList.contains("fixed") &&
-                element.classList.contains("inset-0")
-              ) {
-                setTimeout(resetScroll, 100);
-              }
-            }
-          });
-        }
-      });
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   const handleNextJob = () => {
     if (isTransitioning) return;
@@ -195,22 +155,6 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
     handleApplyToggle();
   };
 
-  if (!isStable) {
-    return (
-      <div key={`loading-${stableKey}`} className="h-full">
-        <Card className="h-full border bg-white shadow-sm dark:border-pink-700/20 dark:bg-neutral-800">
-          <CardContent className="flex h-full flex-col p-4 py-3">
-            <div className="animate-pulse">
-              <div className="h-4 bg-neutral-200 rounded dark:bg-neutral-700 mb-2"></div>
-              <div className="h-6 bg-neutral-200 rounded dark:bg-neutral-700 mb-4"></div>
-              <div className="h-3 bg-neutral-200 rounded dark:bg-neutral-700 mb-2"></div>
-              <div className="h-3 bg-neutral-200 rounded dark:bg-neutral-700 mb-4"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (!isDesktop) {
     return (
