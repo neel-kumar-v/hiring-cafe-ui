@@ -20,7 +20,7 @@ const CardStats = ({
   onBookmarkToggle: (e: React.MouseEvent) => void;
   onApplyToggle: (e: React.MouseEvent) => void;
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   const viewedCount = viewedByUsers.length + 1; // +1 for current user
   const savedCount = savedFromUsers.length + (isBookmarked ? 1 : 0);
   const appliedCount = appliedFromUsers.length + (isApplied ? 1 : 0);
@@ -42,7 +42,7 @@ const CardStats = ({
   return (
     <div onClick={handleGeneralClick}>
       {isDesktop ? (
-        <MorphingJobStats className="flex w-fit items-center space-x-3 pr-4 text-neutral-500 text-xs dark:text-neutral-400">
+        <MorphingJobStats className="flex w-fit items-center space-x-3 pr-4 text-neutral-400 text-md dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedCount}
             handleApplyClick={handleApplyClick}
@@ -51,10 +51,11 @@ const CardStats = ({
             isBookmarked={isBookmarked}
             savedCount={savedCount}
             viewedCount={viewedCount}
+            iconClassName="w-4 h-4"
           />
         </MorphingJobStats>
       ) : (
-        <div className="flex w-fit items-center space-x-3 pr-4 text-neutral-500 text-xs dark:text-neutral-400">
+        <div className="flex w-fit items-center space-x-3 pr-4 text-neutral-400 text-md dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedCount}
             handleApplyClick={handleApplyClick}
@@ -63,6 +64,7 @@ const CardStats = ({
             isBookmarked={isBookmarked}
             savedCount={savedCount}
             viewedCount={viewedCount}
+            iconClassName="w-4 h-4"
           />
         </div>
       )}

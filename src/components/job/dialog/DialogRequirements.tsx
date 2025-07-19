@@ -14,7 +14,7 @@ const DialogRequirements = ({
   minIndustryAndRoleYoe?: number | null;
   minManagementAndLeadershipYoe?: number | null;
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   const { prefersReducedMotion } = useReducedMotion();
 
   if (!requirementsSummary) return null;

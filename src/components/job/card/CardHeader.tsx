@@ -31,7 +31,7 @@ const CardHeader = ({
   postedAt: string;
   tools: string[];
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   // For getCleanJobTitle, we'll use the first city or an empty string
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
   const calculateMaxHeight = () => {

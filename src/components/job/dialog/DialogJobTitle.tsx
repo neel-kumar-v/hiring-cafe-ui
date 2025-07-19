@@ -1,11 +1,11 @@
 import {
-  MorphingCompanyName,
-  MorphingJobTitle,
+    MorphingCompanyName,
+    MorphingJobTitle,
 } from "@/components/ui/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getCleanJobTitle } from "@/lib/job-info";
 import { formatCompanyName } from "@/lib/company-info";
+import { getCleanJobTitle } from "@/lib/job-info";
 
 const DialogJobTitle = ({
   jobTitle,
@@ -18,7 +18,7 @@ const DialogJobTitle = ({
   workplaceCities: string[];
   tools: string[];
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   const { prefersReducedMotion } = useReducedMotion();
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
   const cleanTitle = getCleanJobTitle(

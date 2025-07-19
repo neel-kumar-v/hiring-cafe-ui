@@ -4,7 +4,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatTool } from "@/lib/job-info";
 
 const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   const { prefersReducedMotion } = useReducedMotion();
   if (!technicalTools || technicalTools.length === 0) return null;
   return (

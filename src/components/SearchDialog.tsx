@@ -1,15 +1,15 @@
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Drawer,
-    DrawerContent,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import { SearchProvider, useSearch } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -25,7 +25,7 @@ interface SearchDialogProps {
 
 function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialogProps) {
   const { hasUnsavedChanges, syncChanges } = useSearch();
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
 
   useEffect(() => {
     if (!open && hasUnsavedChanges) {
@@ -36,7 +36,7 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
   if (!isDesktop) {
     return (
       <Drawer onOpenChange={onOpenChange} open={open}>
-        <DrawerContent className="overflow-y-hidden">
+        <DrawerContent className="w-full max-w-full rounded-t-xl">
           <DrawerHeader className="border-neutral-200 border-b px-6 py-4 dark:border-neutral-700">
             <DrawerTitle className="text-2xl">
               Create your Job Search

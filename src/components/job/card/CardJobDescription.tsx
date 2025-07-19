@@ -14,7 +14,7 @@ const CardJobDescription = ({
   minIndustryAndRoleYoe?: number | null;
   minManagementAndLeadershipYoe?: number | null;
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 728px)");
   return (
     <div className="mb-3 flex flex-col gap-2">
       {isDesktop ? (
