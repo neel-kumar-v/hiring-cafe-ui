@@ -74,7 +74,7 @@ export default function Page() {
             <div className="mx-auto max-w-full px-2 py-8 transition-[padding] duration-500 ease-in-out sm:px-4 lg:px-8">
               <div className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
                 <JobBoard />
-              </div>
+              </div> 
             </div>
           </div>
         </div>

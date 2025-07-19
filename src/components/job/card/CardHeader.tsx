@@ -61,7 +61,7 @@ const CardHeader = ({
       <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-2 flex items-center gap-1 flex-wrap">
         {workplaceCities.length > 0 &&
           (isDesktop ? (
-            <MorphingLocation className="flex flex-row flex-wrap items-center gap-1">
+            <MorphingLocation className="flex flex-row flex-wrap items-center gap-1 max-h-6  group-hover:max-h-24 overflow-hidden transition-all duration-700 ease-out">
               {getLocations(workplaceCities).map((loc, index) => (
                 <span
                   key={index}
