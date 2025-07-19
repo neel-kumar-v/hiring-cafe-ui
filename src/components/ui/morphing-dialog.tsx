@@ -47,12 +47,10 @@ function useMorphingDialogSafe() {
 
 export type MorphingDialogProviderProps = {
   children: React.ReactNode;
-  transition?: Transition;
 };
 
 function MorphingDialogProvider({
   children,
-  transition,
 }: MorphingDialogProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const uniqueId = useId();
