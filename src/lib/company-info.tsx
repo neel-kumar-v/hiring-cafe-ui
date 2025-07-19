@@ -27,9 +27,9 @@ export const renderCompanyAbbreviationGrid = (companyName: string) => {
   return (
     <span className="inline-grid grid-cols-2 grid-rows-2 gap-x-0.5">
       <span className="font-bold">{letters[0]}</span>
-      <span className="font-bold">{letters[1]}</span>
+      <span className="font-bold text-center">{letters[1]}</span>
       <span className="font-bold">{letters[2]}</span>
-      <span className="font-bold">{letters[3]}</span>
+      <span className="font-bold text-center">{letters[3]}</span>
     </span>
   );
 };
