@@ -84,6 +84,7 @@ const JobDrawerContent = ({
             }}
             workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
             workType={currentJob.v5_processed_job_data.workplace_type}
+            compact={true}
           />
           <DialogRequirements
             requirementsSummary={

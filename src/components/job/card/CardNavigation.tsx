@@ -68,7 +68,7 @@ const CardNavigation = ({
         data-nav="left"
         onClick={handleLeftClick}
       >
-        <ChevronLeft className="h-3 w-3" />
+        <ChevronLeft className="size-3" />
       </div>
 
       <div
@@ -93,7 +93,7 @@ const CardNavigation = ({
         data-nav="right"
         onClick={handleRightClick}
       >
-        <ChevronRight className="h-3 w-3" />
+        <ChevronRight className="size-3" />
       </div>
     </div>
   );

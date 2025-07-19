@@ -11,8 +11,8 @@ import {
   CheckCheck,
   ExternalLink,
   EyeOff,
-  Flag,
   Link2,
+  MessageSquareWarning,
   Send,
   Share2,
 } from "lucide-react";
@@ -40,42 +40,42 @@ const CardContextMenuProvider = ({
       <ContextMenuContent className="min-w-64">
         <ContextMenuItem onClick={onBookmarkClick}>
           {isBookmarked ? (
-            <Bookmark className="mr-2 h-4 w-4 fill-current text-pink-500 dark:text-pink-400" />
+            <Bookmark className="mr-2 size-4 fill-current text-pink-500 dark:text-pink-400" />
           ) : (
-            <Bookmark className="mr-2 h-4 w-4" />
+            <Bookmark className="mr-2 size-4" />
           )}
           {isBookmarked ? "Unsave Job" : "Save Job"}
         </ContextMenuItem>
         <ContextMenuItem>
           <a href={applyUrl} className="flex items-center gap-2">
-            <Send className="mr-2 h-4 w-4" />
+            <Send className="mr-2 size-4" />
             Apply Now
           </a>
         </ContextMenuItem>
         <ContextMenuItem onClick={onApplyClick}>
-          <CheckCheck className="mr-2 h-4 w-4" />
+          <CheckCheck className="mr-2 size-4" />
           {isApplied ? "Unmark Applied" : "Mark Applied"}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem>
-          <ExternalLink className="mr-2 h-4 w-4" />
+          <ExternalLink className="mr-2 size-4" />
           View all Jobs from {currentJob.v5_processed_company_data.name}
         </ContextMenuItem>
         <ContextMenuItem>
-          <Link2 className="mr-2 h-4 w-4" />
+          <Link2 className="mr-2 size-4" />
           Go to Company Website
         </ContextMenuItem>
         <ContextMenuItem>
-          <Share2 className="mr-2 h-4 w-4" />
+          <Share2 className="mr-2 size-4" />
           Share Job
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem className="!text-destructive">
-          <EyeOff className="mr-2 h-4 w-4 !text-destructive" />
+          <EyeOff className="mr-2 size-4 !text-destructive" />
           Hide Job
         </ContextMenuItem>
         <ContextMenuItem className="!text-destructive">
-          <Flag className="mr-2 h-4 w-4 !text-destructive" />
+          <MessageSquareWarning className="mr-2 size-4 !text-destructive" />
           Report Job
         </ContextMenuItem>
       </ContextMenuContent>

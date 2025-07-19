@@ -52,7 +52,7 @@ export const DialogActionButtons = ({
 }) => {
   return (
     <div className="flex flex-col gap-3 sm:flex-col-reverse">
-      <div className="flex flex-wrap items-center justify-center gap-3 px-4 md:pb-4 pt-4 md:pt-0">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:px-4 md:pb-4 pt-4 md:pt-0">
         <Button
           className="flex items-center gap-2"
           onClick={onBookmarkToggle}
@@ -60,7 +60,7 @@ export const DialogActionButtons = ({
           variant="outline"
         >
           <Bookmark
-            className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
+            className={`size-4 ${isBookmarked ? "fill-current" : ""}`}
           />
           {isBookmarked ? "Saved" : "Save"}
         </Button>
@@ -71,7 +71,7 @@ export const DialogActionButtons = ({
           tabIndex={0}
           role="button"
         >
-          <Send className="h-4 w-4" />
+          <Send className="size-4" />
           Apply Now
         </a>
 
@@ -82,7 +82,7 @@ export const DialogActionButtons = ({
           variant="outline"
         >
           <CheckCheck
-            className={`h-4 w-4 ${isApplied ? "fill-current" : ""}`}
+            className={`size-4 ${isApplied ? "fill-current" : ""}`}
           />
           {isApplied ? "Applied" : "Mark Applied"}
         </Button>
@@ -90,17 +90,17 @@ export const DialogActionButtons = ({
         <div className="mx-1 min-h-[2rem] w-px bg-border align-self-stretch" />
 
         <Button className="flex items-center gap-2" size="sm" variant="outline">
-          <Share2 className="h-4 w-4" />
+          <Share2 className="size-4" />
           Share
         </Button>
 
         <Button className="flex items-center gap-2" size="sm" variant="outline">
-          <Link2 className="h-4 w-4" />
+          <Link2 className="size-4" />
           Company Site
         </Button>
 
         <Button className="flex items-center gap-2" size="sm" variant="outline">
-          <ExternalLink className="h-4 w-4" />
+          <ExternalLink className="size-4" />
           All Jobs
         </Button>
 
@@ -111,7 +111,7 @@ export const DialogActionButtons = ({
           size="sm"
           variant="outline"
         >
-          <EyeOff className="h-4 w-4 !text-destructive" />
+          <EyeOff className="size-4 !text-destructive" />
           Hide
         </Button>
 
@@ -120,18 +120,18 @@ export const DialogActionButtons = ({
           size="sm"
           variant="outline"
         >
-          <MessageSquareWarning className="h-4 w-4 !text-destructive" />
+          <MessageSquareWarning className="size-4 !text-destructive" />
           Report
         </Button>
       </div>
 
       <Button
-        className="w-full max-sm:bg-white/10 max-sm:dark:bg-white/10 sm:bg-transparent sm:hover:bg-transparent dark:sm:border-neutral-700 sm:border-neutral-200  sm:border-1 sm:border-x-0 sm:rounded-none text-black dark:text-white max-sm:hover:bg-pink-400 dark:max-sm:hover:bg-pink-400/75 transition-all duration-300 ease-in-out flex items-center justify-center p-4 py-6"
+        className="w-full max-sm:bg-white/10 max-sm:dark:bg-white/10 sm:bg-transparent sm:hover:bg-transparent dark:sm:border-neutral-700 sm:border-neutral-200  sm:border-1 sm:border-x-0 sm:rounded-none text-black dark:text-white max-sm:hover:bg-pink-400 dark:max-sm:hover:bg-pink-400/75 transition-all duration-300 ease-in-out flex items-center justify-center sm:p-4 sm:py-6 p-2"
         size="lg"
         variant="default"
       >
         <span className="flex items-center justify-center gap-2 sm:hover:bg-pink-400 dark:sm:hover:bg-pink-400/75 p-2 rounded-md transition-all duration-300 ease-in-out">
-          <BookUser className="h-4 w-4" />
+          <BookUser className="size-4" />
           Contact Recruiter
         </span>
       </Button>

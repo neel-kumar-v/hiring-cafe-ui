@@ -1,7 +1,5 @@
 import jobsData from "@/data/jobs_data.json" with { type: "json" };
 import {
-  BookMarked,
-  BriefcaseBusiness,
   Building2,
   DollarSign,
   IdCard,
@@ -43,7 +41,7 @@ function SearchBarIcon({
   return (
     <UniversalTooltip content={tooltipContent} side="bottom">
       <Icon
-        className={`h-4 w-4 text-neutral-400 transition-all hover:text-pink-500 ${delay} ${clickable ? "opacity-100" : "opacity-0"} cursor-pointer`}
+        className={`sm:size-4 size-3 text-neutral-400 transition-all hover:text-pink-500 ${delay} ${clickable ? "opacity-100" : "opacity-0"} cursor-pointer`}
         onClick={onClick}
         data-icon-type={dataIconType}
       />
@@ -156,7 +154,7 @@ export default function SearchBar({
         onIconClick={onIconClick}
       />
       <div
-        className="-translate-y-1/2 absolute top-1/2 right-3 z-10 flex justify-end gap-1.5"
+        className="-translate-y-1/2 absolute top-1/2 right-3 py-3 z-10 flex justify-end gap-1.5"
         onClick={handleGeneralClick}
       >
         <SearchBarIcon
@@ -211,7 +209,7 @@ export default function SearchBar({
           <UniversalTooltip content="Delete Search" side="bottom" >
             <X
               className={
-                "h-4 w-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
+                "size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
               }
               onClick={() => setInputValue("")}
               data-icon-type="clear"
