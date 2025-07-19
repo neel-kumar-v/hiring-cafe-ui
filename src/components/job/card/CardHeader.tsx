@@ -35,9 +35,8 @@ const CardHeader = ({
   // For getCleanJobTitle, we'll use the first city or an empty string
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
   const calculateMaxHeight = () => {
-    console.log((Math.floor(workplaceCities.length / 3) + 1) * 6)
-    return (Math.floor(workplaceCities.length / 3) + 1) * 6
-  }
+    return (Math.floor(workplaceCities.length / 3) + 1) * 6;
+  };
 
   // Needs tailwind to create these classes
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -11,9 +11,13 @@ const CardTechnicalTools = ({
 		return null;
 	}
 
+	const calculateMaxHeight = () => {
+		return Math.max(12, (Math.floor(technicalTools.length / 6) + 1) * 6);
+	};
+
 	return (
 		<div className="flex min-w-0 flex-wrap items-center gap-1">
-			<MorphingJobTechnicalTools className="flex max-h-12 min-w-0 flex-wrap gap-1 overflow-y-hidden">
+			<MorphingJobTechnicalTools className={`flex pointer-fine:max-h-12  pointer-fine:group-hover:max-h-${calculateMaxHeight()} max-h-full pointer-fine:motion-reduce:max-h-full min-w-0 flex-wrap gap-1 overflow-hidden transition-all duration-700 ease-out`}>
 				{technicalTools.map((skill, skillIndex) => (
 					<span
 						className="max-w-xs cursor-text truncate rounded-md bg-pink-100 px-1.5 py-0.5 text-black/65 text-xs dark:bg-pink-700/50 dark:text-pink-400"
