@@ -70,7 +70,7 @@ function MorphingDialogProvider({
 
   return (
     <MorphingDialogContext.Provider value={contextValue}>
-      <MotionConfig transition={transition}>{children}</MotionConfig>
+      {children}
     </MorphingDialogContext.Provider>
   );
 }
@@ -686,5 +686,6 @@ export {
   MorphingDialogContainer,
   MorphingDialogContent,
   MorphingDialogImage,
-  MorphingDialogTrigger,
+  MorphingDialogTrigger
 };
+

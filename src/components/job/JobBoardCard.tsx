@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/job";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
@@ -90,8 +90,10 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const { isDesktop, isStable } = useResponsiveBreakpoint();
   const currentJob = jobCollection.jobs[currentJobIndex];
+
+  const stableKey = useMemo(() => jobCollection.source_and_board_token, [jobCollection.source_and_board_token]);
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -178,7 +180,6 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
   };
 
   const handleApplyToggle = () => {
-    // setIsApplied(!isApplied);
     window.open(currentJob.apply_url, "_blank");
   };
 
@@ -194,9 +195,26 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
     handleApplyToggle();
   };
 
+  if (!isStable) {
+    return (
+      <div key={`loading-${stableKey}`} className="h-full">
+        <Card className="h-full border bg-white shadow-sm dark:border-pink-700/20 dark:bg-neutral-800">
+          <CardContent className="flex h-full flex-col p-4 py-3">
+            <div className="animate-pulse">
+              <div className="h-4 bg-neutral-200 rounded dark:bg-neutral-700 mb-2"></div>
+              <div className="h-6 bg-neutral-200 rounded dark:bg-neutral-700 mb-4"></div>
+              <div className="h-3 bg-neutral-200 rounded dark:bg-neutral-700 mb-2"></div>
+              <div className="h-3 bg-neutral-200 rounded dark:bg-neutral-700 mb-4"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!isDesktop) {
     return (
-      <>
+      <div key={`mobile-${stableKey}`}>
         <JobCard
           currentJob={currentJob}
           currentJobIndex={currentJobIndex}
@@ -220,43 +238,45 @@ const JobBoardCard = ({ jobCollection }: { jobCollection: JobCollection }) => {
           onClose={() => setDrawerOpen(false)}
           open={drawerOpen}
         />
-      </>
+      </div>
     );
   }
 
   return (
-    <CardContextMenuProvider
-      currentJob={currentJob}
-      isApplied={isApplied}
-      isBookmarked={isBookmarked}
-      onApplyClick={handleApplyClick}
-      onBookmarkClick={handleBookmarkClick}
-      applyUrl={currentJob.apply_url}
-    >
-      <JobDialogContent
+    <div key={`desktop-${stableKey}`}>
+      <CardContextMenuProvider
         currentJob={currentJob}
         isApplied={isApplied}
         isBookmarked={isBookmarked}
-        onApplyToggle={handleApplyToggle}
-        onBookmarkToggle={handleBookmarkToggle}
-        scrollContainerRef={scrollContainerRef}
+        onApplyClick={handleApplyClick}
+        onBookmarkClick={handleBookmarkClick}
+        applyUrl={currentJob.apply_url}
       >
-        <JobCard
+        <JobDialogContent
           currentJob={currentJob}
-          currentJobIndex={currentJobIndex}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
-          isTransitioning={isTransitioning}
-          jobCollection={jobCollection}
-          onApplyToggle={handleApplyClick}
-          onBookmarkToggle={handleBookmarkClick}
-          onClick={() => {}}
-          onJobSelect={handleJobSelect}
-          onNext={handleNextJob}
-          onPrevious={handlePreviousJob}
-        />
-      </JobDialogContent>
-    </CardContextMenuProvider>
+          onApplyToggle={handleApplyToggle}
+          onBookmarkToggle={handleBookmarkToggle}
+          scrollContainerRef={scrollContainerRef}
+        >
+          <JobCard
+            currentJob={currentJob}
+            currentJobIndex={currentJobIndex}
+            isApplied={isApplied}
+            isBookmarked={isBookmarked}
+            isTransitioning={isTransitioning}
+            jobCollection={jobCollection}
+            onApplyToggle={handleApplyClick}
+            onBookmarkToggle={handleBookmarkClick}
+            onClick={() => {}}
+            onJobSelect={handleJobSelect}
+            onNext={handleNextJob}
+            onPrevious={handlePreviousJob}
+          />
+        </JobDialogContent>
+      </CardContextMenuProvider>
+    </div>
   );
 };
 
