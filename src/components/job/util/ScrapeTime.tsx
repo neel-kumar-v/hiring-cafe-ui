@@ -16,10 +16,10 @@ const ScrapeTime = ({
     <UniversalTooltip content={`HiringCafe scraped this job ${full} ago`}>
       <span className="-translate-y-0.25 inline-flex cursor-default items-center gap-1">
         <Clock
-          className={`text-neutral-400 dark:text-neutral-500 ${iconClassName}`}
+          className={`text-neutral-500 dark:text-neutral-400 ${iconClassName}`}
         />
         <span
-          className={` text-neutral-500 dark:text-neutral-400 ${textClassName}`}
+          className={` text-neutral-400 dark:text-neutral-500 -translate-y-[1.75px] ${textClassName}`}
         >
           {abbreviated}
         </span>

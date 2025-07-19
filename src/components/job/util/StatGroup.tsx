@@ -33,7 +33,9 @@ export const StatGroup = ({
           viewedCount === 1
             ? "Only viewed by you"
             : `Viewed by ${viewedCount} users`
-        }
+          }
+        iconClassName={iconClassName}
+        textClassName={textClassName}
       />
       <UniversalTooltip
         content={

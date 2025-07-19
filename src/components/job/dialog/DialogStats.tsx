@@ -49,7 +49,7 @@ const DialogStats = ({
       )}
 
       {!prefersReducedMotion ? (
-        <MorphingJobStats className="flex items-center space-x-3 text-neutral-500 text-xs dark:text-neutral-400">
+        <MorphingJobStats className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedFromUsers?.length || 0}
             handleApplyClick={onApplyClick}
@@ -63,7 +63,7 @@ const DialogStats = ({
           />
         </MorphingJobStats>
       ) : (
-        <div className="flex items-center space-x-3 text-neutral-500 text-xs dark:text-neutral-400">
+        <div className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedFromUsers?.length || 0}
             handleApplyClick={onApplyClick}
