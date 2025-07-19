@@ -34,6 +34,14 @@ const CardHeader = ({
   const isDesktop = useMediaQuery("(min-width: 640px)");
   // For getCleanJobTitle, we'll use the first city or an empty string
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
+  const calculateMaxHeight = () => {
+    console.log((Math.floor(workplaceCities.length / 3) + 1) * 6)
+    return (Math.floor(workplaceCities.length / 3) + 1) * 6
+  }
+
+  // Needs tailwind to create these classes
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const possibleHeights = "pointer-fine:group-hover:max-h-36 pointer-fine:group-hover:max-h-30 pointer-fine:group-hover:max-h-24 pointer-fine:group-hover:max-h-18 pointer-fine:group-hover:max-h-12 pointer-fine:group-hover:max-h-6"
 
   return (
     <div className="mb-4">
@@ -52,7 +60,7 @@ const CardHeader = ({
             <div className="text-lg font-semibold text-neutral-900 dark:text-white mb-2 line-clamp-2">
               {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </div>
-            <div className="flex items-center space-x-1 -translate-y-3">
+            <div className="flex items-center space-x-1 -translate-y-0.5">
               <ScrapeTime postedAt={postedAt} />
             </div>
           </>
@@ -61,7 +69,7 @@ const CardHeader = ({
       <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-2 flex items-center gap-1 flex-wrap">
         {workplaceCities.length > 0 &&
           (isDesktop ? (
-            <MorphingLocation className="flex flex-row flex-wrap items-center gap-1 max-h-6  group-hover:max-h-24 overflow-hidden transition-all duration-700 ease-out">
+            <MorphingLocation className={`flex flex-row flex-wrap items-center gap-1 pointer-fine:max-h-6  pointer-fine:group-hover:max-h-${calculateMaxHeight()} max-h-full pointer-fine:motion-reduce:max-h-full  overflow-hidden transition-all duration-700 ease-out`}>
               {getLocations(workplaceCities).map((loc, index) => (
                 <span
                   key={index}
