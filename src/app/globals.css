@@ -46,6 +46,7 @@
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
 	--radius-xl: calc(var(--radius) + 4px);
+	--ease-elastic: cubic-bezier(0.7, -0.75, 0.25, 1.65);
 }
 
 @layer base {
