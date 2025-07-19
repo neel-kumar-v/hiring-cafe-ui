@@ -67,6 +67,7 @@ export default function SearchDialogContent({
         setSelectedCategory(category.type as CategoryType);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, open]);
 
   const handleCategoryClick = (categoryId: string) => {
@@ -162,27 +163,13 @@ export default function SearchDialogContent({
   };
 
   const renderSidebar = () => {
-    const generalCategories = settingsCategories.filter(
-      (cat) => cat.type === "general"
-    );
-    const compensationCategories = settingsCategories.filter(
-      (cat) => cat.type === "compensation"
-    );
-    const roleDepartmentCategories = settingsCategories.filter(
-      (cat) => cat.type === "role-department"
-    );
-    const qualificationsCategories = settingsCategories.filter(
-      (cat) => cat.type === "qualifications"
-    );
-    const availabilityCategories = settingsCategories.filter(
-      (cat) => cat.type === "availability"
-    );
-    const companyCategories = settingsCategories.filter(
-      (cat) => cat.type === "company"
-    );
-    const locationCategories = settingsCategories.filter(
-      (cat) => cat.type === "location"
-    );
+    const generalCategories = settingsCategories.filter((cat) => cat.type === "general");
+    const compensationCategories = settingsCategories.filter((cat) => cat.type === "compensation");
+    const roleDepartmentCategories = settingsCategories.filter((cat) => cat.type === "role-department");
+    const qualificationsCategories = settingsCategories.filter((cat) => cat.type === "qualifications");
+    const availabilityCategories = settingsCategories.filter((cat) => cat.type === "availability");
+    const companyCategories = settingsCategories.filter((cat) => cat.type === "company");
+    const locationCategories = settingsCategories.filter((cat) => cat.type === "location");
 
     const categories = [
       {

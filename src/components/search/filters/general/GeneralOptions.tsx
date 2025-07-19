@@ -29,7 +29,7 @@ export default function GeneralOptions({
   useScrollToSection(scrollToSection, refs);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 h-max pb-12 mb-12 overflow-y-auto">
       <div>
         <h3 className="font-semibold text-lg">General</h3>
         <p className="text-neutral-600 dark:text-neutral-400">
@@ -85,6 +85,8 @@ export default function GeneralOptions({
       >
         <Encouraged isDarkMode={isDarkMode} />
       </div>
+      <br />
+      <br />
     </div>
   );
 } 

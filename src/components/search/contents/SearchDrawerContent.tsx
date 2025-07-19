@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/button";
 import { settingsCategories } from "@/data/search-filters";
 import { useEffect, useState } from "react";
 import {
-    AvailabilityOptions,
-    CompanyOptions,
-    CompensationOptions,
-    GeneralOptions,
-    LocationOptions,
-    QualificationsOptions,
-    RoleDepartmentOptions,
+  AvailabilityOptions,
+  CompanyOptions,
+  CompensationOptions,
+  GeneralOptions,
+  LocationOptions,
+  QualificationsOptions,
+  RoleDepartmentOptions,
 } from "../filters";
 
 interface SearchDrawerContentProps {
@@ -44,6 +44,8 @@ export default function SearchDrawerContent({
     return "general";
   });
 
+  const [scrollToSection, setScrollToSection] = useState<string | undefined>();
+
   const selectedCategoryData = settingsCategories.find(
     (cat) => cat.type === selectedCategory
   );
@@ -59,24 +61,42 @@ export default function SearchDrawerContent({
         setSelectedCategory(category.type as CategoryType);
       }
     }
-  }, [from, open, selectedCategory]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [from, open]);
+
+  const handleCategoryClick = (categoryId: string) => {
+    const category = settingsCategories.find((cat) => cat.id === categoryId);
+
+    if (category?.type) {
+      setSelectedCategory(category.type as CategoryType);
+      setScrollToSection(categoryId);
+    } else {
+      setSelectedCategory(categoryId as CategoryType);
+      setScrollToSection(undefined);
+    }
+  };
+
+  const handleHeaderClick = (categoryType: CategoryType) => {
+    setSelectedCategory(categoryType);
+    setScrollToSection(undefined);
+  };
 
   const renderContent = () => {
     switch (selectedCategory) {
       case "general":
-        return <GeneralOptions isDarkMode={isDarkMode} />;
+        return <GeneralOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "compensation":
-        return <CompensationOptions isDarkMode={isDarkMode} />;
+        return <CompensationOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "role-department":
-        return <RoleDepartmentOptions isDarkMode={isDarkMode} />;
+        return <RoleDepartmentOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "qualifications":
-        return <QualificationsOptions isDarkMode={isDarkMode} />;
+        return <QualificationsOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "availability":
-        return <AvailabilityOptions isDarkMode={isDarkMode} />;
+        return <AvailabilityOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "location":
-        return <LocationOptions isDarkMode={isDarkMode} />;
+        return <LocationOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "company":
-        return <CompanyOptions isDarkMode={isDarkMode} />;
+        return <CompanyOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       default:
         return (
           <div className="space-y-4">
@@ -96,40 +116,98 @@ export default function SearchDrawerContent({
     }
   };
 
-  const categories: { type: CategoryType; name: string }[] = [
-    { type: "general", name: "General" },
-    { type: "compensation", name: "Compensation & Levels" },
-    { type: "role-department", name: "Role & Department" },
-    { type: "qualifications", name: "Qualifications" },
-    { type: "availability", name: "Availability" },
-    { type: "location", name: "Location" },
-    { type: "company", name: "Company" },
-  ];
+  const renderOptions = () => {
+    const generalCategories = settingsCategories.filter((cat) => cat.type === "general");
+    const compensationCategories = settingsCategories.filter((cat) => cat.type === "compensation");
+    const roleDepartmentCategories = settingsCategories.filter((cat) => cat.type === "role-department");
+    const qualificationsCategories = settingsCategories.filter((cat) => cat.type === "qualifications");
+    const availabilityCategories = settingsCategories.filter((cat) => cat.type === "availability");
+    const companyCategories = settingsCategories.filter((cat) => cat.type === "company");
+    const locationCategories = settingsCategories.filter((cat) => cat.type === "location");
 
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
-          <div className="scrollbar-hide mb-2 flex flex-row flex-wrap gap-1 overflow-x-auto">
-            {categories.map((category) => (
+    const categories = [
+      {
+        name: "General",
+        type: "general" as CategoryType,
+        categories: generalCategories,
+      },
+      {
+        name: "Compensation & Levels",
+        type: "compensation" as CategoryType,
+        categories: compensationCategories,
+      },
+      {
+        name: "Role & Department",
+        type: "role-department" as CategoryType,
+        categories: roleDepartmentCategories,
+      },
+      {
+        name: "Qualifications",
+        type: "qualifications" as CategoryType,
+        categories: qualificationsCategories,
+      },
+      {
+        name: "Availability",
+        type: "availability" as CategoryType,
+        categories: availabilityCategories,
+      },
+      {
+        name: "Location",
+        type: "location" as CategoryType,
+        categories: locationCategories,
+      },
+      {
+        name: "Company",
+        type: "company" as CategoryType,
+        categories: companyCategories,
+      },
+    ];
+
+    const selectedCategoryData = categories.find((cat) => cat.type === selectedCategory);
+
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="pointer-coarse:scrollbar-none pointer-coarse:overflow-x-auto mb-2 flex scroll-auto pointer-fine:pb-4 gap-1 overflow-x-auto">
+          {categories.map((category) => (
+            <Button
+              className={`h-auto w-fit rounded-md border-neutral-200 dark:border-neutral-700 border-1 justify-start px-2 py-1 text-left text-sm ${
+                selectedCategory === category.type
+                  ? "bg-pink-600 text-white hover:bg-pink-700"
+                  : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
+              }`}
+              key={category.type}
+              onClick={() => handleHeaderClick(category.type)}
+              variant={selectedCategory === category.type ? "default" : "ghost"}
+            >
+              <span className="font-medium text-sm">{category.name}</span>
+            </Button>
+          ))}
+        </div>
+        {selectedCategoryData && selectedCategoryData.categories.length > 0 && (
+          <div className="mb-2 flex scrollbar-none pointer-fine:pb-4 gap-1 overflow-x-auto">
+            {selectedCategoryData.categories.map((category) => (
               <Button
-                className={`h-auto w-fit rounded-md border-neutral-200 dark:border-neutral-700 border-1 justify-start px-2 py-1 text-left text-sm ${
-                  selectedCategory === category.type
-                    ? "bg-pink-600 text-white hover:bg-pink-700"
-                    : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                }`}
-                key={category.type}
-                onClick={() => setSelectedCategory(category.type)}
-                variant={selectedCategory === category.type ? "default" : "ghost"}
+                className={`h-auto w-fit rounded-md border-neutral-200 dark:border-neutral-700 border-1 justify-start px-2 py-1 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700`}
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                variant="ghost"
               >
                 <span className="font-medium text-sm">{category.name}</span>
               </Button>
             ))}
           </div>
-
-          <div className="border-neutral-200 border-t pt-4 dark:border-neutral-700">
-            {renderContent()}
-          </div>
+        )}
+      </div>
+    )
+  }
+  return (
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-neutral-200 p-4 pb-0 max-sm:border-b dark:border-neutral-700 bg-white dark:bg-neutral-900">
+        {renderOptions()}
+      </div>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="p-4">
+          {renderContent()}
         </div>
       </div>
     </div>
