@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import SearchBar from "./search/SearchBar";
+import { Clock } from "./Clock";
 
 interface HeaderProps {
   showLegacyFilters?: boolean;
@@ -85,8 +86,10 @@ export default function Header({
             </div>
           </div>
 
+
           {/* Right Side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center sm:space-x-4">
+            <Clock />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
