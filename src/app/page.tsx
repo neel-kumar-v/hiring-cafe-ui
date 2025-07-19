@@ -8,6 +8,7 @@ import Filters from "@/components/search/legacy/Filters";
 import SortPopover from "@/components/search/legacy/SortPopover";
 import SearchDialog from "@/components/SearchDialog";
 import { useDarkMode } from "@/contexts/DarkModeContext";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 
 export default function Page() {
@@ -71,8 +72,8 @@ export default function Page() {
           </div>
 
           <div className="h-full overflow-x-hidden">
-            <div className="mx-auto max-w-full px-2 py-8 transition-[padding] duration-500 ease-in-out sm:px-4 lg:px-8">
-              <div className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="mx-auto max-w-full p-2 transition-[padding] duration-500 ease-in-out sm:p-4 lg:p-8">
+              <div className="grid 3xl:grid-cols-5 grid-cols-1 gap-2 sm:gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
                 <JobBoard />
               </div> 
             </div>
