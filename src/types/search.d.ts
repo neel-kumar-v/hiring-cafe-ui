@@ -20,45 +20,7 @@ export type Exclusion = "Saved" | "Applied" | "Hidden" | "Viewed";
 
 export type ExclusionOptions = Exclusion[];
 
-export type Department =
-  | "Engineering"
-  | "Software Development"
-  | "Information Technology"
-  | "Data and Analytics"
-  | "Design"
-  | "Creative and Art Services"
-  | "Project and Program Management"
-  | "Product Management"
-  | "Business Operations"
-  | "Legal and Compliance"
-  | "Finance and Accounting"
-  | "Human Resources"
-  | "Administrative & Clerical Support"
-  | "Sales"
-  | "Marketing"
-  | "Communications and Public Affairs"
-  | "Business Development"
-  | "Healthcare Services - Advanced Practice"
-  | "Healthcare Services - Allied Health"
-  | "Healthcare Services - Nursing"
-  | "Healthcare Services - Pharmacy"
-  | "Healthcare Services - Veterinary"
-  | "Education services"
-  | "Customer Service"
-  | "Social Services"
-  | "Construction"
-  | "Mechanical and Electrical"
-  | "Manufacturing and Industrial"
-  | "Maintenance and Repair"
-  | "General Labor"
-  | "Transportation Services"
-  | "Supply Chain / Logistics / Procurement"
-  | "Quality Assurance"
-  | "Environment, Health, and Safety"
-  | "Research and Development (R&D)"
-  | "Food and Beverage Services"
-  | "Protective Services"
-  | "Custodial Services";
+export type Department = "Engineering" | "Software Development" | "Information Technology" | "Data and Analytics" | "Design" | "Creative and Art Services" | "Project and Program Management" | "Product Management" | "Business Operations" | "Legal and Compliance" | "Finance and Accounting" | "Human Resources" | "Administrative & Clerical Support" | "Sales" | "Marketing" | "Communications and Public Affairs" | "Business Development" | "Healthcare Services - Advanced Practice" | "Healthcare Services - Allied Health" | "Healthcare Services - Nursing" | "Healthcare Services - Pharmacy" | "Healthcare Services - Veterinary" | "Education services" | "Customer Service" | "Social Services" | "Construction" | "Mechanical and Electrical" | "Manufacturing and Industrial" | "Maintenance and Repair" | "General Labor" | "Transportation Services" | "Supply Chain / Logistics / Procurement" | "Quality Assurance" | "Environment, Health, and Safety" | "Research and Development (R&D)" | "Food and Beverage Services" | "Protective Services" | "Custodial Services";
 
 export type Select<T, V = "All"> = T[] | V;
 
@@ -84,14 +46,7 @@ export interface SalaryOptions {
   undisclosed: boolean;
 }
 
-export type CommitmentLevel =
-  | "Full-Time"
-  | "Part-Time"
-  | "Contract"
-  | "Internship"
-  | "Temporary"
-  | "Volunteer"
-  | "Seasonal";
+export type CommitmentLevel = "Full-Time" | "Part-Time" | "Contract" | "Internship" | "Temporary" | "Volunteer" | "Seasonal";
 
 export type CommitmentLevelOptions = Select<CommitmentLevel>;
 
@@ -104,10 +59,10 @@ export interface BooleanOperator<T> {
 export type SearchExpression<T> = T | BooleanOperator<T>;
 
 export interface JobInfoOptions {
-  title: BooleanOperator<string>;
-  technical: BooleanOperator<string>;
-  description: BooleanOperator<string>;
-  requirements: BooleanOperator<string>;
+  title: SearchExpression<string>;
+  technical: SearchExpression<string>;
+  description: SearchExpression<string>;
+  requirements: SearchExpression<string>;
 }
 
 export type DegreePreferences = "Required" | "Preferred" | "Not Mentioned";
@@ -122,11 +77,7 @@ export interface DegreePreferencesOptions {
   keywords: Keywords;
 }
 
-export type ExperienceLevel =
-  | "None"
-  | "Entry Level"
-  | "Mid Level"
-  | "Senior Level";
+export type ExperienceLevel = "None" | "Entry Level" | "Mid Level" | "Senior Level";
 export type Role = "Individual Contributor" | "People Manager";
 
 export interface RoleExperience {
@@ -152,15 +103,7 @@ export interface LicenseCertificationOptions {
   keywords: Keywords;
 }
 
-export type SecurityClearance =
-  | "None"
-  | "Confidential"
-  | "Secret"
-  | "Top Secret"
-  | "Top Secret/SCI"
-  | "Public Trust"
-  | "Interim Clearances"
-  | "Other";
+export type SecurityClearance = "None" | "Confidential" | "Secret" | "Top Secret" | "Top Secret/SCI" | "Public Trust" | "Interim Clearances" | "Other";
 
 export type SecurityClearanceOptions = Select<SecurityClearance>;
 
@@ -186,15 +129,7 @@ export interface TravelRequirementsOptions {
   land: Select<TravelRequirements>;
 }
 
-export type Benefits =
-  | "PTO"
-  | "4 Days"
-  | "401k"
-  | "Parental Leave"
-  | "Retirement"
-  | "Tuition"
-  | "Visa"
-  | "Relocation";
+export type Benefits = "PTO" | "4 Days" | "401k" | "Parental Leave" | "Retirement" | "Tuition" | "Visa" | "Relocation";
 export type BenefitsOptions = Select<Benefits, null>;
 
 export type Encouraged = "Veteran" | "Fair Chance";
