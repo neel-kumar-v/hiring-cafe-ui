@@ -2,9 +2,12 @@ import jobsData from "@/data/jobs_data.json" with { type: "json" };
 import {
   BookMarked,
   BriefcaseBusiness,
+  Building2,
   DollarSign,
+  IdCard,
   type LucideIcon,
   MapPin,
+  School,
   SlidersHorizontal,
   X,
 } from "lucide-react";
@@ -158,6 +161,38 @@ export default function SearchBar({
       >
         <SearchBarIcon
           delay="delay-0"
+          icon={SlidersHorizontal}
+          tooltipContent="General Filters"
+          onClick={() => onIconClick?.("filters")}
+          dataIconType="filters"
+          clickable={!inputValue}
+        />
+        <SearchBarIcon
+          delay="delay-100 hover:delay-0"
+          icon={DollarSign}
+          tooltipContent="Compensation & Level"
+          onClick={() => onIconClick?.("salary")}
+          dataIconType="salary"
+          clickable={!inputValue}
+        />
+        <SearchBarIcon
+          delay="delay-200 hover:delay-0"
+          icon={IdCard}
+          tooltipContent="Role & Department"
+          onClick={() => onIconClick?.("role-department")}
+          dataIconType="role-department"
+          clickable={!inputValue}
+        />
+        <SearchBarIcon
+          delay="delay-300 hover:delay-0"
+          icon={School}
+          tooltipContent="Qualifications"
+          onClick={() => onIconClick?.("qualifications")}
+          dataIconType="qualifications"
+          clickable={!inputValue}
+        />
+        <SearchBarIcon
+          delay="delay-400 hover:delay-0"
           icon={MapPin}
           tooltipContent="Location"
           onClick={() => onIconClick?.("location")}
@@ -165,35 +200,11 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-100 hover:delay-0"
-          icon={DollarSign}
-          tooltipContent="Salary"
-          onClick={() => onIconClick?.("salary")}
-          dataIconType="salary"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-200 hover:delay-0"
-          icon={BriefcaseBusiness}
-          tooltipContent="Job Type"
-          onClick={() => onIconClick?.("commitment")}
-          dataIconType="commitment"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-300 hover:delay-0"
-          icon={SlidersHorizontal}
-          tooltipContent="Filters"
-          onClick={() => onIconClick?.("filters")}
-          dataIconType="filters"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-400 hover:delay-0"
-          icon={BookMarked}
-          tooltipContent="Saved"
-          onClick={() => onIconClick?.("saved")}
-          dataIconType="saved"
+          delay="delay-500 hover:delay-0"
+          icon={Building2}
+          tooltipContent="Company"
+          onClick={() => onIconClick?.("company")}
+          dataIconType="company"
           clickable={!inputValue}
         />
         {inputValue && (
