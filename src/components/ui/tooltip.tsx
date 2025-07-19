@@ -175,8 +175,8 @@ type TooltipProviderProps = {
 
 function TooltipProvider({
   children,
-  openDelay = 0,
-  closeDelay = 450,
+  openDelay = 50,
+  closeDelay = 150,
   transition = { type: 'spring', stiffness: 300, damping: 34 },
 }: TooltipProviderProps) {
   const globalId = React.useId();
@@ -287,7 +287,7 @@ function TooltipOverlay() {
         <TooltipPortal>
           <motion.div
             data-slot="tooltip-overlay-container"
-            className="fixed z-50"
+            className="fixed z-50 pointer-events-none"
             style={{
               top: position.y,
               left: position.x,
