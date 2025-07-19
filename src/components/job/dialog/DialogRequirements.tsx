@@ -24,26 +24,37 @@ const DialogRequirements = ({
     minManagementAndLeadershipYoe
   );
 
-  const renderBadges = () => (
+  const renderBadges = () => experienceInfo.industryBadge && experienceInfo.leadershipBadge ? (
+    <>
+      <UniversalTooltip content={experienceInfo.industryTooltip!}>
+        <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-neutral-600 text-sm dark:bg-neutral-700/50 dark:text-neutral-300 mr-2">
+          <FileChartColumnIncreasing className="w-3 h-3" />
+          {experienceInfo.industryBadge}
+        </span>
+      </UniversalTooltip>
+      <UniversalTooltip content={experienceInfo.leadershipTooltip!}>
+        <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-neutral-600 text-sm dark:bg-neutral-700/50 dark:text-neutral-300 mr-2">
+          <FileUser className="w-3 h-3" />
+          {experienceInfo.leadershipBadge}
+        </span>
+      </UniversalTooltip>
+    </>
+  ) : (
     <>
       {experienceInfo.industryBadge && (
-        <UniversalTooltip content={experienceInfo.industryTooltip!}>
-          <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1 text-neutral-600 text-sm dark:bg-neutral-700/50 dark:text-neutral-300 mr-2">
-            <FileChartColumnIncreasing className="w-4 h-4" />
-            {experienceInfo.industryBadge}
-          </span>
-        </UniversalTooltip>
+        <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-neutral-600 text-sm dark:bg-neutral-700/50 dark:text-neutral-300 mr-2">
+          <FileChartColumnIncreasing className="w-3 h-3" />
+          {experienceInfo.industryBadge}
+        </span>
       )}
       {experienceInfo.leadershipBadge && (
-        <UniversalTooltip content={experienceInfo.leadershipTooltip!}>
-          <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1 text-neutral-600 text-sm dark:bg-neutral-700/50 dark:text-neutral-300 mr-2">
-            <FileUser className="w-4 h-4" />
-            {experienceInfo.leadershipBadge}
-          </span>
-        </UniversalTooltip>
+        <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-neutral-600 text-sm dark:bg-neutral-700/50 dark:text-neutral-300 mr-2">
+          <FileUser className="w-3 h-3" />
+          {experienceInfo.leadershipBadge}
+        </span>
       )}
     </>
-  );
+  )
 
   return (
     <div className="mb-6">

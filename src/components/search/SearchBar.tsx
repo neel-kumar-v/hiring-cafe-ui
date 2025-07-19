@@ -1,5 +1,4 @@
 import jobsData from "@/data/jobs_data.json" with { type: "json" };
-import { jobTitles as fallbackJobTitles } from "@/data/jobTitles";
 import {
   BookMarked,
   BriefcaseBusiness,
@@ -39,7 +38,7 @@ function SearchBarIcon({
   clickable = true,
 }: SearchBarIconProps) {
   return (
-    <UniversalTooltip content={tooltipContent}>
+    <UniversalTooltip content={tooltipContent} side="bottom">
       <Icon
         className={`h-4 w-4 text-neutral-400 transition-all hover:text-pink-500 ${delay} ${clickable ? "opacity-100" : "opacity-0"} cursor-pointer`}
         onClick={onClick}
@@ -77,7 +76,7 @@ export default function SearchBar({
       // Deduplicate
       return Array.from(new Set(titles));
     }
-    return fallbackJobTitles;
+    return [];
   }, []);
 
   const handleInputChange = (value: string) => {
@@ -198,7 +197,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         {inputValue && (
-          <UniversalTooltip content="Delete Search">
+          <UniversalTooltip content="Delete Search" side="bottom" >
             <X
               className={
                 "h-4 w-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
