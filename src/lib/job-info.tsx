@@ -2,12 +2,13 @@ import { CompensationRange } from "@/types/job";
 
 const removeCompanyName = (title: string, company: string): string => {
   if (!company) return title;
-  if (!title.toLowerCase().includes(company.toLowerCase())) return title;
-  const regex = new RegExp(
-    company.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:[,-:|]|- | -)*\\s*",
-    "i"
-  );
-  return title.replace(regex, "");
+  let cleanedTitle = title;
+  const companyWords = company.split(/\s+/).filter(Boolean);
+  companyWords.forEach(word => {
+    const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+    cleanedTitle = cleanedTitle.replace(regex, "");
+  });
+  return cleanedTitle.replace(/\s{2,}/g, " ").trim();
 };
 
 const removeParentheses = (title: string): string => {
