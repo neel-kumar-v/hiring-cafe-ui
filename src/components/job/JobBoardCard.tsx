@@ -67,7 +67,7 @@ const JobCard = memo(({
       totalJobs={jobCollection.jobs.length}
     >
       <Card
-        className="h-full cursor-pointer border bg-white shadow-sm transition-shadow duration-300 ease-in hover:shadow-lg dark:border-pink-700/20 dark:bg-neutral-800 dark:transition-colors dark:hover:border-pink-700/50 dark:hover:bg-neutral-700/50 group"
+        className="h-full cursor-pointer border bg-white shadow-sm transition-shadow duration-300 ease-in hover:shadow-lg dark:border-pink-700/20 dark:bg-neutral-800 dark:transition-colors dark:hover:border-pink-700/50 dark:hover:bg-neutral-700/50 group "
         key={cardKey}
         onClick={onClick}
         data-job-card="true"
@@ -120,7 +120,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   const [isApplied] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { isDesktop } = useResponsiveBreakpoint();
   
   const currentJob = useMemo(() => 

@@ -65,6 +65,7 @@ const JobBoard = () => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadedCount, isLoading]);
 
   return (
