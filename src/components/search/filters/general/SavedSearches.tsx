@@ -31,7 +31,7 @@ export default function SavedSearches({}: SavedSearchesProps) {
         benefits: [],
         encouraged: [],
         department: "All",
-        salary: { range: { min: 80000, max: 150000 }, unit: "Yearly", currency: "USD", undisclosed: false },
+        salary: { min_range: { min: 80000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
         commitment: "All",
         experience: { level: "All", role: "None" },
         job_titles: { 
@@ -119,7 +119,7 @@ export default function SavedSearches({}: SavedSearchesProps) {
         benefits: [],
         encouraged: [],
         department: ["Data and Analytics"],
-        salary: { range: { min: 60000, max: 90000 }, unit: "Yearly", currency: "USD", undisclosed: false },
+        salary: { min_range: { min: 60000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
         commitment: ["Full-Time"],
         experience: { level: ["Entry Level"], role: "None" },
         job_titles: { title: "Data Scientist", technical: "Python SQL", description: "", requirements: "" },
