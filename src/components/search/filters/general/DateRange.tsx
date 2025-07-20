@@ -1,7 +1,9 @@
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useSearch } from "@/contexts/SearchContext";
+import { TimeUnits } from "@/types/search";
+import { useEffect, useState } from "react";
 
 interface DateRangeProps {
   isDarkMode?: boolean;
@@ -26,8 +28,10 @@ function useDebounce(value: string, delay: number) {
 
 export default function DateRange({}: DateRangeProps) {
   const { isDarkMode } = useDarkMode();
-  const [customTimeValue, setCustomTimeValue] = useState("3");
-  const [customTimeUnit, setCustomTimeUnit] = useState("days");
+  const { searchOptions, updateSearchOptions } = useSearch();
+  
+  const [customTimeValue, setCustomTimeValue] = useState(searchOptions.date_range.magnitude.toString());
+  const [customTimeUnit, setCustomTimeUnit] = useState(searchOptions.date_range.unit.toLowerCase());
   const [isAllTime, setIsAllTime] = useState(false);
 
   const debouncedTimeValue = useDebounce(customTimeValue, 500);
@@ -60,6 +64,12 @@ export default function DateRange({}: DateRangeProps) {
     if (unit === "all-time") {
       setIsAllTime(true);
       setCustomTimeUnit("days");
+      updateSearchOptions({
+        date_range: {
+          magnitude: 365,
+          unit: "Days"
+        }
+      });
       return;
     }
 
@@ -74,14 +84,46 @@ export default function DateRange({}: DateRangeProps) {
       years: "1",
     };
 
-    setCustomTimeValue(defaults[unit] || "1");
+    const newValue = defaults[unit] || "1";
+    setCustomTimeValue(newValue);
+    
+    const timeUnitMap: { [key: string]: TimeUnits } = {
+      minutes: "Minutes",
+      hours: "Hours", 
+      days: "Days",
+      weeks: "Weeks",
+      months: "Months",
+      years: "Years"
+    };
+
+    updateSearchOptions({
+      date_range: {
+        magnitude: parseInt(newValue),
+        unit: timeUnitMap[unit] || "Days"
+      }
+    });
   };
 
   useEffect(() => {
-    if (debouncedTimeValue && customTimeUnit) {
-      console.log(`Time filter: ${debouncedTimeValue} ${customTimeUnit}`);
+    if (debouncedTimeValue && customTimeUnit && !isAllTime) {
+      const timeUnitMap: { [key: string]: TimeUnits } = {
+        minutes: "Minutes",
+        hours: "Hours", 
+        days: "Days",
+        weeks: "Weeks",
+        months: "Months",
+        years: "Years"
+      };
+
+      updateSearchOptions({
+        date_range: {
+          magnitude: parseInt(debouncedTimeValue),
+          unit: timeUnitMap[customTimeUnit] || "Days"
+        }
+      });
     }
-  }, [debouncedTimeValue, customTimeUnit]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedTimeValue, customTimeUnit, isAllTime]);
 
   return (
     <>
@@ -106,9 +148,10 @@ export default function DateRange({}: DateRangeProps) {
           </SelectTrigger>
           <SelectContent className={isDarkMode ? "dark" : ""}>
             <SelectItem value="all-time">All time</SelectItem>
-            <SelectItem value="weeks">Minutes</SelectItem>
+            <SelectItem value="minutes">Minutes</SelectItem>
             <SelectItem value="hours">Hours</SelectItem>
             <SelectItem value="days">Days</SelectItem>
+            <SelectItem value="weeks">Weeks</SelectItem>
             <SelectItem value="months">Months</SelectItem>
             <SelectItem value="years">Years</SelectItem>
           </SelectContent>

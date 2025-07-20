@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSearch } from "@/contexts/SearchContext";
 import { CategoryId, SearchState } from "@/types/search";
 import { Calendar, Edit, Eye, Search } from "lucide-react";
 import { useState } from "react";
@@ -17,6 +18,7 @@ interface SavedSearchesProps {
 }
 
 export default function SavedSearches({}: SavedSearchesProps) {
+  const { setSearchOptions } = useSearch();
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([
     {
       id: "1",
@@ -32,7 +34,22 @@ export default function SavedSearches({}: SavedSearchesProps) {
         salary: { range: { min: 80000, max: 150000 }, unit: "Yearly", currency: "USD", undisclosed: false },
         commitment: "All",
         experience: { level: "All", role: "None" },
-        job_titles: { title: "Software Engineer", technical: "", description: "", requirements: "" },
+        job_titles: { 
+          title: "Software Engineer", 
+          technical: {
+            AND: [
+              "Git",
+              "Go",
+              {
+                NOT: {
+                  OR: ["excel", "word", "outlook"]
+                }
+              }
+            ]
+          }, 
+          description: "", 
+          requirements: "" 
+        },
         education: {
           associate: { preferences: null, keywords: { include: [], exclude: "None" } },
           bachelor: { preferences: null, keywords: { include: [], exclude: "None" } },
@@ -207,7 +224,7 @@ export default function SavedSearches({}: SavedSearchesProps) {
   };
 
   const handleLoadSearch = (search: SavedSearch) => {
-    console.log("Loading search:", search.name);
+    setSearchOptions(search.searchState);
   };
 
   const handleCategoryClick = (categoryId: CategoryId) => {

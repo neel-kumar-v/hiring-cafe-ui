@@ -209,7 +209,7 @@ export function decodeSearchExpression(expression: SearchExpression<string>): st
   if (typeof expression === "string") return expression;
   if (expression.AND) return expression.AND.map(decodeSearchExpression).join(" AND ");
   if (expression.OR) return expression.OR.map(decodeSearchExpression).join(" OR ");
-  if (expression.NOT) return "NOT " + decodeSearchExpression(expression.NOT);
+  if (expression.NOT) return "NOT (" + decodeSearchExpression(expression.NOT) + ")";
   return "";
 }
 
