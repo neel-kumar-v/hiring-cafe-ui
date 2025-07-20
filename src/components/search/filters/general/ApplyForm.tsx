@@ -5,7 +5,7 @@ interface ApplyFormProps {
 export default function ApplyForm({}: ApplyFormProps) {
   return (
     <div>
-      <p>Apply Form Type</p>
+      <p>Apply Form Type</p> 
     </div>
   );
 } 
