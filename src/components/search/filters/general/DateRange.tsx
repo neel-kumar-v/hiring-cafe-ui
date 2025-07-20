@@ -4,6 +4,7 @@ import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { TimeUnits } from "@/types/search";
 import { useEffect, useState } from "react";
+import FilterContainer from "../util/FilterContainer";
 
 interface DateRangeProps {
   isDarkMode?: boolean;
@@ -125,8 +126,7 @@ export default function DateRange({}: DateRangeProps) {
   }, [debouncedTimeValue, customTimeUnit, isAllTime]);
 
   return (
-    <>
-      <p className="font-semibold text-lg text-text">Show jobs from the past</p>
+    <FilterContainer title="Show jobs from the past">
       <div className="flex items-center space-x-2">
         <Input
           className="w-12  text-center text-text placeholder:text-muted-foreground text-sm ring-0 [-moz-appearance:textfield]  [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
@@ -156,6 +156,6 @@ export default function DateRange({}: DateRangeProps) {
           </SelectContent>
         </Select>
       </div>
-    </>
+    </FilterContainer>
   );
 } 

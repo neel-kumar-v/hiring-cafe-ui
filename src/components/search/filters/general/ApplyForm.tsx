@@ -3,6 +3,7 @@ import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearch } from "@/contexts/SearchContext";
 import type { ApplyForm } from "@/types/search";
 import { useEffect, useState } from "react";
+import FilterContainer from "../util/FilterContainer";
 
 interface ApplyFormProps {
   isDarkMode?: boolean;
@@ -47,8 +48,7 @@ export default function ApplyForm({}: ApplyFormProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <p className="text-lg font-semibold">Apply Form Type</p>
+    <FilterContainer title="Apply Form Type">
       
       <Select onValueChange={setApplyFormValue} value={applyFormValue}>
         <SelectTrigger className="w-full text-text placeholder:text-muted-foreground text-sm">
@@ -64,6 +64,6 @@ export default function ApplyForm({}: ApplyFormProps) {
       </Select>
       
       <p className="text-sm text-muted-foreground">{getDescription(applyFormValue)}</p>
-    </div>
+    </FilterContainer>
   );
 } 

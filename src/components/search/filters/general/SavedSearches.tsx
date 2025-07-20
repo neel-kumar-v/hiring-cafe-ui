@@ -4,7 +4,7 @@ import { useSearch } from "@/contexts/SearchContext";
 import { CategoryId, SearchState } from "@/types/search";
 import { Calendar, Edit, Eye, Search } from "lucide-react";
 import { useState } from "react";
-import { AllFilter } from "./util/AllFilter";
+import { AllFilter } from "../util/AllFilter";
 
 interface SavedSearch {
   id: string;

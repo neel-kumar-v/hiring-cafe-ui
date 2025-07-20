@@ -1,11 +1,52 @@
+
+import { useSearch } from "@/contexts/SearchContext";
+import LabelCheckbox from "../util/LabelCheckbox";
+import FilterContainer from "../util/FilterContainer";
+
 interface ExclusionProps {
   isDarkMode?: boolean;
 }
 
+
+
 export default function Exclusion({}: ExclusionProps) {
+  const { searchOptions, updateSearchOptions } = useSearch();
+
+  const handleCheckboxChange = (type: "Applied" | "Viewed" | "Saved" | "Hidden") => {
+    const currentExclusion = searchOptions.exclusion;
+    const newExclusion = currentExclusion.includes(type)
+      ? currentExclusion.filter(item => item !== type)
+      : [...currentExclusion, type];
+    
+    updateSearchOptions({
+      exclusion: newExclusion
+    });
+  };
+
   return (
-    <div>
-      <p>Exclusion</p>
-    </div>
+    <FilterContainer title="Exclude Jobs you have">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <LabelCheckbox 
+          label="Applied" 
+          checked={searchOptions.exclusion.includes("Applied")} 
+          onChange={() => handleCheckboxChange("Applied")}
+        />
+        <LabelCheckbox 
+          label="Viewed" 
+          checked={searchOptions.exclusion.includes("Viewed")} 
+          onChange={() => handleCheckboxChange("Viewed")}
+        />
+        <LabelCheckbox 
+          label="Saved" 
+          checked={searchOptions.exclusion.includes("Saved")} 
+          onChange={() => handleCheckboxChange("Saved")}
+        />
+        <LabelCheckbox 
+          label="Hidden" 
+          checked={searchOptions.exclusion.includes("Hidden")} 
+          onChange={() => handleCheckboxChange("Hidden")}
+        />
+      </div>
+    </FilterContainer>
   );
-} 
+}   

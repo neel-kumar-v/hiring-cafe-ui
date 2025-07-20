@@ -4,7 +4,7 @@ import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { ChevronsDown, ChevronsUp } from "lucide-react";
 import { useEffect, useState } from "react";
-
+import FilterContainer from "../util/FilterContainer";
 interface SortingProps {
   isDarkMode?: boolean;
 }
@@ -47,8 +47,7 @@ export default function Sorting({}: SortingProps) {
   }, [sortCategory, isAscending]);
 
   return (
-    <div className="space-y-4">
-      <p className="text-lg font-semibold">Sort By</p>
+    <FilterContainer title="Sort By">
     
       <div className="flex gap-2">
         <Toggle
@@ -91,6 +90,6 @@ export default function Sorting({}: SortingProps) {
           </Select>
         </div>
       </div>
-    </div>
+    </FilterContainer>
   );
 } 
