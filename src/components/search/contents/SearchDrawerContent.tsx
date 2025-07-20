@@ -178,7 +178,7 @@ export default function SearchDrawerContent({
               onClick={() => handleHeaderClick(category.type)}
               variant={selectedCategory === category.type ? "default" : "ghost"}
             >
-              <span className="font-medium text-sm">{category.name}</span>
+              <span className="text-sm">{category.name}</span>
             </Button>
           ))}
         </div>
@@ -191,7 +191,7 @@ export default function SearchDrawerContent({
                 onClick={() => handleCategoryClick(category.id)}
                 variant="ghost"
               >
-                <span className="font-medium text-sm">{category.name}</span>
+                <span className="text-sm">{category.name}</span>
               </Button>
             ))}
           </div>
