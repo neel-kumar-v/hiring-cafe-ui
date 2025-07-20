@@ -11,6 +11,7 @@ import {
   QualificationsOptions,
   RoleDepartmentOptions,
 } from "../filters";
+import { CategoryId, CategoryType } from "@/types/search";
 
 interface SearchDialogContentProps {
   open: boolean;
@@ -19,14 +20,7 @@ interface SearchDialogContentProps {
   isDarkMode?: boolean;
 }
 
-type CategoryType =
-  | "general"
-  | "compensation"
-  | "role-department"
-  | "qualifications"
-  | "availability"
-  | "location"
-  | "company";
+
 
 export default function SearchDialogContent({
   open,
@@ -70,7 +64,7 @@ export default function SearchDialogContent({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, open]);
 
-  const handleCategoryClick = (categoryId: string) => {
+  const handleCategoryClick = (categoryId: CategoryId) => {
     const category = settingsCategories.find((cat) => cat.id === categoryId);
 
     if (category?.type) {
@@ -99,6 +93,7 @@ export default function SearchDialogContent({
           <GeneralOptions
             isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
+            handleCategoryClick={handleCategoryClick}
           />
         );
       case "compensation":

@@ -84,7 +84,7 @@ export default function SearchDrawerContent({
   const renderContent = () => {
     switch (selectedCategory) {
       case "general":
-        return <GeneralOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <GeneralOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} handleCategoryClick={handleCategoryClick} />;
       case "compensation":
         return <CompensationOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
       case "role-department":
@@ -172,7 +172,7 @@ export default function SearchDrawerContent({
             <Button
               className={`h-auto w-fit rounded-md border-neutral-200 dark:border-neutral-700 border-1 justify-start px-2 py-1 text-left text-sm ${
                 selectedCategory === category.type
-                  ? "bg-pink-600 text-white hover:bg-pink-700"
+                  ? "bg-pink-600 text-white hover:bg-pink-700 border-none outline-none ring-0"
                   : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
               }`}
               key={category.type}

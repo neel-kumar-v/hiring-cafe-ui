@@ -34,8 +34,22 @@ const defaultSearchOptions: SearchState = {
     requirements: {},
   },
   education: {
-    preferences: null,
-    keywords: { include: [], exclude: "None" },
+    associate: {
+      preferences: null,
+      keywords: { include: [], exclude: "None" },
+    },
+    bachelor: {
+      preferences: null,
+      keywords: { include: [], exclude: "None" },
+    },
+    master: {
+      preferences: null,
+      keywords: { include: [], exclude: "None" },
+    },
+    doctorate: {
+      preferences: null,
+      keywords: { include: [], exclude: "None" },
+    },
   },
   license_certification: {
     hide_required: false,

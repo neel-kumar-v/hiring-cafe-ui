@@ -73,8 +73,22 @@ export interface Keywords {
 }
 
 export interface DegreePreferencesOptions {
-  preferences: Select<DegreePreferences, null>;
-  keywords: Keywords;
+  associate: {
+    preferences: Select<DegreePreferences, null>;
+    keywords: Keywords;
+  };
+  bachelor: {
+    preferences: Select<DegreePreferences, null>;
+    keywords: Keywords;
+  };
+  master: {
+    preferences: Select<DegreePreferences, null>;
+    keywords: Keywords;
+  };
+  doctorate: {
+    preferences: Select<DegreePreferences, null>;
+    keywords: Keywords;
+  };
 }
 
 export type ExperienceLevel = "None" | "Entry Level" | "Mid Level" | "Senior Level";
@@ -107,8 +121,6 @@ export type SecurityClearance = "None" | "Confidential" | "Secret" | "Top Secret
 
 export type SecurityClearanceOptions = Select<SecurityClearance>;
 
-// Languages is just keywords
-
 export type ShiftPreferences = "Required" | "Optional" | "Not Indicated";
 export type AvailabilityPreferences = "Required" | "Not Indicated" | "None";
 export type OncallPreferences = "Regular" | "Occasional" | "None";
@@ -135,8 +147,6 @@ export type BenefitsOptions = Select<Benefits, null>;
 export type Encouraged = "Veteran" | "Fair Chance";
 export type EncouragedOptions = Select<Encouraged, null>;
 
-// Company is just keywords
-
 export type Profit = "For-Profit" | "Non-Profit" | "All";
 export type USAJobs = "Only" | "No" | "All";
 export interface IndustryOptions {
@@ -154,8 +164,6 @@ export interface FundingOptions {
   latest_round_type: Keywords;
   latest_round_amount: Range;
 }
-
-// Founding Year is just a range
 
 export type Workplace = "Remote" | "Hybrid" | "Onsite";
 export type Environment =
@@ -241,7 +249,7 @@ export interface SearchState {
 }
 
 export interface SettingsCategory {
-  id: string;
+  id: CategoryId;
   name: string;
   type:
     | "general"
@@ -376,3 +384,42 @@ export interface HiringCafeSearchState {
   weekendAvailabilityRequired: string;
   workplaceTypes: string[];
 }
+
+export type CategoryType =
+  | "general"
+  | "compensation"
+  | "role-department"
+  | "qualifications"
+  | "availability"
+  | "location"
+  | "company";
+
+export type CategoryId =
+  | "filters"
+  | "saved"
+  | "date-range"
+  | "sorting"
+  | "apply-form"
+  | "exclusion"
+  | "encouraged"
+  | "salary"
+  | "commitment"
+  | "experience"
+  | "benefits"
+  | "departments"
+  | "job-titles"
+  | "education"
+  | "licenses"
+  | "security"
+  | "languages"
+  | "shifts"
+  | "travel"
+  | "location"
+  | "workplace-type"
+  | "options"
+  | "company"
+  | "industry"
+  | "stage"
+  | "size"
+  | "founding"
+  ;

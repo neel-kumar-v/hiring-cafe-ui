@@ -1,4 +1,4 @@
-import { AddressComponent, CommitmentLevel, CommitmentLevelOptions, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Location, SearchState, SecurityClearanceOptions, TravelRequirements, TravelRequirementsOptions } from '../types/search';
+import { AddressComponent, CommitmentLevel, CommitmentLevelOptions, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Keywords, Location, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions } from '../types/search';
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
   const convertSelectToArray = <T>(select: T[] | T): string[] => {
@@ -186,3 +186,27 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     workplaceTypes: [searchState.location.workplace_type]
   };
 } 
+
+export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>) {
+  if (Array.isArray(select)) return select.length === 0 ? "None" : select.join(", ");
+  return select;
+}
+
+export function decodeRangeString(range: Range) {
+  if (range.min === 0 && range.max === 0) return "All";
+  if (range.min === range.max) return range.min.toString();
+  return range.min + " - " + range.max;
+}
+
+export function decodeSearchExpression(expression: SearchExpression<string>): string {
+  if (typeof expression === "string") return expression;
+  if (expression.AND) return expression.AND.map(decodeSearchExpression).join(" AND ");
+  if (expression.OR) return expression.OR.map(decodeSearchExpression).join(" OR ");
+  if (expression.NOT) return "NOT " + decodeSearchExpression(expression.NOT);
+  return "";
+}
+
+export function decodeKeywords(keywords: Keywords) {
+  if (keywords.include.length === 0 && keywords.exclude === "None") return "None";
+  return "Include: " + decodeSelectString(keywords.include) + " Exclude: " + decodeSelectString(keywords.exclude);
+}
