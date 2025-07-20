@@ -205,7 +205,7 @@ export default function SearchDialogContent({
     ];
 
     return (
-      <div className="w-[200px] flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
+      <div className="w-[200px] flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 rounded-l-md">
         <div className="overflow-y-auto">
           <div className="space-y-px p-2 pt-0">
             {categories.map((category) => {
@@ -249,8 +249,8 @@ export default function SearchDialogContent({
   };
 
   const renderContentArea = () => (
-    <div className="flex-1 flex flex-col overflow-hidden w-full">
-      <div className="flex-1 overflow-y-auto p-6 py-1">{renderContent()}</div>
+    <div className="flex-1 flex flex-col overflow-hidden w-full bg-neutral-100 dark:bg-neutral-800">
+      <div className="flex-1 overflow-y-auto p-6 py-2 pr-10">{renderContent()}</div>
       <div className="px-4">
         <div className="flex justify-end">
           {hasUnsavedChanges && (
@@ -262,7 +262,7 @@ export default function SearchDialogContent({
   );
 
   return (
-    <div className="-translate-y-[16px] flex h-[calc(90vh-100px)]">
+    <div className="flex h-[90vh]">
       {renderSidebar()}
       {renderContentArea()}
     </div>

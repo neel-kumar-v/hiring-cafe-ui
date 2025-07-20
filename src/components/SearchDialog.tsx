@@ -15,6 +15,7 @@ import { SearchProvider, useSearch } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useEffect } from "react";
 import { SearchDialogContent, SearchDrawerContent } from "./search/contents";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface SearchDialogProps {
   open: boolean;
@@ -38,9 +39,9 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
       <Drawer onOpenChange={onOpenChange} open={open}>
         <DrawerContent className="w-full max-w-full rounded-t-xl">
           <DrawerHeader className="border-neutral-200 border-b px-6 py-4 dark:border-neutral-700">
-            <DrawerTitle className="text-2xl">
-              Create your Job Search
-            </DrawerTitle>
+            <VisuallyHidden>
+              <DrawerTitle>Create your Job Search</DrawerTitle>
+            </VisuallyHidden>
           </DrawerHeader>
 
           <SearchDrawerContent
@@ -77,9 +78,9 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
           isDarkMode ? "dark" : ""
         }`}
       >
-        <DialogHeader className="border-neutral-200 border-b px-6 py-4 h-min dark:border-neutral-700">
+        <VisuallyHidden >
           <DialogTitle className="text-2xl">Create your Job Search</DialogTitle>
-        </DialogHeader>
+        </VisuallyHidden>
 
         <SearchDialogContent
           from={from}

@@ -202,7 +202,7 @@ export default function SearchDrawerContent({
   }
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-10 border-neutral-200 p-4 pb-0 max-sm:border-b dark:border-neutral-700 bg-white dark:bg-neutral-900">
+      <div className="sticky top-0 z-10 border-neutral-200 p-4 pb-0 max-sm:border-b dark:border-neutral-700 bg-white dark:bg-neutral-900/50">
         {renderOptions()}
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
