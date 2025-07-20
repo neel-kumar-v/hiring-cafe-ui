@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { ReducedMotionProvider } from "@/contexts/ReducedMotionContext";
+import { PerformanceMonitor } from "@/lib/performance-monitor";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -37,7 +38,22 @@ export default function RootLayout({
           </ReducedMotionProvider>
         </DarkModeProvider>
         <Toaster />
+        {/* <PerformanceMonitorScript /> */}
       </body>
     </html>
   );
+}
+
+function PerformanceMonitorScript() {
+  if (typeof window !== 'undefined') {
+    const monitor = PerformanceMonitor.getInstance();
+    monitor.startMonitoring();
+    
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        monitor.logSummary();
+      }, 1000);
+    });
+  }
+  return null;
 }
