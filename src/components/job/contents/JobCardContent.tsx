@@ -67,7 +67,7 @@ const JobCardContent = memo(({
   return (
     <div className="flex h-full flex-col">
       <div
-        className={`transition-opacity duration-300 ease-in-out animate-in fade-in animate-duration-1000 animate-ease-in-out `}
+        className={`transition-opacity duration-300 ease-in-out  `}
       >
         <CardHeader
           tools={technicalTools}
