@@ -1,4 +1,4 @@
-import { AddressComponent, CommitmentLevel, CommitmentLevelOptions, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Keywords, Location, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions } from '../types/search';
+import { AddressComponent, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
   const convertSelectToArray = <T>(select: T[] | T): string[] => {
@@ -18,7 +18,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     address_components: location.address.components.map((comp: AddressComponent) => ({
       long_name: comp.long_name,
       short_name: comp.short_name,
-      types: comp.types
+      types: comp.types.map(type => String(type))
     })),
     formatted_address: location.address.formatted,
     geometry: {
@@ -29,13 +29,13 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     },
     id: location.id,
     options: location.options ? {
-      flexible_regions: location.options.flexible_regions,
+      flexible_regions: location.options.flexible_regions.map(type => String(type)),
       ignore_radius: location.options.ignore_radius,
       radius: location.options.radius,
       radius_unit: location.options.radius_unit
     } : undefined,
-    types: location.types,
-    workplace_types: location.workplace_type ? [location.workplace_type] : undefined
+    types: location.types.map(type => String(type)),
+    workplace_types: location.workplace_type ? convertSelectToArray(location.workplace_type) : undefined
   });
 
   const convertRangeToTuple = (range: { min: number; max: number }): [number, number] => {
@@ -80,6 +80,13 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     return travel.air === "All" ? [] : [travel.air === "Minimum" ? "Minimal" : travel.air];
   };
 
+  const convertDemandsToArray = (demands: Select<Intensity | Mobility | Environment | Workplace>): string[] => {
+    if (Array.isArray(demands)) {
+      return demands.map(d => String(d));
+    }
+    return demands === "All" ? [] : [String(demands)];
+  };
+
   return {
     airTravelRequirement: convertTravelRequirements(searchState.travel_requirements),
     applicationFormEase: [],
@@ -89,14 +96,14 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     bachelorsDegreeRequirements: [],
     benefitsAndPerks: convertSelectToArray(searchState.benefits),
     calcFrequency: searchState.salary.unit,
-    cognitiveDemandLevels: [searchState.location.demands.cognitive_intensity],
+    cognitiveDemandLevels: convertDemandsToArray(searchState.location.demands.cognitive_intensity),
     commitmentTypes: convertCommitmentLevel(searchState.commitment),
     companyKeywords: convertKeywordsToArray(searchState.company),
     companyKeywordsBooleanOperator: "OR",
     companyNames: [],
     companyPublicOrPrivate: searchState.stage_funding.current === "All" ? "all" : searchState.stage_funding.current.toLowerCase(),
     companySizeRanges: [],
-    computerUsageLevels: [searchState.location.demands.computer_usage],
+    computerUsageLevels: convertDemandsToArray(searchState.location.demands.computer_usage),
     currency: {
       label: "Any",
       value: null
@@ -124,8 +131,8 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     excludeIfRoleYoeIsNotSpecified: false,
     excludeJobsWithAdditionalLanguageRequirements: false,
     frequency: {
-      label: "Any",
-      value: null
+      label: searchState.salary.listedUnit,
+      value: searchState.salary.listedUnit === "Any" ? null : searchState.salary.listedUnit
     },
     hiddenCompanies: [],
     hideJobTypes: convertSelectToArray(searchState.exclusion),
@@ -149,20 +156,20 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
         convertRangeToTuple(searchState.experience.role.peopleManager) : [0, 20],
     mastersDegreeFieldsOfStudy: [],
     mastersDegreeRequirements: [],
-    maxCompensationHighEnd: searchState.salary.range.max,
-    maxCompensationLowEnd: searchState.salary.range.max,
+    maxCompensationHighEnd: searchState.salary.max_range.max,
+    maxCompensationLowEnd: searchState.salary.max_range.max,
     maxYearFounded: searchState.founding_year.max,
-    minCompensationHighEnd: searchState.salary.range.min,
-    minCompensationLowEnd: searchState.salary.range.min,
+    minCompensationHighEnd: searchState.salary.min_range.min,
+    minCompensationLowEnd: searchState.salary.min_range.min,
     minYearFounded: searchState.founding_year.min,
     morningShiftWork: [],
     onCallRequirements: [searchState.shift_preferences.oncall],
-    oralCommunicationLevels: [searchState.location.demands.oral_communication],
+    oralCommunicationLevels: convertDemandsToArray(searchState.location.demands.oral_communication),
     overnightShiftWork: [],
     overtimeRequired: searchState.shift_preferences.overtime === "Required" ? "Required" : "Doesn't Matter",
-    physicalEnvironments: [searchState.location.environment],
-    physicalLaborIntensity: [searchState.location.demands.physical_intensity],
-    physicalPositions: [searchState.location.demands.mobility],
+    physicalEnvironments: convertDemandsToArray(searchState.location.environment),
+    physicalLaborIntensity: convertDemandsToArray(searchState.location.demands.physical_intensity),
+    physicalPositions: convertDemandsToArray(searchState.location.demands.mobility),
     requirementsKeywordsQuery: "",
     restrictedSearchAttributes: [],
     restrictJobsToTransparentSalaries: !searchState.salary.undisclosed,
@@ -183,7 +190,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     userId: "",
     userLocation: null,
     weekendAvailabilityRequired: searchState.shift_preferences.weekend === "Required" ? "Required" : "Doesn't Matter",
-    workplaceTypes: [searchState.location.workplace_type]
+    workplaceTypes: convertSelectToArray(searchState.location.workplace_type)
   };
 } 
 

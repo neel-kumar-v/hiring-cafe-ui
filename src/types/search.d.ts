@@ -40,8 +40,10 @@ export interface Range {
 }
 
 export interface SalaryOptions {
-  range: Range;
+  min_range: Range;
+  max_range: Range;
   unit: SalaryUnit;
+  listedUnit: SalaryUnit | "Any";
   currency: string;
   undisclosed: boolean;
 }
