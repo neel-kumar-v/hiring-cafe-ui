@@ -38,10 +38,9 @@ interface FilterSectionProps {
   title: string;
   items: FilterItemProps[];
   isExtended: boolean;
-  defaultOpen?: boolean;
 }
 
-function FilterSection({ title, items, isExtended, defaultOpen = false }: FilterSectionProps) {
+function FilterSection({ title, items, isExtended }: FilterSectionProps) {
   const visibleItems = items.filter(item => 
     shouldShowFilterItem(item.value, isExtended, item.isImportant)
   );
@@ -55,7 +54,6 @@ function FilterSection({ title, items, isExtended, defaultOpen = false }: Filter
       type="single" 
       collapsible 
       className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
-      value={defaultOpen ? itemValue : undefined}
     >
       <AccordionItem value={itemValue}>
         <AccordionTrigger className="text-md font-[600] pt-0 pb-1 ">
@@ -78,16 +76,16 @@ export interface AllFiltersProps {
   handleCategoryClick: (categoryType: CategoryId) => void;
   searchOptions: SearchState;
   showButton?: boolean;
-  defaultOpen?: boolean;
 }
-export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true, defaultOpen = false}: AllFiltersProps) => {
+export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true}: AllFiltersProps) => {
   // const { searchOptions } = useSearch();
   const [extended, setExtended] = useState(false);
 
   const decodeSalary = (salary: SalaryOptions) => {
-    const range = decodeRangeString(salary.range);
-    if (range === "All") return range;
-    return range + " " + salary.unit;
+    const minRange = decodeRangeString(salary.min_range);
+    const maxRange = decodeRangeString(salary.max_range);
+    if (minRange === "All" && maxRange === "All") return "All";
+    return `Min: $${minRange}, Max: $${maxRange} ${salary.unit}`;
   }
 
   const decodeDegreePreferences = (degree: DegreePreferencesOptions) => {
@@ -546,7 +544,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       <div className="flex flex-col gap-4 relative rounded-md ">
       
         {visibleSections.map(section => (
-          <FilterSection key={section.title} title={section.title} items={section.items} isExtended={section.isExtended} defaultOpen={defaultOpen} />
+          <FilterSection key={section.title} title={section.title} items={section.items} isExtended={section.isExtended} />
         ))}
       
       </div>

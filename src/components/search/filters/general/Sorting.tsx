@@ -52,7 +52,7 @@ export default function Sorting({}: SortingProps) {
     
       <div className="flex gap-2">
         <Toggle
-          className="w-full items-center justify-center bg-neutral-100 text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600 rounded-md"
+          className="w-full items-center justify-center text-text transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 rounded-md border-input border-1"
           disabled={sortCategory === "relevance"}
           onClick={() => setIsAscending(!isAscending)}
           type="button"
@@ -60,12 +60,12 @@ export default function Sorting({}: SortingProps) {
           {isAscending ? (
             <div className="flex items-center gap-2">
               <ChevronsUp className="size-4" />
-              <span>Most</span>
+              <span className="!text-text">Most</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <ChevronsDown className="size-4" />
-              <span>Least</span>
+              <span className="!text-text">Least</span>
             </div>
           )}
         </Toggle>
@@ -79,7 +79,7 @@ export default function Sorting({}: SortingProps) {
             }}
             value={sortCategory}
           >
-            <SelectTrigger className="flex w-full border-neutral-200 bg-white text-neutral-900 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-white">
+            <SelectTrigger className="w-full text-text placeholder:text-muted-foreground text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className={isDarkMode ? "dark" : ""}>

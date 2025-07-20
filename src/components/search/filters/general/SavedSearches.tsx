@@ -294,7 +294,6 @@ export default function SavedSearches({}: SavedSearchesProps) {
                         handleCategoryClick={handleCategoryClick} 
                         searchOptions={search.searchState}
                         showButton={false}
-                        defaultOpen={true}
                       />
                     </div>
                   </TooltipContent>
