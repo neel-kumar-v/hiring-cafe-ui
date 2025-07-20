@@ -482,7 +482,6 @@ function TooltipTrigger({ children }: TooltipTriggerProps) {
       arrow,
       blur,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, arrow, blur, currentTooltip?.id]);
 
   return React.cloneElement(children, {

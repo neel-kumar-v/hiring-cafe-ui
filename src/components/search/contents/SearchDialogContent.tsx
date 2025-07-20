@@ -61,7 +61,6 @@ export default function SearchDialogContent({
         setSelectedCategory(category.type as CategoryType);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, open]);
 
   const handleCategoryClick = (categoryId: CategoryId) => {

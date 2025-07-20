@@ -122,7 +122,6 @@ export default function DateRange({}: DateRangeProps) {
         }
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedTimeValue, customTimeUnit, isAllTime]);
 
   return (
