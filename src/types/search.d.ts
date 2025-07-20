@@ -197,11 +197,11 @@ export interface SearchedLocationOptions {
 export type Intensity = "Low" | "Medium" | "High";
 export type Mobility = "Sitting" | "Active";
 export interface DemandsOptions {
-  mobility: Mobility;
-  physical_intensity: Intensity;
-  cognitive_intensity: Intensity;
-  computer_usage: Intensity;
-  oral_communication: Intensity;
+  mobility: Select<Mobility>;
+  physical_intensity: Select<Intensity>;
+  cognitive_intensity: Select<Intensity>;
+  computer_usage: Select<Intensity>;
+  oral_communication: Select<Intensity>;
 }
 export interface Location {
   searched: boolean;
@@ -209,7 +209,7 @@ export interface Location {
   types: LocationType[];
   address: Address;
   geographical: GeographicalLocation;
-  workplace_type?: Workplace;
+  workplace_type?: Select<Workplace>;
   options?: SearchedLocationOptions;
 }
 
@@ -217,8 +217,8 @@ export interface LocationOptions {
   defaultUserLocation: boolean;
   userLocation: Location;
   location: Location[];
-  workplace_type: Workplace;
-  environment: Environment;
+  workplace_type: Select<Workplace>;
+  environment: Select<Environment>;
   demands: DemandsOptions;
 }
 
@@ -227,6 +227,8 @@ export interface SearchState {
   date_range: DateRangeOptions;
   apply_form: ApplyForm;
   exclusion: ExclusionOptions;
+  benefits: BenefitsOptions;
+  encouraged: EncouragedOptions;
   department: DepartmentOptions;
   salary: SalaryOptions;
   commitment: CommitmentLevelOptions;
@@ -238,8 +240,6 @@ export interface SearchState {
   language: Keywords;
   shift_preferences: ShiftPreferencesOptions;
   travel_requirements: TravelRequirementsOptions;
-  benefits: BenefitsOptions;
-  encouraged: EncouragedOptions;
   location: LocationOptions;
   company: Keywords;
   industry: IndustryOptions;
@@ -385,41 +385,6 @@ export interface HiringCafeSearchState {
   workplaceTypes: string[];
 }
 
-export type CategoryType =
-  | "general"
-  | "compensation"
-  | "role-department"
-  | "qualifications"
-  | "availability"
-  | "location"
-  | "company";
+export type CategoryType = "general" | "compensation" | "role-department" | "qualifications" | "availability" | "location" | "company";
 
-export type CategoryId =
-  | "filters"
-  | "saved"
-  | "date-range"
-  | "sorting"
-  | "apply-form"
-  | "exclusion"
-  | "encouraged"
-  | "salary"
-  | "commitment"
-  | "experience"
-  | "benefits"
-  | "departments"
-  | "job-titles"
-  | "education"
-  | "licenses"
-  | "security"
-  | "languages"
-  | "shifts"
-  | "travel"
-  | "location"
-  | "workplace-type"
-  | "options"
-  | "company"
-  | "industry"
-  | "stage"
-  | "size"
-  | "founding"
-  ;
+export type CategoryId = | "filters" | "saved" | "date-range" | "sorting" | "apply-form" | "exclusion" | "encouraged" | "salary" | "commitment" | "experience" | "benefits" | "departments" | "job-titles" | "education" | "licenses" | "security" | "languages" | "shifts" | "travel" | "location" | "workplace-type" | "options" | "company" | "industry" | "stage" | "size" | "founding" ;
