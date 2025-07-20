@@ -64,7 +64,7 @@ const DialogJobDescription = ({ description }: { description: string }) => {
         <Separator className="my-8" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Button
-            className="rounded-sm border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+            className="rounded-md border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700"
             onClick={handleCopyDescription}
             size="sm"
             variant="outline"

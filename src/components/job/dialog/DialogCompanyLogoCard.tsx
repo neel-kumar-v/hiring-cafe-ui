@@ -111,7 +111,7 @@ const DialogCompanyLogoCard = ({
       )}
       <div className="sm:mt-6 mt-9 mb-3 sm:mb-0 border-t pt-1.5 border-neutral-200 dark:border-neutral-700 w-full flex justify-center">
         <Button
-          className="rounded-sm border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 -my-6"
+          className="rounded-md border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 -my-6"
           onClick={() => setShowExtended((v) => !v)}
           size="sm"
           variant="outline"

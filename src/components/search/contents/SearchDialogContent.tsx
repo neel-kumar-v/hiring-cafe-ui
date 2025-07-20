@@ -234,7 +234,7 @@ export default function SearchDialogContent({
                       variant="ghost"
                     >
                       <div className="flex flex-col items-start">
-                        <span className="font-medium">{cat.name}</span>
+                        <span>{cat.name}</span>
                       </div>
                     </Button>
                   ))}
