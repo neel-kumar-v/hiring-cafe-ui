@@ -24,7 +24,7 @@ export default function SavedSearches({}: SavedSearchesProps) {
       id: "1",
       name: "Software Engineer Remote",
       searchState: {
-        sort: { by: "Relevance", order: "Descending" },
+        sort: { by: "Relevance", order: "Most" },
         date_range: { magnitude: 7, unit: "Days" },
         apply_form: "All",
         exclusion: [],
@@ -112,7 +112,7 @@ export default function SavedSearches({}: SavedSearchesProps) {
       id: "2", 
       name: "Data Scientist Entry Level",
       searchState: {
-        sort: { by: "Recency", order: "Descending" },
+        sort: { by: "Recency", order: "Most" },
         date_range: { magnitude: 30, unit: "Days" },
         apply_form: "Fast",
         exclusion: [],

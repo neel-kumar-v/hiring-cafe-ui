@@ -26,7 +26,7 @@ export default function Sorting({}: SortingProps) {
   });
   
   const [isAscending, setIsAscending] = useState(() => {
-    return searchOptions.sort.order === "Ascending";
+    return searchOptions.sort.order === "Most";
   });
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Sorting({}: SortingProps) {
     updateSearchOptions({
       sort: {
         by: categoryMap[sortCategory],
-        order: isAscending ? "Ascending" : "Descending"
+        order: isAscending ? "Most" : "Least"
       }
     });
     
@@ -52,7 +52,7 @@ export default function Sorting({}: SortingProps) {
     
       <div className="flex gap-2">
         <Toggle
-          className="w-full items-center justify-center rounded bg-neutral-100 text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600 rounded-md"
+          className="w-full items-center justify-center bg-neutral-100 text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600 rounded-md"
           disabled={sortCategory === "relevance"}
           onClick={() => setIsAscending(!isAscending)}
           type="button"

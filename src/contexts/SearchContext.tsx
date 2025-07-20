@@ -11,13 +11,15 @@ interface SearchContextType {
 }
 
 const defaultSearchOptions: SearchState = {
-  sort: { by: "Relevance", order: "Descending" },
+  sort: { by: "Relevance", order: "Most" },
   date_range: { magnitude: 30, unit: "Days" },
   apply_form: "All",
   exclusion: [],
   department: "All",
   salary: {
-    range: { min: 0, max: 0 },
+    min_range: { min: 0, max: 0 },
+    max_range: { min: 0, max: 0 },
+    listedUnit: "Any",
     unit: "Yearly",
     currency: "USD",
     undisclosed: false,

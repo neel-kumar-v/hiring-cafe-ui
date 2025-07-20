@@ -1,6 +1,6 @@
 export interface SortOptions {
   by: "Relevance" | "Recency" | "Salary" | "Experience";
-  order: "Ascending" | "Descending";
+  order: "Most" | "Least";
 }
 export type TimeUnits =
   | "Minutes"
