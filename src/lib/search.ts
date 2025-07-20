@@ -194,8 +194,15 @@ export function decodeSelectString(select: Select<string> | Select<string, null>
 
 export function decodeRangeString(range: Range) {
   if (range.min === 0 && range.max === 0) return "All";
-  if (range.min === range.max) return range.min.toString();
-  return range.min + " - " + range.max;
+  function formatK(num: number) {
+    if (Math.abs(num) >= 1000) {
+      return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1).replace(/\.0$/, "") + "k";
+    }
+    return num.toString();
+  }
+
+  if (range.min === range.max) return formatK(range.min);
+  return formatK(range.min) + " - " + formatK(range.max);
 }
 
 export function decodeSearchExpression(expression: SearchExpression<string>): string {

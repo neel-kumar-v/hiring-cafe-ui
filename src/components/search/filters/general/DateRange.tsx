@@ -85,7 +85,7 @@ export default function DateRange({}: DateRangeProps) {
 
   return (
     <>
-      <p>Show jobs from the past</p>
+      <p className="font-semibold text-lg text-text">Show jobs from the past</p>
       <div className="flex items-center space-x-2">
         <Input
           className="w-12  text-center text-text placeholder:text-muted-foreground text-sm ring-0 [-moz-appearance:textfield]  [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
