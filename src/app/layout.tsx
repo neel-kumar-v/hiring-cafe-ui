@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip-animated";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { ReducedMotionProvider } from "@/contexts/ReducedMotionContext";
 // import { PerformanceMonitor } from "@/lib/performance-monitor";

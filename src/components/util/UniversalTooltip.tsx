@@ -3,6 +3,12 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+	Tooltip as TooltipAnimated,
+	TooltipContent as TooltipAnimatedContent,
+	TooltipTrigger as TooltipAnimatedTrigger,
+} from "@/components/ui/tooltip-animated";
+import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import type { ReactElement } from "react";
 
 interface UniversalTooltipProps {
@@ -13,6 +19,7 @@ interface UniversalTooltipProps {
 	align?: 'start' | 'center' | 'end';
 	alignOffset?: number;
 	arrow?: boolean;
+	blur?: boolean;
 }
 
 export default function UniversalTooltip({
@@ -22,19 +29,33 @@ export default function UniversalTooltip({
 	sideOffset = 14,
 	align = 'center',
 	alignOffset = 0,
-	arrow = true,
+	arrow = false,
+	blur = true,
 }: UniversalTooltipProps) {
+	const { prefersReducedMotion } = useReducedMotion();
+
+	if (prefersReducedMotion) {
+		return (
+			<Tooltip>
+				<TooltipTrigger asChild>{children}</TooltipTrigger>
+				<TooltipContent sideOffset={sideOffset} alignOffset={alignOffset} blur={blur}>
+					<p>{content}</p>
+				</TooltipContent>
+			</Tooltip>
+		);
+	}
+
 	return (
-		<Tooltip
+		<TooltipAnimated
 			side={side}
 			sideOffset={sideOffset}
 			align={align}
 			alignOffset={alignOffset}
 		>
-			<TooltipTrigger>{children}</TooltipTrigger>
-			<TooltipContent arrow={arrow}>
+			<TooltipAnimatedTrigger>{children}</TooltipAnimatedTrigger>
+			<TooltipAnimatedContent arrow={arrow} blur={blur}>
 				<p>{content}</p>
-			</TooltipContent>
-		</Tooltip>
+			</TooltipAnimatedContent>
+		</TooltipAnimated>
 	);
 }
