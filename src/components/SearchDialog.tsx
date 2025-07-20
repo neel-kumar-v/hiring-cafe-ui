@@ -73,7 +73,7 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
-        className={`h-[90vh] w-[800px] min-w-[80vw] max-w-[90vw] border border-neutral-100 bg-white p-0 dark:border-neutral-700 dark:bg-neutral-800 ${
+        className={`h-[90vh] w-[800px] min-w-[80vw] max-w-[90vw] border border-neutral-100 bg-white p-0 dark:border-neutral-700 dark:bg-neutral-800 aria-describedby="search-dialog-content" ${
           isDarkMode ? "dark" : ""
         }`}
       >
