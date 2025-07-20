@@ -51,7 +51,7 @@ const CardStats = ({
             isBookmarked={isBookmarked}
             savedCount={savedCount}
             viewedCount={viewedCount}
-            iconClassName="w-4 h-4"
+            iconClassName="size-3"
           />
         </MorphingJobStats>
       ) : (
@@ -64,7 +64,7 @@ const CardStats = ({
             isBookmarked={isBookmarked}
             savedCount={savedCount}
             viewedCount={viewedCount}
-            iconClassName="w-4 h-4"
+            iconClassName="size-3"
           />
         </div>
       )}
