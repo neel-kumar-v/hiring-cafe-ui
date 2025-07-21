@@ -1,4 +1,5 @@
 'use client';
+import { cn } from '@/lib/utils';
 import {
     MotionValue,
     motion,
@@ -66,7 +67,12 @@ function Number({ mv, number }: { mv: MotionValue<number>; number: number }) {
       style={{ y }}
       layoutId={`${uniqueId}-${number}`}
       className='absolute inset-0 flex items-center justify-center'
-      transition={TRANSITION}
+      transition={{
+        type: 'spring',
+        stiffness: 170,
+        damping: 26,
+        mass: 1,
+      }}
       ref={ref}
     >
       {number}
@@ -78,12 +84,14 @@ type SlidingNumberProps = {
   value: number;
   padStart?: boolean;
   decimalSeparator?: string;
+  className?: string;
 };
 
 export function SlidingNumber({
   value,
   padStart = false,
   decimalSeparator = '.',
+  className,
 }: SlidingNumberProps) {
   const absValue = Math.abs(value);
   const [integerPart, decimalPart] = absValue.toString().split('.');
@@ -96,7 +104,7 @@ export function SlidingNumber({
   );
 
   return (
-    <div className='flex items-center'>
+    <div className={cn('flex items-center', className)}>
       {value < 0 && '-'}
       {integerDigits.map((_, index) => (
         <Digit
