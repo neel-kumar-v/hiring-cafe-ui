@@ -116,7 +116,7 @@ export default function SavedSearches() {
         encouraged: [],
         department: ["Data and Analytics"],
         salary: { min_range: { min: 60000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
-        commitment: ["Full-Time"],
+        commitment: ["Full Time"],
         experience: { level: ["Entry Level"], role: "None" },
         job_titles: { title: "Data Scientist", technical: "Python SQL", description: "", requirements: "" },
         education: {

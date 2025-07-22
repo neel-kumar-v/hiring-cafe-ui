@@ -48,7 +48,7 @@ export interface SalaryOptions {
   undisclosed: boolean;
 }
 
-export type CommitmentLevel = "Full-Time" | "Part-Time" | "Contract" | "Internship" | "Temporary" | "Volunteer" | "Seasonal";
+export type CommitmentLevel = "Full Time" | "Part Time" | "Contract" | "Internship" | "Temporary" | "Volunteer" | "Seasonal";
 
 export type CommitmentLevelOptions = Select<CommitmentLevel>;
 

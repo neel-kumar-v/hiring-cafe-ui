@@ -55,8 +55,8 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
   const convertCommitmentLevel = (commitment: CommitmentLevelOptions): string[] => {
     if (Array.isArray(commitment)) {
       return commitment.map((c: CommitmentLevel) => {
-        if (c === "Full-Time") return "Full Time";
-        if (c === "Part-Time") return "Part Time";
+        if (c === "Full Time") return "Full Time";
+        if (c === "Part Time") return "Part Time";
         return c;
       });
     }
