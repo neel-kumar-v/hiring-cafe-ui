@@ -34,76 +34,77 @@ export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: bool
   );
 };
 
+// Memoized and cached version of analyzeImageBackground
+const imageBackgroundCache = new Map<string, Promise<"light" | "dark" | null>>();
+
 export const analyzeImageBackground = async (
   imageUrl: string
 ): Promise<"light" | "dark" | null> => {
-  try {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    
-    return new Promise((resolve) => {
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        
-        if (!ctx) {
-          resolve(null);
-          return;
-        }
-        
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        let totalPixels = 0;
-        let transparentPixels = 0;
-        let lightPixels = 0;
-        let darkPixels = 0;
-        
-        for (let i = 0; i < data.length; i += 4) {
-          const alpha = data[i + 3];
-          
-          if (alpha > 0) {
-            totalPixels++;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            const brightness = (r + g + b) / 3;
-            
-            if (brightness > 128) lightPixels++;
-            else darkPixels++;
-          } else transparentPixels++;
-        }
-        
-        const transparencyRatio = transparentPixels / (totalPixels + transparentPixels);
-        const hasSignificantTransparency = transparencyRatio > 0.3;
-        
-        if (!hasSignificantTransparency || totalPixels === 0) {
-          resolve(null);
-          return;
-        }
-        
-        const lightRatio = lightPixels / totalPixels;
-        const darkRatio = darkPixels / totalPixels;
-        
-        if (lightRatio > darkRatio) resolve("light");
-        else resolve("dark");
-      };
-      
-      img.onerror = () => {
-        resolve(null);
-      };
-      
-      img.src = imageUrl;
-    });
-  } catch (error) {
-    console.warn("Failed to analyze image background:", error);
-    return null;
+  if (imageBackgroundCache.has(imageUrl)) {
+    return imageBackgroundCache.get(imageUrl)!;
   }
+  const promise = (async () => {
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      return await new Promise<"light" | "dark" | null>((resolve) => {
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(null);
+            return;
+          }
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          let imageData: ImageData;
+          try {
+            imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          } catch {
+            resolve(null);
+            return;
+          }
+          const data = imageData.data;
+          let totalPixels = 0;
+          let transparentPixels = 0;
+          let lightPixels = 0;
+          let darkPixels = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            const alpha = data[i + 3];
+            if (alpha > 0) {
+              totalPixels++;
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              const brightness = (r + g + b) / 3;
+              if (brightness > 128) lightPixels++;
+              else darkPixels++;
+            } else transparentPixels++;
+          }
+          const transparencyRatio = transparentPixels / (totalPixels + transparentPixels);
+          const hasSignificantTransparency = transparencyRatio > 0.3;
+          if (!hasSignificantTransparency || totalPixels === 0) {
+            resolve(null);
+            return;
+          }
+          const lightRatio = lightPixels / totalPixels;
+          const darkRatio = darkPixels / totalPixels;
+          if (lightRatio > darkRatio) resolve("light");
+          else resolve("dark");
+        };
+        img.onerror = () => {
+          resolve(null);
+        };
+        img.src = imageUrl;
+      });
+    } catch (error) {
+      console.warn("Failed to analyze image background:", error);
+      return null;
+    }
+  })();
+  imageBackgroundCache.set(imageUrl, promise);
+  return promise;
 };
 
 export const getImageBackgroundClass = (
