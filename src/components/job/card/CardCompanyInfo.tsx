@@ -4,11 +4,12 @@ import {
 } from "@/components/ui/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
+  analyzeImageBackground,
   formatCompanyName,
   getCompanyAbbreviation,
+  getImageBackgroundClass,
   renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
-import { analyzeImageBackground, getImageBackgroundClass } from "@/lib/company-info";
 import type { V5ProcessedCompanyData } from "@/types/job";
 import { ExternalLink, Link2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -44,7 +45,6 @@ const CardCompanyInfo = ({
           className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden ${backgroundClass}`}
         >
           {companyData.image_url && !imageError ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               alt={companyData.name}
               className="h-full w-full rounded-[6px] object-contain p-0.75"
@@ -64,7 +64,6 @@ const CardCompanyInfo = ({
           className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden ${backgroundClass}`}
         >
           {companyData.image_url && !imageError ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               alt={companyData.name}
               className="h-full w-full rounded-[6px] object-contain p-0.75"

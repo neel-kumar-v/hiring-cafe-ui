@@ -64,7 +64,6 @@ const DialogCompanyLogoCard = ({
             className={`flex aspect-square h-32 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl ${backgroundClass}`}
           >
             {companyData.image_url && !imageError ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 alt={companyData.name}
                 className="h-full w-full rounded-xl object-contain drop-shadow-lg"
@@ -82,7 +81,6 @@ const DialogCompanyLogoCard = ({
             className={`flex aspect-square h-24 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl ${backgroundClass}`}
           >
             {companyData.image_url && !imageError ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 alt={companyData.name}
                 className="h-full w-full rounded-xl object-contain drop-shadow-lg"
