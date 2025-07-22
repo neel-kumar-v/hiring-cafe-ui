@@ -15,7 +15,6 @@ interface SearchDrawerContentProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   from?: string;
-  isDarkMode?: boolean;
 }
 
 type CategoryType =
@@ -30,7 +29,6 @@ type CategoryType =
 export default function SearchDrawerContent({
   open,
   from,
-  isDarkMode = false,
 }: SearchDrawerContentProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(() => {
     if (from) {
@@ -83,19 +81,19 @@ export default function SearchDrawerContent({
   const renderContent = () => {
     switch (selectedCategory) {
       case "general":
-        return <GeneralOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} handleCategoryClick={handleCategoryClick} />;
+        return <GeneralOptions scrollToSection={scrollToSection} handleCategoryClick={handleCategoryClick} />;
       case "compensation":
-        return <CompensationOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <CompensationOptions scrollToSection={scrollToSection} />;
       case "role-department":
-        return <RoleDepartmentOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <RoleDepartmentOptions scrollToSection={scrollToSection} />;
       case "qualifications":
-        return <QualificationsOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <QualificationsOptions scrollToSection={scrollToSection} />;
       case "availability":
-        return <AvailabilityOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <AvailabilityOptions scrollToSection={scrollToSection} />;
       case "location":
-        return <LocationOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <LocationOptions scrollToSection={scrollToSection} />;
       case "company":
-        return <CompanyOptions isDarkMode={isDarkMode} scrollToSection={scrollToSection} />;
+        return <CompanyOptions scrollToSection={scrollToSection} />;
       default:
         return (
           <div className="space-y-4">

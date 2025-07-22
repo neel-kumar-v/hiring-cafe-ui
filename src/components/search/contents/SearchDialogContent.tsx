@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useSearch } from "@/contexts/SearchContext";
 import { settingsCategories } from "@/data/search-filters";
+import { CategoryId, CategoryType } from "@/types/search";
 import { useEffect, useState } from "react";
 import {
   AvailabilityOptions,
@@ -11,24 +11,19 @@ import {
   QualificationsOptions,
   RoleDepartmentOptions,
 } from "../filters";
-import { CategoryId, CategoryType } from "@/types/search";
 
 interface SearchDialogContentProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   from?: string;
-  isDarkMode?: boolean;
 }
 
 
 
 export default function SearchDialogContent({
   open,
-  onOpenChange,
   from,
-  isDarkMode = false,
 }: SearchDialogContentProps) {
-  const { hasUnsavedChanges, syncChanges } = useSearch();
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(() => {
     if (from) {
       const category = settingsCategories.find(
@@ -80,17 +75,12 @@ export default function SearchDialogContent({
     setScrollToSection(undefined);
   };
 
-  const handleApplySettings = () => {
-    syncChanges();
-    onOpenChange(false);
-  };
 
   const renderContent = () => {
     switch (selectedCategory) {
       case "general":
         return (
           <GeneralOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
             handleCategoryClick={handleCategoryClick}
           />
@@ -98,42 +88,36 @@ export default function SearchDialogContent({
       case "compensation":
         return (
           <CompensationOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
           />
         );
       case "role-department":
         return (
           <RoleDepartmentOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
           />
         );
       case "qualifications":
         return (
           <QualificationsOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
           />
         );
       case "availability":
         return (
           <AvailabilityOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
           />
         );
       case "location":
         return (
           <LocationOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
           />
         );
       case "company":
         return (
           <CompanyOptions
-            isDarkMode={isDarkMode}
             scrollToSection={scrollToSection}
           />
         );
@@ -248,15 +232,8 @@ export default function SearchDialogContent({
   };
 
   const renderContentArea = () => (
-    <div className="flex-1 flex flex-col overflow-hidden w-full bg-neutral-100 dark:bg-neutral-800">
+    <div className="flex-1 flex flex-col overflow-hidden w-full bg-neutral-100 dark:bg-neutral-800 rounded-r-md">
       <div className="flex-1 overflow-y-auto p-6 py-4 pr-10">{renderContent()}</div>
-      <div className="px-4">
-        <div className="flex justify-end">
-          {hasUnsavedChanges && (
-            <Button onClick={handleApplySettings}>Apply Settings</Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 

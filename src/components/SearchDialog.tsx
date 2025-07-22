@@ -6,13 +6,11 @@ import {
 import {
   Drawer,
   DrawerContent,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { SearchProvider, useSearch } from "@/contexts/SearchContext";
+import { SearchProvider } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useEffect } from "react";
 import { SearchDialogContent, SearchDrawerContent } from "./search/contents";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
@@ -24,14 +22,7 @@ interface SearchDialogProps {
 }
 
 function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialogProps) {
-  const { hasUnsavedChanges, syncChanges } = useSearch();
   const isDesktop = useMediaQuery("(min-width: 728px)");
-
-  useEffect(() => {
-    if (!open && hasUnsavedChanges) {
-      syncChanges();
-    }
-  }, [open, hasUnsavedChanges, syncChanges]);
 
   if (!isDesktop) {
     return (
@@ -47,24 +38,7 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
             from={from}
             onOpenChange={onOpenChange}
             open={open}
-            isDarkMode={isDarkMode}
           />
-
-          <DrawerFooter>
-            <div className={`flex justify-end ${isDarkMode ? "dark" : ""}`}>
-              {hasUnsavedChanges && (
-                <button
-                  className="rounded-md border-[1px] border-black dark:border-white px-4 py-2 text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black cursor-pointer transition-all duration-300 ease-in-out"
-                  onClick={() => {
-                    syncChanges();
-                    onOpenChange(false);
-                  }}
-                >
-                  Apply Settings
-                </button>
-              )}
-            </div>
-          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );
@@ -85,7 +59,6 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
           from={from}
           onOpenChange={onOpenChange}
           open={open}
-          isDarkMode={isDarkMode}
         />
       </DialogContent>
     </Dialog>
