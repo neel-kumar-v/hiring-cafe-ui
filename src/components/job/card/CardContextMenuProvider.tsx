@@ -47,7 +47,7 @@ const CardContextMenuProvider = ({
           {isBookmarked ? "Unsave Job" : "Save Job"}
         </ContextMenuItem>
         <ContextMenuItem>
-          <a href={applyUrl} className="flex items-center gap-2">
+          <a href={applyUrl} target="_blank" className="flex items-center gap-2">
             <Send className="mr-2 size-4" />
             Apply Now
           </a>
