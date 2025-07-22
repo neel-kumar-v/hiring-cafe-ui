@@ -1,11 +1,12 @@
 import { useSearch } from "@/contexts/SearchContext";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
+import { type Encouraged } from "@/types/search";
 
 export default function Encouraged() {
   const { searchOptions, updateSearchOptions } = useSearch();
 
-  const handleCheckboxChange = (type: "Veteran" | "Fair Chance") => {
+  const handleCheckboxChange = (type: Encouraged) => {
     const currentEncouraged = searchOptions.encouraged;
     const newEncouraged = currentEncouraged?.includes(type)
       ? currentEncouraged.filter(item => item !== type)
