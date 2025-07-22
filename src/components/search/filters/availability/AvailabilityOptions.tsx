@@ -20,12 +20,7 @@ export default function AvailabilityOptions({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="font-semibold text-lg">Availability</h3>
-        <p className="text-neutral-600 dark:text-neutral-400">
-          Filter jobs by work schedules and travel requirements.
-        </p>
-      </div>
+
 
       <div
         ref={refs.shifts}

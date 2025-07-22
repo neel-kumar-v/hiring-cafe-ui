@@ -24,12 +24,7 @@ export default function CompanyOptions({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="font-semibold text-lg">Company</h3>
-        <p className="text-neutral-600 dark:text-neutral-400">
-          Filter jobs by company characteristics and information.
-        </p>
-      </div>
+
 
       <div
         ref={refs.company}
