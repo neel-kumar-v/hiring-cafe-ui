@@ -2,15 +2,11 @@ import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Departments from "./Departments";
 import JobTitles from "./JobTitles";
 
-interface RoleDepartmentOptionsProps {
-  isDarkMode?: boolean;
-  scrollToSection?: string;
-}
-
 export default function RoleDepartmentOptions({
-  isDarkMode = false,
   scrollToSection,
-}: RoleDepartmentOptionsProps) {
+}: {
+  scrollToSection?: string;
+}) {
   const refs = createRefs([
     "departments",
     "job-titles"
@@ -31,14 +27,14 @@ export default function RoleDepartmentOptions({
         ref={refs.departments}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Departments isDarkMode={isDarkMode} />
+        <Departments />
       </div>
 
       <div
         ref={refs["job-titles"]}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <JobTitles isDarkMode={isDarkMode} />
+        <JobTitles />
       </div>
     </div>
   );

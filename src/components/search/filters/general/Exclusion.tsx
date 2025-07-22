@@ -3,13 +3,7 @@ import { useSearch } from "@/contexts/SearchContext";
 import LabelCheckbox from "../util/LabelCheckbox";
 import FilterContainer from "../util/FilterContainer";
 
-interface ExclusionProps {
-  isDarkMode?: boolean;
-}
-
-
-
-export default function Exclusion({}: ExclusionProps) {
+export default function Exclusion() {
   const { searchOptions, updateSearchOptions } = useSearch();
 
   const handleCheckboxChange = (type: "Applied" | "Viewed" | "Saved" | "Hidden") => {

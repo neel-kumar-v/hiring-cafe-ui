@@ -1,8 +1,4 @@
-interface WorkplaceTypeProps {
-  isDarkMode?: boolean;
-}
-
-export default function WorkplaceType({}: WorkplaceTypeProps) {
+export default function WorkplaceType() {
   return (
     <div>
       <p>Workplace Type</p>

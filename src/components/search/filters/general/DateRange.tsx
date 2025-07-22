@@ -6,10 +6,6 @@ import { TimeUnits } from "@/types/search";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
 
-interface DateRangeProps {
-  isDarkMode?: boolean;
-}
-
 // Custom debounce hook
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -27,7 +23,7 @@ function useDebounce(value: string, delay: number) {
   return debouncedValue;
 }
 
-export default function DateRange({}: DateRangeProps) {
+export default function DateRange() {
   const { isDarkMode } = useDarkMode();
   const { searchOptions, updateSearchOptions } = useSearch();
   

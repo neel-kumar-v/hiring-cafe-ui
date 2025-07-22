@@ -1,8 +1,4 @@
-interface DepartmentsProps {
-  isDarkMode?: boolean;
-}
-
-export default function Departments({}: DepartmentsProps) {
+export default function Departments() {
   return (
     <div>
       <p>Departments</p>

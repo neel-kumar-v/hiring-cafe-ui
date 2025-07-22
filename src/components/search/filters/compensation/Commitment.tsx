@@ -1,8 +1,4 @@
-interface CommitmentProps {
-  isDarkMode?: boolean;
-}
-
-export default function Commitment({}: CommitmentProps) {
+export default function Commitment() {
   return (
     <div>
       <p>Commitment</p>

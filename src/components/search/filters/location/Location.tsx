@@ -1,8 +1,4 @@
-interface LocationProps {
-  isDarkMode?: boolean;
-}
-
-export default function Location({}: LocationProps) {
+export default function Location() {
   return (
     <div>
       <p>Location</p>

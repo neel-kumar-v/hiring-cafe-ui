@@ -1,8 +1,4 @@
-interface ExperienceProps {
-  isDarkMode?: boolean;
-}
-
-export default function Experience({}: ExperienceProps) {
+export default function Experience() {
   return (
     <div>
       <p>Experience</p>

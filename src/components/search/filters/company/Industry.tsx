@@ -1,8 +1,4 @@
-interface IndustryProps {
-  isDarkMode?: boolean;
-}
-
-export default function Industry({}: IndustryProps) {
+export default function Industry() {
   return (
     <div>
       <p>Industry</p>

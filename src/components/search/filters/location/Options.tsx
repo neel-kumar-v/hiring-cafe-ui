@@ -1,8 +1,4 @@
-interface OptionsProps {
-  isDarkMode?: boolean;
-}
-
-export default function Options({}: OptionsProps) {
+export default function Options() {
   return (
     <div>
       <p>Options</p>

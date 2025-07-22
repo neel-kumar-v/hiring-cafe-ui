@@ -1,8 +1,4 @@
-interface FoundingProps {
-  isDarkMode?: boolean;
-}
-
-export default function Founding({}: FoundingProps) {
+export default function Founding() {
   return (
     <div>
       <p>Founding Year</p>

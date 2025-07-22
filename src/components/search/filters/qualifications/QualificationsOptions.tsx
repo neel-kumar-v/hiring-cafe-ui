@@ -5,12 +5,10 @@ import Licenses from "./Licenses";
 import Security from "./Security";
 
 interface QualificationsOptionsProps {
-  isDarkMode?: boolean;
   scrollToSection?: string;
 }
 
 export default function QualificationsOptions({
-  isDarkMode = false,
   scrollToSection,
 }: QualificationsOptionsProps) {
   const refs = createRefs([
@@ -35,28 +33,28 @@ export default function QualificationsOptions({
         ref={refs.education}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Education isDarkMode={isDarkMode} />
+        <Education />
       </div>
 
       <div
         ref={refs.licenses}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Licenses isDarkMode={isDarkMode} />
+        <Licenses />
       </div>
 
       <div
         ref={refs.security}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Security isDarkMode={isDarkMode} />
+        <Security />
       </div>
 
       <div
         ref={refs.languages}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Languages isDarkMode={isDarkMode} />
+        <Languages />
       </div>
     </div>
   );

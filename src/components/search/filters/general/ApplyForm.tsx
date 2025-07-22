@@ -5,11 +5,7 @@ import type { ApplyForm } from "@/types/search";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
 
-interface ApplyFormProps {
-  isDarkMode?: boolean;
-}
-
-export default function ApplyForm({}: ApplyFormProps) {
+export default function ApplyForm() {
   const { isDarkMode } = useDarkMode();
   const { searchOptions, updateSearchOptions } = useSearch();
   

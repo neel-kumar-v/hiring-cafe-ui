@@ -1,8 +1,4 @@
-interface LanguagesProps {
-  isDarkMode?: boolean;
-}
-
-export default function Languages({}: LanguagesProps) {
+export default function Languages() {
   return (
     <div>
       <p>Languages</p>

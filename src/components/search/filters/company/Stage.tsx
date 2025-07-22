@@ -1,8 +1,4 @@
-interface StageProps {
-  isDarkMode?: boolean;
-}
-
-export default function Stage({}: StageProps) {
+export default function Stage() {
   return (
     <div>
       <p>Stage & Funding</p>

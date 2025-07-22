@@ -1,8 +1,4 @@
-interface SizeProps {
-  isDarkMode?: boolean;
-}
-
-export default function Size({}: SizeProps) {
+export default function Size() {
   return (
     <div>
       <p>Size</p>

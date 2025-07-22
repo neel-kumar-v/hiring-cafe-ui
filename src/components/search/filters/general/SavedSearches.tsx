@@ -13,11 +13,7 @@ interface SavedSearch {
   createdAt: Date;
 }
 
-interface SavedSearchesProps {
-  isDarkMode?: boolean;
-}
-
-export default function SavedSearches({}: SavedSearchesProps) {
+export default function SavedSearches() {
   const { setSearchOptions } = useSearch();
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([
     {

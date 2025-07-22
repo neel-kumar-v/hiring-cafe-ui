@@ -6,12 +6,10 @@ import Size from "./Size";
 import Stage from "./Stage";
 
 interface CompanyOptionsProps {
-  isDarkMode?: boolean;
   scrollToSection?: string;
 }
 
 export default function CompanyOptions({
-  isDarkMode = false,
   scrollToSection,
 }: CompanyOptionsProps) {
   const refs = createRefs([
@@ -37,35 +35,35 @@ export default function CompanyOptions({
         ref={refs.company}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Company isDarkMode={isDarkMode} />
+        <Company />
       </div>
 
       <div
         ref={refs.industry}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Industry isDarkMode={isDarkMode} />
+        <Industry />
       </div>
 
       <div
         ref={refs.stage}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Stage isDarkMode={isDarkMode} />
+        <Stage />
       </div>
 
       <div
         ref={refs.size}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Size isDarkMode={isDarkMode} />
+        <Size />
       </div>
 
       <div
         ref={refs.founding}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Founding isDarkMode={isDarkMode} />
+        <Founding />
       </div>
     </div>
   );

@@ -1,8 +1,4 @@
-interface SecurityProps {
-  isDarkMode?: boolean;
-}
-
-export default function Security({}: SecurityProps) {
+export default function Security() {
   return (
     <div>
       <p>Security Clearance</p>

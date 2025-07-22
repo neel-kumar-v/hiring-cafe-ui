@@ -2,16 +2,12 @@ import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Location from "./Location";
 import Options from "./Options";
 import WorkplaceType from "./WorkplaceType";
-
-interface LocationOptionsProps {
-  isDarkMode?: boolean;
-  scrollToSection?: string;
-}
-
+  
 export default function LocationOptions({
-  isDarkMode = false,
   scrollToSection,
-}: LocationOptionsProps) {
+}: {
+  scrollToSection?: string;
+}) {
   const refs = createRefs([
     "location",
     "workplace-type",
@@ -33,21 +29,21 @@ export default function LocationOptions({
         ref={refs.location}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Location isDarkMode={isDarkMode} />
+        <Location />
       </div>
 
       <div
         ref={refs["workplace-type"]}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <WorkplaceType isDarkMode={isDarkMode} />
+        <WorkplaceType />
       </div>
 
       <div
         ref={refs.options}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Options isDarkMode={isDarkMode} />
+        <Options />
       </div>
     </div>
   );

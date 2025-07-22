@@ -5,12 +5,10 @@ import Experience from "./Experience";
 import Salary from "./Salary";
 
 interface CompensationOptionsProps {
-  isDarkMode?: boolean;
   scrollToSection?: string;
 }
 
 export default function CompensationOptions({
-  isDarkMode = false,
   scrollToSection,
 }: CompensationOptionsProps) {
   const refs = createRefs([
@@ -35,28 +33,28 @@ export default function CompensationOptions({
         ref={refs.salary}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Salary isDarkMode={isDarkMode} />
+        <Salary />
       </div>
 
       <div
         ref={refs.commitment}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Commitment isDarkMode={isDarkMode} />
+        <Commitment />
       </div>
 
       <div
         ref={refs.experience}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Experience isDarkMode={isDarkMode} />
+        <Experience />
       </div>
 
       <div
         ref={refs.benefits}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Benefits isDarkMode={isDarkMode} />
+        <Benefits />
       </div>
     </div>
   );

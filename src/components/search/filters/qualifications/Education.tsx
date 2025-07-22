@@ -1,8 +1,4 @@
-interface EducationProps {
-  isDarkMode?: boolean;
-}
-
-export default function Education({}: EducationProps) {
+export default function Education() {
   return (
     <div>
       <p>Education</p>

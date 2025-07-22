@@ -5,13 +5,11 @@ import { useSearch } from "@/contexts/SearchContext";
 import { ChevronsDown, ChevronsUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
-interface SortingProps {
-  isDarkMode?: boolean;
-}
+
 
 type SortCategory = "relevance" | "recent" | "salary" | "experience";
 
-export default function Sorting({}: SortingProps) {
+export default function Sorting() {
   const { isDarkMode } = useDarkMode();
   const { searchOptions, updateSearchOptions } = useSearch();
   

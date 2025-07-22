@@ -1,8 +1,4 @@
-interface BenefitsProps {
-  isDarkMode?: boolean;
-}
-
-export default function Benefits({}: BenefitsProps) {
+export default function Benefits() {
   return (
     <div>
       <p>Benefits & Perks</p>

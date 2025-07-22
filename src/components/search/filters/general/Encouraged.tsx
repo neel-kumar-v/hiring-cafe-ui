@@ -2,11 +2,7 @@ import { useSearch } from "@/contexts/SearchContext";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 
-interface EncouragedProps {
-  isDarkMode?: boolean;
-}
-
-export default function Encouraged({}: EncouragedProps) {
+export default function Encouraged() {
   const { searchOptions, updateSearchOptions } = useSearch();
 
   const handleCheckboxChange = (type: "Veteran" | "Fair Chance") => {

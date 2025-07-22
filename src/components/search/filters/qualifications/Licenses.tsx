@@ -1,8 +1,4 @@
-interface LicensesProps {
-  isDarkMode?: boolean;
-}
-
-export default function Licenses({}: LicensesProps) {
+export default function Licenses() {
   return (
     <div>
       <p>Licenses & Certifications</p>
