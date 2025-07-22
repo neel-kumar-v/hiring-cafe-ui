@@ -1,15 +1,16 @@
 
 import { useSearch } from "@/contexts/SearchContext";
+import { Exclusion as ExclusionType } from "@/types/search";
 import LabelCheckbox from "../util/LabelCheckbox";
 import FilterContainer from "../util/FilterContainer";
 
 export default function Exclusion() {
   const { searchOptions, updateSearchOptions } = useSearch();
 
-  const handleCheckboxChange = (type: "Applied" | "Viewed" | "Saved" | "Hidden") => {
+  const handleCheckboxChange = (type: ExclusionType) => {
     const currentExclusion = searchOptions.exclusion;
     const newExclusion = currentExclusion.includes(type)
-      ? currentExclusion.filter(item => item !== type)
+      ? currentExclusion.filter((item: ExclusionType) => item !== type)
       : [...currentExclusion, type];
     
     updateSearchOptions({

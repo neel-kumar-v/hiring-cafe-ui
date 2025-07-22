@@ -21,10 +21,10 @@ export default function Salary() {
   const [advanced, setAdvanced] = useState(false);
 
   // Local state for sliders
-  const [salaryMinLow, setSalaryMinLow] = useState(salary.min_range.min);
-  const [salaryMinHigh, setSalaryMinHigh] = useState(salary.min_range.max);
-  const [salaryMaxLow, setSalaryMaxLow] = useState(salary.max_range.min);
-  const [salaryMaxHigh, setSalaryMaxHigh] = useState(salary.max_range.max);
+  const [salaryMinLow, setSalaryMinLow] = useState(salary.min_range.min === 0 ? 0 : salary.min_range.min);
+  const [salaryMinHigh, setSalaryMinHigh] = useState(salary.min_range.max === 0 ? 0 : salary.min_range.max);
+  const [salaryMaxLow, setSalaryMaxLow] = useState(salary.max_range.min === 0 ? 250000 : salary.max_range.min);
+  const [salaryMaxHigh, setSalaryMaxHigh] = useState(salary.max_range.max === 0 ? 250000 : salary.max_range.max);
 
   useDebouncedEffect(() => {
     updateSearchOptions({
@@ -44,8 +44,8 @@ export default function Salary() {
   };
 
   const handleAdvancedChange = (checked: boolean | "indeterminate") => {
-    setSalaryMinHigh(salary.min_range.max + 10000);
-    setSalaryMaxLow(salary.max_range.min - 10000);
+    setSalaryMinHigh(Math.min(salary.min_range.max + 50000, salary.max_range.max));
+    setSalaryMaxLow(Math.max(salary.max_range.min - 50000, salary.min_range.min));
     setAdvanced(Boolean(checked));
   };
 
@@ -71,9 +71,9 @@ export default function Salary() {
 
   return (
     <FilterContainer title="Salary Range">
-      <div className="mb-2 -mt-2 text-xs text-muted-foreground">
+      <p className="mb-2 -mt-2 text-xs text-muted-foreground">
         Max slider value can be updated
-      </div>
+      </p>
       <div className="grid grid-cols-1 gap-4">
         <LabelCheckbox
           label="Hide Jobs with undisclosed salaries?"
