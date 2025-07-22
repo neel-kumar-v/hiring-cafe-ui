@@ -85,6 +85,9 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     const minRange = decodeRangeString(salary.min_range);
     const maxRange = decodeRangeString(salary.max_range);
     if (minRange === "All" && maxRange === "All") return "All";
+    if (minRange === "All") return `Max: $${maxRange} ${salary.unit}`;
+    if (maxRange === "All") return `Min: $${minRange} ${salary.unit}`;
+    if (!minRange.includes('-') && !maxRange.includes('-')) return `$${minRange} - $${maxRange} ${salary.unit}`;
     return `Min: $${minRange}, Max: $${maxRange} ${salary.unit}`;
   }
 
