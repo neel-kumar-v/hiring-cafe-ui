@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/job";
 import dynamic from "next/dynamic";
-import { memo, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { memo, Suspense, useCallback, useMemo, useState } from "react";
 import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";

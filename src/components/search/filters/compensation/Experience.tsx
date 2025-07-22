@@ -1,8 +1,6 @@
 import { useSearch } from "@/contexts/SearchContext";
 import { ExperienceLevel, Select } from "@/types/search";
-import { toast } from "sonner";
 import FilterContainer from "../util/FilterContainer";
-import { checkboxInfo } from "../util/info";
 import LabelCheckbox from "../util/LabelCheckbox";
 
 export default function Experience() {

@@ -1,9 +1,7 @@
 import { useSearch } from "@/contexts/SearchContext";
 import { CommitmentLevel, Select } from "@/types/search";
-import { toast } from "sonner";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
-import { checkboxInfo } from "../util/info";
 
 export default function Commitment() {
   const { searchOptions, updateSearchOptions } = useSearch();
