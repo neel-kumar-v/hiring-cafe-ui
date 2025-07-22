@@ -117,7 +117,7 @@ interface JobBoardCardProps {
 const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isApplied] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isDesktop } = useResponsiveBreakpoint();
@@ -165,8 +165,10 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   }, [isBookmarked]);
 
   const handleApplyToggle = useCallback(() => {
-    window.open(currentJob.apply_url, "_blank");
-  }, [currentJob.apply_url]);
+    // window.open(currentJob.apply_url, "_blank");
+    console.log("handleApplyToggle");
+    setIsApplied(!isApplied);
+  }, [isApplied]);
 
   const handleBookmarkClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -177,8 +179,9 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   const handleApplyClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    handleApplyToggle();
-  }, [handleApplyToggle]);
+    setIsApplied(!isApplied);
+    console.log("handleApplyClick");
+  }, [isApplied]);
 
   const handleDrawerClose = useCallback(() => {
     setDrawerOpen(false);

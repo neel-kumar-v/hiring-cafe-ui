@@ -46,16 +46,18 @@ const CardContextMenuProvider = ({
           )}
           {isBookmarked ? "Unsave Job" : "Save Job"}
         </ContextMenuItem>
-        <ContextMenuItem>
-          <a href={applyUrl} target="_blank" className="flex items-center gap-2">
+        <ContextMenuItem className="group">
+          <a href={applyUrl} target="_blank" className="flex items-center gap-2 group-hover:underline">
             <Send className="mr-2 size-4" />
             Apply Now
           </a>
         </ContextMenuItem>
-        <ContextMenuItem onClick={onApplyClick}>
-          <CheckCheck className="mr-2 size-4" />
-          {isApplied ? "Unmark Applied" : "Mark Applied"}
-        </ContextMenuItem>
+        {applyUrl && (
+          <ContextMenuItem onClick={onApplyClick}>
+            <CheckCheck className="mr-2 size-4" />
+            {isApplied ? "Unmark Applied" : "Mark Applied"}
+          </ContextMenuItem>
+        )}
         <ContextMenuSeparator />
         <ContextMenuItem>
           <ExternalLink className="mr-2 size-4" />
