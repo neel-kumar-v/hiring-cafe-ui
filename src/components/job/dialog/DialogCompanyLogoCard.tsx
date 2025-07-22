@@ -15,14 +15,16 @@ import DialogExtendedCompanyInfo from "./DialogExtendedCompanyInfo";
 
 const DialogCompanyLogoCard = ({
   companyData,
+  dialog = true,
 }: {
   companyData: V5ProcessedCompanyData;
+  dialog?: boolean;
 }) => {
   const [imageError, setImageError] = useState(false);
   const [showExtended, setShowExtended] = useState(false);
   const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
   const abbreviation = getCompanyAbbreviation(companyData.name || "");
-  const initialsContent = renderCompanyAbbreviationGrid(abbreviation);
+  const initialsContent = renderCompanyAbbreviationGrid(abbreviation, dialog);
   const isDesktop = useMediaQuery("(min-width: 728px)");
   const { prefersReducedMotion } = useReducedMotion();
 
@@ -88,7 +90,7 @@ const DialogCompanyLogoCard = ({
                 src={companyData.image_url}
               />
             ) : (
-              <span className="flex h-full w-full select-none items-center justify-center bg-pink-100 font-semibold text-5xl text-pink-600 md:text-3xl dark:bg-pink-800/15 dark:text-pink-300">
+              <span className="flex h-full w-full select-none items-center justify-center bg-pink-100 font-semibold text-3xl md:text-5xl text-pink-600 dark:bg-pink-800/15 dark:text-pink-300">
                 {initialsContent}
               </span>
             )}

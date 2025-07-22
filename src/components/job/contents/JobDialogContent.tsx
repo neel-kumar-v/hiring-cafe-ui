@@ -115,6 +115,7 @@ const JobDialogContent = ({
 
       <DialogCompanyLogoCard
         companyData={currentJob.v5_processed_company_data}
+        dialog={true}
       />
 
       <DialogRequirements

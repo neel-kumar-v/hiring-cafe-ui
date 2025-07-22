@@ -21,15 +21,15 @@ export const getCompanyAbbreviation = (companyName: string) => {
     .slice(0, 4);
 };
 
-export const renderCompanyAbbreviationGrid = (companyName: string) => {
+export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: boolean) => {
   if (companyName.length !== 4) return companyName;
   const letters = companyName.split("").map((letter) => letter.toUpperCase());
   return (
-    <span className="inline-grid grid-cols-2 grid-rows-2 gap-x-0.5">
-      <span className="font-bold">{letters[0]}</span>
-      <span className="font-bold text-center">{letters[1]}</span>
-      <span className="font-bold">{letters[2]}</span>
-      <span className="font-bold text-center">{letters[3]}</span>
+    <span className={`inline-grid grid-cols-2 grid-rows-2 font-montserrat max-sm:text-3xl text-center font-bold ${dialog ? "gap-x-3 gap-y-2" : "gap-x-1"}`}>
+      <span>{letters[0]}</span>
+      <span>{letters[1]}</span>
+      <span>{letters[2]}</span>
+      <span>{letters[3]}</span>
     </span>
   );
 };

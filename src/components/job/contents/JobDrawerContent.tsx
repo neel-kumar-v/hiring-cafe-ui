@@ -53,6 +53,7 @@ const JobDrawerContent = ({
           />
           <DialogCompanyLogoCard
             companyData={currentJob.v5_processed_company_data}
+            dialog={false}
           />
           <DialogBadges
             commitments={currentJob.v5_processed_job_data.commitment}
