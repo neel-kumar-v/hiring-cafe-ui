@@ -40,7 +40,7 @@ interface FilterSectionProps {
   isExtended: boolean;
 }
 
-function FilterSection({ title, items, isExtended }: FilterSectionProps) {
+export function FilterSection({ title, items, isExtended }: FilterSectionProps) {
   const visibleItems = items.filter(item => 
     shouldShowFilterItem(item.value, isExtended, item.isImportant)
   );
@@ -552,15 +552,17 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       
       </div>
       {showButton && (
-        <div className="sticky bottom-4 right-4 flex justify-end z-20">
-          <Button
-            onClick={() => setExtended(!extended)}
-            className="w-fit"
-            variant="outline"
-          >
-            {extended ? "Hide unchanged filters" : "Show unchanged filters"}
-          </Button>
-        </div>
+        <>
+          <div className="sticky bottom-4 right-4 flex justify-end z-20">
+            <Button
+              onClick={() => setExtended(!extended)}
+              className="w-fit"
+              variant="outline"
+            >
+              {extended ? "Hide unchanged filters" : "Show unchanged filters"}
+            </Button>
+          </div>
+        </>
       )}
     </div>
   )

@@ -65,7 +65,7 @@ function CommandInput({
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
 	return (
 		<div
-			className="flex h-9 items-center gap-2 border-b px-3"
+			className="flex h-9 items-center gap-2 border-b border-border/60 px-3"
 			data-slot="command-input-wrapper"
 		>
 			<SearchIcon className="size-4 shrink-0 opacity-50" />
@@ -88,7 +88,7 @@ function CommandList({
 	return (
 		<CommandPrimitive.List
 			className={cn(
-				"max-h-[300px] scroll-py-1 overflow-y-auto overflow-x-hidden",
+				"max-h-[300px] scroll-py-1 overflow-y-auto overflow-x-hidden pointer-events-auto",
 				className
 			)}
 			data-slot="command-list"

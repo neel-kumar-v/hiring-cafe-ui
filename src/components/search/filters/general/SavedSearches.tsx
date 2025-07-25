@@ -1,207 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSearch } from "@/contexts/SearchContext";
-import { CategoryId, SearchState } from "@/types/search";
-import { Calendar, Edit, Eye, Search } from "lucide-react";
-import { useState } from "react";
+import { useUser } from "@/contexts/UserContext";
+import { CategoryId } from "@/types/search";
+import { Calendar, Edit, Eye, Plus, Search } from "lucide-react";
+import { useRef, useState } from "react";
 import { AllFilter } from "../util/AllFilter";
 
-interface SavedSearch {
-  id: string;
-  name: string;
-  searchState: SearchState;
-  createdAt: Date;
-}
-
 export default function SavedSearches() {
-  const { setSearchOptions } = useSearch();
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([
-    {
-      id: "1",
-      name: "Software Engineer Remote",
-      searchState: {
-        sort: { by: "Relevance", order: "Most" },
-        date_range: { magnitude: 7, unit: "Days" },
-        apply_form: "All",
-        exclusion: [],
-        benefits: [],
-        encouraged: [],
-        department: "All",
-        salary: { min_range: { min: 80000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
-        commitment: "All",
-        experience: { level: "All", role: "None" },
-        job_titles: { 
-          title: "Software Engineer", 
-          technical: {
-            AND: [
-              "Git",
-              "Go",
-              {
-                NOT: {
-                  OR: ["excel", "word", "outlook"]
-                }
-              }
-            ]
-          }, 
-          description: "", 
-          requirements: "" 
-        },
-        education: {
-          associate: { preferences: null, keywords: { include: [], exclude: "None" } },
-          bachelor: { preferences: null, keywords: { include: [], exclude: "None" } },
-          master: { preferences: null, keywords: { include: [], exclude: "None" } },
-          doctorate: { preferences: null, keywords: { include: [], exclude: "None" } }
-        },
-        license_certification: { hide_required: false, keywords: { include: [], exclude: "None" } },
-        security_clearance: [],
-        language: { include: [], exclude: "None" },
-        shift_preferences: {
-          morning: null,
-          afternoon: null,
-          evening: null,
-          weekend: "None",
-          holiday: "None",
-          overtime: "None",
-          oncall: "None"
-        },
-        travel_requirements: { air: "All", land: "All" },
-        location: {
-          defaultUserLocation: false,
-          userLocation: {
-            searched: false,
-            id: "",
-            types: [],
-            address: { formatted: "", components: [] },
-            geographical: { latitude: 0, longitude: 0 }
-          },
-          location: [],
-          workplace_type: ["Remote"],
-          environment: "All",
-          demands: {
-            mobility: "All",
-            physical_intensity: "All",
-            cognitive_intensity: "All",
-            computer_usage: "All",
-            oral_communication: "All"
-          }
-        },
-        company: { include: [], exclude: "None" },
-        industry: {
-          profit: "All",
-          activities: { include: [], exclude: "None" },
-          industry: { include: [], exclude: "None" },
-          usa_jobs: "All"
-        },
-        stage_funding: {
-          current: "All",
-          investors: { include: [], exclude: "None" },
-          latest_round: { min: 0, max: 0 },
-          latest_round_type: { include: [], exclude: "None" },
-          latest_round_amount: { min: 0, max: 0 }
-        },
-        size: { min: 0, max: 0 },
-        founding_year: { min: 0, max: 0 }
-      },
-      createdAt: new Date("2024-01-15")
-    },
-    {
-      id: "2", 
-      name: "Data Scientist Entry Level",
-      searchState: {
-        sort: { by: "Recency", order: "Most" },
-        date_range: { magnitude: 30, unit: "Days" },
-        apply_form: "Fast",
-        exclusion: [],
-        benefits: [],
-        encouraged: [],
-        department: ["Data and Analytics"],
-        salary: { min_range: { min: 60000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
-        commitment: ["Full Time"],
-        experience: { level: ["Entry Level"], role: "None" },
-        job_titles: { title: "Data Scientist", technical: "Python SQL", description: "", requirements: "" },
-        education: {
-          associate: { preferences: null, keywords: { include: [], exclude: "None" } },
-          bachelor: { preferences: ["Required"], keywords: { include: ["Computer Science", "Statistics"], exclude: "None" } },
-          master: { preferences: ["Preferred"], keywords: { include: [], exclude: "None" } },
-          doctorate: { preferences: null, keywords: { include: [], exclude: "None" } }
-        },
-        license_certification: { hide_required: false, keywords: { include: [], exclude: "None" } },
-        security_clearance: [],
-        language: { include: [], exclude: "None" },
-        shift_preferences: {
-          morning: null,
-          afternoon: null,
-          evening: null,
-          weekend: "None",
-          holiday: "None",
-          overtime: "None",
-          oncall: "None"
-        },
-        travel_requirements: { air: "All", land: "All" },
-        location: {
-          defaultUserLocation: true,
-          userLocation: {
-            searched: false,
-            id: "",
-            types: [],
-            address: { formatted: "", components: [] },
-            geographical: { latitude: 0, longitude: 0 }
-          },
-          location: [],
-          workplace_type: "All",
-          environment: "All",
-          demands: {
-            mobility: "All",
-            physical_intensity: "All",
-            cognitive_intensity: "All",
-            computer_usage: "All",
-            oral_communication: "All"
-          }
-        },
-        company: { include: [], exclude: "None" },
-        industry: {
-          profit: "All",
-          activities: { include: [], exclude: "None" },
-          industry: { include: [], exclude: "None" },
-          usa_jobs: "All"
-        },
-        stage_funding: {
-          current: "All",
-          investors: { include: [], exclude: "None" },
-          latest_round: { min: 0, max: 0 },
-          latest_round_type: { include: [], exclude: "None" },
-          latest_round_amount: { min: 0, max: 0 }
-        },
-        size: { min: 0, max: 0 },
-        founding_year: { min: 0, max: 0 }
-      },
-      createdAt: new Date("2024-01-10")
-    }
-  ]);
-
+  const { searchOptions, setSearchOptions } = useSearch();
+  const { user, setUser } = useUser();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
 
-  const handleEditStart = (search: SavedSearch) => {
-    setEditingId(search.id);
-    setEditingName(search.name);
+  const handleEditStart = (id: string, name: string) => {
+    setEditingId(id);
+    setEditingName(name);
+    setTimeout(() => {
+      inputRefs.current[id]?.focus();
+    }, 0);
   };
 
   const handleEditSave = (id: string) => {
-    setSavedSearches(prev => 
-      prev.map(search => 
-        search.id === id 
-          ? { ...search, name: editingName }
-          : search
+    setUser(prev => ({
+      ...prev,
+      savedSearches: prev.savedSearches.map(search =>
+        search.id === id ? { ...search, name: editingName, modifiedAt: new Date() } : search
       )
-    );
-    setSavedSearches(prev =>
-      prev.map(search =>
-        search.id === id
-          ? { ...search, name: editingName, createdAt: new Date() }
-          : search
-      )
-    );
+    }));
     setEditingId(null);
     setEditingName("");
   };
@@ -219,7 +46,7 @@ export default function SavedSearches() {
     }
   };
 
-  const handleLoadSearch = (search: SavedSearch) => {
+  const handleLoadSearch = (search: typeof user.savedSearches[number]) => {
     setSearchOptions(search.searchState);
   };
 
@@ -227,15 +54,38 @@ export default function SavedSearches() {
     console.log("Category clicked:", categoryId);
   };
 
+  const handleSaveSearch = () => {
+    const newId = Date.now().toString();
+    setUser(prev => {
+      const newSearch = {
+        id: newId,
+        name: "New Search",
+        searchState: JSON.parse(JSON.stringify(searchOptions)),
+        modifiedAt: new Date()
+      };
+      setTimeout(() => {
+        handleEditStart(newId, "New Search");
+      }, 0);
+      return {
+        ...prev,
+        savedSearches: [newSearch, ...prev.savedSearches]
+      };
+    });
+  };
+
   return (
     <div>
-      <p className="font-semibold text-lg text-text">Saved Searches</p>
-      
-      {savedSearches.length === 0 ? (
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-semibold text-lg text-text">Saved Searches</p>
+        <Button size="sm" variant="default" onClick={handleSaveSearch}>
+          <Plus className="size-4 mr-1" /> Save Search
+        </Button>
+      </div>
+      {user.savedSearches.length === 0 ? (
         <p className="text-muted-foreground text-sm">No saved searches yet. Create your first search to see it here.</p>
       ) : (
         <div className="space-y-3">
-          {savedSearches.map((search) => (
+          {user.savedSearches.map((search) => (
             <div
               key={search.id}
               className="group flex items-center justify-between mt-3 border-b border-border/20 last-of-type:border-b-0"
@@ -245,22 +95,25 @@ export default function SavedSearches() {
                   <input
                     type="text"
                     value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, search.id)}
+                    ref={el => {
+                      inputRefs.current[search.id] = el;
+                      return;
+                    }}
+                    onChange={e => setEditingName(e.target.value)}
+                    onKeyDown={e => handleKeyDown(e, search.id)}
                     onBlur={() => handleEditSave(search.id)}
                     className="w-full bg-transparent border-none outline-none text-text font-medium"
-                    autoFocus
                   />
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span 
+                    <span
                       className="font-medium text-text cursor-pointer hover:underline transition-colors"
-                      onDoubleClick={() => handleEditStart(search)}
+                      onClick={() => handleEditStart(search.id, search.name)}
                     >
                       {search.name}
                     </span>
                     <button
-                      onClick={() => handleEditStart(search)}
+                      onClick={() => handleEditStart(search.id, search.name)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-accent rounded"
                     >
                       <Edit className="size-3 text-muted-foreground hover:text-text" />
@@ -268,12 +121,11 @@ export default function SavedSearches() {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                  <Calendar className="size-3 mr-1" /> {search.createdAt.toLocaleDateString()}
+                  <Calendar className="size-3 mr-1" /> {search.modifiedAt instanceof Date ? search.modifiedAt.toLocaleDateString() : new Date(search.modifiedAt).toLocaleDateString()}
                 </p>
               </div>
-
               <div className="flex items-center gap-2 ml-4">
-                <Tooltip >
+                <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       size="sm"
@@ -286,8 +138,8 @@ export default function SavedSearches() {
                   </TooltipTrigger>
                   <TooltipContent side="left" align="start" className="w-80 max-h-none overflow-y-auto p-0">
                     <div className="p-4">
-                      <AllFilter 
-                        handleCategoryClick={handleCategoryClick} 
+                      <AllFilter
+                        handleCategoryClick={handleCategoryClick}
                         searchOptions={search.searchState}
                         showButton={false}
                       />

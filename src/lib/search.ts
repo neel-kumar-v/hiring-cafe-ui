@@ -1,4 +1,5 @@
-import { AddressComponent, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
+import jobsData from "@/data/jobs_data.json";
+import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
   const convertSelectToArray = <T>(select: T[] | T): string[] => {
@@ -194,6 +195,21 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
   };
 } 
 
+export function getJobTitlesFromData(): string[] {
+  if (jobsData && Array.isArray(jobsData.results)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const titles = (jobsData.results as any[])
+      .map(
+        (job) =>
+          job.v5_processed_job_data?.core_job_title ||
+          job.job_information?.title
+      )
+      .filter((title): title is string => Boolean(title));
+    return Array.from(new Set(titles));
+  }
+  return [];
+}
+
 export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>) {
   if (Array.isArray(select)) return select.length === 0 ? "None" : select.join(", ");
   return select;
@@ -223,4 +239,100 @@ export function decodeSearchExpression(expression: SearchExpression<string>): st
 export function decodeKeywords(keywords: Keywords) {
   if (keywords.include.length === 0 && keywords.exclude === "None") return "None";
   return "Include: " + decodeSelectString(keywords.include) + " Exclude: " + decodeSelectString(keywords.exclude);
+}
+
+// Parses a boolean search string into a SearchExpression<string>
+// Supports AND, OR, NOT, parentheses, and quoted multi-word terms
+export function parseSearchExpression(input: string): SearchExpression<string> {
+  // Tokenize input
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < input.length) {
+    if (input[i] === ' ') { i++; continue; }
+    if (input[i] === '(' || input[i] === ')') { tokens.push(input[i]); i++; continue; }
+    if (input[i] === '"') {
+      let j = i + 1;
+      let str = '';
+      while (j < input.length && input[j] !== '"') { str += input[j++]; }
+      tokens.push(str);
+      i = j + 1;
+      continue;
+    }
+    // Match operators (AND, OR, NOT)
+    if (/^[A-Za-z]/.test(input[i])) {
+      let j = i;
+      while (j < input.length && /[A-Za-z]/.test(input[j])) j++;
+      const word = input.slice(i, j).toUpperCase();
+      if (["AND", "OR", "NOT"].includes(word)) {
+        tokens.push(word);
+        i = j;
+        continue;
+      }
+    }
+    // Otherwise, parse a word
+    let j = i;
+    while (j < input.length && ![' ', '(', ')', '"'].includes(input[j])) j++;
+    tokens.push(input.slice(i, j));
+    i = j;
+  }
+
+  // Recursive descent parser
+  let pos = 0;
+  function parseExpr(): SearchExpression<string> {
+    let op: "AND" | "OR" | null = null;
+    const stack: (SearchExpression<string> | BooleanOperator<string>)[] = [];
+    while (pos < tokens.length) {
+      const token = tokens[pos];
+      if (token === ')') break;
+      if (token === '(') {
+        pos++;
+        const group = parseExpr();
+        if (op && stack.length) {
+          const prev = stack.pop()!;
+          stack.push({ [op]: [prev, group] });
+          op = null;
+        } else {
+          stack.push(group);
+        }
+        if (tokens[pos] === ')') pos++;
+        continue;
+      }
+      if (token === 'AND' || token === 'OR') {
+        op = token;
+        pos++;
+        continue;
+      }
+      if (token === 'NOT') {
+        pos++;
+        let next: SearchExpression<string>;
+        if (tokens[pos] === '(') {
+          pos++;
+          next = parseExpr();
+          if (tokens[pos] === ')') pos++;
+        } else {
+          next = tokens[pos++];
+        }
+        stack.push({ NOT: next });
+        continue;
+      }
+      // Otherwise, it's a word/phrase
+      if (op && stack.length) {
+        const prev = stack.pop()!;
+        stack.push({ [op]: [prev, token] });
+        op = null;
+      } else {
+        stack.push(token);
+      }
+      pos++;
+    }
+    // Reduce stack to a single node
+    while (stack.length > 1) {
+      const a = stack.shift()!;
+      const b = stack.shift()!;
+      stack.unshift({ AND: [a, b] });
+    }
+    return stack[0] ?? "";
+  }
+
+  return parseExpr();
 }
