@@ -35,7 +35,8 @@ export default function SearchDrawerContent({
       const category = settingsCategories.find(
         (cat) =>
           cat.name.toLowerCase().includes(from.toLowerCase()) ||
-          cat.id.toLowerCase().includes(from.toLowerCase())
+          cat.id.toLowerCase().includes(from.toLowerCase()) ||
+          cat.type.toLowerCase() === from.toLowerCase()
       );
       return (category?.type as CategoryType) || "general";
     }
@@ -53,7 +54,8 @@ export default function SearchDrawerContent({
       const category = settingsCategories.find(
         (cat) =>
           cat.name.toLowerCase().includes(from.toLowerCase()) ||
-          cat.id.toLowerCase().includes(from.toLowerCase())
+          cat.id.toLowerCase().includes(from.toLowerCase()) ||
+          cat.type.toLowerCase() === from.toLowerCase()
       );
       if (category && category.type !== selectedCategory) {
         setSelectedCategory(category.type as CategoryType);

@@ -136,6 +136,15 @@ export default function SearchBar({
       case "saved":
         onIconClick?.("saved");
         break;
+      case "role-department":
+        onIconClick?.("role-department");
+        break;
+      case "qualifications":
+        onIconClick?.("qualifications");
+        break;
+      case "company":
+        onIconClick?.("company");
+        break;
       case "clear":
         setInputValue("");
         break;

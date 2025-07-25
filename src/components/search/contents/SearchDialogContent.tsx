@@ -29,7 +29,8 @@ export default function SearchDialogContent({
       const category = settingsCategories.find(
         (cat) =>
           cat.name.toLowerCase().includes(from.toLowerCase()) ||
-          cat.id.toLowerCase().includes(from.toLowerCase())
+          cat.id.toLowerCase().includes(from.toLowerCase()) ||
+          cat.type.toLowerCase() === from.toLowerCase()
       );
       return (
         (category?.type as CategoryType) ||
@@ -50,7 +51,8 @@ export default function SearchDialogContent({
       const category = settingsCategories.find(
         (cat) =>
           cat.name.toLowerCase().includes(from.toLowerCase()) ||
-          cat.id.toLowerCase().includes(from.toLowerCase())
+          cat.id.toLowerCase().includes(from.toLowerCase()) ||
+          cat.type.toLowerCase() === from.toLowerCase()
       );
       if (category && category.type !== selectedCategory) {
         setSelectedCategory(category.type as CategoryType);
@@ -194,9 +196,9 @@ export default function SearchDialogContent({
             {categories.map((category) => {
               const isSelected = selectedCategory === category.type;
               return (
-                <div className="mt-2 first-of-type:mt-0" key={category.name}>
+                <div className="mt-2 first-of-type:mt-0 gap-y-1" key={category.name}>
                   <Button
-                    className={`h-auto w-full transition-all duration-500 ease-in-out justify-start p-2 text-left   ${
+                    className={`h-auto w-full transition-all duration-300 ease-in-out justify-start p-2 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:transition-none  ${
                       isSelected
                         ? "dark:bg-pink-700 bg-pink-400 text-black dark:text-white dark:hover:bg-pink-800 hover:bg-pink-500"
                         : ""
@@ -210,7 +212,7 @@ export default function SearchDialogContent({
                   </Button>
                   {category.categories.map((cat) => (
                     <Button
-                      className={`h-auto w-full transition-all duration-500 ease-in-out justify-start px-2 py-1 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 ${
+                      className={`h-auto w-full transition-all duration-300 ease-in-out justify-start px-2 py-0.5 my-0.5 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:transition-none ${
                         !isSelected ? "text-black/75 dark:text-white/75 hover:text-black dark:hover:text-white" : ""
                       }`}
                       key={cat.id}
