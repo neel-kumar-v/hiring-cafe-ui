@@ -15,23 +15,17 @@ export function FilterSection({ title, items, handleCheckboxChange, setDepartmen
   const { searchOptions } = useApp();
   const itemValue = title.toLowerCase().replace(/\s+/g, '-');
   
-  // Get the current selected departments
-  const currentDepartments = searchOptions.department === "All" 
-    ? [] // When "All" is selected, we don't track individual items
-    : Array.isArray(searchOptions.department) 
-      ? searchOptions.department 
-      : [];
+  let currentDepartments: Department[] = [];
+  if (Array.isArray(searchOptions.department)) currentDepartments = searchOptions.department;
   
-  // For this section, determine which items are selected
   const selectedInSection = searchOptions.department === "All" 
-    ? items // If "All" is selected, all items in this section are selected
+    ? items
     : currentDepartments.filter(item => items.includes(item));
   
   const allChecked = selectedInSection.length === items.length;
   const someChecked = selectedInSection.length > 0 && selectedInSection.length < items.length;
   const checked: boolean | "indeterminate" = allChecked ? true : someChecked ? "indeterminate" : false;
 
-  // Toggle all: if all checked, uncheck all; else check all
   const handleTitleChange = () => {
     setDepartmentsForSection(items, !allChecked);
   };
@@ -96,19 +90,15 @@ export default function Departments() {
     let newDepartments: Select<Department>;
     
     if (searchOptions.department === "All") {
-      // We're unchecking from "All" state
       newDepartments = currentDepartments;
     } else if (currentDepartments.includes(department)) {
-      // We're unchecking an individual item
       const filtered = currentDepartments.filter((item: Department) => item !== department);
       newDepartments = filtered.length === 0 ? [] : filtered;
     } else {
-      // We're checking an individual item
       const added = [...currentDepartments, department];
       newDepartments = added.length === allDepartments.length ? "All" : added;
     }
     
-    // If all selected, set to 'All'
     if (Array.isArray(newDepartments) && newDepartments.length === allDepartments.length) {
       newDepartments = "All";
     }
@@ -118,12 +108,10 @@ export default function Departments() {
     });
   };
 
-  // Bulk update for a section
   const setDepartmentsForSection = (sectionItems: Department[], checked: boolean) => {
     let currentDepartments: Department[] = [];
     
     if (searchOptions.department === "All") {
-      // If "All" is selected, start with all departments
       currentDepartments = [...allDepartments];
     } else if (Array.isArray(searchOptions.department)) {
       currentDepartments = [...searchOptions.department];
@@ -132,16 +120,13 @@ export default function Departments() {
     let newDepartments: Select<Department>;
     
     if (checked) {
-      // Add all section items that aren't already present
       const added = Array.from(new Set([...currentDepartments, ...sectionItems]));
       newDepartments = added.length === allDepartments.length ? "All" : added;
     } else {
-      // Remove only the items from this specific section
       const filtered = currentDepartments.filter((item: Department) => !sectionItems.includes(item));
       newDepartments = filtered.length === 0 ? [] : filtered;
     }
     
-    // If all selected, set to 'All'
     if (Array.isArray(newDepartments) && newDepartments.length === allDepartments.length) {
       newDepartments = "All";
     }
