@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useSearch } from "@/contexts/SearchContext";
+import { useApp } from "@/contexts/AppContext";
 import { Department, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
@@ -83,7 +83,7 @@ interface FilterSectionProps {
 }
 
 export function FilterSection({ title, items, handleCheckboxChange, setDepartmentsForSection }: FilterSectionProps) {
-  const { searchOptions } = useSearch();
+  const { searchOptions } = useApp();
   const itemValue = title.toLowerCase().replace(/\s+/g, '-');
   const selected = Array.isArray(searchOptions.department) ? searchOptions.department : [];
   const allChecked = items.every(item => selected.includes(item) || searchOptions.department === "All");
@@ -128,7 +128,7 @@ export function FilterSection({ title, items, handleCheckboxChange, setDepartmen
 }
 
 export default function Departments() {
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
   const handleCheckboxChange = (department: Department) => {
     const currentDepartments = searchOptions.department;
     let newDepartments: Select<Department>;

@@ -1,10 +1,10 @@
+import { useApp } from "@/contexts/AppContext";
+import { type Benefits } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
-import { useSearch } from "@/contexts/SearchContext";
-import { type Benefits } from "@/types/search";
 
 export default function Benefits() {
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
 
   const handleBenefitsCheckboxChange = (benefit: Benefits) => {
     const currentBenefits = searchOptions.benefits;

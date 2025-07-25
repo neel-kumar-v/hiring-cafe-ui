@@ -3,10 +3,10 @@ import { TooltipProvider } from "@/components/ui/tooltip-animated";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { ReducedMotionProvider } from "@/contexts/ReducedMotionContext";
 // import { PerformanceMonitor } from "@/lib/performance-monitor";
+import { AppProvider } from "@/contexts/AppContext";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
-import { UserProvider } from "@/contexts/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,9 +42,9 @@ export default function RootLayout({
         <DarkModeProvider>
           <ReducedMotionProvider>
             <TooltipProvider>
-              <UserProvider>
+              <AppProvider>
                 {children}
-              </UserProvider>
+              </AppProvider>
             </TooltipProvider>
           </ReducedMotionProvider>
         </DarkModeProvider>

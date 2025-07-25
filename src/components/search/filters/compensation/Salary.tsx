@@ -1,4 +1,4 @@
-import { useSearch } from "@/contexts/SearchContext";
+import { useApp } from "@/contexts/AppContext";
 import { useEffect, useRef, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
@@ -16,7 +16,7 @@ function useDebouncedEffect(effect: () => void, deps: ReadonlyArray<unknown>, de
 }
 
 export default function Salary() {
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
   const salary = searchOptions.salary;
   const [advanced, setAdvanced] = useState(false);
 

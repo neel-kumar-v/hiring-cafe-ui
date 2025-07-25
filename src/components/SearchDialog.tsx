@@ -9,10 +9,9 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { SearchProvider } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { SearchDialogContent, SearchDrawerContent } from "./search/contents";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { SearchDialogContent, SearchDrawerContent } from "./search/contents";
 
 interface SearchDialogProps {
   open: boolean;
@@ -66,9 +65,5 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
 }
 
 export default function SearchDialog(props: SearchDialogProps) {
-  return (
-    <SearchProvider>
-      <SearchDialogInner {...props} />
-    </SearchProvider>
-  );
+  return <SearchDialogInner {...props} />;
 }

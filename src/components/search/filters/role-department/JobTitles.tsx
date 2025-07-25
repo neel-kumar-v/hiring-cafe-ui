@@ -1,19 +1,19 @@
 import { BooleanTextbox } from "@/components/search/filters/util/BooleanTextbox";
-import { useSearch } from "@/contexts/SearchContext";
+import { useApp } from "@/contexts/AppContext";
 import FilterContainer from "../util/FilterContainer";
 
 const FIELDS = [
-  { key: "title", label: "Title" },
-  { key: "technical", label: "Technical" },
-  { key: "description", label: "Description" },
-  { key: "requirements", label: "Requirements" },
+  { key: "title", label: "Title Keywords" },
+  { key: "technical", label: "Technical Keywords" },
+  { key: "description", label: "Description Keywords" },
+  { key: "requirements", label: "Requirements Keywords" },
 ] as const;
 
 export default function JobTitles() {
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
 
   return (
-    <FilterContainer title="Job Titles & Keywords">
+    <FilterContainer title="Job Titles & Keywords" help="e.g. 'software engineer AND (react OR angular)'">
       <div className="flex flex-col gap-6">
         {FIELDS.map(({ key, label }) => (
           <div key={key} className="w-full">

@@ -1,13 +1,13 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useApp } from "@/contexts/AppContext";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import { useSearch } from "@/contexts/SearchContext";
 import type { ApplyForm } from "@/types/search";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
 
 export default function ApplyForm() {
   const { isDarkMode } = useDarkMode();
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
   
   const [applyFormValue, setApplyFormValue] = useState<string>(() => {
     const valueMap: Record<ApplyForm, string> = {

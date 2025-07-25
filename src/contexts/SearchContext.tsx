@@ -1,16 +1,6 @@
 import { SearchState } from "@/types/search";
-import { createContext, ReactNode, useContext, useState } from "react";
 
-interface SearchContextType {
-  searchOptions: SearchState;
-  setSearchOptions: (options: SearchState) => void;
-  updateSearchOptions: (updates: Partial<SearchState>) => void;
-  hasUnsavedChanges: boolean;
-  setHasUnsavedChanges: (hasChanges: boolean) => void;
-  syncChanges: () => void;
-}
-
-const defaultSearchOptions: SearchState = {
+export const defaultSearchOptions: SearchState = {
   sort: { by: "Relevance", order: "Most" },
   date_range: { magnitude: 30, unit: "Days" },
   apply_form: "All",
@@ -110,43 +100,4 @@ const defaultSearchOptions: SearchState = {
   },
   size: { min: 0, max: 0 },
   founding_year: { min: 0, max: 0 },
-};
-
-const SearchContext = createContext<SearchContextType | undefined>(undefined);
-
-export function SearchProvider({ children }: { children: ReactNode }) {
-  const [searchOptions, setSearchOptions] = useState<SearchState>(defaultSearchOptions);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  const updateSearchOptions = (updates: Partial<SearchState>) => {
-    setSearchOptions(prev => ({ ...prev, ...updates }));
-    setHasUnsavedChanges(true);
-  };
-
-  const syncChanges = () => {
-    setHasUnsavedChanges(false);
-  };
-
-  return (
-    <SearchContext.Provider
-      value={{
-        searchOptions,
-        setSearchOptions,
-        updateSearchOptions,
-        hasUnsavedChanges,
-        setHasUnsavedChanges,
-        syncChanges,
-      }}
-    >
-      {children}
-    </SearchContext.Provider>
-  );
-}
-
-export function useSearch() {
-  const context = useContext(SearchContext);
-  if (context === undefined) {
-    throw new Error("useSearch must be used within a SearchProvider");
-  }
-  return context;
-} 
+}; 

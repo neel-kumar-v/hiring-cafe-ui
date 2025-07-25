@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
+import { useApp } from "@/contexts/AppContext";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import { useSearch } from "@/contexts/SearchContext";
 import { ChevronsDown, ChevronsUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
@@ -11,7 +11,7 @@ type SortCategory = "relevance" | "recent" | "salary" | "experience";
 
 export default function Sorting() {
   const { isDarkMode } = useDarkMode();
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
   
   const [sortCategory, setSortCategory] = useState<SortCategory>(() => {
     const categoryMap: Record<string, SortCategory> = {

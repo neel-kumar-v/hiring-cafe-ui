@@ -1,10 +1,10 @@
-import { useSearch } from "@/contexts/SearchContext";
+import { useApp } from "@/contexts/AppContext";
 import { ExperienceLevel, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 
 export default function Experience() {
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
 
   const handleSeniorityCheckboxChange = (type: ExperienceLevel) => {
     const currentExperience = searchOptions.experience;

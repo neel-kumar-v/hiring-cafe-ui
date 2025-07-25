@@ -1,10 +1,10 @@
-import { useSearch } from "@/contexts/SearchContext";
+import { useApp } from "@/contexts/AppContext";
 import { CommitmentLevel, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 
 export default function Commitment() {
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
 
   const handleCheckboxChange = (type: CommitmentLevel) => {
     const currentCommitment = searchOptions.commitment;

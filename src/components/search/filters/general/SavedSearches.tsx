@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useSearch } from "@/contexts/SearchContext";
-import { useUser } from "@/contexts/UserContext";
+import { useApp } from "@/contexts/AppContext";
 import { CategoryId } from "@/types/search";
 import { Calendar, Edit, Eye, Plus, Search } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { AllFilter } from "../util/AllFilter";
 
 export default function SavedSearches() {
-  const { searchOptions, setSearchOptions } = useSearch();
-  const { user, setUser } = useUser();
+  const { searchOptions, setSearchOptions, user, setUser, saveCurrentSearch, currentSavedSearchId } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
@@ -23,12 +22,12 @@ export default function SavedSearches() {
   };
 
   const handleEditSave = (id: string) => {
-    setUser(prev => ({
-      ...prev,
-      savedSearches: prev.savedSearches.map(search =>
+    setUser({
+      ...user,
+      savedSearches: user.savedSearches.map(search =>
         search.id === id ? { ...search, name: editingName, modifiedAt: new Date() } : search
       )
-    }));
+    });
     setEditingId(null);
     setEditingName("");
   };
@@ -55,30 +54,31 @@ export default function SavedSearches() {
   };
 
   const handleSaveSearch = () => {
-    const newId = Date.now().toString();
-    setUser(prev => {
-      const newSearch = {
-        id: newId,
-        name: "New Search",
-        searchState: JSON.parse(JSON.stringify(searchOptions)),
-        modifiedAt: new Date()
-      };
+    const existingSearch = user.savedSearches.find(saved => 
+      JSON.stringify(saved.searchState) === JSON.stringify(searchOptions)
+    );
+    
+    if (existingSearch) {
+      toast.error(`This search already exists with name "${existingSearch.name}"`);
+      return;
+    }
+
+    saveCurrentSearch("New Search");
+    const newId = currentSavedSearchId;
+    if (newId) {
       setTimeout(() => {
         handleEditStart(newId, "New Search");
       }, 0);
-      return {
-        ...prev,
-        savedSearches: [newSearch, ...prev.savedSearches]
-      };
-    });
+    }
+    toast.success("Search saved successfully!");
   };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <p className="font-semibold text-lg text-text">Saved Searches</p>
-        <Button size="sm" variant="default" onClick={handleSaveSearch}>
-          <Plus className="size-4 mr-1" /> Save Search
+        <Button size="sm" variant="outline" onClick={handleSaveSearch}>
+          <Plus className="size-4" /> Save Current Search
         </Button>
       </div>
       {user.savedSearches.length === 0 ? (

@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useApp } from "@/contexts/AppContext";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import { useSearch } from "@/contexts/SearchContext";
 import { TimeUnits } from "@/types/search";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
@@ -25,7 +25,7 @@ function useDebounce(value: string, delay: number) {
 
 export default function DateRange() {
   const { isDarkMode } = useDarkMode();
-  const { searchOptions, updateSearchOptions } = useSearch();
+  const { searchOptions, updateSearchOptions } = useApp();
   
   const [customTimeValue, setCustomTimeValue] = useState(searchOptions.date_range.magnitude.toString());
   const [customTimeUnit, setCustomTimeUnit] = useState(searchOptions.date_range.unit.toLowerCase());
