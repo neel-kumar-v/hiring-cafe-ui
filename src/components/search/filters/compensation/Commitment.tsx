@@ -1,7 +1,7 @@
 import { useApp } from "@/contexts/AppContext";
 import { CommitmentLevel, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
+import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
 
 export default function Commitment() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -34,7 +34,7 @@ export default function Commitment() {
   };
   return (
     <FilterContainer title="Commitment Level">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <LabelCheckboxContainer>
         <LabelCheckbox 
           label="Full Time" 
           checked={searchOptions.commitment.includes("Full Time") || searchOptions.commitment === "All"} 
@@ -71,7 +71,7 @@ export default function Commitment() {
           checked={searchOptions.commitment.includes("Seasonal") || searchOptions.commitment === "All"} 
           onChange={() => handleCheckboxChange("Seasonal")}
         />
-      </div>
+      </LabelCheckboxContainer>
     </FilterContainer>
   );
 } 

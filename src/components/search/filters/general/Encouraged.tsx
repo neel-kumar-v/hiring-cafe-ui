@@ -1,7 +1,7 @@
 import { useApp } from "@/contexts/AppContext";
 import { type Encouraged } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
+import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
 
 export default function Encouraged() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -19,7 +19,7 @@ export default function Encouraged() {
 
   return (
     <FilterContainer title="Encouraged to Apply">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <LabelCheckboxContainer>
         <LabelCheckbox 
           label="Veteran" 
           checked={searchOptions.encouraged?.includes("Veteran") || false} 
@@ -30,7 +30,7 @@ export default function Encouraged() {
           checked={searchOptions.encouraged?.includes("Fair Chance") || false} 
           onChange={() => handleCheckboxChange("Fair Chance")}
         />
-      </div>
+      </LabelCheckboxContainer>
     </FilterContainer>
   );
 } 
