@@ -49,6 +49,8 @@ export default function CompensationOptions({
       >
         <Benefits />
       </div>
+      <br className="md:hidden" />
+      <br className="md:hidden" />
     </div>
   );
 } 

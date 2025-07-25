@@ -36,6 +36,8 @@ export default function RoleDepartmentOptions({
       >
         <JobTitles />
       </div>
+      <br className="md:hidden" />
+      <br className="md:hidden" />
     </div>
   );
 } 

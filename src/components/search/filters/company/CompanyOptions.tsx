@@ -60,6 +60,8 @@ export default function CompanyOptions({
       >
         <Founding />
       </div>
+      <br className="md:hidden" />
+      <br className="md:hidden" />
     </div>
   );
 } 

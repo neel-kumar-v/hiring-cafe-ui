@@ -166,7 +166,7 @@ export default function SearchDrawerContent({
 
     return (
       <div className="flex flex-col gap-2">
-        <div className="pointer-coarse:scrollbar-none pointer-coarse:overflow-x-auto mb-2 flex scroll-auto pointer-fine:pb-4 gap-1 overflow-x-auto">
+        <div className="pointer-coarse:scrollbar-none pointer-coarse:overflow-x-auto pb-2 flex scroll-auto pointer-fine:pb-4 gap-1 overflow-x-auto">
           {categories.map((category) => (
             <Button
               className={`h-auto w-fit rounded-md border-neutral-200 dark:border-neutral-700 border-1 justify-start px-2 py-1 text-left text-sm ${

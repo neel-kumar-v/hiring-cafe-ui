@@ -40,6 +40,8 @@ export default function LocationOptions({
       >
         <Options />
       </div>
+      <br className="md:hidden" />
+      <br className="md:hidden" />
     </div>
   );
 } 

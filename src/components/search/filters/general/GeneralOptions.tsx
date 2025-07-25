@@ -81,6 +81,8 @@ export default function GeneralOptions({
       </div>
       <br className="md:hidden" />
       <br className="md:hidden" />
+      <br className="md:hidden" />
+      <br className="md:hidden" />
     </div>
   );
 } 

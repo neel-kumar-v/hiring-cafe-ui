@@ -35,6 +35,8 @@ export default function AvailabilityOptions({
       >
         <Travel isDarkMode={isDarkMode} />
       </div>
+      <br className="md:hidden" />
+      <br className="md:hidden" />
     </div>
   );
 } 
