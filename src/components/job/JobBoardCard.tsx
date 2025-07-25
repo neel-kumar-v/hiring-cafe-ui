@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/job";
 import dynamic from "next/dynamic";
-import { memo, Suspense, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
@@ -73,12 +73,10 @@ const JobCard = memo(({
         data-job-card="true"
       >
         <CardContent className="flex h-full flex-col p-4 py-3">
-          <Suspense fallback={null}>
-            <JobCardContent
-              currentJob={currentJob}
-              isTransitioning={isTransitioning}
-            />
-          </Suspense>
+          <JobCardContent
+            currentJob={currentJob}
+            isTransitioning={isTransitioning}
+          />
           <div className="mt-auto grid grid-cols-3 items-center">
             <CardStats
               appliedFromUsers={currentJob.job_information.appliedFromUsers}
@@ -212,7 +210,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
           onNext={handleNextJob}
           onPrevious={handlePreviousJob}
         />
-        <Suspense fallback={null}>
           <JobDrawerContent
             currentJob={currentJob}
             isApplied={isApplied}
@@ -222,7 +219,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
             onClose={handleDrawerClose}
             open={drawerOpen}
           />
-        </Suspense>
       </div>
     );
   }
@@ -237,7 +233,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
         onBookmarkClick={handleBookmarkClick}
         applyUrl={currentJob.apply_url}
       >
-        <Suspense fallback={null}>
           <JobDialogContent
             currentJob={currentJob}
             isApplied={isApplied}
@@ -260,7 +255,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
               onPrevious={handlePreviousJob}
             />
           </JobDialogContent>
-        </Suspense>
       </CardContextMenuProvider>
     </div>
   );
