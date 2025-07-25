@@ -1,5 +1,6 @@
 import { BooleanTextbox } from "@/components/search/filters/util/BooleanTextbox";
 import { useApp } from "@/contexts/AppContext";
+// import { getJobTitlesFromData } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 
 const FIELDS = [
@@ -11,6 +12,7 @@ const FIELDS = [
 
 export default function JobTitles() {
   const { searchOptions, updateSearchOptions } = useApp();
+  // const jobTitles = getJobTitlesFromData();
 
   return (
     <FilterContainer title="Job Titles & Keywords" help="e.g. 'software engineer AND (react OR angular)'">
@@ -25,6 +27,7 @@ export default function JobTitles() {
                 value={searchOptions.job_titles[key]}
                 onChange={expr => updateSearchOptions({ job_titles: { ...searchOptions.job_titles, [key]: expr } })}
                 placeholder={`Enter boolean search for ${label.toLowerCase()}`}
+                // options={jobTitles}
               />
             </div>
           </div>
