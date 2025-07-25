@@ -19,7 +19,7 @@ const ScrapeTime = ({
           className={`text-neutral-500 dark:text-neutral-400 ${iconClassName}`}
         />
         <span
-          className={` text-neutral-400 dark:text-neutral-500 -translate-y-[1.75px] ${textClassName}`}
+          className={` text-neutral-400 dark:text-neutral-500 ${textClassName}`}
         >
           {abbreviated}
         </span>
