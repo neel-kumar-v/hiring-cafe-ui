@@ -1,4 +1,4 @@
-import jobsData from "@/data/jobs_data.json" with { type: "json" };
+import jobTitlesData from "@/data/job_titles.json" with { type: "json" };
 import {
   Building2,
   DollarSign,
@@ -49,12 +49,6 @@ function SearchBarIcon({
   );
 }
 
-// Minimal type for extracting job titles
-interface JobTitleLike {
-  v5_processed_job_data?: { core_job_title?: string };
-  job_information?: { title?: string };
-}
-
 export default function SearchBar({
   placeholder = "Search",
   className = "",
@@ -63,21 +57,10 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [inputValue, setInputValue] = useState("");
 
-  // Try to extract job titles from jobsData, fallback to jobTitles.ts
   const jobTitles = useMemo(() => {
-    if (jobsData && Array.isArray(jobsData.results)) {
-      // Prefer core_job_title, fallback to job_information.title
-      const titles = (jobsData.results as JobTitleLike[])
-        .map(
-          (job) =>
-            job.v5_processed_job_data?.core_job_title ||
-            job.job_information?.title
-        )
-        .filter((title): title is string => Boolean(title)); // filter to string only
-      // Deduplicate
-      return Array.from(new Set(titles));
-    }
-    return [];
+    return Array.from(new Set(jobTitlesData.suggestions)).map(title =>
+      title.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
+    ) as string[];
   }, []);
 
   const handleInputChange = (value: string) => {
