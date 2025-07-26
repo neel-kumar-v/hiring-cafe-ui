@@ -40,7 +40,7 @@ export default function Experience() {
       </p> */}
       <LabelCheckboxContainer>
         <LabelCheckbox 
-          label="No Prior Experience Required" 
+          label="No Experience Required" 
           checked={searchOptions.experience.level.includes("None") || searchOptions.experience.level === "All"} 
           onChange={() => handleSeniorityCheckboxChange("None")}
         />

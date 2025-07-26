@@ -15,7 +15,7 @@ interface FilterItemProps {
 }
 
 function shouldShowFilterItem(value: string | null, isExtended: boolean, isImportant: boolean = false): boolean {
-  const exclude = ["All", "None", ""];
+  const exclude = ["All", "None", "", " No"];
   return isImportant || isExtended || !exclude.includes(value || "");
 }
 
@@ -78,7 +78,6 @@ export interface AllFiltersProps {
   showButton?: boolean;
 }
 export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true}: AllFiltersProps) => {
-  // const { searchOptions } = useSearch();
   const [extended, setExtended] = useState(false);
 
   const decodeSalary = (salary: SalaryOptions) => {
@@ -92,10 +91,26 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   }
 
   const decodeDegreePreferences = (degree: DegreePreferencesOptions) => {
-    const associate = degree.associate.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.associate.keywords);
-    const bachelor = degree.bachelor.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.bachelor.keywords);
-    const master = degree.master.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.master.keywords);
-    const doctorate = degree.doctorate.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.doctorate.keywords);
+    const associate = {
+      preferences: degree.associate.preferences === null ? "None" : Array.isArray(degree.associate.preferences) ? degree.associate.preferences.join(", ") : degree.associate.preferences,
+      include: decodeKeywords(degree.associate.keywords).include,
+      exclude: decodeKeywords(degree.associate.keywords).exclude
+    };
+    const bachelor = {
+      preferences: degree.bachelor.preferences === null ? "None" : Array.isArray(degree.bachelor.preferences) ? degree.bachelor.preferences.join(", ") : degree.bachelor.preferences,
+      include: decodeKeywords(degree.bachelor.keywords).include,
+      exclude: decodeKeywords(degree.bachelor.keywords).exclude
+    };
+    const master = {
+      preferences: degree.master.preferences === null ? "None" : Array.isArray(degree.master.preferences) ? degree.master.preferences.join(", ") : degree.master.preferences,
+      include: decodeKeywords(degree.master.keywords).include,
+      exclude: decodeKeywords(degree.master.keywords).exclude
+    };
+    const doctorate = {
+      preferences: degree.doctorate.preferences === null ? "None" : Array.isArray(degree.doctorate.preferences) ? degree.doctorate.preferences.join(", ") : degree.doctorate.preferences,
+      include: decodeKeywords(degree.doctorate.keywords).include,
+      exclude: decodeKeywords(degree.doctorate.keywords).exclude
+    };
     return { associate, bachelor, master, doctorate };
   }
 
@@ -143,7 +158,8 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     job_requirements: decodeSearchExpression(searchOptions.job_titles.requirements),
     benefits: decodeSelectString(searchOptions.benefits),
     education: decodeDegreePreferences(searchOptions.education),
-    license: decodeKeywords(searchOptions.license_certification.keywords) + (searchOptions.license_certification.hide_required ? " (hide required licenses)" : ""),
+    license: decodeKeywords(searchOptions.license_certification.keywords),
+    hide_required: (searchOptions.license_certification.hide_required ? " Yes" : " No"),
     security: decodeSelectString(searchOptions.security_clearance),
     shifts: decodeShiftPreferences(searchOptions.shift_preferences),
     air_travel: decodeSelectString(searchOptions.travel_requirements.air),
@@ -277,6 +293,13 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
 
   const qualificationsItems: FilterItemProps[] = [
     {
+      label: "Associate Degree Preferences",
+      value: decodedState.education.associate.preferences,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
       label: "Included Associate Degree Keywords",
       value: decodedState.education.associate.include,
       categoryId: "education",
@@ -286,6 +309,13 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Excluded Associate Degree Keywords",
       value: decodedState.education.associate.exclude,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Bachelor Degree Preferences",
+      value: decodedState.education.bachelor.preferences,
       categoryId: "education",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
@@ -305,6 +335,13 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       handleCategoryClick: handleCategoryClick
     },
     {
+      label: "Master Degree Preferences",
+      value: decodedState.education.master.preferences,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
       label: "Included Master Degree Keywords",
       value: decodedState.education.master.include,
       categoryId: "education",
@@ -314,6 +351,13 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Excluded Master Degree Keywords",
       value: decodedState.education.master.exclude,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Doctorate Degree Preferences",
+      value: decodedState.education.doctorate.preferences,
       categoryId: "education",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
@@ -342,6 +386,13 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Excluded License Keywords",
       value: decodedState.license.exclude,
+      categoryId: "licenses",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Hide Required Licenses",
+      value: decodedState.hide_required,
       categoryId: "licenses",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
