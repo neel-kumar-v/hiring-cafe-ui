@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Plus,
   WandSparkles,
-  XCircle,
   XIcon,
 } from "lucide-react";
 import * as React from "react";
@@ -35,7 +34,7 @@ import { cn } from "@/lib/utils";
  * Uses class-variance-authority (cva) to define different styles based on "variant" prop.
  */
 const multiSelectVariants = cva(
-  "m-1 transition-all ease-in-out duration-300 p-1 px-2",
+  "transition-all ease-in-out duration-300 p-1 px-2",
   {
     variants: {
       variant: {
@@ -115,6 +114,12 @@ interface MultiSelectProps
    * Optional, can be used to add custom styles.
    */
   className?: string;
+
+  /**
+   * Whether to show the "Select All" button in the dropdown.
+   * Optional, defaults to false.
+   */
+  showSelectAll?: boolean;
 }
 
 export const MultiSelect = React.forwardRef<
@@ -133,6 +138,7 @@ export const MultiSelect = React.forwardRef<
       maxCount = 3,
       modalPopover = false,
       className,
+      showSelectAll = false,
       ...props
     },
     ref
@@ -204,12 +210,6 @@ export const MultiSelect = React.forwardRef<
       setIsPopoverOpen((prev) => !prev);
     };
 
-    const clearExtraOptions = () => {
-      const newSelectedValues = currentSelectedValues.slice(0, maxCount);
-      setSelectedValues(newSelectedValues);
-      onValueChange(newSelectedValues);
-    };
-
     const toggleAll = () => {
       if (currentSelectedValues.length === options.length) {
         handleClear();
@@ -233,56 +233,6 @@ export const MultiSelect = React.forwardRef<
 
     return (
       <div className="relative">
-        {currentSelectedValues.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 mb-2">
-            {currentSelectedValues.slice(0, maxCount).map((value) => {
-              const option = options.find((o) => o.value === value);
-              const IconComponent = option?.icon;
-              const displayLabel = option?.label || value;
-              return (
-                <Badge
-                  key={value}
-                  className={cn(
-                    multiSelectVariants({ variant })
-                  )}
-                  style={{ animationDuration: `${animation}s` }}
-                >
-                  {IconComponent && (
-                    <IconComponent className="h-4 w-4 mr-2" />
-                  )}
-                  {displayLabel}
-                  <XCircle
-                    className="ml-2 h-4 w-4 cursor-pointer hover:text-destructive"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      toggleOption(value);
-                    }}
-                  />
-                </Badge>
-              );
-            })}
-            {currentSelectedValues.length > maxCount && (
-              <Badge
-                className={cn(
-                  "bg-transparent text-foreground border-foreground/1 hover:bg-transparent",
-                  isAnimating ? "animate-bounce" : "",
-                  multiSelectVariants({ variant })
-                )}
-                style={{ animationDuration: `${animation}s` }}
-              >
-                {`+ ${currentSelectedValues.length - maxCount} more`}
-                <XCircle
-                  className="ml-2 h-4 w-4 cursor-pointer"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    clearExtraOptions();
-                  }}
-                />
-              </Badge>
-            )}
-          </div>
-        )}
         <Popover
           open={isPopoverOpen}
           onOpenChange={setIsPopoverOpen}
@@ -294,13 +244,13 @@ export const MultiSelect = React.forwardRef<
               {...props}
               onClick={handleTogglePopover}
               className={cn(
-                "flex w-full p-1 rounded-md border border-input min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
+                "flex w-full p-1 rounded-md border border-input min-h-12 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
                 className
               )}
             >
               {currentSelectedValues.length > 0 ? (
                 <div className="flex justify-between items-center w-full">
-                  <div className="flex flex-wrap items-center">
+                  <div className="flex flex-wrap items-center gap-1">
                     {currentSelectedValues.slice(0, maxCount).map((value) => {
                       const option = options.find((o) => o.value === value);
                       const IconComponent = option?.icon;
@@ -372,24 +322,26 @@ export const MultiSelect = React.forwardRef<
               />
               <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
-                <CommandGroup>
-                  <CommandItem
-                    key="all"
-                    onSelect={toggleAll}
-                    className="cursor-pointer"
-                  >
-                    <div
-                      className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                        currentSelectedValues.length === options.length
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50 [&_svg]:invisible"
-                      )}
+                <CommandGroup className="*:space-y-1">
+                  {showSelectAll && (
+                    <CommandItem
+                      key="all"
+                      onSelect={toggleAll}
+                      className="cursor-pointer"
                     >
-                      <CheckIcon className="h-4 w-4" />
-                    </div>
-                    <span>(Select All)</span>
-                  </CommandItem>
+                      <div
+                        className={cn(
+                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                          currentSelectedValues.length === options.length
+                            ? "bg-primary text-primary-foreground"
+                            : "opacity-50 [&_svg]:invisible"
+                        )}
+                      >
+                        <CheckIcon className="h-4 w-4" />
+                      </div>
+                      <span>(Select All)</span>
+                    </CommandItem>
+                  )}
                   {showAddCustomOption && (
                     <CommandItem
                       key="add-custom"
