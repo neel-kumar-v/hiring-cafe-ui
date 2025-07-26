@@ -1,4 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
+
 export interface LabelCheckboxProps {
   label: string;
   checked: boolean | "indeterminate";
@@ -23,9 +24,9 @@ export default function LabelCheckbox({ label, checked, onChange, restrictLabelC
   );
 }
 
-export function LabelCheckboxContainer({ children }: { children: React.ReactNode }) {
+export function LabelCheckboxContainer({ children, midColCount = 2, lgColCount = 4 }: { children: React.ReactNode, midColCount?: number, lgColCount?: number }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={`grid grid-cols-1 md:grid-cols-${midColCount} lg:grid-cols-${lgColCount} gap-4`}>
       {children}
     </div>
   );
