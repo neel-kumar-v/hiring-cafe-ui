@@ -1,6 +1,9 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { useApp } from "@/contexts/AppContext";
+import { cn } from "@/lib/utils";
 import { Department, Select } from "@/types/search";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { ChevronDownIcon } from "lucide-react";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 
@@ -37,14 +40,36 @@ export function FilterSection({ title, items, handleCheckboxChange, setDepartmen
       className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
     >
       <AccordionItem value={itemValue}>
-        <AccordionTrigger className="text-md font-[600] pt-0 pb-1 ">
-          <LabelCheckbox
-            label={title}
-            checked={checked}
-            onChange={handleTitleChange}
-            restrictLabelClick
-          />
-        </AccordionTrigger>
+        <AccordionPrimitive.Header className="flex group">
+          <AccordionPrimitive.Trigger
+            data-slot="accordion-trigger"
+            className={cn(
+              "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all duration-300 ease-out outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 cursor-pointer",
+              "text-md font-[600] pt-0 pb-1"
+            )}
+          >
+            <div className="flex items-center gap-2 group">
+              <div 
+                className="accent-pink-600 size-4 group-hover:scale-125 transition-all duration-300 ease-out peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive shrink-0 rounded-[4px] border shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center text-current"
+                data-state={checked === true ? "checked" : checked === "indeterminate" ? "indeterminate" : "unchecked"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTitleChange();
+                }}
+              >
+                {checked === "indeterminate" ? (
+                  <span className="text-[10px] font-bold -translate-y-px">—</span>
+                ) : checked === true ? (
+                  <svg className="size-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : null}
+              </div>
+              <span className="text-base select-none cursor-default">{title}</span>
+            </div>
+            <ChevronDownIcon className="text-muted-foreground group-hover:text-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-all duration-300 ease-out" />
+          </AccordionPrimitive.Trigger>
+        </AccordionPrimitive.Header>
         <AccordionContent className="p-2">
           <div className="flex flex-col gap-2">
             {items.map((item, index) => (
