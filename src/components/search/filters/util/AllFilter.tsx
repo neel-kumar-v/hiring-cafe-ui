@@ -92,10 +92,10 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   }
 
   const decodeDegreePreferences = (degree: DegreePreferencesOptions) => {
-    const associate = degree.associate.preferences === null ? "None" : decodeKeywords(degree.associate.keywords);
-    const bachelor = degree.bachelor.preferences === null ? "None" : decodeKeywords(degree.bachelor.keywords);
-    const master = degree.master.preferences === null ? "None" : decodeKeywords(degree.master.keywords);
-    const doctorate = degree.doctorate.preferences === null ? "None" : decodeKeywords(degree.doctorate.keywords);
+    const associate = degree.associate.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.associate.keywords);
+    const bachelor = degree.bachelor.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.bachelor.keywords);
+    const master = degree.master.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.master.keywords);
+    const doctorate = degree.doctorate.preferences === null ? { include: "None", exclude: "None" } : decodeKeywords(degree.doctorate.keywords);
     return { associate, bachelor, master, doctorate };
   }
 
@@ -277,36 +277,71 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
 
   const qualificationsItems: FilterItemProps[] = [
     {
-      label: "Associate Degree",
-      value: decodedState.education.associate,
+      label: "Included Associate Degree Keywords",
+      value: decodedState.education.associate.include,
       categoryId: "education",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Bachelor Degree",
-      value: decodedState.education.bachelor,
+      label: "Excluded Associate Degree Keywords",
+      value: decodedState.education.associate.exclude,
       categoryId: "education",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Master Degree",
-      value: decodedState.education.master,
+      label: "Included Bachelor Degree Keywords",
+      value: decodedState.education.bachelor.include,
       categoryId: "education",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Doctorate Degree",
-      value: decodedState.education.doctorate,
+      label: "Excluded Bachelor Degree Keywords",
+      value: decodedState.education.bachelor.exclude,
       categoryId: "education",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "License",
-      value: decodedState.license,
+      label: "Included Master Degree Keywords",
+      value: decodedState.education.master.include,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded Master Degree Keywords",
+      value: decodedState.education.master.exclude,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Included Doctorate Degree Keywords",
+      value: decodedState.education.doctorate.include,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded Doctorate Degree Keywords",
+      value: decodedState.education.doctorate.exclude,
+      categoryId: "education",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Included License Keywords",
+      value: decodedState.license.include,
+      categoryId: "licenses",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded License Keywords",
+      value: decodedState.license.exclude,
       categoryId: "licenses",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
@@ -447,22 +482,43 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
 
   const companyItems: FilterItemProps[] = [
     {
-      label: "Company Keywords",
-      value: decodedState.company,
+      label: "Included Company Keywords",
+      value: decodedState.company.include,
       categoryId: "company",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Industry Keywords",
-      value: decodedState.industry.decoded_industry,
+      label: "Excluded Company Keywords",
+      value: decodedState.company.exclude,
+      categoryId: "company",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Included Industry Keywords",
+      value: decodedState.industry.decoded_industry.include,
       categoryId: "industry",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Industry Activities",
-      value: decodedState.industry.activities,
+      label: "Excluded Industry Keywords",
+      value: decodedState.industry.decoded_industry.exclude,
+      categoryId: "industry",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Included Industry Activities",
+      value: decodedState.industry.activities.include,
+      categoryId: "industry",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded Industry Activities",
+      value: decodedState.industry.activities.exclude,
       categoryId: "industry",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
@@ -482,8 +538,15 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Investors",
-      value: decodedState.stage_funding.investors,
+      label: "Included Investors",
+      value: decodedState.stage_funding.investors.include,
+      categoryId: "stage",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded Investors",
+      value: decodedState.stage_funding.investors.exclude,
       categoryId: "stage",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
@@ -496,8 +559,15 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Latest Round Type",
-      value: decodedState.stage_funding.latest_round_type,
+      label: "Included Latest Round Type",
+      value: decodedState.stage_funding.latest_round_type.include,
+      categoryId: "stage",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded Latest Round Type",
+      value: decodedState.stage_funding.latest_round_type.exclude,
       categoryId: "stage",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick

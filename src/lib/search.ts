@@ -1,3 +1,4 @@
+import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
 import jobsData from "@/data/jobs_data.json";
 import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
@@ -210,8 +211,17 @@ export function getJobTitlesFromData(): string[] {
   return [];
 }
 
-export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>) {
-  if (Array.isArray(select)) return select.length === 0 ? "None" : select.join(", ");
+export function getDegreeTitlesFromData(): string[] {
+  if (degreeTitlesData && Array.isArray(degreeTitlesData.suggestions)) {
+    return Array.from(new Set(degreeTitlesData.suggestions)).map(title =>
+      title.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
+    ) as string[];
+  }
+  return [];
+}
+
+export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>, maxCount: number = 3) {
+  if (Array.isArray(select)) return select.length === 0 ? "None" : select.slice(0, maxCount).join(", ");
   return select;
 }
 
@@ -236,9 +246,10 @@ export function decodeSearchExpression(expression: SearchExpression<string>): st
   return "";
 }
 
-export function decodeKeywords(keywords: Keywords) {
-  if (keywords.include.length === 0 && keywords.exclude === "None") return "None";
-  return "Include: " + decodeSelectString(keywords.include) + " Exclude: " + decodeSelectString(keywords.exclude);
+export function decodeKeywords(keywords: Keywords, maxCount: number = 5) {
+  const include = keywords.include.length === 0 ? "None" : decodeSelectString(keywords.include, maxCount) + (keywords.include.length > maxCount ? "..." : "");
+  const exclude = keywords.exclude === "None" ? "None" : decodeSelectString(keywords.exclude, maxCount) + (keywords.exclude.length > maxCount ? "..." : "");
+  return { include, exclude };
 }
 
 // Parses a boolean search string into a SearchExpression<string>
