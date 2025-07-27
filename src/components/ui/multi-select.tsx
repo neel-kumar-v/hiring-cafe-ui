@@ -136,7 +136,7 @@ export const MultiSelect = React.forwardRef<
       placeholder = "Select options",
       animation = 0,
       maxCount = 3,
-      modalPopover = false,
+      modalPopover = true,
       className,
       showSelectAll = false,
       ...props
@@ -244,7 +244,7 @@ export const MultiSelect = React.forwardRef<
               {...props}
               onClick={handleTogglePopover}
               className={cn(
-                "flex w-full p-1 rounded-md border border-input min-h-12 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
+                "flex w-full p-1 rounded-md border border-input min-h-12 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto scrollbar-none",
                 className
               )}
             >
@@ -290,10 +290,6 @@ export const MultiSelect = React.forwardRef<
                         event.stopPropagation();
                         handleClear();
                       }}
-                    />
-                    <Separator
-                      orientation="vertical"
-                      className="flex min-h-6 h-full"
                     />
                     <ChevronDown className="h-4 mx-2 cursor-pointer text-muted-foreground" />
                   </div>
