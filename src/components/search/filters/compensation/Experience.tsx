@@ -15,8 +15,10 @@ export default function Experience() {
       "Mid Level",
       "Senior Level"
     ]
+    
     if (!Array.isArray(currentExperience.level)) {
-      newExperience = [type]
+      const allExceptSelected = allExperienceLevels.filter(item => item !== type);
+      newExperience = allExceptSelected;
     } else if (currentExperience.level.includes(type)) {
       const filtered = currentExperience.level.filter((item: ExperienceLevel) => item !== type)
       newExperience = filtered.length === 0 ? "All" : filtered

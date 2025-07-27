@@ -18,8 +18,10 @@ export default function Commitment() {
       "Volunteer",
       "Seasonal"
     ]
+    
     if (!Array.isArray(currentCommitment)) {
-      newCommitment = [type]
+      const allExceptSelected = allCommitmentLevels.filter(item => item !== type);
+      newCommitment = allExceptSelected;
     } else if (currentCommitment.includes(type)) {
       const filtered = currentCommitment.filter((item: CommitmentLevel) => item !== type)
       newCommitment = filtered.length === 0 ? "All" : filtered
