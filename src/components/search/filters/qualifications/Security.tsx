@@ -1,7 +1,8 @@
 import { useApp } from "@/contexts/AppContext";
 import { SecurityClearance, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
+import LabelCheckbox from "../util/LabelCheckbox";
+import LabelInputContainer from "../util/LabelInputContainer";
 
 export default function Security() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -39,7 +40,7 @@ export default function Security() {
 
   return (
     <FilterContainer title="Security Clearance">
-      <LabelCheckboxContainer>
+      <LabelInputContainer>
         <LabelCheckbox
           label="None"
           checked={searchOptions.security_clearance.includes("None") || searchOptions.security_clearance === "All"}
@@ -80,7 +81,7 @@ export default function Security() {
           checked={searchOptions.security_clearance.includes("Other") || searchOptions.security_clearance === "All"}
           onChange={() => handleCheckboxChange("Other")}
         />
-      </LabelCheckboxContainer>
+      </LabelInputContainer>
     </FilterContainer>
   );
 } 

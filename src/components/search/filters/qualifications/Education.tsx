@@ -5,7 +5,8 @@ import { DegreePreferences, Keywords, Select } from "@/types/search";
 import { useMemo } from "react";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
-import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
+import LabelCheckbox from "../util/LabelCheckbox";
+import LabelInputContainer from "../util/LabelInputContainer";
 
 export default function Education() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -76,7 +77,7 @@ export default function Education() {
             Associate&apos;s Degree
           </AccordionTrigger>
           <AccordionContent className="space-y-3 p-2 pb-4">
-            <LabelCheckboxContainer midColCount={2} lgColCount={2}>
+            <LabelInputContainer midColCount={4} lgColCount={4}>
               <LabelCheckbox 
                 label="Required" 
                 checked={isPreferenceSelected('associate', "Required")} 
@@ -87,7 +88,13 @@ export default function Education() {
                 checked={isPreferenceSelected('associate', "Preferred")} 
                 onChange={() => handlePreferenceChange('associate', "Preferred")} 
               />
-            </LabelCheckboxContainer>
+              <LabelCheckbox 
+                label="Not Mentioned" 
+                checked={isPreferenceSelected('associate', "Not Mentioned")} 
+                onChange={() => handlePreferenceChange('associate', "Not Mentioned")} 
+                className="md:col-span-2"
+              />
+            </LabelInputContainer>
             <KeywordsMultiSelect 
               value={searchOptions.education.associate.keywords} 
               onChange={(keywords) => handleKeywordsChange('associate', keywords)} 
@@ -102,7 +109,7 @@ export default function Education() {
             Bachelor&apos;s Degree
           </AccordionTrigger>
           <AccordionContent className="space-y-3 p-2 pb-4">
-            <LabelCheckboxContainer midColCount={2} lgColCount={2}>
+            <LabelInputContainer midColCount={4} lgColCount={4}>
               <LabelCheckbox 
                 label="Required" 
                 checked={isPreferenceSelected('bachelor', "Required")} 
@@ -113,7 +120,13 @@ export default function Education() {
                 checked={isPreferenceSelected('bachelor', "Preferred")} 
                 onChange={() => handlePreferenceChange('bachelor', "Preferred")} 
               />
-            </LabelCheckboxContainer>
+              <LabelCheckbox 
+                label="Not Mentioned" 
+                checked={isPreferenceSelected('bachelor', "Not Mentioned")} 
+                onChange={() => handlePreferenceChange('bachelor', "Not Mentioned")} 
+                className="md:col-span-2"
+              />
+            </LabelInputContainer>
             <KeywordsMultiSelect 
               value={searchOptions.education.bachelor.keywords} 
               onChange={(keywords) => handleKeywordsChange('bachelor', keywords)} 
@@ -128,7 +141,7 @@ export default function Education() {
             Master&apos;s Degree
           </AccordionTrigger>
           <AccordionContent className="space-y-3 p-2 pb-4">
-            <LabelCheckboxContainer midColCount={2} lgColCount={2}>
+            <LabelInputContainer midColCount={4} lgColCount={4}>
               <LabelCheckbox 
                 label="Required" 
                 checked={isPreferenceSelected('master', "Required")} 
@@ -139,7 +152,13 @@ export default function Education() {
                 checked={isPreferenceSelected('master', "Preferred")} 
                 onChange={() => handlePreferenceChange('master', "Preferred")} 
               />
-            </LabelCheckboxContainer>
+              <LabelCheckbox 
+                label="Not Mentioned" 
+                checked={isPreferenceSelected('master', "Not Mentioned")} 
+                onChange={() => handlePreferenceChange('master', "Not Mentioned")} 
+                className="md:col-span-2"
+              />
+            </LabelInputContainer>
             <KeywordsMultiSelect 
               value={searchOptions.education.master.keywords} 
               onChange={(keywords) => handleKeywordsChange('master', keywords)} 
@@ -154,7 +173,7 @@ export default function Education() {
             PhD
           </AccordionTrigger>
           <AccordionContent className="space-y-3 p-2 pb-4">
-            <LabelCheckboxContainer midColCount={2} lgColCount={2}>
+            <LabelInputContainer midColCount={4} lgColCount={4}>
               <LabelCheckbox 
                 label="Required" 
                 checked={isPreferenceSelected('doctorate', "Required")} 
@@ -165,7 +184,13 @@ export default function Education() {
                 checked={isPreferenceSelected('doctorate', "Preferred")} 
                 onChange={() => handlePreferenceChange('doctorate', "Preferred")} 
               />
-            </LabelCheckboxContainer>
+              <LabelCheckbox 
+                label="Not Mentioned" 
+                checked={isPreferenceSelected('doctorate', "Not Mentioned")} 
+                onChange={() => handlePreferenceChange('doctorate', "Not Mentioned")} 
+                className="md:col-span-2"
+              />
+            </LabelInputContainer>
             <KeywordsMultiSelect 
               value={searchOptions.education.doctorate.keywords} 
               onChange={(keywords) => handleKeywordsChange('doctorate', keywords)} 

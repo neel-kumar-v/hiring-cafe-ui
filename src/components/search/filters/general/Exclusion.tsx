@@ -2,7 +2,8 @@
 import { useApp } from "@/contexts/AppContext";
 import { Exclusion as ExclusionType } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
+import LabelCheckbox from "../util/LabelCheckbox";
+import { LabelInputContainer } from "../util/LabelInputContainer";
 
 export default function Exclusion() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -20,7 +21,7 @@ export default function Exclusion() {
 
   return (
     <FilterContainer title="Exclude Jobs you have">
-      <LabelCheckboxContainer>
+      <LabelInputContainer>
         <LabelCheckbox 
           label="Applied" 
           checked={searchOptions.exclusion.includes("Applied")} 
@@ -41,7 +42,7 @@ export default function Exclusion() {
           checked={searchOptions.exclusion.includes("Hidden")} 
           onChange={() => handleCheckboxChange("Hidden")}
         />
-      </LabelCheckboxContainer>
+      </LabelInputContainer>
     </FilterContainer>
   );
 }   

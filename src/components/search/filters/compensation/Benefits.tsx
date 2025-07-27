@@ -1,7 +1,8 @@
 import { useApp } from "@/contexts/AppContext";
 import { type Benefits } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
+import LabelCheckbox from "../util/LabelCheckbox";
+import LabelInputContainer from "../util/LabelInputContainer";
 
 export default function Benefits() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -19,7 +20,7 @@ export default function Benefits() {
 
   return (
     <FilterContainer title="Benefits & Perks">
-      <LabelCheckboxContainer>
+      <LabelInputContainer>
         <LabelCheckbox 
           label="PTO" 
           checked={searchOptions.benefits?.includes("PTO") || false} 
@@ -60,7 +61,7 @@ export default function Benefits() {
           checked={searchOptions.benefits?.includes("Relocation") || false} 
           onChange={() => handleBenefitsCheckboxChange("Relocation")}
         />
-      </LabelCheckboxContainer>
+      </LabelInputContainer>
     </FilterContainer>
   );
 } 

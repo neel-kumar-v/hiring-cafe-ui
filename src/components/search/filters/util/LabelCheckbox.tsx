@@ -5,9 +5,10 @@ export interface LabelCheckboxProps {
   checked: boolean | "indeterminate";
   onChange: (checked: boolean | "indeterminate") => void;
   restrictLabelClick?: boolean;
+  className?: string;
 }
 
-export default function LabelCheckbox({ label, checked, onChange, restrictLabelClick }: LabelCheckboxProps) {
+export default function LabelCheckbox({ label, checked, onChange, restrictLabelClick, className }: LabelCheckboxProps) {
   if (restrictLabelClick) {
     return (
       <span className="flex items-center gap-2 group">
@@ -17,17 +18,10 @@ export default function LabelCheckbox({ label, checked, onChange, restrictLabelC
     );
   }
   return (
-    <label className="flex items-center gap-2 group">
+    <label className={`flex items-center gap-2 group ${className}`}>
       <Checkbox className="accent-pink-600 size-4 group-hover:scale-125 transition-all duration-300 ease-out" checked={checked} onCheckedChange={onChange} />
       <span className="text-base select-none cursor-default">{label}</span>
     </label>
   );
 }
 
-export function LabelCheckboxContainer({ children, midColCount = 2, lgColCount = 4 }: { children: React.ReactNode, midColCount?: number, lgColCount?: number }) {
-  return (
-    <div className={`grid grid-cols-1 md:grid-cols-${midColCount} lg:grid-cols-${lgColCount} gap-4`}>
-      {children}
-    </div>
-  );
-}

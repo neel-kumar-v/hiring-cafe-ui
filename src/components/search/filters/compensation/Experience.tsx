@@ -1,7 +1,8 @@
 import { useApp } from "@/contexts/AppContext";
 import { ExperienceLevel, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
+import LabelCheckbox from "../util/LabelCheckbox";
+import LabelInputContainer from "../util/LabelInputContainer";
 
 export default function Experience() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -40,7 +41,7 @@ export default function Experience() {
       {/* <p className="mb-2 -mt-2 text-base text-text font-medium">
         Seniority
       </p> */}
-      <LabelCheckboxContainer>
+      <LabelInputContainer>
         <LabelCheckbox 
           label="No Experience Required" 
           checked={searchOptions.experience.level.includes("None") || searchOptions.experience.level === "All"} 
@@ -61,7 +62,7 @@ export default function Experience() {
           checked={searchOptions.experience.level.includes("Senior Level") || searchOptions.experience.level === "All"} 
           onChange={() => handleSeniorityCheckboxChange("Senior Level")}
         />
-      </LabelCheckboxContainer>
+      </LabelInputContainer>
     </FilterContainer>
   );
 } 

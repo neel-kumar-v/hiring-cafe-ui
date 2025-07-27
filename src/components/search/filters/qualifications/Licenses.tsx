@@ -1,10 +1,11 @@
 import { useApp } from "@/contexts/AppContext";
+import { getLicensesFromData } from "@/lib/search";
+import { Keywords } from "@/types/search";
+import { useMemo } from "react";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
-import { useMemo } from "react";
-import { Keywords } from "@/types/search";
-import { getLicensesFromData } from "@/lib/search";
-import LabelCheckbox, { LabelCheckboxContainer } from "../util/LabelCheckbox";
+import LabelCheckbox from "../util/LabelCheckbox";
+import LabelInputContainer from "../util/LabelInputContainer";
 
 export default function Licenses() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -36,13 +37,13 @@ export default function Licenses() {
 
   return (
     <FilterContainer title="Licenses & Certifications">
-      <LabelCheckboxContainer midColCount={1} lgColCount={1}>
+      <LabelInputContainer midColCount={1} lgColCount={1}>
         <LabelCheckbox
           label="Hide Required Licenses"
           checked={searchOptions.license_certification.hide_required}
           onChange={() => handleHideRequiredLicensesChange()}
         />
-      </LabelCheckboxContainer>
+      </LabelInputContainer>
       <KeywordsMultiSelect
         value={searchOptions.license_certification.keywords}
         onChange={(licenses) => handleLicensesChange(licenses)}
