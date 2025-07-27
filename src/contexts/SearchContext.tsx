@@ -56,7 +56,7 @@ export const defaultSearchOptions: SearchState = {
     weekend: "None",
     holiday: "None",
     overtime: "None",
-    oncall: "None",
+    oncall: "All",
   },
   travel_requirements: {
     air: "All",
@@ -76,7 +76,7 @@ export const defaultSearchOptions: SearchState = {
     location: [],
     workplace_type: "All",
     environment: "All",
-    demands: {
+    workplace_activity: {
       mobility: "All",
       physical_intensity: "All",
       cognitive_intensity: "All",

@@ -68,8 +68,9 @@ export class PerformanceMonitor {
     let clsValue = 0;
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
+        const layoutShiftEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+        if (!layoutShiftEntry.hadRecentInput) {
+          clsValue += layoutShiftEntry.value || 0;
           this.metrics = { ...this.metrics, cls: clsValue };
           console.log('📐 CLS:', clsValue.toFixed(4));
         }

@@ -134,7 +134,7 @@ export interface ShiftPreferencesOptions {
   weekend: AvailabilityPreferences;
   holiday: AvailabilityPreferences;
   overtime: AvailabilityPreferences;
-  oncall: OncallPreferences;
+  oncall: Select<OncallPreferences>;
 }
 
 export type TravelRequirements = "None" | "Minimum" | "Moderate" | "Extensive";
@@ -168,12 +168,7 @@ export interface FundingOptions {
 }
 
 export type Workplace = "Remote" | "Hybrid" | "Onsite";
-export type Environment =
-  | "Office"
-  | "Outdoor"
-  | "Vehicle"
-  | "Industrial"
-  | "Customer-Facing";
+export type Environment = "Office"  | "Outdoor"  | "Vehicle"  | "Industrial"  | "Customer-Facing";
 
 export type LocationType = "Locality" | "Admin Area" | "Country" | "Continent";
 export interface AddressComponent {
@@ -198,7 +193,7 @@ export interface SearchedLocationOptions {
 }
 export type Intensity = "Low" | "Medium" | "High";
 export type Mobility = "Sitting" | "Active";
-export interface DemandsOptions {
+export interface WorkplaceActivityOptions {
   mobility: Select<Mobility>;
   physical_intensity: Select<Intensity>;
   cognitive_intensity: Select<Intensity>;
@@ -221,7 +216,7 @@ export interface LocationOptions {
   location: Location[];
   workplace_type: Select<Workplace>;
   environment: Select<Environment>;
-  demands: DemandsOptions;
+  workplace_activity: WorkplaceActivityOptions;
 }
 
 export interface SearchState {

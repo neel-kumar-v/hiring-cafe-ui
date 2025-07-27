@@ -18,7 +18,7 @@ export function ReducedMotionProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(true);
 
   // Initialize reduced motion preference from localStorage and system preference on mount
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useApp } from "@/contexts/AppContext";
 import { type Encouraged } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
-import { LabelInputContainer } from "../util/LabelInputContainer";
+import LabelInputContainer from "../util/LabelInputContainer";
 
 export default function Encouraged() {
   const { searchOptions, updateSearchOptions } = useApp();

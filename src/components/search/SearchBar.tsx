@@ -1,6 +1,7 @@
 import jobTitlesData from "@/data/job_titles.json" with { type: "json" };
 import {
   Building2,
+  CalendarClock,
   DollarSign,
   IdCard,
   type LucideIcon,
@@ -116,8 +117,8 @@ export default function SearchBar({
       case "filters":
         onIconClick?.("filters");
         break;
-      case "saved":
-        onIconClick?.("saved");
+      case "availability":
+        onIconClick?.("availability");
         break;
       case "role-department":
         onIconClick?.("role-department");
@@ -175,6 +176,14 @@ export default function SearchBar({
         />
         <SearchBarIcon
           delay="delay-300 hover:delay-0"
+          icon={CalendarClock}
+          tooltipContent="Availability"
+          onClick={() => onIconClick?.("availability")}
+          dataIconType="availability"
+          clickable={!inputValue}
+        />
+        <SearchBarIcon
+          delay="delay-400 hover:delay-0"
           icon={School}
           tooltipContent="Qualifications"
           onClick={() => onIconClick?.("qualifications")}
@@ -182,7 +191,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-400 hover:delay-0"
+          delay="delay-500 hover:delay-0"
           icon={MapPin}
           tooltipContent="Location"
           onClick={() => onIconClick?.("location")}
@@ -190,7 +199,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-500 hover:delay-0"
+          delay="delay-600 hover:delay-0"
           icon={Building2}
           tooltipContent="Company"
           onClick={() => onIconClick?.("company")}

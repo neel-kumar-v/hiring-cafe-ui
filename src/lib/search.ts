@@ -1,7 +1,7 @@
 import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
+import jobsData from "@/data/jobs_data.json";
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
-import jobsData from "@/data/jobs_data.json";
 import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
@@ -100,14 +100,14 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     bachelorsDegreeRequirements: [],
     benefitsAndPerks: convertSelectToArray(searchState.benefits),
     calcFrequency: searchState.salary.unit,
-    cognitiveDemandLevels: convertDemandsToArray(searchState.location.demands.cognitive_intensity),
+    cognitiveDemandLevels: convertDemandsToArray(searchState.location.workplace_activity.cognitive_intensity),
     commitmentTypes: convertCommitmentLevel(searchState.commitment),
     companyKeywords: convertKeywordsToArray(searchState.company),
     companyKeywordsBooleanOperator: "OR",
     companyNames: [],
     companyPublicOrPrivate: searchState.stage_funding.current === "All" ? "all" : searchState.stage_funding.current.toLowerCase(),
     companySizeRanges: [],
-    computerUsageLevels: convertDemandsToArray(searchState.location.demands.computer_usage),
+    computerUsageLevels: convertDemandsToArray(searchState.location.workplace_activity.computer_usage),
     currency: {
       label: "Any",
       value: null
@@ -167,13 +167,13 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     minCompensationLowEnd: searchState.salary.min_range.min,
     minYearFounded: searchState.founding_year.min,
     morningShiftWork: [],
-    onCallRequirements: [searchState.shift_preferences.oncall],
-    oralCommunicationLevels: convertDemandsToArray(searchState.location.demands.oral_communication),
+    onCallRequirements: convertSelectToArray(searchState.shift_preferences.oncall),
+    oralCommunicationLevels: convertDemandsToArray(searchState.location.workplace_activity.oral_communication),
     overnightShiftWork: [],
     overtimeRequired: searchState.shift_preferences.overtime === "Required" ? "Required" : "Doesn't Matter",
     physicalEnvironments: convertDemandsToArray(searchState.location.environment),
-    physicalLaborIntensity: convertDemandsToArray(searchState.location.demands.physical_intensity),
-    physicalPositions: convertDemandsToArray(searchState.location.demands.mobility),
+    physicalLaborIntensity: convertDemandsToArray(searchState.location.workplace_activity.physical_intensity),
+    physicalPositions: convertDemandsToArray(searchState.location.workplace_activity.mobility),
     requirementsKeywordsQuery: "",
     restrictedSearchAttributes: [],
     restrictJobsToTransparentSalaries: !searchState.salary.undisclosed,
@@ -239,11 +239,13 @@ export function getLicensesFromData(): string[] {
 }
 
 export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>, maxCount: number = 3) {
+  if (!select) return "None";
   if (Array.isArray(select)) return select.length === 0 ? "None" : select.slice(0, maxCount).join(", ");
   return select;
 }
 
 export function decodeRangeString(range: Range) {
+  if (!range) return "All";
   if (range.min === 0 && range.max === 0) return "All";
   function formatK(num: number) {
     if (Math.abs(num) >= 1000) {
@@ -257,6 +259,7 @@ export function decodeRangeString(range: Range) {
 }
 
 export function decodeSearchExpression(expression: SearchExpression<string>): string {
+  if (!expression) return "";
   if (typeof expression === "string") return expression;
   if (expression.AND) return expression.AND.map(decodeSearchExpression).join(" AND ");
   if (expression.OR) return expression.OR.map(decodeSearchExpression).join(" OR ");
@@ -265,103 +268,121 @@ export function decodeSearchExpression(expression: SearchExpression<string>): st
 }
 
 export function decodeKeywords(keywords: Keywords, maxCount: number = 5) {
-  const include = keywords.include.length === 0 ? "None" : decodeSelectString(keywords.include, maxCount) + (keywords.include.length > maxCount ? "..." : "");
-  const exclude = keywords.exclude === "None" ? "None" : decodeSelectString(keywords.exclude, maxCount) + (keywords.exclude.length > maxCount ? "..." : "");
+  if (!keywords) return { include: "None", exclude: "None" };
+  const include = keywords.include?.length === 0 ? "None" : decodeSelectString(keywords.include || [], maxCount) + ((keywords.include?.length || 0) > maxCount ? "..." : "");
+  const exclude = keywords.exclude === "None" ? "None" : decodeSelectString(keywords.exclude || "None", maxCount) + ((Array.isArray(keywords.exclude) ? keywords.exclude.length : 0) > maxCount ? "..." : "");
   return { include, exclude };
 }
 
-// Parses a boolean search string into a SearchExpression<string>
-// Supports AND, OR, NOT, parentheses, and quoted multi-word terms
 export function parseSearchExpression(input: string): SearchExpression<string> {
-  // Tokenize input
   const tokens: string[] = [];
-  let i = 0;
-  while (i < input.length) {
-    if (input[i] === ' ') { i++; continue; }
-    if (input[i] === '(' || input[i] === ')') { tokens.push(input[i]); i++; continue; }
-    if (input[i] === '"') {
-      let j = i + 1;
-      let str = '';
-      while (j < input.length && input[j] !== '"') { str += input[j++]; }
-      tokens.push(str);
-      i = j + 1;
+  let index = 0;
+
+  while (index < input.length) {
+    const char = input[index];
+
+    if (char === ' ') {
+      index++;
       continue;
     }
-    // Match operators (AND, OR, NOT)
-    if (/^[A-Za-z]/.test(input[i])) {
-      let j = i;
-      while (j < input.length && /[A-Za-z]/.test(input[j])) j++;
-      const word = input.slice(i, j).toUpperCase();
-      if (["AND", "OR", "NOT"].includes(word)) {
+
+    if (char === '(' || char === ')') {
+      tokens.push(char);
+      index++;
+      continue;
+    }
+
+    if (char === '"') {
+      let end = index + 1;
+      let phrase = '';
+      while (end < input.length && input[end] !== '"') {
+        phrase += input[end++];
+      }
+      tokens.push(phrase);
+      index = end + 1;
+      continue;
+    }
+
+    if (/^[A-Za-z]$/.test(char)) {
+      let end = index;
+      while (end < input.length && /[A-Za-z]/.test(input[end])) end++;
+      const word = input.slice(index, end).toUpperCase();
+      if (word === "AND" || word === "OR" || word === "NOT") {
         tokens.push(word);
-        i = j;
+        index = end;
         continue;
       }
     }
-    // Otherwise, parse a word
-    let j = i;
-    while (j < input.length && ![' ', '(', ')', '"'].includes(input[j])) j++;
-    tokens.push(input.slice(i, j));
-    i = j;
+
+    let end = index;
+    while (end < input.length && ![' ', '(', ')', '"'].includes(input[end])) end++;
+    tokens.push(input.slice(index, end));
+    index = end;
   }
 
-  // Recursive descent parser
   let pos = 0;
-  function parseExpr(): SearchExpression<string> {
-    let op: "AND" | "OR" | null = null;
-    const stack: (SearchExpression<string> | BooleanOperator<string>)[] = [];
+
+  function parseExpression(): SearchExpression<string> {
+    let currentOp: "AND" | "OR" | null = null;
+    const exprStack: (SearchExpression<string> | BooleanOperator<string>)[] = [];
+
     while (pos < tokens.length) {
       const token = tokens[pos];
+
       if (token === ')') break;
+
       if (token === '(') {
         pos++;
-        const group = parseExpr();
-        if (op && stack.length) {
-          const prev = stack.pop()!;
-          stack.push({ [op]: [prev, group] });
-          op = null;
+        const group = parseExpression();
+        if (currentOp && exprStack.length) {
+          const prev = exprStack.pop()!;
+          exprStack.push({ [currentOp]: [prev, group] });
+          currentOp = null;
         } else {
-          stack.push(group);
+          exprStack.push(group);
         }
         if (tokens[pos] === ')') pos++;
         continue;
       }
+
       if (token === 'AND' || token === 'OR') {
-        op = token;
+        currentOp = token;
         pos++;
         continue;
       }
+
       if (token === 'NOT') {
         pos++;
         let next: SearchExpression<string>;
         if (tokens[pos] === '(') {
           pos++;
-          next = parseExpr();
+          next = parseExpression();
           if (tokens[pos] === ')') pos++;
         } else {
           next = tokens[pos++];
         }
-        stack.push({ NOT: next });
+        exprStack.push({ NOT: next });
         continue;
       }
-      // Otherwise, it's a word/phrase
-      if (op && stack.length) {
-        const prev = stack.pop()!;
-        stack.push({ [op]: [prev, token] });
-        op = null;
+
+      if (currentOp && exprStack.length) {
+        const prev = exprStack.pop()!;
+        exprStack.push({ [currentOp]: [prev, token] });
+        currentOp = null;
       } else {
-        stack.push(token);
+        exprStack.push(token);
       }
       pos++;
     }
-    // Reduce stack to a single node
-    while (stack.length > 1) {
-      const a = stack.shift()!;
-      const b = stack.shift()!;
-      stack.unshift({ AND: [a, b] });
+
+    while (exprStack.length > 1) {
+      const first = exprStack.shift()!;
+      const second = exprStack.shift()!;
+      exprStack.unshift({ AND: [first, second] });
     }
-    return stack[0] ?? "";
+
+    return exprStack[0] ?? "";
   }
 
-  return parseExpr();
+  return parseExpression();
 }

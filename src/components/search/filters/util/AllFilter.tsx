@@ -81,6 +81,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   const [extended, setExtended] = useState(false);
 
   const decodeSalary = (salary: SalaryOptions) => {
+    if (!salary) return "All";
     const minRange = decodeRangeString(salary.min_range);
     const maxRange = decodeRangeString(salary.max_range);
     if (minRange === "All" && maxRange === "All") return "All";
@@ -91,30 +92,32 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   }
 
   const decodeDegreePreferences = (degree: DegreePreferencesOptions) => {
+    if (!degree) return { associate: { preferences: "None", include: "None", exclude: "None" }, bachelor: { preferences: "None", include: "None", exclude: "None" }, master: { preferences: "None", include: "None", exclude: "None" }, doctorate: { preferences: "None", include: "None", exclude: "None" } };
     const associate = {
-      preferences: degree.associate.preferences === null ? "None" : Array.isArray(degree.associate.preferences) ? degree.associate.preferences.join(", ") : degree.associate.preferences,
-      include: decodeKeywords(degree.associate.keywords).include,
-      exclude: decodeKeywords(degree.associate.keywords).exclude
+      preferences: degree.associate?.preferences === null ? "None" : Array.isArray(degree.associate?.preferences) ? degree.associate.preferences.join(", ") : degree.associate?.preferences || "None",
+      include: decodeKeywords(degree.associate?.keywords || { include: [], exclude: "None" }).include,
+      exclude: decodeKeywords(degree.associate?.keywords || { include: [], exclude: "None" }).exclude
     };
     const bachelor = {
-      preferences: degree.bachelor.preferences === null ? "None" : Array.isArray(degree.bachelor.preferences) ? degree.bachelor.preferences.join(", ") : degree.bachelor.preferences,
-      include: decodeKeywords(degree.bachelor.keywords).include,
-      exclude: decodeKeywords(degree.bachelor.keywords).exclude
+      preferences: degree.bachelor?.preferences === null ? "None" : Array.isArray(degree.bachelor?.preferences) ? degree.bachelor.preferences.join(", ") : degree.bachelor?.preferences || "None",
+      include: decodeKeywords(degree.bachelor?.keywords || { include: [], exclude: "None" }).include,
+      exclude: decodeKeywords(degree.bachelor?.keywords || { include: [], exclude: "None" }).exclude
     };
     const master = {
-      preferences: degree.master.preferences === null ? "None" : Array.isArray(degree.master.preferences) ? degree.master.preferences.join(", ") : degree.master.preferences,
-      include: decodeKeywords(degree.master.keywords).include,
-      exclude: decodeKeywords(degree.master.keywords).exclude
+      preferences: degree.master?.preferences === null ? "None" : Array.isArray(degree.master?.preferences) ? degree.master.preferences.join(", ") : degree.master?.preferences || "None",
+      include: decodeKeywords(degree.master?.keywords || { include: [], exclude: "None" }).include,
+      exclude: decodeKeywords(degree.master?.keywords || { include: [], exclude: "None" }).exclude
     };
     const doctorate = {
-      preferences: degree.doctorate.preferences === null ? "None" : Array.isArray(degree.doctorate.preferences) ? degree.doctorate.preferences.join(", ") : degree.doctorate.preferences,
-      include: decodeKeywords(degree.doctorate.keywords).include,
-      exclude: decodeKeywords(degree.doctorate.keywords).exclude
+      preferences: degree.doctorate?.preferences === null ? "None" : Array.isArray(degree.doctorate?.preferences) ? degree.doctorate.preferences.join(", ") : degree.doctorate?.preferences || "None",
+      include: decodeKeywords(degree.doctorate?.keywords || { include: [], exclude: "None" }).include,
+      exclude: decodeKeywords(degree.doctorate?.keywords || { include: [], exclude: "None" }).exclude
     };
     return { associate, bachelor, master, doctorate };
   }
 
   const decodeShiftPreferences = (shifts: ShiftPreferencesOptions) => {
+    if (!shifts) return { morning: "None", afternoon: "None", evening: "None", weekend: "None", holiday: "None", overtime: "None", oncall: "None" };
     const morning = shifts.morning === null ? "None" : decodeSelectString(shifts.morning);
     const afternoon = shifts.afternoon === null ? "None" : decodeSelectString(shifts.afternoon);
     const evening = shifts.evening === null ? "None" : decodeSelectString(shifts.evening);
@@ -126,59 +129,60 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   }
 
   const decodeIndustryOptions = (industry: IndustryOptions) => {
+    if (!industry) return { profit: "All", activities: { include: "None", exclude: "None" }, decoded_industry: { include: "None", exclude: "None" }, usa_jobs: "All" };
     const profit = industry.profit === "All" ? "All" : decodeSelectString(industry.profit);
-    const activities = decodeKeywords(industry.activities);
-    const decoded_industry = decodeKeywords(industry.industry);
+    const activities = decodeKeywords(industry.activities || { include: [], exclude: "None" });
+    const decoded_industry = decodeKeywords(industry.industry || { include: [], exclude: "None" });
     const usa_jobs = industry.usa_jobs === "All" ? "All" : decodeSelectString(industry.usa_jobs);
     return { profit, activities, decoded_industry, usa_jobs };
   }
 
   const decodeFundingOptions = (funding: FundingOptions) => {
+    if (!funding) return { current: "All", investors: { include: "None", exclude: "None" }, latest_round: "All", latest_round_type: { include: "None", exclude: "None" }, latest_round_amount: "All" };
     const current = funding.current === "All" ? "All" : decodeSelectString(funding.current);
-    const investors = decodeKeywords(funding.investors);
-    const latest_round = decodeRangeString(funding.latest_round);
-    const latest_round_type = decodeKeywords(funding.latest_round_type);
-    const latest_round_amount = decodeRangeString(funding.latest_round_amount);
+    const investors = decodeKeywords(funding.investors || { include: [], exclude: "None" });
+    const latest_round = decodeRangeString(funding.latest_round || { min: 0, max: 0 });
+    const latest_round_type = decodeKeywords(funding.latest_round_type || { include: [], exclude: "None" });
+    const latest_round_amount = decodeRangeString(funding.latest_round_amount || { min: 0, max: 0 });
     return { current, investors, latest_round, latest_round_type, latest_round_amount };
   }
 
   const decodedState = {
-    date_range: `${searchOptions.date_range.magnitude} ${searchOptions.date_range.unit}`,
-    sort: `${searchOptions.sort.order} ${searchOptions.sort.by}`,
-    apply_form: searchOptions.apply_form,
-    exclusion: searchOptions.exclusion.length > 0 ? "Jobs you have" + searchOptions.exclusion.join(", ") : "None",
-    encouraged: searchOptions.encouraged && searchOptions.encouraged.length > 0 ? searchOptions.encouraged.join(", ") : "None",
-    departments: decodeSelectString(searchOptions.department),
-    salary: decodeSalary(searchOptions.salary) + (searchOptions.salary.undisclosed ? " (hide undisclosed salaries)" : ""),
-    commitment: decodeSelectString(searchOptions.commitment),
-    experience: decodeSelectString(searchOptions.experience.level),
-    job_titles: decodeSearchExpression(searchOptions.job_titles.title),
-    job_keywords: decodeSearchExpression(searchOptions.job_titles.technical),
-    job_description: decodeSearchExpression(searchOptions.job_titles.description),
-    job_requirements: decodeSearchExpression(searchOptions.job_titles.requirements),
-    benefits: decodeSelectString(searchOptions.benefits),
-    education: decodeDegreePreferences(searchOptions.education),
-    license: decodeKeywords(searchOptions.license_certification.keywords),
-    hide_required: (searchOptions.license_certification.hide_required ? " Yes" : " No"),
-    security: decodeSelectString(searchOptions.security_clearance),
-    shifts: decodeShiftPreferences(searchOptions.shift_preferences),
-    air_travel: decodeSelectString(searchOptions.travel_requirements.air),
-    land_travel: decodeSelectString(searchOptions.travel_requirements.land),
-    // Location items with categories
-    location: searchOptions.location.userLocation.address.formatted, // Placeholder - would need actual location data
-    workplace_type: decodeSelectString(searchOptions.location.workplace_type),
-    environment: decodeSelectString(searchOptions.location.environment),
-    mobility: decodeSelectString(searchOptions.location.demands.mobility),
-    physical_intensity: decodeSelectString(searchOptions.location.demands.physical_intensity),
-    cognitive_intensity: decodeSelectString(searchOptions.location.demands.cognitive_intensity),
-    computer_usage: decodeSelectString(searchOptions.location.demands.computer_usage),
-    oral_communication: decodeSelectString(searchOptions.location.demands.oral_communication),
-    // Company items with categories  
-    company: decodeKeywords(searchOptions.company),
-    industry: decodeIndustryOptions(searchOptions.industry),
-    stage_funding: decodeFundingOptions(searchOptions.stage_funding),
-    size: decodeRangeString(searchOptions.size),
-    founding_year: decodeRangeString(searchOptions.founding_year),
+    date_range: searchOptions?.date_range ? `${searchOptions.date_range.magnitude} ${searchOptions.date_range.unit}` : "All",
+    sort: searchOptions?.sort ? `${searchOptions.sort.order} ${searchOptions.sort.by}` : "Most Relevance",
+    apply_form: searchOptions?.apply_form || "All",
+    exclusion: searchOptions?.exclusion && searchOptions.exclusion.length > 0 ? "Jobs you have" + searchOptions.exclusion.join(", ") : "None",
+    encouraged: searchOptions?.encouraged && searchOptions.encouraged.length > 0 ? searchOptions.encouraged.join(", ") : "None",
+    departments: decodeSelectString(searchOptions?.department || "All"),
+    salary: searchOptions?.salary ? decodeSalary(searchOptions.salary) + (searchOptions.salary.undisclosed ? " (hide undisclosed salaries)" : "") : "All",
+    commitment: decodeSelectString(searchOptions?.commitment || "All"),
+    experience: decodeSelectString(searchOptions?.experience?.level || "All"),
+    job_titles: searchOptions?.job_titles?.title ? decodeSearchExpression(searchOptions.job_titles.title) : "None",
+    job_keywords: searchOptions?.job_titles?.technical ? decodeSearchExpression(searchOptions.job_titles.technical) : "None",
+    job_description: searchOptions?.job_titles?.description ? decodeSearchExpression(searchOptions.job_titles.description) : "None",
+    job_requirements: searchOptions?.job_titles?.requirements ? decodeSearchExpression(searchOptions.job_titles.requirements) : "None",
+    benefits: decodeSelectString(searchOptions?.benefits || "All"),
+    education: decodeDegreePreferences(searchOptions?.education),
+    license: decodeKeywords(searchOptions?.license_certification?.keywords || { include: [], exclude: "None" }),
+    language: decodeKeywords(searchOptions?.language || { include: [], exclude: "None" }),
+    hide_required: (searchOptions?.license_certification?.hide_required ? " Yes" : " No"),
+    security: decodeSelectString(searchOptions?.security_clearance || "All"),
+    shifts: decodeShiftPreferences(searchOptions?.shift_preferences),
+    air_travel: decodeSelectString(searchOptions?.travel_requirements?.air || "All"),
+    land_travel: decodeSelectString(searchOptions?.travel_requirements?.land || "All"),
+    location: searchOptions?.location?.userLocation?.address?.formatted || "None",
+    workplace_type: decodeSelectString(searchOptions?.location?.workplace_type || "All"),
+    environment: decodeSelectString(searchOptions?.location?.environment || "All"),
+    mobility: decodeSelectString(searchOptions?.location?.workplace_activity?.mobility || "All"),
+    physical_intensity: decodeSelectString(searchOptions?.location?.workplace_activity?.physical_intensity || "All"),
+    cognitive_intensity: decodeSelectString(searchOptions?.location?.workplace_activity?.cognitive_intensity || "All"),
+    computer_usage: decodeSelectString(searchOptions?.location?.workplace_activity?.computer_usage || "All"),
+    oral_communication: decodeSelectString(searchOptions?.location?.workplace_activity?.oral_communication || "All"),
+    company: decodeKeywords(searchOptions?.company || { include: [], exclude: "None" }),
+    industry: decodeIndustryOptions(searchOptions?.industry),
+    stage_funding: decodeFundingOptions(searchOptions?.stage_funding),
+    size: decodeRangeString(searchOptions?.size || { min: 0, max: 0 }),
+    founding_year: decodeRangeString(searchOptions?.founding_year || { min: 0, max: 0 }),
   }
   
   const generalItems: FilterItemProps[] = [
@@ -401,6 +405,20 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       label: "Security Clearance",
       value: decodedState.security,
       categoryId: "security",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Included Language Keywords",
+      value: decodedState.language.include,
+      categoryId: "languages",
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Excluded Language Keywords",
+      value: decodedState.language.exclude,
+      categoryId: "languages",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
