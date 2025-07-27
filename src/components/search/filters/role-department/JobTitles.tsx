@@ -15,7 +15,7 @@ export default function JobTitles() {
   // const jobTitles = getJobTitlesFromData();
 
   return (
-    <FilterContainer title="Job Titles & Keywords" help="e.g. 'software engineer AND (react OR angular)'">
+    <FilterContainer title="Job Titles & Keywords" help="Setup a boolean search for job keywords. e.g. 'software engineer AND NOT (react OR angular)' searches for software engineers that don't have react or angular in their job title.">
       <div className="flex flex-col gap-6">
         {FIELDS.map(({ key, label }) => (
           <div key={key} className="w-full">
