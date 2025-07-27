@@ -1,7 +1,7 @@
 "use client";
 
 import { SearchState } from "@/types/search";
-import { SavedSearch, User } from "@/types/user";
+import { User } from "@/types/user";
 import { createContext, ReactNode, useContext, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
 

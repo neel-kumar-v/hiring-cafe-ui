@@ -1,4 +1,6 @@
 import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
+import languagesData from "@/data/languages.json" with { type: "json" };
+import licensesData from "@/data/licenses.json" with { type: "json" };
 import jobsData from "@/data/jobs_data.json";
 import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
@@ -211,11 +213,27 @@ export function getJobTitlesFromData(): string[] {
   return [];
 }
 
+export function getLanguagesFromData(): string[] {
+  if (languagesData && Array.isArray(languagesData.suggestions)) {
+    return Array.from(new Set(languagesData.suggestions)).map(language =>
+      language.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
+    );
+  }
+  return [];
+}
+
 export function getDegreeTitlesFromData(): string[] {
   if (degreeTitlesData && Array.isArray(degreeTitlesData.suggestions)) {
     return Array.from(new Set(degreeTitlesData.suggestions)).map(title =>
       title.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
     ) as string[];
+  }
+  return [];
+}
+
+export function getLicensesFromData(): string[] {
+  if (licensesData && Array.isArray(licensesData.suggestions)) {
+    return Array.from(new Set(licensesData.suggestions));
   }
   return [];
 }
