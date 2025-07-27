@@ -75,7 +75,7 @@ export default function Education() {
           <AccordionTrigger className="text-base font-medium">
             Associate&apos;s Degree
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 p-2">
+          <AccordionContent className="space-y-3 p-2 pb-4">
             <LabelCheckboxContainer midColCount={2} lgColCount={2}>
               <LabelCheckbox 
                 label="Required" 
@@ -101,7 +101,7 @@ export default function Education() {
           <AccordionTrigger className="text-base font-medium">
             Bachelor&apos;s Degree
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 p-2">
+          <AccordionContent className="space-y-3 p-2 pb-4">
             <LabelCheckboxContainer midColCount={2} lgColCount={2}>
               <LabelCheckbox 
                 label="Required" 
@@ -127,7 +127,7 @@ export default function Education() {
           <AccordionTrigger className="text-base font-medium">
             Master&apos;s Degree
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 p-2">
+          <AccordionContent className="space-y-3 p-2 pb-4">
             <LabelCheckboxContainer midColCount={2} lgColCount={2}>
               <LabelCheckbox 
                 label="Required" 
@@ -153,7 +153,7 @@ export default function Education() {
           <AccordionTrigger className="text-base font-medium">
             PhD
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 p-2">
+          <AccordionContent className="space-y-3 p-2 pb-4">
             <LabelCheckboxContainer midColCount={2} lgColCount={2}>
               <LabelCheckbox 
                 label="Required" 
