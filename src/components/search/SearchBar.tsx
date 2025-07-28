@@ -175,19 +175,19 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-300 hover:delay-0"
-          icon={CalendarClock}
-          tooltipContent="Availability"
-          onClick={() => onIconClick?.("availability")}
-          dataIconType="availability"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
           delay="delay-400 hover:delay-0"
           icon={School}
           tooltipContent="Qualifications"
           onClick={() => onIconClick?.("qualifications")}
           dataIconType="qualifications"
+          clickable={!inputValue}
+        />
+        <SearchBarIcon
+          delay="delay-300 hover:delay-0"
+          icon={CalendarClock}
+          tooltipContent="Availability"
+          onClick={() => onIconClick?.("availability")}
+          dataIconType="availability"
           clickable={!inputValue}
         />
         <SearchBarIcon
