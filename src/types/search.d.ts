@@ -130,7 +130,7 @@ export type OncallPreferences = "Regular" | "Occasional" | "None";
 export interface ShiftPreferencesOptions {
   morning: Select<ShiftPreferences, null>;
   afternoon: Select<ShiftPreferences, null>;
-  evening: Select<ShiftPreferences, null>;
+  night: Select<ShiftPreferences, null>;
   weekend: AvailabilityPreferences;
   holiday: AvailabilityPreferences;
   overtime: AvailabilityPreferences;
@@ -194,6 +194,7 @@ export interface SearchedLocationOptions {
 export type Intensity = "Low" | "Medium" | "High";
 export type Mobility = "Sitting" | "Active";
 export interface WorkplaceActivityOptions {
+  environment: Select<Environment>;
   mobility: Select<Mobility>;
   physical_intensity: Select<Intensity>;
   cognitive_intensity: Select<Intensity>;
@@ -215,7 +216,6 @@ export interface LocationOptions {
   userLocation: Location;
   location: Location[];
   workplace_type: Select<Workplace>;
-  environment: Select<Environment>;
   workplace_activity: WorkplaceActivityOptions;
 }
 
@@ -384,4 +384,4 @@ export interface HiringCafeSearchState {
 
 export type CategoryType = "general" | "compensation" | "role-department" | "qualifications" | "availability" | "location" | "company";
 
-export type CategoryId = | "filters" | "saved" | "date-range" | "sorting" | "apply-form" | "exclusion" | "encouraged" | "salary" | "commitment" | "experience" | "benefits" | "departments" | "job-titles" | "education" | "licenses" | "security" | "languages" | "shifts" | "travel" | "location" | "workplace-type" | "options" | "company" | "industry" | "stage" | "size" | "founding" ;
+export type CategoryId = | "filters" | "saved" | "date-range" | "sorting" | "apply-form" | "exclusion" | "encouraged" | "salary" | "commitment" | "experience" | "benefits" | "departments" | "job-titles" | "education" | "licenses" | "security" | "languages" | "shifts" | "travel" | "location" | "workplace-activity" | "options" | "company" | "industry" | "stage" | "size" | "founding" ;

@@ -171,7 +171,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     oralCommunicationLevels: convertDemandsToArray(searchState.location.workplace_activity.oral_communication),
     overnightShiftWork: [],
     overtimeRequired: searchState.shift_preferences.overtime === "Required" ? "Required" : "Doesn't Matter",
-    physicalEnvironments: convertDemandsToArray(searchState.location.environment),
+    physicalEnvironments: convertDemandsToArray(searchState.location.workplace_activity.environment),
     physicalLaborIntensity: convertDemandsToArray(searchState.location.workplace_activity.physical_intensity),
     physicalPositions: convertDemandsToArray(searchState.location.workplace_activity.mobility),
     requirementsKeywordsQuery: "",

@@ -52,7 +52,7 @@ export const defaultSearchOptions: SearchState = {
   shift_preferences: {
     morning: null,
     afternoon: null,
-    evening: null,
+    night: null,
     weekend: "None",
     holiday: "None",
     overtime: "None",
@@ -75,8 +75,8 @@ export const defaultSearchOptions: SearchState = {
     },
     location: [],
     workplace_type: "All",
-    environment: "All",
     workplace_activity: {
+      environment: "All",
       mobility: "All",
       physical_intensity: "All",
       cognitive_intensity: "All",

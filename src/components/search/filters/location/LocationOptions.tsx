@@ -1,7 +1,7 @@
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Location from "./Location";
 import Environment from "./WorkplaceActivity";
-import WorkplaceType from "./WorkplaceType";
+// import WorkplaceType from "./WorkplaceTyp e";
   
 export default function LocationOptions({
   scrollToSection,
@@ -27,12 +27,12 @@ export default function LocationOptions({
         <Location />
       </div>
 
-      <div
+      {/* <div
         ref={refs["workplace-type"]}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
         <WorkplaceType />
-      </div>
+      </div> */}
 
       <div
         ref={refs.options}

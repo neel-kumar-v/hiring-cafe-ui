@@ -8,7 +8,7 @@ import LabelRadio from "../util/LabelRadio";
 export default function Shifts() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleShiftCheckboxChange = (shiftType: 'morning' | 'afternoon' | 'evening', preference: ShiftPreferences) => {
+  const handleShiftCheckboxChange = (shiftType: 'morning' | 'afternoon' | 'night', preference: ShiftPreferences) => {
     const currentShifts = searchOptions.shift_preferences[shiftType];
     let newShifts: ShiftPreferences[] | null;
 
@@ -68,7 +68,7 @@ export default function Shifts() {
 
   return (
     <FilterContainer title="Shifts & Schedules">
-      <LabelInputContainer title="Morning">
+      <LabelInputContainer title="Morning / Day / First Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 
           checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Required") : false} 
@@ -83,10 +83,10 @@ export default function Shifts() {
           label="Not Indicated" 
           checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Not Indicated") : false} 
           onChange={() => handleShiftCheckboxChange("morning", "Not Indicated")}
-          className="col-span-2"
+          className="lg:col-span-2"
         />
       </LabelInputContainer>
-      <LabelInputContainer title="Afternoon">
+      <LabelInputContainer title="Afternoon / Evening / Second Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 
           checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Required") : false} 
@@ -101,28 +101,28 @@ export default function Shifts() {
           label="Not Indicated" 
           checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Not Indicated") : false} 
           onChange={() => handleShiftCheckboxChange("afternoon", "Not Indicated")}
-          className="col-span-2"
+          className="lg:col-span-2"
         />
       </LabelInputContainer>
-      <LabelInputContainer title="Evening">
+      <LabelInputContainer title="Overnight / Graveyard / Third Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.evening) ? searchOptions.shift_preferences.evening.includes("Required") : false} 
-          onChange={() => handleShiftCheckboxChange("evening", "Required")}
+          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Required") : false} 
+          onChange={() => handleShiftCheckboxChange("night", "Required")}
         />
         <LabelCheckbox 
           label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.evening) ? searchOptions.shift_preferences.evening.includes("Optional") : false} 
-          onChange={() => handleShiftCheckboxChange("evening", "Optional")}
+          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Optional") : false} 
+          onChange={() => handleShiftCheckboxChange("night", "Optional")}
         />
         <LabelCheckbox 
           label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.evening) ? searchOptions.shift_preferences.evening.includes("Not Indicated") : false} 
-          onChange={() => handleShiftCheckboxChange("evening", "Not Indicated")}
-          className="col-span-2"
+          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Not Indicated") : false} 
+          onChange={() => handleShiftCheckboxChange("night", "Not Indicated")}
+          className="lg:col-span-2"
         />
       </LabelInputContainer>
-      <LabelInputContainer title="Weekend">
+      <LabelInputContainer title="Weekend" midColCount={3}>
         <LabelRadio 
           label="Required" 
           checked={searchOptions.shift_preferences.weekend === "Required"} 
@@ -139,7 +139,7 @@ export default function Shifts() {
           onChange={() => handleAvailabilityRadioChange("weekend", "None")}
         />
       </LabelInputContainer>
-      <LabelInputContainer title="Holiday">
+      <LabelInputContainer title="Holiday" midColCount={3}>
         <LabelRadio 
           label="Required" 
           checked={searchOptions.shift_preferences.holiday === "Required"} 
@@ -156,7 +156,7 @@ export default function Shifts() {
           onChange={() => handleAvailabilityRadioChange("holiday", "None")}
         />
       </LabelInputContainer>
-      <LabelInputContainer title="Overtime">
+      <LabelInputContainer title="Overtime" midColCount={3}>
         <LabelRadio 
           label="Required" 
           checked={searchOptions.shift_preferences.overtime === "Required"} 
@@ -173,7 +173,7 @@ export default function Shifts() {
           onChange={() => handleAvailabilityRadioChange("overtime", "None")}
         />
       </LabelInputContainer>
-      <LabelInputContainer title="Oncall">
+      <LabelInputContainer title="Oncall" midColCount={3}>
         <LabelCheckbox 
           label="Regular" 
           checked={Array.isArray(searchOptions.shift_preferences.oncall) ? searchOptions.shift_preferences.oncall.includes("Regular") : searchOptions.shift_preferences.oncall === "All"} 

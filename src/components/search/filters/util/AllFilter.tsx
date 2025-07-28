@@ -117,15 +117,15 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   }
 
   const decodeShiftPreferences = (shifts: ShiftPreferencesOptions) => {
-    if (!shifts) return { morning: "None", afternoon: "None", evening: "None", weekend: "None", holiday: "None", overtime: "None", oncall: "None" };
+    if (!shifts) return { morning: "None", afternoon: "None", night: "None", weekend: "None", holiday: "None", overtime: "None", oncall: "None" };
     const morning = shifts.morning === null ? "None" : decodeSelectString(shifts.morning);
     const afternoon = shifts.afternoon === null ? "None" : decodeSelectString(shifts.afternoon);
-    const evening = shifts.evening === null ? "None" : decodeSelectString(shifts.evening);
+    const night = shifts.night === null ? "None" : decodeSelectString(shifts.night);
     const weekend = shifts.weekend === null ? "None" : decodeSelectString(shifts.weekend);
     const holiday = shifts.holiday === null ? "None" : decodeSelectString(shifts.holiday);
     const overtime = shifts.overtime === null ? "None" : decodeSelectString(shifts.overtime);
     const oncall = shifts.oncall === null ? "None" : decodeSelectString(shifts.oncall);
-    return { morning, afternoon, evening, weekend, holiday, overtime, oncall };
+    return { morning, afternoon, night, weekend, holiday, overtime, oncall };
   }
 
   const decodeIndustryOptions = (industry: IndustryOptions) => {
@@ -172,7 +172,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     land_travel: decodeSelectString(searchOptions?.travel_requirements?.land || "All"),
     location: searchOptions?.location?.userLocation?.address?.formatted || "None",
     workplace_type: decodeSelectString(searchOptions?.location?.workplace_type || "All"),
-    environment: decodeSelectString(searchOptions?.location?.environment || "All"),
+    environment: decodeSelectString(searchOptions?.location?.workplace_activity?.environment || "All"),
     mobility: decodeSelectString(searchOptions?.location?.workplace_activity?.mobility || "All"),
     physical_intensity: decodeSelectString(searchOptions?.location?.workplace_activity?.physical_intensity || "All"),
     cognitive_intensity: decodeSelectString(searchOptions?.location?.workplace_activity?.cognitive_intensity || "All"),
@@ -441,7 +441,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     },
     {
       label: "Evening Shift Preferences",
-      value: decodedState.shifts.evening,
+      value: decodedState.shifts.night,
       categoryId: "shifts",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
@@ -501,47 +501,47 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Workplace Type",
       value: decodedState.workplace_type,
-      categoryId: "workplace-type",
+      categoryId: "workplace-activity",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Environment",
+      label: "Workplace Environment",
       value: decodedState.environment,
-      categoryId: "options",
+      categoryId: "workplace-activity",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Mobility",
+      label: "Mobility Requirements",
       value: decodedState.mobility,
       categoryId: "location",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Physical Intensity",
+      label: "Physical Intensity Requirements",
       value: decodedState.physical_intensity,
       categoryId: "location",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Cognitive Intensity",
+      label: "Cognitive Intensity Requirements",
       value: decodedState.cognitive_intensity,
       categoryId: "location",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Computer Usage",
+      label: "Computer Usage Requirements",
       value: decodedState.computer_usage,
       categoryId: "location",
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Oral Communication",
+      label: "Oral Communication Requirements",
       value: decodedState.oral_communication,
       categoryId: "location",
       isExtended: extended,

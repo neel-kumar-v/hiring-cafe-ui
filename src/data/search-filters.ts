@@ -78,8 +78,7 @@ const settingsCategories: SettingsCategory[] = [
   
   // Location
   { id: "location", name: "Location", type: "location", },
-  { id: "workplace-type", name: "Workplace Type", type: "location", },
-  { id: "options", name: "Options", type: "location", },
+  { id: "workplace-activity", name: "Workplace Activity", type: "location", },
 
   // Company
   { id: "company", name: "Company", type: "company", },

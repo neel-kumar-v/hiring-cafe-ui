@@ -1,16 +1,15 @@
 "use client"
 
-import * as React from "react"
-import { useState, useEffect, useCallback } from 'react'
+import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
-import { MapPin, LoaderCircle, Search, MapPinned, Locate } from 'lucide-react'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { LoaderCircle, Locate, MapPin, MapPinned, Search } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 type LocationSuggestion = {
   display_name: string;
@@ -59,7 +58,7 @@ export function LocationPicker({
   placeholder = "Enter city, district, or area",
   theme,
 }: LocationPickerProps) {
-  const [activeCity, setActiveCity] = useState(defaultLocation)
+  const [activeLocation, setActiveLocation] = useState(defaultLocation)
   const [isLoading, setIsLoading] = useState(false)
   const [locationSearch, setLocationSearch] = useState('')
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
@@ -71,18 +70,18 @@ export function LocationPicker({
 
   const defaultTheme: LocationPickerTheme = {
     container: "space-y-4",
-    input: "border-border focus:border-primary focus:ring-primary/20 bg-background text-foreground",
-    searchButton: "rounded-md h-10 w-10 p-0 bg-primary hover:bg-primary/90 text-primary-foreground",
-    locateButton: "rounded-md h-10 w-10 p-0 bg-secondary hover:bg-secondary/80 text-secondary-foreground",
-    suggestionsContainer: "w-full bg-background rounded-md border border-border shadow-lg max-h-60 overflow-y-auto",
-    suggestionItem: "px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-0 transition-colors",
+    input: "border-input !ring-0 bg-transparent text-foreground",
+    searchButton: "rounded-md size-10 p-0 bg-primary hover:bg-primary/90 text-primary-foreground",
+    locateButton: "rounded-md size-10 p-0 bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+    suggestionsContainer: "w-full bg-background rounded-md border border-input shadow-lg max-h-60 overflow-y-auto",
+    suggestionItem: "px-4 py-2 hover:bg-muted cursor-pointer border-b border-input last:border-0 transition-colors",
     suggestionLocation: "text-sm font-medium text-foreground",
     suggestionAddress: "text-xs text-muted-foreground truncate max-w-[250px]",
     suggestionIcon: "text-primary",
     errorContainer: "w-full bg-destructive/10 rounded-md border border-destructive/20 p-3 text-center",
-    loadingContainer: "w-full bg-background rounded-md border border-border shadow-md p-4 text-center",
-    popoverContent: "w-80 p-0 shadow-lg dark:bg-background",
-    popoverTrigger: "flex items-center gap-2 text-muted-foreground hover:text-foreground border-b border-transparent hover:border-primary cursor-pointer px-3 py-2 transition-colors"
+    loadingContainer: "w-full bg-background rounded-md border border-input shadow-md p-4 text-center",
+    popoverContent: "w-[var(--radix-popover-trigger-width)] p-0 shadow-lg dark:bg-background",
+    popoverTrigger: "flex h-10 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer"
   }
 
   const appliedTheme = { ...defaultTheme, ...theme }
@@ -92,10 +91,11 @@ export function LocationPicker({
     try {
       const res = await fetch(`${API_URL}/reverse?lat=${lat}&lon=${long}&format=json`)
       const data = await res.json()
+      console.log(data)
       const city = data.address?.county || data.address?.city || data.address?.state || ''
 
       if (city) {
-        setActiveCity(city)
+        setActiveLocation(data.display_name || city)
       }
     } catch (error) {
       console.log("Error fetching location:", error)
@@ -118,7 +118,7 @@ export function LocationPicker({
         const place = data[0]
         const city = place.address?.city || place.address?.county || place.address?.state || ''
 
-        setActiveCity(city)
+        setActiveLocation(place.display_name || city)
         setLocationSearch('')
         setSuggestions([])
         setIsPopoverOpen(false)
@@ -189,8 +189,7 @@ export function LocationPicker({
   };
 
   const selectSuggestion = (suggestion: LocationSuggestion) => {
-    const city = suggestion.address?.city || suggestion.address?.county || suggestion.address?.state || '';
-    setActiveCity(city);
+    setActiveLocation(suggestion.display_name);
     setLocationSearch("");
     setSuggestions([]);
     setIsPopoverOpen(false);
@@ -224,16 +223,16 @@ export function LocationPicker({
   }, [isPopoverOpen]);
 
   useEffect(() => {
-    if (autoDetectOnLoad && !activeCity) {
+    if (autoDetectOnLoad && !activeLocation) {
       getCurrentLocation();
     }
-  }, [autoDetectOnLoad, activeCity, getCurrentLocation]);
+  }, [autoDetectOnLoad, activeLocation, getCurrentLocation]);
 
   useEffect(() => {
-    if (onChange && activeCity) {
-      onChange(activeCity);
+    if (onChange && activeLocation) {
+      onChange(activeLocation);
     }
-  }, [activeCity, onChange]);
+  }, [activeLocation, onChange]);
 
   if (variant === 'inline') {
     return (
@@ -243,12 +242,12 @@ export function LocationPicker({
             <div className="relative flex-1">
               <Input
                 placeholder={placeholder}
-                value={activeCity || locationSearch}
+                value={activeLocation || locationSearch}
                 onChange={(e) => {
                   const value = e.target.value;
                   setLocationSearch(value);
-                  if (activeCity && value !== activeCity) {
-                    setActiveCity('');
+                  if (activeLocation && value !== activeLocation) {
+                    setActiveLocation('');
                   }
                 }}
                 onKeyUp={(e) => e.key === 'Enter' && suggestions.length === 0 && searchLocation()}
@@ -355,7 +354,7 @@ export function LocationPicker({
             </div>
           ) : (
             <span className="text-sm font-medium">
-              {activeCity.length > 15 ? activeCity.slice(0, 15) + '...' : activeCity || 'Select Location'}
+              {activeLocation.length > 30 ? activeLocation.slice(0, 30) + '...' : activeLocation || 'Select Location'}
             </span>
           )}
         </div>
