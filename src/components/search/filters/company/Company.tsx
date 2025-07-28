@@ -1,7 +1,7 @@
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import { useApp } from "@/contexts/AppContext";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getCompaniesFromData } from "@/lib/search";
 import { Keywords } from "@/types/search";
 

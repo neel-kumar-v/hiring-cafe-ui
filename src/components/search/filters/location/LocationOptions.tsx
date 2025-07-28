@@ -1,6 +1,6 @@
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Location from "./Location";
-import Environment from "./WorkplaceActivity";
+import WorkplaceActivity from "./WorkplaceActivity";
 // import WorkplaceType from "./WorkplaceTyp e";
   
 export default function LocationOptions({
@@ -10,8 +10,7 @@ export default function LocationOptions({
 }) {
   const refs = createRefs([
     "location",
-    "workplace-type",
-    "options"
+    "workplace-activity",
   ]);
 
   useScrollToSection(scrollToSection, refs);
@@ -35,10 +34,10 @@ export default function LocationOptions({
       </div> */}
 
       <div
-        ref={refs.options}
+        ref={refs["workplace-activity"]}
         className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
       >
-        <Environment />
+        <WorkplaceActivity />
       </div>
       <br className="md:hidden" />
       <br className="md:hidden" />

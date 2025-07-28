@@ -264,17 +264,17 @@ export function LocationAccordion({ location, onLocationUpdate }: LocationAccord
 
             <LabelInputContainer title="Include Remote Jobs From">
               <LabelCheckbox
-                label={`Anywhere in ${locationLabels.state || 'this state'}`}
+                label={`${locationLabels.state || 'This state'}`}
                 checked={isFlexibleRegionSelected("Admin Area")}
                 onChange={() => handleFlexibleRegionsChange("Admin Area")}
               />
               <LabelCheckbox
-                label={`Anywhere in ${locationLabels.country || 'this country'}`}
+                label={`${locationLabels.country || 'This country'}`}
                 checked={isFlexibleRegionSelected("Country")}
                 onChange={() => handleFlexibleRegionsChange("Country")}
               />
               <LabelCheckbox
-                label={`Anywhere in ${locationLabels.continent || 'this continent'}`}
+                label={`${locationLabels.continent || 'This continent'}`}
                 checked={isFlexibleRegionSelected("Continent")}
                 onChange={() => handleFlexibleRegionsChange("Continent")}
               />
