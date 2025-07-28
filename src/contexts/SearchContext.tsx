@@ -98,6 +98,6 @@ export const defaultSearchOptions: SearchState = {
     latest_round_type: { include: [], exclude: "None" },
     latest_round_amount: { min: 0, max: 0 },
   },
-  size: { min: 0, max: 0 },
+  size: "All",
   founding_year: { min: 0, max: 0 },
 }; 

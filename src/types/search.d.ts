@@ -39,6 +39,11 @@ export interface Range {
   max: number;
 }
 
+export interface InfiniteRange {
+  min: number;
+  max: number | null;
+}
+
 export interface SalaryOptions {
   min_range: Range;
   max_range: Range;
@@ -241,7 +246,7 @@ export interface SearchState {
   company: Keywords;
   industry: IndustryOptions;
   stage_funding: FundingOptions;
-  size: Range;
+  size: Select<InfiniteRange, "All">;
   founding_year: Range;
 }
 

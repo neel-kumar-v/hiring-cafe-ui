@@ -3,7 +3,7 @@ import jobsData from "@/data/jobs_data.json";
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
 import companiesData from "@/data/companies.json" with { type: "json" };
-import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
+import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, InfiniteRange, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
@@ -253,7 +253,7 @@ export function decodeSelectString(select: Select<string> | Select<string, null>
   return select;
 }
 
-export function decodeRangeString(range: Range) {
+export function decodeRangeString(range: Range | InfiniteRange) {
   if (!range) return "All";
   if (range.min === 0 && range.max === 0) return "All";
   function formatK(num: number) {
@@ -264,6 +264,7 @@ export function decodeRangeString(range: Range) {
   }
 
   if (range.min === range.max) return formatK(range.min);
+  if (range.max === null) return formatK(range.min) + "+";
   return formatK(range.min) + " - " + formatK(range.max);
 }
 

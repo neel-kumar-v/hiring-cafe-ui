@@ -1,7 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { decodeKeywords, decodeRangeString, decodeSearchExpression, decodeSelectString } from "@/lib/search";
-import { CategoryId, DegreePreferencesOptions, FundingOptions, IndustryOptions, SalaryOptions, SearchState, ShiftPreferencesOptions } from "@/types/search";
+import { CategoryId, DegreePreferencesOptions, FundingOptions, IndustryOptions, InfiniteRange, SalaryOptions, SearchState, Select, ShiftPreferencesOptions } from "@/types/search";
 import { useState } from "react";
 
 
@@ -147,6 +147,22 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     return { current, investors, latest_round, latest_round_type, latest_round_amount };
   }
 
+  const decodeSizeOptions = (size: Select<InfiniteRange, "All">) => {
+    if (size === "All") return "All";
+    if (Array.isArray(size)) {
+      if (size.length === 0) return "All";
+      if (size.length === 1) {
+        const range = size[0];
+        if (range.max === null) {
+          return `${range.min}+ employees`;
+        }
+        return `${range.min}-${range.max} employees`;
+      }
+      return `${size.length} ranges selected`;
+    }
+    return "All";
+  }
+
   const decodedState = {
     date_range: searchOptions?.date_range ? `${searchOptions.date_range.magnitude} ${searchOptions.date_range.unit}` : "All",
     sort: searchOptions?.sort ? `${searchOptions.sort.order} ${searchOptions.sort.by}` : "Most Relevance",
@@ -181,7 +197,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     company: decodeKeywords(searchOptions?.company || { include: [], exclude: "None" }),
     industry: decodeIndustryOptions(searchOptions?.industry),
     stage_funding: decodeFundingOptions(searchOptions?.stage_funding),
-    size: decodeRangeString(searchOptions?.size || { min: 0, max: 0 }),
+    size: decodeSizeOptions(searchOptions?.size),
     founding_year: decodeRangeString(searchOptions?.founding_year || { min: 0, max: 0 }),
   }
   
