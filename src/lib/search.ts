@@ -2,7 +2,9 @@ import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
 import jobsData from "@/data/jobs_data.json";
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
+import companiesData from "@/data/companies.json" with { type: "json" };
 import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
+
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
   const convertSelectToArray = <T>(select: T[] | T): string[] => {
@@ -238,6 +240,13 @@ export function getLicensesFromData(): string[] {
   return [];
 }
 
+export function getCompaniesFromData(): string[] {
+  if (companiesData && Array.isArray(companiesData.suggestions)) {
+    return Array.from(new Set(companiesData.suggestions));
+  }
+  return [];
+}
+
 export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>, maxCount: number = 3) {
   if (!select) return "None";
   if (Array.isArray(select)) return select.length === 0 ? "None" : select.slice(0, maxCount).join(", ");
@@ -266,6 +275,8 @@ export function decodeSearchExpression(expression: SearchExpression<string>): st
   if (expression.NOT) return "NOT (" + decodeSearchExpression(expression.NOT) + ")";
   return "";
 }
+
+
 
 export function decodeKeywords(keywords: Keywords, maxCount: number = 5) {
   if (!keywords) return { include: "None", exclude: "None" };
