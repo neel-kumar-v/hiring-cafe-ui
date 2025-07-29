@@ -98,7 +98,7 @@ const JobCard = memo(({
             ) : (
               <div className="col-span-1"></div>
             )}
-            <CardCompanyJobs />
+            {/* <CardCompanyJobs /> */}
           </div>
         </CardContent>
       </Card>
