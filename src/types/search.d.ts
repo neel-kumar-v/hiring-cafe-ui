@@ -152,6 +152,7 @@ export type TravelRequirements = "None" | "Minimum" | "Moderate" | "Extensive";
 export interface TravelRequirementsOptions {
   air: Select<TravelRequirements>;
   land: Select<TravelRequirements>;
+  [key: string]: Select<TravelRequirements>;
 }
 
 export type Benefits = "PTO" | "4 Days" | "401k" | "Parental Leave" | "Retirement" | "Tuition" | "Visa" | "Relocation";
@@ -252,7 +253,7 @@ export interface SearchState {
   company: Keywords;
   industry: IndustryOptions;
   stage_funding: FundingOptions;
-  size: Select<InfiniteRange, "All">;
+  size: Select<InfiniteRange>;
   founding_year: Range;
 }
 

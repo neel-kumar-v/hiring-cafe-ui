@@ -141,7 +141,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     if (!funding) return { current: "All", investors: { include: "None", exclude: "None" }, latest_round: "All", latest_round_type: { include: "None", exclude: "None" }, latest_round_amount: "All" };
     const current = funding.current === "All" ? "All" : decodeSelectString(funding.current);
     const investors = decodeKeywords(funding.investors || { include: [], exclude: "None" });
-    const latest_round = decodeRangeString(funding.latest_round || { min: 0, max: 0 });
+    const latest_round = decodeRangeString(funding.latest_round || { min: 0, max: 0 }, false);
     const latest_round_type = decodeKeywords(funding.latest_round_type || { include: [], exclude: "None" });
     const latest_round_amount = decodeRangeString(funding.latest_round_amount || { min: 0, max: 0 });
     return { current, investors, latest_round, latest_round_type, latest_round_amount };
@@ -167,7 +167,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     date_range: searchOptions?.date_range ? `${searchOptions.date_range.magnitude} ${searchOptions.date_range.unit}` : "All",
     sort: searchOptions?.sort ? `${searchOptions.sort.order} ${searchOptions.sort.by}` : "Most Relevance",
     apply_form: searchOptions?.apply_form || "All",
-    exclusion: searchOptions?.exclusion && searchOptions.exclusion.length > 0 ? "Jobs you have" + searchOptions.exclusion.join(", ") : "None",
+    exclusion: searchOptions?.exclusion && searchOptions.exclusion.length > 0 ? searchOptions.exclusion.join(", ") : "None",
     encouraged: searchOptions?.encouraged && searchOptions.encouraged.length > 0 ? searchOptions.encouraged.join(", ") : "None",
     departments: decodeSelectString(searchOptions?.department || "All"),
     salary: searchOptions?.salary ? decodeSalary(searchOptions.salary) + (searchOptions.salary.undisclosed ? " (hide undisclosed salaries)" : "") : "All",

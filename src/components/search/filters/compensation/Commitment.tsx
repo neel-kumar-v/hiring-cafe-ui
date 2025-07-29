@@ -1,5 +1,6 @@
 import { useApp } from "@/contexts/AppContext";
-import { CommitmentLevel, Select } from "@/types/search";
+import { createSelectHandler } from "@/lib/search";
+import { CommitmentLevel } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
@@ -7,33 +8,23 @@ import LabelInputContainer from "../util/LabelInputContainer";
 export default function Commitment() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleCheckboxChange = (type: CommitmentLevel) => {
-    const currentCommitment = searchOptions.commitment;
-    let newCommitment: Select<CommitmentLevel>
-    const allCommitmentLevels: CommitmentLevel[] = [
-      "Full Time",
-      "Part Time",
-      "Contract",
-      "Internship",
-      "Temporary",
-      "Volunteer",
-      "Seasonal"
-    ]
-    
-    if (!Array.isArray(currentCommitment)) {
-      const allExceptSelected = allCommitmentLevels.filter(item => item !== type);
-      newCommitment = allExceptSelected;
-    } else if (currentCommitment.includes(type)) {
-      const filtered = currentCommitment.filter((item: CommitmentLevel) => item !== type)
-      newCommitment = filtered.length === 0 ? "All" : filtered
-    } else {
-      const added = [...currentCommitment, type]
-      newCommitment = added.length === allCommitmentLevels.length ? "All" : added
-    }
-    updateSearchOptions({
-      commitment: newCommitment
-    });
-  };
+  const allCommitmentLevels: CommitmentLevel[] = [
+    "Full Time",
+    "Part Time",
+    "Contract",
+    "Internship",
+    "Temporary",
+    "Volunteer",
+    "Seasonal"
+  ];
+
+  const handleCheckboxChange = createSelectHandler(
+    searchOptions.commitment,
+    allCommitmentLevels,
+    updateSearchOptions,
+    "commitment"
+  );
+
   return (
     <FilterContainer title="Commitment Level">
       <LabelInputContainer>

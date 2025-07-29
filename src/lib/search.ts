@@ -2,12 +2,12 @@ import companiesData from "@/data/companies.json" with { type: "json" };
 import companyActivitiesData from "@/data/company_activities.json" with { type: "json" };
 import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
 import industriesData from "@/data/industries.json" with { type: "json" };
-import jobsData from "@/data/jobs_data.json";
-import roundTypesData from "@/data/round_types.json" with { type: "json" };
 import investorsData from "@/data/investors.json" with { type: "json" };
+import jobsData from "@/data/jobs_data.json";
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
-import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, InfiniteRange, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
+import roundTypesData from "@/data/round_types.json" with { type: "json" };
+import { AddressComponent, Benefits, BenefitsOptions, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, CurrentStage, DegreePreferences, DegreePreferencesOptions, Department, DepartmentOptions, Encouraged, EncouragedOptions, Environment, Exclusion, ExclusionOptions, ExperienceLevel, ExperienceLevelOptions, FundingOptions, HiringCafeSearchState, IndustryOptions, InfiniteRange, Intensity, Keywords, LicenseCertificationOptions, Location, Mobility, Profit, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
 
 export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
@@ -430,4 +430,445 @@ export function parseSearchExpression(input: string): SearchExpression<string> {
   }
 
   return parseExpression();
+}
+
+// Generalized handler functions for SearchState updates
+
+export function createSelectHandler<T>(
+  currentValue: Select<T>,
+  allOptions: T[],
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string
+) {
+  return (item: T) => {
+    let newValue: Select<T>;
+    
+    if (currentValue === "All") {
+      const allExceptSelected = allOptions.filter(option => option !== item);
+      newValue = allExceptSelected;
+    } else if (Array.isArray(currentValue)) {
+      if (currentValue.includes(item)) {
+        const filtered = currentValue.filter(option => option !== item);
+        newValue = filtered.length === 0 ? "All" : filtered;
+      } else {
+        const added = [...currentValue, item];
+        newValue = added.length === allOptions.length ? "All" : added;
+      }
+    } else {
+      newValue = [item];
+    }
+    
+    updateSearchOptions({ [path]: newValue } as Partial<SearchState>);
+  };
+}
+
+export function createSelectWithNullHandler<T>(
+  currentValue: Select<T, null>,
+  allOptions: T[],
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string
+) {
+  return (item: T) => {
+    let newValue: Select<T, null>;
+    
+    if (!Array.isArray(currentValue)) {
+      const allExceptSelected = allOptions.filter(option => option !== item);
+      newValue = allExceptSelected;
+    } else if (currentValue.includes(item)) {
+      const filtered = currentValue.filter(option => option !== item);
+      newValue = filtered.length === 0 ? null : filtered;
+    } else {
+      newValue = [...currentValue, item];
+      if (newValue.length === allOptions.length) newValue = null;
+    }
+    
+    updateSearchOptions({ [path]: newValue } as Partial<SearchState>);
+  };
+}
+
+export function createKeywordsHandler(
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string
+) {
+  return (keywords: Keywords) => {
+    updateSearchOptions({ [path]: keywords } as Partial<SearchState>);
+  };
+}
+
+export function createRangeHandler(
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string
+) {
+  return ([min, max]: [number, number]) => {
+    updateSearchOptions({ [path]: { min, max } } as Partial<SearchState>);
+  };
+}
+
+export function createBooleanHandler(
+  currentValue: boolean,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string
+) {
+  return (checked: boolean | "indeterminate") => {
+    updateSearchOptions({ [path]: Boolean(checked) } as Partial<SearchState>);
+  };
+}
+
+export function createRadioHandler<T>(
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string
+) {
+  return (value: T) => {
+    updateSearchOptions({ [path]: value } as Partial<SearchState>);
+  };
+}
+
+export function createNestedSelectHandler<T>(
+  currentValue: { [key: string]: Select<T> },
+  allOptions: T[],
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string,
+  nestedPath: string
+) {
+  return (item: T) => {
+    let newValue: Select<T>;
+    
+    const currentSelectValue = currentValue[nestedPath];
+    
+    if (currentSelectValue === "All") {
+      const allExceptSelected = allOptions.filter(option => option !== item);
+      newValue = allExceptSelected;
+    } else if (Array.isArray(currentSelectValue)) {
+      if (currentSelectValue.includes(item)) {
+        const filtered = currentSelectValue.filter(option => option !== item);
+        newValue = filtered.length === 0 ? "All" : filtered;
+      } else {
+        const added = [...currentSelectValue, item];
+        newValue = added.length === allOptions.length ? "All" : added;
+      }
+    } else {
+      newValue = [item];
+    }
+    
+    const nestedUpdate = { [nestedPath]: newValue };
+    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
+  };
+}
+
+export function createNestedKeywordsHandler(
+  currentValue: { [key: string]: Keywords },
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string,
+  nestedPath: string
+) {
+  return (keywords: Keywords) => {
+    const nestedUpdate = { [nestedPath]: keywords };
+    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
+  };
+}
+
+export function createNestedBooleanHandler(
+  currentValue: { [key: string]: boolean },
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string,
+  nestedPath: string
+) {
+  return (checked: boolean | "indeterminate") => {
+    const nestedUpdate = { [nestedPath]: Boolean(checked) };
+    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
+  };
+}
+
+// Utility functions for checking if items are selected
+
+export function isSelectItemSelected<T>(
+  currentValue: Select<T>,
+  item: T
+): boolean {
+  if (currentValue === "All") return true;
+  if (Array.isArray(currentValue)) {
+    return currentValue.includes(item);
+  }
+  return false;
+}
+
+export function isSelectWithNullItemSelected<T>(
+  currentValue: Select<T, null>,
+  item: T
+): boolean {
+  if (!Array.isArray(currentValue)) return true;
+  return currentValue.includes(item);
+}
+
+export function isKeywordsItemSelected(
+  keywords: Keywords,
+  item: string,
+  type: 'include' | 'exclude'
+): boolean {
+  const items = keywords[type];
+  if (type === 'exclude' && items === "None") return false;
+  if (Array.isArray(items)) {
+    return items.includes(item);
+  }
+  return false;
+}
+
+// Specialized handlers for common patterns
+
+export function createBenefitsHandler(
+  currentBenefits: BenefitsOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (benefit: Benefits) => {
+    const newBenefits = currentBenefits?.includes(benefit)
+      ? currentBenefits.filter(item => item !== benefit)
+      : [...(currentBenefits || []), benefit];
+    
+    updateSearchOptions({ benefits: newBenefits });
+  };
+}
+
+export function createExclusionHandler(
+  currentExclusion: ExclusionOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (exclusion: Exclusion) => {
+    const newExclusion = currentExclusion.includes(exclusion)
+      ? currentExclusion.filter(item => item !== exclusion)
+      : [...currentExclusion, exclusion];
+    
+    updateSearchOptions({ exclusion: newExclusion });
+  };
+}
+
+export function createEncouragedHandler(
+  currentEncouraged: EncouragedOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (encouraged: Encouraged) => {
+    const newEncouraged = currentEncouraged?.includes(encouraged)
+      ? currentEncouraged.filter(item => item !== encouraged)
+      : [...(currentEncouraged || []), encouraged];
+    
+    updateSearchOptions({ encouraged: newEncouraged });
+  };
+}
+
+export function createDepartmentHandler(
+  currentDepartments: DepartmentOptions,
+  allDepartments: Department[],
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (department: Department) => {
+    let currentDepartmentsArray: Department[] = [];
+    
+    if (currentDepartments === "All") {
+      currentDepartmentsArray = allDepartments.filter(item => item !== department);
+    } else if (Array.isArray(currentDepartments)) {
+      currentDepartmentsArray = [...currentDepartments];
+    }
+    
+    let newDepartments: Select<Department>;
+    
+    if (currentDepartments === "All") {
+      newDepartments = currentDepartmentsArray;
+    } else if (currentDepartmentsArray.includes(department)) {
+      const filtered = currentDepartmentsArray.filter(item => item !== department);
+      newDepartments = filtered.length === 0 ? [] : filtered;
+    } else {
+      const added = [...currentDepartmentsArray, department];
+      newDepartments = added.length === allDepartments.length ? "All" : added;
+    }
+    
+    if (Array.isArray(newDepartments) && newDepartments.length === allDepartments.length) {
+      newDepartments = "All";
+    }
+    
+    updateSearchOptions({ department: newDepartments });
+  };
+}
+
+export function createEducationPreferenceHandler(
+  currentEducation: DegreePreferencesOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', preference: DegreePreferences) => {
+    const currentPreferences = currentEducation[degreeType].preferences;
+    
+    let newPreferences: Select<DegreePreferences, null>;
+    
+    if (Array.isArray(currentPreferences)) {
+      if (currentPreferences.includes(preference)) {
+        const filtered = currentPreferences.filter(p => p !== preference);
+        newPreferences = filtered.length > 0 ? filtered : null;
+      } else {
+        newPreferences = [...currentPreferences, preference];
+      }
+    } else {
+      newPreferences = [preference];
+    }
+    
+    updateSearchOptions({
+      education: {
+        ...currentEducation,
+        [degreeType]: {
+          ...currentEducation[degreeType],
+          preferences: newPreferences
+        }
+      }
+    });
+  };
+}
+
+export function createEducationKeywordsHandler(
+  currentEducation: DegreePreferencesOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', keywords: Keywords) => {
+    updateSearchOptions({
+      education: {
+        ...currentEducation,
+        [degreeType]: {
+          ...currentEducation[degreeType],
+          keywords
+        }
+      }
+    });
+  };
+}
+
+// Specialized handlers for complex nested structures
+
+export function createLicenseCertificationHandler(
+  currentLicenseCertification: LicenseCertificationOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (keywords: Keywords) => {
+    updateSearchOptions({
+      license_certification: {
+        keywords,
+        hide_required: currentLicenseCertification.hide_required
+      }
+    });
+  };
+}
+
+export function createLicenseCertificationHideRequiredHandler(
+  currentLicenseCertification: LicenseCertificationOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (checked: boolean | "indeterminate") => {
+    updateSearchOptions({
+      license_certification: {
+        keywords: currentLicenseCertification.keywords,
+        hide_required: Boolean(checked)
+      }
+    });
+  };
+}
+
+export function createIndustryHandler(
+  currentIndustry: IndustryOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (keywords: Keywords, field: 'activities' | 'industry') => {
+    updateSearchOptions({
+      industry: {
+        ...currentIndustry,
+        [field]: keywords
+      }
+    });
+  };
+}
+
+export function createIndustryProfitHandler(
+  currentIndustry: IndustryOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (profit: Profit) => {
+    const profitOptions: Profit[] = ["For-Profit", "Non-Profit"];
+    let newProfit: Select<Profit, "All">;
+    
+    if (currentIndustry.profit === "All") {
+      const allExceptSelected = profitOptions.filter(item => item !== profit);
+      newProfit = allExceptSelected;
+    } else if (Array.isArray(currentIndustry.profit)) {
+      if (currentIndustry.profit.includes(profit)) {
+        const filtered = currentIndustry.profit.filter(item => item !== profit);
+        newProfit = filtered.length === 0 ? "All" : filtered;
+      } else {
+        const added = [...currentIndustry.profit, profit];
+        newProfit = added.length === profitOptions.length ? "All" : added;
+      }
+    } else {
+      newProfit = [profit];
+    }
+    
+    updateSearchOptions({ 
+      industry: { 
+        ...currentIndustry, 
+        profit: newProfit 
+      } 
+    });
+  };
+}
+
+export function createStageFundingHandler(
+  currentStageFunding: FundingOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (keywords: Keywords, field: 'investors' | 'latest_round_type') => {
+    updateSearchOptions({
+      stage_funding: {
+        ...currentStageFunding,
+        [field]: keywords
+      }
+    });
+  };
+}
+
+export function createStageFundingCurrentHandler(
+  currentStageFunding: FundingOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (currentStage: CurrentStage) => {
+    const stagesOptions: CurrentStage[] = ["Public", "Private"];
+    let newCurrentStages: Select<CurrentStage, "All">;
+
+    if (currentStageFunding.current === "All") {
+      const allExceptSelected = stagesOptions.filter((stage: CurrentStage) => stage !== currentStage);
+      newCurrentStages = allExceptSelected;
+    } else if (Array.isArray(currentStageFunding.current)) {
+      if (currentStageFunding.current.includes(currentStage)) {
+        newCurrentStages = currentStageFunding.current.filter(stage => stage !== currentStage);
+        newCurrentStages = newCurrentStages.length === 0 ? "All" : newCurrentStages;
+      } else {
+        newCurrentStages = [...currentStageFunding.current, currentStage];
+        newCurrentStages = newCurrentStages.length === stagesOptions.length ? "All" : newCurrentStages;
+      }
+    } else {
+      newCurrentStages = [currentStage];
+    }
+
+    updateSearchOptions({
+      stage_funding: {
+        ...currentStageFunding,
+        current: newCurrentStages
+      }
+    });
+  };
+}
+
+export function createStageFundingRangeHandler(
+  currentStageFunding: FundingOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (field: 'latest_round' | 'latest_round_amount', [min, max]: [number, number]) => {
+    updateSearchOptions({
+      stage_funding: {
+        ...currentStageFunding,
+        [field]: { min, max }
+      }
+    });
+  };
 }

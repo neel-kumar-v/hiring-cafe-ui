@@ -1,7 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useApp } from "@/contexts/AppContext";
-import { getDegreeTitlesFromData } from "@/lib/search";
-import { DegreePreferences, Keywords, Select } from "@/types/search";
+import { createEducationKeywordsHandler, createEducationPreferenceHandler, getDegreeTitlesFromData } from "@/lib/search";
+import { DegreePreferences } from "@/types/search";
 import { useMemo } from "react";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
@@ -19,50 +19,15 @@ export default function Education() {
     }));
   }, []);
 
-  const handlePreferenceChange = (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', preference: DegreePreferences) => {
-    const currentEducation = searchOptions.education;
-    const currentPreferences = currentEducation[degreeType].preferences;
-    
-    let newPreferences: Select<DegreePreferences, null>;
-    
-    if (Array.isArray(currentPreferences)) {
-      if (currentPreferences.includes(preference)) {
-        // Remove preference if already selected
-        const filtered = currentPreferences.filter(p => p !== preference);
-        newPreferences = filtered.length > 0 ? filtered : null;
-      } else {
-        // Add preference if not selected
-        newPreferences = [...currentPreferences, preference];
-      }
-    } else {
-      // If null, start with just this preference
-      newPreferences = [preference];
-    }
-    
-    updateSearchOptions({
-      education: {
-        ...currentEducation,
-        [degreeType]: {
-          ...currentEducation[degreeType],
-          preferences: newPreferences
-        }
-      }
-    });
-  };
+  const handlePreferenceChange = createEducationPreferenceHandler(
+    searchOptions.education,
+    updateSearchOptions
+  );
 
-  const handleKeywordsChange = (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', keywords: Keywords) => {
-    const currentEducation = searchOptions.education;
-    
-    updateSearchOptions({
-      education: {
-        ...currentEducation,
-        [degreeType]: {
-          ...currentEducation[degreeType],
-          keywords
-        }
-      }
-    });
-  };
+  const handleKeywordsChange = createEducationKeywordsHandler(
+    searchOptions.education,
+    updateSearchOptions
+  );
 
   const isPreferenceSelected = (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', preference: DegreePreferences) => {
     const currentPreferences = searchOptions.education[degreeType].preferences;

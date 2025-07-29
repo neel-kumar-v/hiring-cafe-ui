@@ -1,6 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
-import { getLicensesFromData } from "@/lib/search";
-import { Keywords } from "@/types/search";
+import { createLicenseCertificationHandler, createLicenseCertificationHideRequiredHandler, getLicensesFromData } from "@/lib/search";
 import { useMemo } from "react";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
@@ -10,23 +9,15 @@ import LabelInputContainer from "../util/LabelInputContainer";
 export default function Licenses() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleLicensesChange = (licenses: Keywords) => {
-    updateSearchOptions({
-      license_certification: {
-        keywords: licenses,
-        hide_required: searchOptions.license_certification.hide_required
-      }
-    });
-  };
+  const handleLicensesChange = createLicenseCertificationHandler(
+    searchOptions.license_certification,
+    updateSearchOptions
+  );
 
-  const handleHideRequiredLicensesChange = () => {
-    updateSearchOptions({
-      license_certification: {
-        keywords: searchOptions.license_certification.keywords,
-        hide_required: !searchOptions.license_certification.hide_required
-      }
-    });
-  };
+  const handleHideRequiredLicensesChange = createLicenseCertificationHideRequiredHandler(
+    searchOptions.license_certification,
+    updateSearchOptions
+  );
 
   const licenses = useMemo(() => {
     return getLicensesFromData().map(license => ({
@@ -41,12 +32,12 @@ export default function Licenses() {
         <LabelCheckbox
           label="Hide Required Licenses"
           checked={searchOptions.license_certification.hide_required}
-          onChange={() => handleHideRequiredLicensesChange()}
+          onChange={handleHideRequiredLicensesChange}
         />
       </LabelInputContainer>
       <KeywordsMultiSelect
         value={searchOptions.license_certification.keywords}
-        onChange={(licenses) => handleLicensesChange(licenses)}
+        onChange={handleLicensesChange}
         includeOptions={licenses}
         excludeOptions={licenses}
         includePlaceholder="Include Licenses"

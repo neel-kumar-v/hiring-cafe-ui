@@ -1,5 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
-import { type Encouraged } from "@/types/search";
+import { createEncouragedHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
@@ -7,16 +7,10 @@ import LabelInputContainer from "../util/LabelInputContainer";
 export default function Encouraged() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleCheckboxChange = (type: Encouraged) => {
-    const currentEncouraged = searchOptions.encouraged;
-    const newEncouraged = currentEncouraged?.includes(type)
-      ? currentEncouraged.filter(item => item !== type)
-      : [...(currentEncouraged || []), type];
-    
-    updateSearchOptions({
-      encouraged: newEncouraged
-    });
-  };
+  const handleCheckboxChange = createEncouragedHandler(
+    searchOptions.encouraged,
+    updateSearchOptions
+  );
 
   return (
     <FilterContainer title="Encouraged to Apply">

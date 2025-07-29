@@ -1,5 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
-import { type Benefits } from "@/types/search";
+import { createBenefitsHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
@@ -7,16 +7,10 @@ import LabelInputContainer from "../util/LabelInputContainer";
 export default function Benefits() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleBenefitsCheckboxChange = (benefit: Benefits) => {
-    const currentBenefits = searchOptions.benefits;
-    const newBenefits = currentBenefits?.includes(benefit)
-      ? currentBenefits.filter(item => item !== benefit)
-      : [...(currentBenefits || []), benefit];
-    
-    updateSearchOptions({
-      benefits: newBenefits
-    });
-  };
+  const handleBenefitsCheckboxChange = createBenefitsHandler(
+    searchOptions.benefits,
+    updateSearchOptions
+  );
 
   return (
     <FilterContainer title="Benefits & Perks">
