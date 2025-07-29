@@ -91,12 +91,6 @@ export default function DateRangePopover() {
     }
   };
 
-  useEffect(() => {
-    if (debouncedTimeValue && customTimeUnit) {
-      console.log(`Time filter: ${debouncedTimeValue} ${customTimeUnit}`);
-    }
-  }, [debouncedTimeValue, customTimeUnit]);
-
   return (
     <Popover>
       <PopoverTrigger asChild>

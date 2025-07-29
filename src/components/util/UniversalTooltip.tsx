@@ -30,7 +30,7 @@ export default function UniversalTooltip({
 	align = 'center',
 	alignOffset = 0,
 	arrow = false,
-	blur = true,
+	blur = false,
 }: UniversalTooltipProps) {
 	const { prefersReducedMotion } = useReducedMotion();
 

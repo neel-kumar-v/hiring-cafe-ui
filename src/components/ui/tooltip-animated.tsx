@@ -306,7 +306,7 @@ function TooltipOverlay() {
                 "relative rounded-md px-3 py-1.5 text-sm shadow-xl w-fit text-balance",
                 currentTooltip.blur
                   ? "bg-transparent backdrop-blur-md fill-primary text-text border border-border/15"
-                  : "dark:bg-neutral-700 bg-white text-foreground drop-shadow-xl"
+                  : "bg-neutral-900 text-white drop-shadow-xl"
               )}
             >
               {currentTooltip.content}

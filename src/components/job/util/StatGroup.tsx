@@ -45,6 +45,7 @@ export const StatGroup = ({
               ? "Be the first to save this job!"
               : `Saved by ${savedCount} users`
         }
+        side="bottom"
       >
         <span
           className="flex cursor-pointer items-center space-x-1 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
@@ -76,6 +77,7 @@ export const StatGroup = ({
               ? "Be the first to apply to this job!"
               : `Applied by ${appliedCount} users. Click to apply.`
         }
+        side="bottom"
       >
         <span
           className="flex cursor-pointer items-center space-x-1 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"

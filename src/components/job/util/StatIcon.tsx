@@ -16,7 +16,7 @@ const StatIcon = ({
   textClassName?: string;
 }) => {
   return (
-    <UniversalTooltip content={tooltipText}>
+    <UniversalTooltip content={tooltipText} side="bottom">
       <span className="flex items-center space-x-1">
         <Icon
           className={cn(
