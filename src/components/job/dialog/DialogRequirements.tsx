@@ -1,4 +1,4 @@
-import { MorphingJobDescription } from "@/components/ui/morphing-dialog";
+import { MorphingJobDescription } from "@/components/ui/motion/morphing-dialog";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";

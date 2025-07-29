@@ -1,7 +1,7 @@
 import {
-    MorphingCompanyName,
-    MorphingJobTitle,
-} from "@/components/ui/morphing-dialog";
+  MorphingCompanyName,
+  MorphingJobTitle,
+} from "@/components/ui/motion/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatCompanyName } from "@/lib/company-info";

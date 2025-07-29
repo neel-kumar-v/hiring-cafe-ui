@@ -1,13 +1,13 @@
 import {
+	Tooltip as TooltipAnimated,
+	TooltipContent as TooltipAnimatedContent,
+	TooltipTrigger as TooltipAnimatedTrigger,
+} from "@/components/ui/motion/tooltip-animated";
+import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	Tooltip as TooltipAnimated,
-	TooltipContent as TooltipAnimatedContent,
-	TooltipTrigger as TooltipAnimatedTrigger,
-} from "@/components/ui/tooltip-animated";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import type { ReactElement } from "react";
 

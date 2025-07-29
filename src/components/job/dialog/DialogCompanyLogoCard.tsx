@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MorphingCompanyLogo } from "@/components/ui/morphing-dialog";
+import { MorphingCompanyLogo } from "@/components/ui/motion/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {

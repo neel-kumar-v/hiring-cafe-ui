@@ -3,7 +3,7 @@ import {
   MorphingLocation,
   MorphingSalary,
   MorphingWorkType,
-} from "@/components/ui/morphing-dialog";
+} from "@/components/ui/motion/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getCompensation, getLocations } from "@/lib/job-info";

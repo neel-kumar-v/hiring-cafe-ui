@@ -11,7 +11,7 @@ import {
   MorphingDialogContainer,
   MorphingDialogContent,
   MorphingDialogTrigger,
-} from "@/components/ui/morphing-dialog";
+} from "@/components/ui/motion/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import type { Job } from "@/types/job";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";

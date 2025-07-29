@@ -1,4 +1,4 @@
-import { MorphingJobDescription } from "@/components/ui/morphing-dialog";
+import { MorphingJobDescription } from "@/components/ui/motion/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import CardRequirements from "./CardRequirements";
 import CardTechnicalTools from "./CardTechnicalTools";

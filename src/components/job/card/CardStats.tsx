@@ -1,4 +1,4 @@
-import { MorphingJobStats } from "@/components/ui/morphing-dialog";
+import { MorphingJobStats } from "@/components/ui/motion/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type React from "react";
 import { StatGroup } from "../util/StatGroup";

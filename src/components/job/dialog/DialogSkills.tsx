@@ -1,4 +1,4 @@
-import { MorphingJobTechnicalTools } from "@/components/ui/morphing-dialog";
+import { MorphingJobTechnicalTools } from "@/components/ui/motion/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatTool } from "@/lib/job-info";

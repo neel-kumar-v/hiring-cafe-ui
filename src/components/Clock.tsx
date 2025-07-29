@@ -1,5 +1,5 @@
 'use client';
-import { SlidingNumber } from '@/components/ui/sliding-number';
+import { SlidingNumber } from '@/components/ui/motion/sliding-number';
 import { useEffect, useState } from 'react';
 
 interface Time {

@@ -1,7 +1,7 @@
 import {
   MorphingCompanyLogo,
   MorphingCompanyName,
-} from "@/components/ui/morphing-dialog";
+} from "@/components/ui/motion/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   analyzeImageBackground,

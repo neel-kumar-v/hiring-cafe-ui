@@ -5,7 +5,7 @@ import {
   MorphingSalary,
   MorphingTime,
   MorphingWorkType,
-} from "@/components/ui/morphing-dialog";
+} from "@/components/ui/motion/morphing-dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getCleanJobTitle, getCompensation, getLocations } from "@/lib/job-info";
 import { CompensationRange } from "@/types/job";
