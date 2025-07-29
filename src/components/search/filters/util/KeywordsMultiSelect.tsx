@@ -39,13 +39,11 @@ export function KeywordsMultiSelect({
   const [showExcludeOptions, setShowExcludeOptions] = useState(excludeOptions);
 
   useEffect(() => {
-    // Filter include options: remove any that are already in exclude list
     const filteredIncludeOptions = includeOptions.filter(
       option => !value.exclude.includes(option.value)
     );
     setShowIncludeOptions(filteredIncludeOptions);
 
-    // Filter exclude options: remove any that are already in include list
     const filteredExcludeOptions = excludeOptions.filter(
       option => !value.include.includes(option.value)
     );
