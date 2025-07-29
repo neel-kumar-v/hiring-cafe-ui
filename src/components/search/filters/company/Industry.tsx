@@ -7,6 +7,7 @@ import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
 import LabelRadio from "../util/LabelRadio";
+import { toast } from "sonner";
 
 export default function Industry() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -32,6 +33,7 @@ export default function Industry() {
       if (currentProfit.includes(profit)) {
         const filtered = currentProfit.filter(item => item !== profit);
         newProfit = filtered.length === 0 ? "All" : filtered;
+        toast.info("Selecting no profit types is the same as selecting all profit types")
       } else {
         const added = [...currentProfit, profit];
         newProfit = added.length === profitOptions.length ? "All" : added;

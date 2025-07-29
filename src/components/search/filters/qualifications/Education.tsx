@@ -65,8 +65,8 @@ export default function Education() {
               onChange={(keywords) => handleKeywordsChange('associate', keywords)} 
               includeOptions={degreeTitles} 
               excludeOptions={degreeTitles} 
-              includePlaceholder="Include Associate Degree Titles"
-              excludePlaceholder="Exclude Associate Degree Titles"
+              includePlaceholder="Include Degree Titles"
+              excludePlaceholder="Exclude Degree Titles"
             />
           </AccordionContent>
         </AccordionItem>
@@ -99,7 +99,8 @@ export default function Education() {
               onChange={(keywords) => handleKeywordsChange('bachelor', keywords)} 
               includeOptions={degreeTitles} 
               excludeOptions={degreeTitles}
-              includePlaceholder="Include Bachelor Degree Titles"
+              includePlaceholder="Include Degree Titles"
+              excludePlaceholder="Exclude Degree Titles"
             />
           </AccordionContent>
         </AccordionItem>
@@ -132,8 +133,8 @@ export default function Education() {
               onChange={(keywords) => handleKeywordsChange('master', keywords)} 
               includeOptions={degreeTitles} 
               excludeOptions={degreeTitles} 
-              includePlaceholder="Include Master Degree Titles"
-              excludePlaceholder="Exclude Master Degree Titles"
+              includePlaceholder="Include Degree Titles"
+              excludePlaceholder="Exclude Degree Titles"
             />
           </AccordionContent>
         </AccordionItem>
@@ -166,8 +167,8 @@ export default function Education() {
               onChange={(keywords) => handleKeywordsChange('doctorate', keywords)} 
               includeOptions={degreeTitles} 
               excludeOptions={degreeTitles} 
-              includePlaceholder="Include PhD Degree Titles"
-              excludePlaceholder="Exclude PhD Degree Titles"
+              includePlaceholder="Include Degree Titles"
+              excludePlaceholder="Exclude Degree Titles"
             />
           </AccordionContent>
         </AccordionItem>

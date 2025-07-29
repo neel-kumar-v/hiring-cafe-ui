@@ -33,7 +33,7 @@ export default function Stage() {
       if (currentStages.includes(currentStage)) {
         newCurrentStages = currentStages.filter(stage => stage !== currentStage);
         newCurrentStages = newCurrentStages.length === 0 ? "All" : newCurrentStages;
-        toast.info("Selecting no Current Stage is the same as selecting all Current Stages")
+        toast.info("Selecting no current stages is the same as selecting all current stages")
       } else {
         newCurrentStages = [...currentStages, currentStage];
         newCurrentStages = newCurrentStages.length === currentStages.length ? "All" : newCurrentStages;

@@ -16,12 +16,6 @@ export default function RoleDepartmentOptions({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="font-semibold text-lg">Role & Department</h3>
-        <p className="text-neutral-600 dark:text-neutral-400">
-          Filter jobs by department and specific job titles or keywords.
-        </p>
-      </div>
 
       <div
         ref={refs.departments}
