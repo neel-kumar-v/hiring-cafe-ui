@@ -9,6 +9,7 @@ type RangeSliderProps = {
   max?: number
   step?: number
   currency?: string
+  money?: boolean
   value?: [number, number]
   onValueChange?: (values: [number, number]) => void
 }
@@ -18,6 +19,7 @@ const RangeSlider = ({
   max = 250000,
   step = 1000,
   currency = '$',
+  money = true,
   value,
   onValueChange,
 }: RangeSliderProps) => {
@@ -28,7 +30,9 @@ const RangeSlider = ({
 
   const values = value ?? internalValues;
 
-  const formatCurrency = (value: number) => {
+  const formatValue = (value: number) => {
+    if (!money) return value.toString();
+    
     if (currency === 'None') return value.toString();
 
     const rounded = Math.round(value / 1000) * 1000;
@@ -71,12 +75,12 @@ const RangeSlider = ({
   };
 
   return (
-    <>
+    <div className="px-3">
       <DualRangeSlider
         className="w-full mt-10"
         label={value => (
           <span className="inline-flex items-center justify-center text-center text-foreground backdrop-blur-xl">
-            {formatCurrency(value ?? 0)}
+            {formatValue(value ?? 0)}
           </span>
         )}
         value={values}
@@ -86,7 +90,7 @@ const RangeSlider = ({
         step={step}
       />
       <div className="flex w-full justify-between mt-2 text-xs text-muted-foreground select-none">
-        <span>{formatCurrency(min)}</span>
+        <span>{formatValue(min)}</span>
         <span className="flex items-center gap-1 group">
           <span className="flex items-center">
             <Edit3 className="size-3 text-gray-400 opacity-0 group-hover:opacity-75 transition-opacity duration-200 mr-1" />
@@ -132,13 +136,13 @@ const RangeSlider = ({
                   setTempMax(maxValue.toString());
                 }}
               >
-                {formatCurrency(maxValue)}
+                {formatValue(maxValue)}
               </span>
             )}
           </span>
         </span>
       </div>
-    </>
+    </div>
   );
 };
 export default RangeSlider;

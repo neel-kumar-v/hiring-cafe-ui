@@ -110,8 +110,14 @@ export type RoleSelection =
   | "None"
   | RoleExperience
   | {
-      individualContributor: Range;
-      peopleManager: Range;
+      individualContributor: {
+        range: Range;
+        exclude_not_mentioned: boolean;
+      };
+      peopleManager: {
+        range: Range;
+        exclude_not_mentioned: boolean;
+      };
     };
 
 export interface ExperienceLevelOptions {
@@ -154,18 +160,18 @@ export type BenefitsOptions = Select<Benefits, null>;
 export type Encouraged = "Veteran" | "Fair Chance";
 export type EncouragedOptions = Select<Encouraged, null>;
 
-export type Profit = "For-Profit" | "Non-Profit" | "All";
+export type Profit = "For-Profit" | "Non-Profit";
 export type USAJobs = "Only" | "No" | "All";
 export interface IndustryOptions {
-  profit: Profit;
+  profit: Select<Profit, "All">;
   activities: Keywords;
   industry: Keywords;
   usa_jobs: USAJobs;
 }
 
-export type CurrentStage = "Public" | "Private" | "All";
+export type CurrentStage = "Public" | "Private";
 export interface FundingOptions {
-  current: CurrentStage;
+  current: Select<CurrentStage, "All">;
   investors: Keywords;
   latest_round: Range;
   latest_round_type: Keywords;

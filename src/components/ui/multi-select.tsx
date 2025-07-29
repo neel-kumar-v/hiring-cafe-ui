@@ -350,7 +350,7 @@ export const MultiSelect = React.forwardRef<
                       <span>Add &quot;{searchValue.trim()}&quot;</span>
                     </CommandItem>
                   )}
-                  {availableOptions.map((option) => {
+                  {options.map((option) => {
                     const isSelected = currentSelectedValues.includes(option.value);
                     return (
                       <CommandItem

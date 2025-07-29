@@ -31,7 +31,7 @@ export default function Size() {
     return false;
   };
 
-  const handleRangeToggle = (range: InfiniteRange) => {
+  const handleRangeChange = (range: InfiniteRange) => {
     const currentSize = searchOptions.size;
     let newSize: Select<InfiniteRange, "All">;
     
@@ -69,7 +69,7 @@ export default function Size() {
             key={label}
             label={label}
             checked={isRangeSelected(range)}
-            onChange={() => handleRangeToggle(range)}
+            onChange={() => handleRangeChange(range)}
           />
         ))}
       </LabelInputContainer>

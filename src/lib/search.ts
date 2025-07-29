@@ -1,8 +1,12 @@
+import companiesData from "@/data/companies.json" with { type: "json" };
+import companyActivitiesData from "@/data/company_activities.json" with { type: "json" };
 import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
+import industriesData from "@/data/industries.json" with { type: "json" };
 import jobsData from "@/data/jobs_data.json";
+import roundTypesData from "@/data/round_types.json" with { type: "json" };
+import investorsData from "@/data/investors.json" with { type: "json" };
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
-import companiesData from "@/data/companies.json" with { type: "json" };
 import { AddressComponent, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, Environment, ExperienceLevel, ExperienceLevelOptions, HiringCafeSearchState, InfiniteRange, Intensity, Keywords, Location, Mobility, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
 
 
@@ -107,7 +111,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     companyKeywords: convertKeywordsToArray(searchState.company),
     companyKeywordsBooleanOperator: "OR",
     companyNames: [],
-    companyPublicOrPrivate: searchState.stage_funding.current === "All" ? "all" : searchState.stage_funding.current.toLowerCase(),
+    companyPublicOrPrivate: Array.isArray(searchState.stage_funding.current) ? "all" : searchState.stage_funding.current === "All" ? "all" : (searchState.stage_funding.current as string).toLowerCase(),
     companySizeRanges: [],
     computerUsageLevels: convertDemandsToArray(searchState.location.workplace_activity.computer_usage),
     currency: {
@@ -133,8 +137,8 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     excludedLatestInvestmentSeries: convertKeywordsToArray(searchState.stage_funding.latest_round_type),
     excludedLicensesAndCertifications: convertKeywordsToArray(searchState.license_certification.keywords),
     excludedMastersDegreeFieldsOfStudy: [],
-    excludeIfManagementYoeIsNotSpecified: false,
-    excludeIfRoleYoeIsNotSpecified: false,
+    excludeIfManagementYoeIsNotSpecified: searchState.experience.role === "None" ? false : typeof searchState.experience.role === "object" && "peopleManager" in searchState.experience.role ? searchState.experience.role.peopleManager.exclude_not_mentioned : false,
+    excludeIfRoleYoeIsNotSpecified: searchState.experience.role === "None" ? false : typeof searchState.experience.role === "object" && "individualContributor" in searchState.experience.role ? searchState.experience.role.individualContributor.exclude_not_mentioned : false,
     excludeJobsWithAdditionalLanguageRequirements: false,
     frequency: {
       label: searchState.salary.listedUnit,
@@ -145,7 +149,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     holidayAvailabilityRequired: searchState.shift_preferences.holiday === "Required" ? "Required" : "Doesn't Matter",
     industries: convertKeywordsToArray(searchState.industry.industry),
     investors: convertKeywordsToArray(searchState.stage_funding.investors),
-    isNonProfit: searchState.industry.profit === "All" ? "all" : searchState.industry.profit.toLowerCase(),
+    isNonProfit: Array.isArray(searchState.industry.profit) ? "all" : searchState.industry.profit === "All" ? "all" : (searchState.industry.profit as string).toLowerCase(),
     jobDescriptionQuery: "",
     jobTitleQuery: "",
     landTravelRequirement: convertTravelRequirements(searchState.travel_requirements),
@@ -159,7 +163,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     locations: searchState.location.location.map(convertLocation),
     managementYoeRange: searchState.experience.role === "None" ? [0, 20] : 
       typeof searchState.experience.role === "object" && "peopleManager" in searchState.experience.role ? 
-        convertRangeToTuple(searchState.experience.role.peopleManager) : [0, 20],
+        convertRangeToTuple(searchState.experience.role.peopleManager.range) : [0, 20],
     mastersDegreeFieldsOfStudy: [],
     mastersDegreeRequirements: [],
     maxCompensationHighEnd: searchState.salary.max_range.max,
@@ -184,7 +188,7 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
         ["Individual Contributor", "People Manager"] : ["Individual Contributor"],
     roleYoeRange: searchState.experience.role === "None" ? [0, 20] : 
       typeof searchState.experience.role === "object" && "individualContributor" in searchState.experience.role ? 
-        convertRangeToTuple(searchState.experience.role.individualContributor) : [0, 20],
+        convertRangeToTuple(searchState.experience.role.individualContributor.range) : [0, 20],
     searchModeSelectedCompany: null,
     searchQuery: "",
     securityClearances: convertSecurityClearance(searchState.security_clearance),
@@ -247,25 +251,54 @@ export function getCompaniesFromData(): string[] {
   return [];
 }
 
+export function getIndustriesFromData(): string[] {
+  if (industriesData && Array.isArray(industriesData.suggestions)) {
+    return Array.from(new Set(industriesData.suggestions));
+  }
+  return [];
+}
+
+export function getCompanyActivitiesFromData(): string[] {
+  if (companyActivitiesData && Array.isArray(companyActivitiesData.suggestions)) {
+    return Array.from(new Set(companyActivitiesData.suggestions));
+  }
+  return [];
+}
+
+export function getRoundTypesFromData(): string[] {
+  if (roundTypesData && Array.isArray(roundTypesData.suggestions)) {
+    return Array.from(new Set(roundTypesData.suggestions));
+  }
+  return [];
+}
+
+export function getInvestorsFromData(): string[] {
+  if (investorsData && Array.isArray(investorsData.suggestions)) {
+    return Array.from(new Set(investorsData.suggestions));
+  }
+  return [];
+}
+
+
 export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>, maxCount: number = 3) {
   if (!select) return "None";
   if (Array.isArray(select)) return select.length === 0 ? "None" : select.slice(0, maxCount).join(", ");
   return select;
 }
 
-export function decodeRangeString(range: Range | InfiniteRange) {
+export function decodeRangeString(range: Range | InfiniteRange, moneyFormat: boolean = true) {
   if (!range) return "All";
   if (range.min === 0 && range.max === 0) return "All";
-  function formatK(num: number) {
-    if (Math.abs(num) >= 1000) {
-      return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1).replace(/\.0$/, "") + "k";
-    }
+  function formatNumber(num: number) {
+    if (!moneyFormat) return num.toString();
+    if (Math.abs(num) >= 1000000) return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1).replace(/\.0$/, "") + "M";
+    if (Math.abs(num) >= 1000) return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1).replace(/\.0$/, "") + "K";
     return num.toString();
   }
 
-  if (range.min === range.max) return formatK(range.min);
-  if (range.max === null) return formatK(range.min) + "+";
-  return formatK(range.min) + " - " + formatK(range.max);
+  if (range.min === range.max) return formatNumber(range.min);
+  if (range.max === null) return formatNumber(range.min) + "+";
+  return formatNumber(range.min) + " - " + formatNumber(range.max);
 }
 
 export function decodeSearchExpression(expression: SearchExpression<string>): string {

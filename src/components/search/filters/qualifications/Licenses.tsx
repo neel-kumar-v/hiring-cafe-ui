@@ -49,6 +49,8 @@ export default function Licenses() {
         onChange={(licenses) => handleLicensesChange(licenses)}
         includeOptions={licenses}
         excludeOptions={licenses}
+        includePlaceholder="Include Licenses"
+        excludePlaceholder="Exclude Licenses"
       />
     </FilterContainer>
   );

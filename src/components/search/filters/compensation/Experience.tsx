@@ -26,7 +26,6 @@ export default function Experience() {
     } else {
       const added = [...currentExperience.level, type]
       newExperience = added.length === allExperienceLevels.length ? "All" : added
-      // if (added.length === allExperienceLevels.length) toast.info(checkboxInfo("Experience"))
     }
 
     updateSearchOptions({

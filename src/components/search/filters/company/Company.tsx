@@ -26,6 +26,8 @@ export default function Company() {
         onChange={handleCompanyChange} 
         includeOptions={companies} 
         excludeOptions={companies} 
+        includePlaceholder="Include Company Names"
+        excludePlaceholder="Exclude Company Names"
       />
     </FilterContainer>
   );

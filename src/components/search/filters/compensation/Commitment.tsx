@@ -29,7 +29,6 @@ export default function Commitment() {
     } else {
       const added = [...currentCommitment, type]
       newCommitment = added.length === allCommitmentLevels.length ? "All" : added
-      // if (added.length === allCommitmentLevels.length) toast.info(checkboxInfo("Commitment Level"))
     }
     updateSearchOptions({
       commitment: newCommitment

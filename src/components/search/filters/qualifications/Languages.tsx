@@ -28,6 +28,8 @@ export default function Languages() {
         onChange={(languages) => handleLanguagesChange(languages)}
         includeOptions={languages}
         excludeOptions={languages}
+        includePlaceholder="Include Languages"
+        excludePlaceholder="Exclude Languages"
       />
     </FilterContainer>
   );

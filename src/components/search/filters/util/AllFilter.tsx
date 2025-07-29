@@ -15,7 +15,7 @@ interface FilterItemProps {
 }
 
 function shouldShowFilterItem(value: string | null, isExtended: boolean, isImportant: boolean = false): boolean {
-  const exclude = ["All", "None", "", " No"];
+  const exclude = ["All", "None", "", " No", "1800 - 2025"];
   return isImportant || isExtended || !exclude.includes(value || "");
 }
 
@@ -198,7 +198,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     industry: decodeIndustryOptions(searchOptions?.industry),
     stage_funding: decodeFundingOptions(searchOptions?.stage_funding),
     size: decodeSizeOptions(searchOptions?.size),
-    founding_year: decodeRangeString(searchOptions?.founding_year || { min: 0, max: 0 }),
+    founding_year: decodeRangeString(searchOptions?.founding_year || { min: 0, max: 0 }, false),
   }
   
   const generalItems: FilterItemProps[] = [
