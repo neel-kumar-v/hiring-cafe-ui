@@ -219,66 +219,30 @@ export function getJobTitlesFromData(): string[] {
   return [];
 }
 
-export function getLanguagesFromData(): string[] {
-  if (languagesData && Array.isArray(languagesData.suggestions)) {
-    return Array.from(new Set(languagesData.suggestions)).map(language =>
-      language.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
-    );
+export function getDataFromSource<T extends { suggestions: string[] }>(
+  data: T | null,
+  uppercase: boolean = false
+): string[] {
+  if (data && Array.isArray(data.suggestions)) {
+    const uniqueData = Array.from(new Set(data.suggestions));
+    if (uppercase) {
+      return uniqueData.map(item =>
+        item.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
+      );
+    }
+    return uniqueData;
   }
   return [];
 }
 
-export function getDegreeTitlesFromData(): string[] {
-  if (degreeTitlesData && Array.isArray(degreeTitlesData.suggestions)) {
-    return Array.from(new Set(degreeTitlesData.suggestions)).map(title =>
-      title.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
-    ) as string[];
-  }
-  return [];
-}
-
-export function getLicensesFromData(): string[] {
-  if (licensesData && Array.isArray(licensesData.suggestions)) {
-    return Array.from(new Set(licensesData.suggestions));
-  }
-  return [];
-}
-
-export function getCompaniesFromData(): string[] {
-  if (companiesData && Array.isArray(companiesData.suggestions)) {
-    return Array.from(new Set(companiesData.suggestions));
-  }
-  return [];
-}
-
-export function getIndustriesFromData(): string[] {
-  if (industriesData && Array.isArray(industriesData.suggestions)) {
-    return Array.from(new Set(industriesData.suggestions));
-  }
-  return [];
-}
-
-export function getCompanyActivitiesFromData(): string[] {
-  if (companyActivitiesData && Array.isArray(companyActivitiesData.suggestions)) {
-    return Array.from(new Set(companyActivitiesData.suggestions));
-  }
-  return [];
-}
-
-export function getRoundTypesFromData(): string[] {
-  if (roundTypesData && Array.isArray(roundTypesData.suggestions)) {
-    return Array.from(new Set(roundTypesData.suggestions));
-  }
-  return [];
-}
-
-export function getInvestorsFromData(): string[] {
-  if (investorsData && Array.isArray(investorsData.suggestions)) {
-    return Array.from(new Set(investorsData.suggestions));
-  }
-  return [];
-}
-
+export function getLanguagesFromData() { return getDataFromSource(languagesData, true); }
+export function getDegreeTitlesFromData() { return getDataFromSource(degreeTitlesData, true); }
+export function getLicensesFromData() { return getDataFromSource(licensesData, false); }
+export function getCompaniesFromData() { return getDataFromSource(companiesData, true); }
+export function getIndustriesFromData() { return getDataFromSource(industriesData, true); }
+export function getCompanyActivitiesFromData() { return getDataFromSource(companyActivitiesData, true); }
+export function getRoundTypesFromData() { return getDataFromSource(roundTypesData, false); }
+export function getInvestorsFromData() { return getDataFromSource(investorsData, false); }
 
 export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>, maxCount: number = 3) {
   if (!select) return "None";
