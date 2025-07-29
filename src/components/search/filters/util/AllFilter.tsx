@@ -1,6 +1,6 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { decodeKeywords, decodeRangeString, decodeSearchExpression, decodeSelectString } from "@/lib/search";
+import { decodeKeywords, decodeLocations, decodeRangeString, decodeSearchExpression, decodeSelectString } from "@/lib/search";
 import { CategoryId, DegreePreferencesOptions, FundingOptions, IndustryOptions, InfiniteRange, SalaryOptions, SearchState, Select, ShiftPreferencesOptions } from "@/types/search";
 import { useState } from "react";
 
@@ -186,7 +186,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     shifts: decodeShiftPreferences(searchOptions?.shift_preferences),
     air_travel: decodeSelectString(searchOptions?.travel_requirements?.air || "All"),
     land_travel: decodeSelectString(searchOptions?.travel_requirements?.land || "All"),
-    location: searchOptions?.location?.userLocation?.address?.formatted || "None",
+    location: decodeLocations(searchOptions?.location?.location || []),
     workplace_type: decodeSelectString(searchOptions?.location?.workplace_type || "All"),
     environment: decodeSelectString(searchOptions?.location?.workplace_activity?.environment || "All"),
     mobility: decodeSelectString(searchOptions?.location?.workplace_activity?.mobility || "All"),
@@ -205,7 +205,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Jobs from the past",
       value: decodedState.date_range,
-      categoryId: "date-range",
+      categoryId: "date-range" as CategoryId,
       isExtended: extended,
       isImportant: true,
       handleCategoryClick: handleCategoryClick
@@ -213,7 +213,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Sort by",
       value: decodedState.sort,
-      categoryId: "sorting",
+      categoryId: "sorting" as CategoryId,
       isExtended: extended,
       isImportant: true,
       handleCategoryClick: handleCategoryClick
@@ -221,7 +221,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Apply Form Type",
       value: decodedState.apply_form,
-      categoryId: "apply-form",
+      categoryId: "apply-form" as CategoryId,
       isExtended: extended,
       isImportant: true,
       handleCategoryClick: handleCategoryClick
@@ -229,14 +229,14 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Excluding",
       value: decodedState.exclusion,
-      categoryId: "exclusion",
+      categoryId: "exclusion" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Encouraged to Apply",
       value: decodedState.encouraged,
-      categoryId: "encouraged",
+      categoryId: "encouraged" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
@@ -246,28 +246,28 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Salary",
       value: decodedState.salary,
-      categoryId: "salary",
+      categoryId: "salary" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Commitment",
       value: decodedState.commitment,
-      categoryId: "commitment",
+      categoryId: "commitment" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Experience",
       value: decodedState.experience,
-      categoryId: "experience",
+      categoryId: "experience" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Benefits & Perks",
       value: decodedState.benefits || "None",
-      categoryId: "benefits",
+      categoryId: "benefits" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
@@ -277,35 +277,35 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Departments",
       value: decodedState.departments,
-      categoryId: "departments",
+      categoryId: "departments" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Job Title Keywords",
       value: decodedState.job_titles || "None",
-      categoryId: "job-titles",
+      categoryId: "job-titles" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Job Technical Keywords",
       value: decodedState.job_keywords || "None",
-      categoryId: "job-titles",
+      categoryId: "job-titles" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Job Description Keywords",
       value: decodedState.job_description || "None",
-      categoryId: "job-titles",
+      categoryId: "job-titles" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Job Requirements Keywords",
       value: decodedState.job_requirements || "None",
-      categoryId: "job-titles",
+      categoryId: "job-titles" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
@@ -315,126 +315,126 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Associate Degree Preferences",
       value: decodedState.education.associate.preferences,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Associate Degree Keywords",
       value: decodedState.education.associate.include,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Associate Degree Keywords",
       value: decodedState.education.associate.exclude,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Bachelor Degree Preferences",
       value: decodedState.education.bachelor.preferences,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Bachelor Degree Keywords",
       value: decodedState.education.bachelor.include,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Bachelor Degree Keywords",
       value: decodedState.education.bachelor.exclude,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Master Degree Preferences",
       value: decodedState.education.master.preferences,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Master Degree Keywords",
       value: decodedState.education.master.include,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Master Degree Keywords",
       value: decodedState.education.master.exclude,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Doctorate Degree Preferences",
       value: decodedState.education.doctorate.preferences,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Doctorate Degree Keywords",
       value: decodedState.education.doctorate.include,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Doctorate Degree Keywords",
       value: decodedState.education.doctorate.exclude,
-      categoryId: "education",
+      categoryId: "education" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included License Keywords",
       value: decodedState.license.include,
-      categoryId: "licenses",
+      categoryId: "licenses" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded License Keywords",
       value: decodedState.license.exclude,
-      categoryId: "licenses",
+      categoryId: "licenses" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Hide Required Licenses",
       value: decodedState.hide_required,
-      categoryId: "licenses",
+      categoryId: "licenses" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Security Clearance",
       value: decodedState.security,
-      categoryId: "security",
+      categoryId: "security" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Language Keywords",
       value: decodedState.language.include,
-      categoryId: "languages",
+      categoryId: "languages" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Language Keywords",
       value: decodedState.language.exclude,
-      categoryId: "languages",
+      categoryId: "languages" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
@@ -444,63 +444,63 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Morning Shift Preferences",
       value: decodedState.shifts.morning,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Afternoon Shift Preferences",
       value: decodedState.shifts.afternoon,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Evening Shift Preferences",
       value: decodedState.shifts.night,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Weekend Shift Preferences",
       value: decodedState.shifts.weekend,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Holiday Shift Preferences",
       value: decodedState.shifts.holiday,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Overtime Shift Preferences",
       value: decodedState.shifts.overtime,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "On-Call Shift Preferences",
       value: decodedState.shifts.oncall,
-      categoryId: "shifts",
+      categoryId: "shifts" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Air Travel Preferences",
       value: decodedState.air_travel,
-      categoryId: "travel",
+      categoryId: "travel" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Land Travel Preferences",
       value: decodedState.land_travel,
-      categoryId: "travel",
+      categoryId: "travel" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
@@ -509,57 +509,74 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
   const locationItems: FilterItemProps[] = [
     {
       label: "Location",
-      value: decodedState.location,
-      categoryId: "location",
+      value: decodedState.location.addresses,
+      categoryId: "location" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
-    {
-      label: "Workplace Type",
-      value: decodedState.workplace_type,
-      categoryId: "workplace-activity",
-      isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    },
+    // Only show detailed breakdown for single locations
+    ...(decodedState.location.isMultiple ? [] : [
+      {
+        label: "Radius",
+        value: decodedState.location.radius,
+        categoryId: "location" as CategoryId,
+        isExtended: extended,
+        handleCategoryClick: handleCategoryClick
+      },
+      {
+        label: "Include remote jobs in",
+        value: decodedState.location.flexibleRegions,
+        categoryId: "location" as CategoryId,
+        isExtended: extended,
+        handleCategoryClick: handleCategoryClick
+      },
+      {
+        label: "Workplace type",
+        value: decodedState.location.workplaceTypes,
+        categoryId: "workplace-activity" as CategoryId,
+        isExtended: extended,
+        handleCategoryClick: handleCategoryClick
+      }
+    ]),
     {
       label: "Workplace Environment",
       value: decodedState.environment,
-      categoryId: "workplace-activity",
+      categoryId: "workplace-activity" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Mobility Requirements",
       value: decodedState.mobility,
-      categoryId: "location",
+      categoryId: "location" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Physical Intensity Requirements",
       value: decodedState.physical_intensity,
-      categoryId: "location",
+      categoryId: "location" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Cognitive Intensity Requirements",
       value: decodedState.cognitive_intensity,
-      categoryId: "location",
+      categoryId: "location" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Computer Usage Requirements",
       value: decodedState.computer_usage,
-      categoryId: "location",
+      categoryId: "location" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Oral Communication Requirements",
       value: decodedState.oral_communication,
-      categoryId: "location",
+      categoryId: "location" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }
@@ -569,112 +586,112 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     {
       label: "Included Company Keywords",
       value: decodedState.company.include,
-      categoryId: "company",
+      categoryId: "company" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Company Keywords",
       value: decodedState.company.exclude,
-      categoryId: "company",
+      categoryId: "company" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Industry Keywords",
       value: decodedState.industry.decoded_industry.include,
-      categoryId: "industry",
+      categoryId: "industry" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Industry Keywords",
       value: decodedState.industry.decoded_industry.exclude,
-      categoryId: "industry",
+      categoryId: "industry" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Industry Activities",
       value: decodedState.industry.activities.include,
-      categoryId: "industry",
+      categoryId: "industry" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Industry Activities",
       value: decodedState.industry.activities.exclude,
-      categoryId: "industry",
+      categoryId: "industry" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Show USA Jobs",
       value: decodedState.industry.usa_jobs,
-      categoryId: "industry",
+      categoryId: "industry" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Current Stage",
       value: decodedState.stage_funding.current,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Investors",
       value: decodedState.stage_funding.investors.include,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Investors",
       value: decodedState.stage_funding.investors.exclude,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Latest Round",
       value: decodedState.stage_funding.latest_round,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Included Latest Round Type",
       value: decodedState.stage_funding.latest_round_type.include,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Excluded Latest Round Type",
       value: decodedState.stage_funding.latest_round_type.exclude,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Latest Round Amount",
       value: decodedState.stage_funding.latest_round_amount,
-      categoryId: "stage",
+      categoryId: "stage" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },
     {
       label: "Size",
       value: decodedState.size,
-      categoryId: "size",
+      categoryId: "size" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     },  
     {
       label: "Founding Year",
       value: decodedState.founding_year,
-      categoryId: "founding",
+      categoryId: "founding" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
     }

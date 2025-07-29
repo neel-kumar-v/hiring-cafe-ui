@@ -2,6 +2,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { MultiLocationPicker } from "@/components/ui/multi-location-picker";
 import { useApp } from "@/contexts/AppContext";
+import {
+  createLocationFlexibleRegionsHandler,
+  createLocationIgnoreRadiusHandler,
+  createLocationRadiusHandler,
+  createLocationRadiusUnitHandler,
+  createLocationsChangeHandler,
+  createLocationWorkplaceTypeHandler
+} from "@/lib/search";
 import { LocationType, Workplace, type AddressComponent, type Location } from "@/types/search";
 import { MapPin } from "lucide-react";
 import FilterContainer from "../util/FilterContainer";
@@ -11,91 +19,17 @@ import LabelRadio from "../util/LabelRadio";
 
 interface LocationAccordionProps {
   location: Location;
-  onLocationUpdate: (updatedLocation: Location) => void;
-  onLocationRemove: (locationId: string) => void;
+  locationIndex: number;
 }
 
-export function LocationAccordion({ location, onLocationUpdate }: LocationAccordionProps) {
+export function LocationAccordion({ location, locationIndex }: LocationAccordionProps) {
+  const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleRadiusChange = (radius: number) => {
-    onLocationUpdate({
-      ...location,
-      options: {
-        ...location.options,
-        radius: radius,
-        radius_unit: location.options?.radius_unit || "Miles",
-        ignore_radius: radius === 0,
-        flexible_regions: location.options?.flexible_regions || []
-      }
-    });
-  };
-
-  const handleRadiusUnitChange = (unit: "Miles" | "Kilometers") => {
-    onLocationUpdate({
-      ...location,
-      options: {
-        ...location.options,
-        radius: location.options?.radius || 25,
-        radius_unit: unit,
-        ignore_radius: location.options?.ignore_radius || false,
-        flexible_regions: location.options?.flexible_regions || []
-      }
-    });
-  };
-
-  const handleIgnoreRadiusChange = (ignore: boolean) => {
-    onLocationUpdate({
-      ...location,
-      options: {
-        ...location.options,
-        radius: ignore ? 0 : (location.options?.radius || 25),
-        radius_unit: location.options?.radius_unit || "Miles",
-        ignore_radius: ignore,
-        flexible_regions: location.options?.flexible_regions || []
-      }
-    });
-  };
-
-  const handleWorkplaceTypeChange = (workplaceType: Workplace) => {
-    let newWorkplaceType: Workplace[] | "All";
-    
-    const currentTypes = Array.isArray(location.workplace_type) ? location.workplace_type : 
-      (location.workplace_type === "All" ? [] : (location.workplace_type ? [location.workplace_type as Workplace] : []));
-    
-    if (currentTypes.includes(workplaceType)) {
-      const filtered = currentTypes.filter(type => type !== workplaceType);
-      newWorkplaceType = filtered.length > 0 ? filtered : "All";
-    } else {
-      newWorkplaceType = [...currentTypes, workplaceType];
-    }
-    
-    onLocationUpdate({
-      ...location,
-      workplace_type: newWorkplaceType
-    });
-  };
-
-  const handleFlexibleRegionsChange = (region: LocationType) => {
-    const currentRegions = location.options?.flexible_regions || [];
-    let newRegions: LocationType[];
-    
-    if (currentRegions.includes(region)) {
-      newRegions = currentRegions.filter(r => r !== region);
-    } else {
-      newRegions = [...currentRegions, region];
-    }
-
-    onLocationUpdate({
-      ...location,
-      options: {
-        ...location.options,
-        radius: location.options?.radius || 25,
-        radius_unit: location.options?.radius_unit || "Miles",
-        ignore_radius: location.options?.ignore_radius || false,
-        flexible_regions: newRegions
-      }
-    });
-  };
+  const handleRadiusChange = createLocationRadiusHandler(location, searchOptions, updateSearchOptions, locationIndex);
+  const handleRadiusUnitChange = createLocationRadiusUnitHandler(location, searchOptions, updateSearchOptions, locationIndex);
+  const handleIgnoreRadiusChange = createLocationIgnoreRadiusHandler(location, searchOptions, updateSearchOptions, locationIndex);
+  const handleWorkplaceTypeChange = createLocationWorkplaceTypeHandler(location, searchOptions, updateSearchOptions, locationIndex);
+  const handleFlexibleRegionsChange = createLocationFlexibleRegionsHandler(location, searchOptions, updateSearchOptions, locationIndex);
 
   const isWorkplaceTypeSelected = (workplaceType: Workplace) => {
     if (location.workplace_type === "All") return false;
@@ -289,38 +223,7 @@ export function LocationAccordion({ location, onLocationUpdate }: LocationAccord
 export default function Location() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleLocationsChange = (locations: Location[]) => {
-    updateSearchOptions({
-      location: {
-        ...searchOptions.location,
-        location: locations
-      }
-    });
-  };
-
-  const handleLocationUpdate = (updatedLocation: Location) => {
-    const updatedLocations = searchOptions.location.location.map(loc =>
-      loc.id === updatedLocation.id ? updatedLocation : loc
-    );
-    
-    updateSearchOptions({
-      location: {
-        ...searchOptions.location,
-        location: updatedLocations
-      }
-    });
-  };
-
-  const handleLocationRemove = (locationId: string) => {
-    const updatedLocations = searchOptions.location.location.filter(loc => loc.id !== locationId);
-    
-    updateSearchOptions({
-      location: {
-        ...searchOptions.location,
-        location: updatedLocations
-      }
-    });
-  };
+  const handleLocationsChange = createLocationsChangeHandler(searchOptions, updateSearchOptions);
 
   return (
     <FilterContainer title="Location">
@@ -332,13 +235,11 @@ export default function Location() {
         
         {searchOptions.location.location.length > 0 && (
           <div className="space-y-2">
-            {/* <h4 className="text-sm font-medium text-foreground">Location Settings</h4> */}
-            {searchOptions.location.location.map((location) => (
+            {searchOptions.location.location.map((location, index) => (
               <LocationAccordion
                 key={location.id}
                 location={location}
-                onLocationUpdate={handleLocationUpdate}
-                onLocationRemove={handleLocationRemove}
+                locationIndex={index}
               />
             ))}
         </div>
