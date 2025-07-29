@@ -1,5 +1,6 @@
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Keywords } from "@/types/search";
+import { useEffect, useState } from "react";
 
 interface KeywordsMultiSelectProps {
   value: Keywords;
@@ -34,13 +35,28 @@ export function KeywordsMultiSelect({
     });
   };
 
-  // const handleKeywordChange = (keyword: Keywords, id: string) => {
+  const [showIncludeOptions, setShowIncludeOptions] = useState(includeOptions);
+  const [showExcludeOptions, setShowExcludeOptions] = useState(excludeOptions);
+
+  useEffect(() => {
+    // Filter include options: remove any that are already in exclude list
+    const filteredIncludeOptions = includeOptions.filter(
+      option => !value.exclude.includes(option.value)
+    );
+    setShowIncludeOptions(filteredIncludeOptions);
+
+    // Filter exclude options: remove any that are already in include list
+    const filteredExcludeOptions = excludeOptions.filter(
+      option => !value.include.includes(option.value)
+    );
+    setShowExcludeOptions(filteredExcludeOptions);
+  }, [includeOptions, excludeOptions, value.include, value.exclude]);
 
   return (
     <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${className || ""}`}>
       <div className="space-y-2">
         <MultiSelect
-          options={includeOptions}
+          options={showIncludeOptions}
           value={Array.isArray(value.include) ? value.include : []}
           onValueChange={handleIncludeChange}
           placeholder={includePlaceholder}
@@ -50,7 +66,7 @@ export function KeywordsMultiSelect({
       
       <div className="space-y-2">
         <MultiSelect
-          options={excludeOptions}
+          options={showExcludeOptions}
           value={Array.isArray(value.exclude) ? value.exclude : []}
           onValueChange={handleExcludeChange}
           placeholder={excludePlaceholder}
