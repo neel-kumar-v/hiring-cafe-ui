@@ -1,11 +1,11 @@
 import { useApp } from "@/contexts/AppContext";
+import { getCompanyActivitiesFromData, getIndustriesFromData } from "@/lib/search";
 import { Keywords, Profit, Select, USAJobs } from "@/types/search";
+import { useMemo } from "react";
 import FilterContainer from "../util/FilterContainer";
+import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
-import { getCompanyActivitiesFromData, getIndustriesFromData } from "@/lib/search";
-import { useMemo } from "react";
-import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelRadio from "../util/LabelRadio";
 
 export default function Industry() {
@@ -64,7 +64,10 @@ export default function Industry() {
 
   const handleKeywordsChange = (keywords: Keywords, id: "activities" | "industry") => {
     updateSearchOptions({
-      [id]: keywords,
+      industry: {
+        ...searchOptions.industry,
+        [id]: keywords
+      }
     });
   };
 
