@@ -46,11 +46,11 @@ const defaultSavedSearches: SavedSearch[] = [
       shift_preferences: {
         morning: null,
         afternoon: null,
-        evening: null,
+        night: null,
         weekend: "None",
         holiday: "None",
         overtime: "None",
-        oncall: "None"
+        oncall: "All"
       },
       travel_requirements: { air: "All", land: "All" },
       location: {
@@ -64,8 +64,8 @@ const defaultSavedSearches: SavedSearch[] = [
         },
         location: [],
         workplace_type: ["Remote"],
-        environment: "All",
-        demands: {
+        workplace_activity: {
+          environment: "All",
           mobility: "All",
           physical_intensity: "All",
           cognitive_intensity: "All",
@@ -87,7 +87,7 @@ const defaultSavedSearches: SavedSearch[] = [
         latest_round_type: { include: [], exclude: "None" },
         latest_round_amount: { min: 0, max: 0 }
       },
-      size: { min: 0, max: 0 },
+      size: "All",
       founding_year: { min: 0, max: 0 }
     },
     modifiedAt: new Date("2024-01-15")
@@ -119,11 +119,11 @@ const defaultSavedSearches: SavedSearch[] = [
       shift_preferences: {
         morning: null,
         afternoon: null,
-        evening: null,
+        night: null,
         weekend: "None",
         holiday: "None",
         overtime: "None",
-        oncall: "None"
+        oncall: "All"
       },
       travel_requirements: { air: "All", land: "All" },
       location: {
@@ -137,8 +137,8 @@ const defaultSavedSearches: SavedSearch[] = [
         },
         location: [],
         workplace_type: "All",
-        environment: "All",
-        demands: {
+        workplace_activity: {
+          environment: "All",
           mobility: "All",
           physical_intensity: "All",
           cognitive_intensity: "All",
@@ -160,7 +160,7 @@ const defaultSavedSearches: SavedSearch[] = [
         latest_round_type: { include: [], exclude: "None" },
         latest_round_amount: { min: 0, max: 0 }
       },
-      size: { min: 0, max: 0 },
+      size: "All",
       founding_year: { min: 0, max: 0 }
     },
     modifiedAt: new Date("2024-01-10")

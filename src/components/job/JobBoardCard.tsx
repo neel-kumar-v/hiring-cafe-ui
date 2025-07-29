@@ -164,7 +164,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
 
   const handleApplyToggle = useCallback(() => {
     // window.open(currentJob.apply_url, "_blank");
-    console.log("handleApplyToggle");
     setIsApplied(!isApplied);
   }, [isApplied]);
 
@@ -178,7 +177,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     setIsApplied(!isApplied);
-    console.log("handleApplyClick");
   }, [isApplied]);
 
   const handleDrawerClose = useCallback(() => {

@@ -102,7 +102,6 @@ function MorphingDialogTrigger({
   const { setIsOpen, isOpen, uniqueId } = useMorphingDialog();
 
   const handleClick = useCallback(() => {
-    console.log("🚀 MorphingDialogTrigger clicked", { isOpen, uniqueId });
     setIsOpen(!isOpen);
   }, [isOpen, setIsOpen, uniqueId]);
 

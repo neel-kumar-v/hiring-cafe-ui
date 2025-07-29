@@ -91,14 +91,13 @@ export function LocationPicker({
     try {
       const res = await fetch(`${API_URL}/reverse?lat=${lat}&lon=${long}&format=json`)
       const data = await res.json()
-      console.log(data)
       const city = data.address?.county || data.address?.city || data.address?.state || ''
 
       if (city) {
         setActiveLocation(data.display_name || city)
       }
     } catch (error) {
-      console.log("Error fetching location:", error)
+      console.error("Error fetching location:", error)
     } finally {
       setIsLoading(false)
     }
@@ -126,7 +125,7 @@ export function LocationPicker({
         console.log("No location found")
       }
     } catch (error) {
-      console.log("Error searching location:", error)
+      console.error("Error searching location:", error)
     } finally {
       setIsLoading(false)
     }
@@ -181,7 +180,7 @@ export function LocationPicker({
       const data = await res.json();
       setSuggestions(data);
     } catch (error) {
-      console.log("Error fetching suggestions:", error);
+      console.error("Error fetching suggestions:", error);
       setSuggestions([]);
     } finally {
       setIsFetchingSuggestions(false);

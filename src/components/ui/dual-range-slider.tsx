@@ -15,7 +15,6 @@ const DualRangeSlider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   DualRangeSliderProps
 >(({ className, label, labelPosition = 'top', ...props }, ref) => {
-  console.log(props);
   const initialValue = Array.isArray(props.value) ? props.value : [props.min, props.max];
 
   return (

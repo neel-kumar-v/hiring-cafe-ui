@@ -12,7 +12,7 @@ const SortPopover = lazy(() => import("@/components/search/legacy/SortPopover"))
 const SearchDialog = lazy(() => import("@/components/SearchDialog"));
 
 const LoadingFallback = () => (
-  console.log("LoadingFallback"),
+  // console.log("LoadingFallback"),
   <div className="col-span-full text-center py-16 text-text">
     Loading jobs...
   </div>

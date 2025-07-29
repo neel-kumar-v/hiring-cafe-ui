@@ -147,7 +147,7 @@ export function MultiLocationPicker({
         addLocation(location);
       }
     } catch (error) {
-      console.log("Error fetching location:", error)
+      console.error("Error fetching location:", error)
     } finally {
       setIsLoading(false)
     }
@@ -171,7 +171,7 @@ export function MultiLocationPicker({
         console.log("No location found")
       }
     } catch (error) {
-      console.log("Error searching location:", error)
+      console.error("Error searching location:", error)
     } finally {
       setIsLoading(false)
     }
@@ -226,7 +226,7 @@ export function MultiLocationPicker({
       const data = await res.json();
       setSuggestions(data);
     } catch (error) {
-      console.log("Error fetching suggestions:", error);
+      console.error("Error fetching suggestions:", error);
       setSuggestions([]);
     } finally {
       setIsFetchingSuggestions(false);

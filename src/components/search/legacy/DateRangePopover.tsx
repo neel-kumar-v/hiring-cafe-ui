@@ -13,32 +13,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 // Custom debounce hook
-function useDebounce(value: string, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+// function useDebounce(value: string, delay: number) {
+//   const [debouncedValue, setDebouncedValue] = useState(value);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+//   useEffect(() => {
+//     const handler = setTimeout(() => {
+//       setDebouncedValue(value);
+//     }, delay);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
+//     return () => {
+//       clearTimeout(handler);
+//     };
+//   }, [value, delay]);
 
-  return debouncedValue;
-}
+//   return debouncedValue;
+// }
 
 export default function DateRangePopover() {
   const { isDarkMode } = useDarkMode();
   const [customTimeValue, setCustomTimeValue] = useState("3");
   const [customTimeUnit, setCustomTimeUnit] = useState("days");
   const [isAllTime, setIsAllTime] = useState(false);
-
-  const debouncedTimeValue = useDebounce(customTimeValue, 500);
 
   const getTimeUnitLimits = (unit: string) => {
     const limits: { [key: string]: { min: number; max: number } } = {
