@@ -11,6 +11,7 @@ interface JobCardContentProps {
 
 const JobCardContent = memo(({
   currentJob,
+  isTransitioning,
 }: JobCardContentProps) => {
   const compensation = useMemo(() => ({
     yearly_min_compensation:
@@ -67,7 +68,9 @@ const JobCardContent = memo(({
   return (
     <div className="flex h-full flex-col">
       <div
-        className={`transition-opacity duration-300 ease-in-out  `}
+        className={`transition-opacity duration-300 ease-in-out ${
+          isTransitioning ? "opacity-0" : "opacity-100"
+        }`}
       >
         <CardHeader
           tools={technicalTools}

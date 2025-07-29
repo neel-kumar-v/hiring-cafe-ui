@@ -5,7 +5,7 @@ import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/job";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
-import CardCompanyJobs from "./card/CardCompanyJobs";
+// import CardCompanyJobs from "./card/CardCompanyJobs";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
 import CardStats from "./card/CardStats";
