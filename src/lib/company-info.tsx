@@ -21,6 +21,11 @@ export const getCompanyAbbreviation = (companyName: string) => {
     .slice(0, 4);
 };
 
+export const formatCompanyWebsite = (website: string | null | undefined): string => {
+  if (!website) return "#";
+  return website.startsWith("http") ? website : `https://${website}`;
+};
+
 export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: boolean) => {
   if (companyName.length !== 4) return companyName;
   const letters = companyName.split("").map((letter) => letter.toUpperCase());
@@ -37,9 +42,7 @@ export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: bool
 // Memoized and cached version of analyzeImageBackground
 const imageBackgroundCache = new Map<string, Promise<"light" | "dark" | null>>();
 
-export const analyzeImageBackground = async (
-  imageUrl: string
-): Promise<"light" | "dark" | null> => {
+export const analyzeImageBackground = async (imageUrl: string): Promise<"light" | "dark" | null> => {
   if (imageBackgroundCache.has(imageUrl)) {
     return imageBackgroundCache.get(imageUrl)!;
   }
@@ -107,20 +110,16 @@ export const analyzeImageBackground = async (
   return promise;
 };
 
-export const getImageBackgroundClass = (
-  imageUrl: string | null,
-  imageError: boolean,
-  backgroundType: "light" | "dark" | null
-): string => {
+export const getImageBackgroundClass = (imageUrl: string | null, imageError: boolean, backgroundType: "light" | "dark" | null): string => {
   if (!imageUrl || imageError) {
     return "bg-pink-100 dark:bg-pink-800/15";
   }
-  
+
   if (backgroundType === "light") {
     return "dark:bg-neutral-800";
   } else if (backgroundType === "dark") {
     return "dark:bg-white";
   }
-  
+
   return "";
-}; 
+};
