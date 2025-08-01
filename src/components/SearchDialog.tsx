@@ -1,7 +1,7 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";

@@ -7,10 +7,10 @@ const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) =>
 
   const minHeight = 12;
 
-  const maxHeight = useMemo(() => {
+  const maxHeight = () => {
     const combined = technicalTools.join("  ");
     return Math.max(12, Math.ceil(combined.length / 50 + 1) * 6);
-  }, [technicalTools]);
+  };
 
   return (
     <div className="flex grow min-w-0 flex-wrap items-center gap-1">
