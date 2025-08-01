@@ -28,7 +28,7 @@ function InfoListItem({
 }) {
   return (
     <li className={`flex items-center gap-2${wrap ? " flex-wrap" : ""}`}>
-      <UniversalTooltip content={header?.toString() || ""}>
+      <UniversalTooltip content={header?.toString() || ""} side="left">
         <Icon className="size-6 text-pink-700 dark:text-pink-300 stroke-[1.5px]" />
       </UniversalTooltip>
       {value}
