@@ -40,7 +40,6 @@
 //       const lastEntry = entries[entries.length - 1];
 //       if (lastEntry) {
 //         this.metrics = { ...this.metrics, lcp: lastEntry.startTime };
-//         console.log('🚀 LCP:', lastEntry.startTime.toFixed(2), 'ms');
 //       }
 //     });
 //     observer.observe({ entryTypes: ['largest-contentful-paint'] });
