@@ -17,7 +17,9 @@ export const defaultSearchOptions: SearchState = {
   commitment: "All",
   experience: {
     level: "All",
-    role: "None",
+    role: "All",
+    individualContributor: null,
+    peopleManager: null,
   },
   job_titles: {
     title: {},

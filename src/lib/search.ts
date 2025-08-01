@@ -48,10 +48,6 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     workplace_types: location.workplace_type ? convertSelectToArray(location.workplace_type) : undefined
   });
 
-  const convertRangeToTuple = (range: { min: number; max: number }): [number, number] => {
-    return [range.min, range.max];
-  };
-
   const convertExperienceLevel = (level: ExperienceLevelOptions): string[] => {
     if (Array.isArray(level.level)) {
       return level.level.map((l: ExperienceLevel) => {
@@ -137,8 +133,8 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     excludedLatestInvestmentSeries: convertKeywordsToArray(searchState.stage_funding.latest_round_type),
     excludedLicensesAndCertifications: convertKeywordsToArray(searchState.license_certification.keywords),
     excludedMastersDegreeFieldsOfStudy: [],
-    excludeIfManagementYoeIsNotSpecified: searchState.experience.role === "None" ? false : typeof searchState.experience.role === "object" && "peopleManager" in searchState.experience.role ? searchState.experience.role.peopleManager.exclude_not_mentioned : false,
-    excludeIfRoleYoeIsNotSpecified: searchState.experience.role === "None" ? false : typeof searchState.experience.role === "object" && "individualContributor" in searchState.experience.role ? searchState.experience.role.individualContributor.exclude_not_mentioned : false,
+    excludeIfManagementYoeIsNotSpecified: searchState.experience.role === "All" ? false : Array.isArray(searchState.experience.role) && searchState.experience.role.includes("People Manager") ? false : false,
+    excludeIfRoleYoeIsNotSpecified: searchState.experience.role === "All" ? false : Array.isArray(searchState.experience.role) && searchState.experience.role.includes("Individual Contributor") ? false : false,
     excludeJobsWithAdditionalLanguageRequirements: false,
     frequency: {
       label: searchState.salary.listedUnit,
@@ -161,9 +157,9 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     latestInvestmentYearRange: [searchState.stage_funding.latest_round_amount.min, searchState.stage_funding.latest_round_amount.max],
     licensesAndCertifications: convertKeywordsToArray(searchState.license_certification.keywords),
     locations: searchState.location.location.map(convertLocation),
-    managementYoeRange: searchState.experience.role === "None" ? [0, 20] : 
-      typeof searchState.experience.role === "object" && "peopleManager" in searchState.experience.role ? 
-        convertRangeToTuple(searchState.experience.role.peopleManager.range) : [0, 20],
+    managementYoeRange: searchState.experience.role === "All" ? [0, 20] : 
+      Array.isArray(searchState.experience.role) && searchState.experience.role.includes("People Manager") ? 
+        searchState.experience.peopleManager ? [searchState.experience.peopleManager.min, searchState.experience.peopleManager.max] : [0, 20] : [0, 20],
     mastersDegreeFieldsOfStudy: [],
     mastersDegreeRequirements: [],
     maxCompensationHighEnd: searchState.salary.max_range.max,
@@ -183,12 +179,12 @@ export function convertSearchStateToHiringCafe(searchState: SearchState): Hiring
     requirementsKeywordsQuery: "",
     restrictedSearchAttributes: [],
     restrictJobsToTransparentSalaries: !searchState.salary.undisclosed,
-    roleTypes: searchState.experience.role === "None" ? [] : 
-      typeof searchState.experience.role === "object" && "individualContributor" in searchState.experience.role ? 
+    roleTypes: searchState.experience.role === "All" ? [] : 
+      Array.isArray(searchState.experience.role) && searchState.experience.role.includes("Individual Contributor") ? 
         ["Individual Contributor", "People Manager"] : ["Individual Contributor"],
-    roleYoeRange: searchState.experience.role === "None" ? [0, 20] : 
-      typeof searchState.experience.role === "object" && "individualContributor" in searchState.experience.role ? 
-        convertRangeToTuple(searchState.experience.role.individualContributor.range) : [0, 20],
+    roleYoeRange: searchState.experience.role === "All" ? [0, 20] : 
+      Array.isArray(searchState.experience.role) && searchState.experience.role.includes("Individual Contributor") ? 
+        searchState.experience.individualContributor ? [searchState.experience.individualContributor.min, searchState.experience.individualContributor.max] : [0, 20] : [0, 20],
     searchModeSelectedCompany: null,
     searchQuery: "",
     securityClearances: convertSecurityClearance(searchState.security_clearance),

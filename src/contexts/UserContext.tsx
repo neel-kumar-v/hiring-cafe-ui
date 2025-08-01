@@ -17,7 +17,7 @@ const defaultSavedSearches: SavedSearch[] = [
       department: "All",
       salary: { min_range: { min: 80000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
       commitment: "All",
-      experience: { level: "All", role: "None" },
+      experience: { level: "All", role: "All", individualContributor: null, peopleManager: null },
       job_titles: { 
         title: "Software Engineer", 
         technical: {
@@ -105,7 +105,7 @@ const defaultSavedSearches: SavedSearch[] = [
       department: ["Data and Analytics"],
       salary: { min_range: { min: 60000, max: 90000 }, max_range: { min: 120000, max: 150000 }, listedUnit: "Yearly", unit: "Yearly", currency: "USD", undisclosed: false },
       commitment: ["Full Time"],
-      experience: { level: ["Entry Level"], role: "None" },
+      experience: { level: ["Entry Level"], role: "All", individualContributor: null, peopleManager: null },
       job_titles: { title: "Data Scientist", technical: "Python SQL", description: "", requirements: "" },
       education: {
         associate: { preferences: null, keywords: { include: [], exclude: "None" } },

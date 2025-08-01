@@ -101,28 +101,12 @@ export interface DegreePreferencesOptions {
 export type ExperienceLevel = "None" | "Entry Level" | "Mid Level" | "Senior Level";
 export type Role = "Individual Contributor" | "People Manager";
 
-export interface RoleExperience {
-  role: Role;
-  range: Range;
-}
-
-export type RoleSelection =
-  | "None"
-  | RoleExperience
-  | {
-      individualContributor: {
-        range: Range;
-        exclude_not_mentioned: boolean;
-      };
-      peopleManager: {
-        range: Range;
-        exclude_not_mentioned: boolean;
-      };
-    };
 
 export interface ExperienceLevelOptions {
   level: Select<ExperienceLevel>;
-  role: RoleSelection;
+  role: Select<Role>;
+  individualContributor: Range | null;
+  peopleManager: Range | null;
 }
 
 export interface LicenseCertificationOptions {

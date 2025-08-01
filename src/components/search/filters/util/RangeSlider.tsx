@@ -46,7 +46,7 @@ const RangeSlider = ({
         className="w-full mt-10"
         label={value => (
           <span className="inline-flex items-center justify-center text-center text-foreground backdrop-blur-xl">
-            {formatValue(value ?? 0, currency)}
+            {formatValue(value ?? 0, currency, money)}
           </span>
         )}
         value={values}
@@ -56,7 +56,7 @@ const RangeSlider = ({
         step={step}
       />
       <div className="flex w-full justify-between mt-2 text-xs text-muted-foreground select-none">
-        <span>{formatValue(min, currency)}</span>
+        <span>{formatValue(min, currency, money)}</span>
         <span className="flex items-center gap-1 group">
           <span className="flex items-center">
             <Edit3 className="size-3 text-gray-400 opacity-0 group-hover:opacity-75 transition-opacity duration-200 mr-1" />
@@ -102,7 +102,7 @@ const RangeSlider = ({
                   setTempMax(maxValue.toString());
                 }}
               >
-                {formatValue(maxValue, currency)}
+                {formatValue(maxValue, currency, money)}
               </span>
             )}
           </span>

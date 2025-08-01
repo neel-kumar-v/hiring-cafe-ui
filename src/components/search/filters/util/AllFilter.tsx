@@ -1,7 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { decodeKeywords, decodeLocations, decodeRangeString, decodeSearchExpression, decodeSelectString, formatValue } from "@/lib/search";
-import { CategoryId, DegreePreferencesOptions, FundingOptions, IndustryOptions, InfiniteRange, SalaryOptions, SearchState, Select, ShiftPreferencesOptions } from "@/types/search";
+import { CategoryId, DegreePreferencesOptions, ExperienceLevelOptions, FundingOptions, IndustryOptions, InfiniteRange, SalaryOptions, SearchState, Select, ShiftPreferencesOptions } from "@/types/search";
 import { useState } from "react";
 
 
@@ -163,6 +163,23 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     return "All";
   }
 
+  const decodeExperienceOptions = (experience: ExperienceLevelOptions | undefined) => {
+    if (!experience) return { level: "All", role: "All", individualContributor: "None", peopleManager: "None" };
+    
+    const level = decodeSelectString(experience.level || "All");
+    const role = decodeSelectString(experience.role || "All");
+    
+    const individualContributor = experience.individualContributor 
+      ? `${experience.individualContributor.min}-${experience.individualContributor.max} years`
+      : "None";
+    
+    const peopleManager = experience.peopleManager 
+      ? `${experience.peopleManager.min}-${experience.peopleManager.max} years`
+      : "None";
+    
+    return { level, role, individualContributor, peopleManager };
+  }
+
   const decodedState = {
     date_range: searchOptions?.date_range ? `${searchOptions.date_range.magnitude} ${searchOptions.date_range.unit}` : "All",
     sort: searchOptions?.sort ? `${searchOptions.sort.order} ${searchOptions.sort.by}` : "Most Relevance",
@@ -172,7 +189,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     departments: decodeSelectString(searchOptions?.department || "All"),
     salary: searchOptions?.salary ? decodeSalary(searchOptions.salary) + (searchOptions.salary.undisclosed ? " (hide undisclosed salaries)" : "") : "All",
     commitment: decodeSelectString(searchOptions?.commitment || "All"),
-    experience: decodeSelectString(searchOptions?.experience?.level || "All"),
+    experience: decodeExperienceOptions(searchOptions?.experience),
     job_titles: searchOptions?.job_titles?.title ? decodeSearchExpression(searchOptions.job_titles.title) : "None",
     job_keywords: searchOptions?.job_titles?.technical ? decodeSearchExpression(searchOptions.job_titles.technical) : "None",
     job_description: searchOptions?.job_titles?.description ? decodeSearchExpression(searchOptions.job_titles.description) : "None",
@@ -258,8 +275,29 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       handleCategoryClick: handleCategoryClick
     },
     {
-      label: "Experience",
-      value: decodedState.experience,
+      label: "Experience Level",
+      value: decodedState.experience.level,
+      categoryId: "experience" as CategoryId,
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Role Type",
+      value: decodedState.experience.role,
+      categoryId: "experience" as CategoryId,
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Years of Experience",
+      value: decodedState.experience.individualContributor,
+      categoryId: "experience" as CategoryId,
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick
+    },
+    {
+      label: "Years of Management Experience",
+      value: decodedState.experience.peopleManager,
       categoryId: "experience" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick
