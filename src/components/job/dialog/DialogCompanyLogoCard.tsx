@@ -88,7 +88,7 @@ const DialogCompanyLogoCard = ({
                 src={companyData.image_url}
               />
             ) : (
-              <span className="flex h-full w-full select-none items-center justify-center bg-pink-100 font-semibold text-3xl md:text-5xl text-pink-600 dark:bg-pink-800/15 dark:text-pink-300">
+              <span className="flex h-full w-full select-none items-center justify-center bg-pink-100 font-semibold text-3xl md:text-[3.5vh] text-pink-600 dark:bg-pink-800/15 dark:text-pink-300">
                 {initialsContent}
               </span>
             )}
