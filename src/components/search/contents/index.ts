@@ -1,2 +1,2 @@
 export { default as SearchDialogContent } from "./SearchDialogContent";
-export { default as SearchDrawerContent } from "./SearchDrawerContent";
+export { default as SearchOverlayContent } from "./SearchOverlayContent";

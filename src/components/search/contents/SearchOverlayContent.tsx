@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { settingsCategories } from "@/data/search-filters";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   AvailabilityOptions,
@@ -11,7 +12,7 @@ import {
   RoleDepartmentOptions,
 } from "../filters";
 
-interface SearchDrawerContentProps {
+interface SearchOverlayContentProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   from?: string;
@@ -26,10 +27,29 @@ type CategoryType =
   | "location"
   | "company";
 
-export default function SearchDrawerContent({
+function SearchOverlayHeader({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex flex-shrink-0 items-center gap-3 border-neutral-200 border-b p-4 dark:border-neutral-700">
+      <button
+        className="rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        onClick={onClose}
+      >
+        <X className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+      </button>
+      <div className="flex-1">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+          Create your Job Search
+        </h2>
+      </div>
+    </div>
+  );
+}
+
+export default function SearchOverlayContent({
   open,
+  onOpenChange,
   from,
-}: SearchDrawerContentProps) {
+}: SearchOverlayContentProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(() => {
     if (from) {
       const category = settingsCategories.find(
@@ -78,6 +98,10 @@ export default function SearchDrawerContent({
   const handleHeaderClick = (categoryType: CategoryType) => {
     setSelectedCategory(categoryType);
     setScrollToSection(undefined);
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
   };
 
   const renderContent = () => {
@@ -201,6 +225,7 @@ export default function SearchDrawerContent({
   }
   return (
     <div className="flex h-full flex-col">
+      <SearchOverlayHeader onClose={handleClose} />
       <div className="sticky top-0 z-10 border-neutral-200 p-4 pb-0 max-sm:border-b dark:border-neutral-700 bg-white dark:bg-neutral-900/50">
         {renderOptions()}
       </div>
