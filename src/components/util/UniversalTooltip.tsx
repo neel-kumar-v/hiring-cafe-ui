@@ -27,13 +27,10 @@ export default function UniversalTooltip({
   blur = false,
   removeOnMobile = true
 }: UniversalTooltipProps) {
+  const { prefersReducedMotion } = useReducedMotion();
   const isPointerCoarse = useMediaQuery("(pointer: coarse)");
   const isPointerNone = useMediaQuery("(pointer: none)");
   if (removeOnMobile && (isPointerCoarse || isPointerNone)) return <>{children}</>;
-  
-
-  const { prefersReducedMotion } = useReducedMotion();
-
   if (prefersReducedMotion) {
     return (
       <Tooltip>
