@@ -86,7 +86,7 @@ export default function Page() {
           </div>
 
           <div className="h-full overflow-x-hidden">
-            <div className="mx-auto max-w-full p-2 transition-[padding] duration-500 ease-in-out sm:p-4 lg:p-8">
+            <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
               <Suspense fallback={<LoadingFallback />}>
                 <JobBoard />
               </Suspense>

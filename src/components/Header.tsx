@@ -49,7 +49,7 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-50 border-neutral-200 border-b bg-white dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="mx-auto max-w-full px-2 transition-[padding] duration-500 ease-in-out sm:px-4 lg:px-8 xl:px-12">
+      <div className="mx-auto max-w-full px-4 transition-[padding] duration-500 ease-in-out lg:px-8 xl:px-12">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-0 lg:space-x-3">

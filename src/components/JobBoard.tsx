@@ -85,7 +85,7 @@ const JobBoard = () => {
   }, [loadedCount, isLoading]);
 
   return (
-    <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-2 sm:gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+    <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
       {displayedCollections.map((collection) => (
         <Suspense key={collection.board_token} fallback={<div className="text-center py-8 text-gray-500">Loading...</div>}>
           <JobBoardCard 
