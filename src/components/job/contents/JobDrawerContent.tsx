@@ -2,13 +2,7 @@ import { DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import type { Job } from "@/types/job";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import {
-  DialogBadges,
-  DialogJobDescription,
-  DialogJobTitle,
-  DialogRequirements,
-  DialogSkills,
-} from "../dialog";
+import { DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 import { DialogActionButtons } from "../dialog/DialogFooter";
 
@@ -42,6 +36,7 @@ const JobDrawerContent = ({
             onApplyToggle={onApplyToggle}
             onBookmarkToggle={onBookmarkToggle}
             applyUrl={currentJob.apply_url}
+            companyUrl={currentJob.v5_processed_company_data.website}
           />
         </div>
         <div className="space-y-4 overflow-y-auto p-4">
@@ -51,59 +46,34 @@ const JobDrawerContent = ({
             workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
             tools={currentJob.v5_processed_job_data.technical_tools}
           />
-          <DialogCompanyLogoCard
-            companyData={currentJob.v5_processed_company_data}
-            dialog={false}
-          />
+          <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} dialog={false} />
           <DialogBadges
             commitments={currentJob.v5_processed_job_data.commitment}
             compensation={{
-              yearly_min_compensation:
-                currentJob.v5_processed_job_data.yearly_min_compensation,
-              yearly_max_compensation:
-                currentJob.v5_processed_job_data.yearly_max_compensation,
-              monthly_min_compensation:
-                currentJob.v5_processed_job_data.monthly_min_compensation,
-              monthly_max_compensation:
-                currentJob.v5_processed_job_data.monthly_max_compensation,
-              weekly_min_compensation:
-                currentJob.v5_processed_job_data.weekly_min_compensation,
-              weekly_max_compensation:
-                currentJob.v5_processed_job_data.weekly_max_compensation,
-              hourly_min_compensation:
-                currentJob.v5_processed_job_data.hourly_min_compensation,
-              hourly_max_compensation:
-                currentJob.v5_processed_job_data.hourly_max_compensation,
-              "bi-weekly_min_compensation":
-                currentJob.v5_processed_job_data["bi-weekly_min_compensation"],
-              "bi-weekly_max_compensation":
-                currentJob.v5_processed_job_data["bi-weekly_max_compensation"],
-              daily_min_compensation:
-                currentJob.v5_processed_job_data.daily_min_compensation,
-              daily_max_compensation:
-                currentJob.v5_processed_job_data.daily_max_compensation,
+              yearly_min_compensation: currentJob.v5_processed_job_data.yearly_min_compensation,
+              yearly_max_compensation: currentJob.v5_processed_job_data.yearly_max_compensation,
+              monthly_min_compensation: currentJob.v5_processed_job_data.monthly_min_compensation,
+              monthly_max_compensation: currentJob.v5_processed_job_data.monthly_max_compensation,
+              weekly_min_compensation: currentJob.v5_processed_job_data.weekly_min_compensation,
+              weekly_max_compensation: currentJob.v5_processed_job_data.weekly_max_compensation,
+              hourly_min_compensation: currentJob.v5_processed_job_data.hourly_min_compensation,
+              hourly_max_compensation: currentJob.v5_processed_job_data.hourly_max_compensation,
+              "bi-weekly_min_compensation": currentJob.v5_processed_job_data["bi-weekly_min_compensation"],
+              "bi-weekly_max_compensation": currentJob.v5_processed_job_data["bi-weekly_max_compensation"],
+              daily_min_compensation: currentJob.v5_processed_job_data.daily_min_compensation,
+              daily_max_compensation: currentJob.v5_processed_job_data.daily_max_compensation,
             }}
             workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
             workType={currentJob.v5_processed_job_data.workplace_type}
             compact={true}
           />
           <DialogRequirements
-            requirementsSummary={
-              currentJob.v5_processed_job_data.requirements_summary
-            }
-            minIndustryAndRoleYoe={
-              currentJob.v5_processed_job_data.min_industry_and_role_yoe
-            }
-            minManagementAndLeadershipYoe={
-              currentJob.v5_processed_job_data.min_management_and_leadership_yoe
-            }
+            requirementsSummary={currentJob.v5_processed_job_data.requirements_summary}
+            minIndustryAndRoleYoe={currentJob.v5_processed_job_data.min_industry_and_role_yoe}
+            minManagementAndLeadershipYoe={currentJob.v5_processed_job_data.min_management_and_leadership_yoe}
           />
-          <DialogSkills
-            technicalTools={currentJob.v5_processed_job_data.technical_tools}
-          />
-          <DialogJobDescription
-            description={currentJob.job_information.description}
-          />
+          <DialogSkills technicalTools={currentJob.v5_processed_job_data.technical_tools} />
+          <DialogJobDescription description={currentJob.job_information.description} />
         </div>
       </DrawerContent>
     </Drawer>

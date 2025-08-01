@@ -19,24 +19,14 @@ const CardJobDescription = ({
     <div className="mb-3 flex flex-col gap-2">
       {isDesktop ? (
         <MorphingJobDescription>
-          <CardRequirements
-            requirementsSummary={requirementsSummary}
-            minIndustryAndRoleYoe={minIndustryAndRoleYoe}
-            minManagementAndLeadershipYoe={minManagementAndLeadershipYoe}
-          />
+          <CardRequirements requirementsSummary={requirementsSummary} minIndustryAndRoleYoe={minIndustryAndRoleYoe} minManagementAndLeadershipYoe={minManagementAndLeadershipYoe} />
         </MorphingJobDescription>
       ) : (
         <div>
-          <CardRequirements
-            requirementsSummary={requirementsSummary}
-            minIndustryAndRoleYoe={minIndustryAndRoleYoe}
-            minManagementAndLeadershipYoe={minManagementAndLeadershipYoe}
-          />
+          <CardRequirements requirementsSummary={requirementsSummary} minIndustryAndRoleYoe={minIndustryAndRoleYoe} minManagementAndLeadershipYoe={minManagementAndLeadershipYoe} />
         </div>
       )}
-      {technicalTools && technicalTools.length > 0 && (
-        <CardTechnicalTools technicalTools={technicalTools} />
-      )}
+      {technicalTools && technicalTools.length > 0 && <CardTechnicalTools technicalTools={technicalTools} />}
     </div>
   );
 };

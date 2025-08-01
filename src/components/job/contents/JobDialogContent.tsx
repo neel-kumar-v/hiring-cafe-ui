@@ -1,31 +1,11 @@
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  MorphingDialog,
-  MorphingDialogClose,
-  MorphingDialogContainer,
-  MorphingDialogContent,
-  MorphingDialogTrigger,
-} from "@/components/ui/motion/morphing-dialog";
+import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { MorphingDialog, MorphingDialogClose, MorphingDialogContainer, MorphingDialogContent, MorphingDialogTrigger } from "@/components/ui/motion/morphing-dialog";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import type { Job } from "@/types/job";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { X } from "lucide-react";
 import type React from "react";
-import {
-  DialogBadges,
-  DialogFooter,
-  DialogJobDescription,
-  DialogJobTitle,
-  DialogRequirements,
-  DialogSkills,
-  DialogStats,
-} from "../dialog";
+import { DialogBadges, DialogFooter, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills, DialogStats } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 
 interface JobDialogContentProps {
@@ -38,15 +18,7 @@ interface JobDialogContentProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const JobDialogContent = ({
-  currentJob,
-  isBookmarked,
-  isApplied,
-  onBookmarkToggle,
-  onApplyToggle,
-  children,
-  scrollContainerRef,
-}: JobDialogContentProps) => {
+const JobDialogContent = ({ currentJob, isBookmarked, isApplied, onBookmarkToggle, onApplyToggle, children, scrollContainerRef }: JobDialogContentProps) => {
   const { prefersReducedMotion } = useReducedMotion();
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
@@ -84,59 +56,34 @@ const JobDialogContent = ({
       <DialogBadges
         commitments={currentJob.v5_processed_job_data.commitment}
         compensation={{
-          yearly_min_compensation:
-            currentJob.v5_processed_job_data.yearly_min_compensation,
-          yearly_max_compensation:
-            currentJob.v5_processed_job_data.yearly_max_compensation,
-          monthly_min_compensation:
-            currentJob.v5_processed_job_data.monthly_min_compensation,
-          monthly_max_compensation:
-            currentJob.v5_processed_job_data.monthly_max_compensation,
-          weekly_min_compensation:
-            currentJob.v5_processed_job_data.weekly_min_compensation,
-          weekly_max_compensation:
-            currentJob.v5_processed_job_data.weekly_max_compensation,
-          hourly_min_compensation:
-            currentJob.v5_processed_job_data.hourly_min_compensation,
-          hourly_max_compensation:
-            currentJob.v5_processed_job_data.hourly_max_compensation,
-          "bi-weekly_min_compensation":
-            currentJob.v5_processed_job_data["bi-weekly_min_compensation"],
-          "bi-weekly_max_compensation":
-            currentJob.v5_processed_job_data["bi-weekly_max_compensation"],
-          daily_min_compensation:
-            currentJob.v5_processed_job_data.daily_min_compensation,
-          daily_max_compensation:
-            currentJob.v5_processed_job_data.daily_max_compensation,
+          yearly_min_compensation: currentJob.v5_processed_job_data.yearly_min_compensation,
+          yearly_max_compensation: currentJob.v5_processed_job_data.yearly_max_compensation,
+          monthly_min_compensation: currentJob.v5_processed_job_data.monthly_min_compensation,
+          monthly_max_compensation: currentJob.v5_processed_job_data.monthly_max_compensation,
+          weekly_min_compensation: currentJob.v5_processed_job_data.weekly_min_compensation,
+          weekly_max_compensation: currentJob.v5_processed_job_data.weekly_max_compensation,
+          hourly_min_compensation: currentJob.v5_processed_job_data.hourly_min_compensation,
+          hourly_max_compensation: currentJob.v5_processed_job_data.hourly_max_compensation,
+          "bi-weekly_min_compensation": currentJob.v5_processed_job_data["bi-weekly_min_compensation"],
+          "bi-weekly_max_compensation": currentJob.v5_processed_job_data["bi-weekly_max_compensation"],
+          daily_min_compensation: currentJob.v5_processed_job_data.daily_min_compensation,
+          daily_max_compensation: currentJob.v5_processed_job_data.daily_max_compensation,
         }}
         workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
         workType={currentJob.v5_processed_job_data.workplace_type}
       />
 
-      <DialogCompanyLogoCard
-        companyData={currentJob.v5_processed_company_data}
-        dialog={true}
-      />
+      <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} dialog={true} />
 
       <DialogRequirements
-        requirementsSummary={
-          currentJob.v5_processed_job_data.requirements_summary
-        }
-        minIndustryAndRoleYoe={
-          currentJob.v5_processed_job_data.min_industry_and_role_yoe
-        }
-        minManagementAndLeadershipYoe={
-          currentJob.v5_processed_job_data.min_management_and_leadership_yoe
-        }
+        requirementsSummary={currentJob.v5_processed_job_data.requirements_summary}
+        minIndustryAndRoleYoe={currentJob.v5_processed_job_data.min_industry_and_role_yoe}
+        minManagementAndLeadershipYoe={currentJob.v5_processed_job_data.min_management_and_leadership_yoe}
       />
 
-      <DialogSkills
-        technicalTools={currentJob.v5_processed_job_data.technical_tools}
-      />
+      <DialogSkills technicalTools={currentJob.v5_processed_job_data.technical_tools} />
 
-      <DialogJobDescription
-        description={currentJob.job_information.description}
-      />
+      <DialogJobDescription description={currentJob.job_information.description} />
 
       <DialogFooter
         isApplied={isApplied}
@@ -144,6 +91,7 @@ const JobDialogContent = ({
         onApplyToggle={onApplyToggle}
         onBookmarkToggle={onBookmarkToggle}
         applyUrl={currentJob.apply_url}
+        companyWebsite={currentJob.v5_processed_company_data.website}
       />
     </div>
   );
@@ -192,10 +140,7 @@ const JobDialogContent = ({
             borderRadius: "12px",
           }}
         >
-          <div
-            className="h-[calc(90vh)] overflow-y-auto"
-            ref={scrollContainerRef}
-          >
+          <div className="h-[calc(90vh)] overflow-y-auto" ref={scrollContainerRef}>
             {dialogContent}
           </div>
           <MorphingDialogClose className="text-neutral-500 dark:text-neutral-400" />
