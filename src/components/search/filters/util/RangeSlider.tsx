@@ -1,6 +1,7 @@
 'use client';
 
 import { DualRangeSlider } from '@/components/ui/dual-range-slider';
+import { formatValue } from '@/lib/search';
 import { Edit3 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,41 +31,6 @@ const RangeSlider = ({
 
   const values = value ?? internalValues;
 
-  const formatValue = (value: number) => {
-    if (!money) return value.toString();
-    
-    if (currency === 'None') return value.toString();
-
-    const rounded = Math.round(value / 1000) * 1000;
-    if (rounded >= 1_000_000) {
-      const millions = rounded / 1_000_000;
-      const formatted = millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(2).replace(/\.?0+$/, '');
-      if (currency.length === 1) {
-        return `${currency}${formatted}M`;
-      } else {
-        try {
-          const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
-          const symbol = parts.replace(/\d|[.,\s]/g, '');
-          return `${symbol}${formatted}M`;
-        } catch {
-          return `${currency}${formatted}M`;
-        }
-      }
-    } else {
-      if (currency.length === 1) {
-        return `${currency}${rounded / 1000}K`;
-      } else {
-        try {
-          const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
-          const symbol = parts.replace(/\d|[.,\s]/g, '');
-          return `${symbol}${rounded / 1000}K`;
-        } catch {
-          return `${currency}${rounded / 1000}K`;
-        }
-      }
-    }
-  };
-
   // Helper to update values safely
   const updateValues = (newValues: [number, number]) => {
     if (onValueChange) {
@@ -80,7 +46,7 @@ const RangeSlider = ({
         className="w-full mt-10"
         label={value => (
           <span className="inline-flex items-center justify-center text-center text-foreground backdrop-blur-xl">
-            {formatValue(value ?? 0)}
+            {formatValue(value ?? 0, currency)}
           </span>
         )}
         value={values}
@@ -90,7 +56,7 @@ const RangeSlider = ({
         step={step}
       />
       <div className="flex w-full justify-between mt-2 text-xs text-muted-foreground select-none">
-        <span>{formatValue(min)}</span>
+        <span>{formatValue(min, currency)}</span>
         <span className="flex items-center gap-1 group">
           <span className="flex items-center">
             <Edit3 className="size-3 text-gray-400 opacity-0 group-hover:opacity-75 transition-opacity duration-200 mr-1" />
@@ -136,7 +102,7 @@ const RangeSlider = ({
                   setTempMax(maxValue.toString());
                 }}
               >
-                {formatValue(maxValue)}
+                {formatValue(maxValue, currency)}
               </span>
             )}
           </span>

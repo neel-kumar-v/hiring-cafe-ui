@@ -1,6 +1,6 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { decodeKeywords, decodeLocations, decodeRangeString, decodeSearchExpression, decodeSelectString } from "@/lib/search";
+import { decodeKeywords, decodeLocations, decodeRangeString, decodeSearchExpression, decodeSelectString, formatValue } from "@/lib/search";
 import { CategoryId, DegreePreferencesOptions, FundingOptions, IndustryOptions, InfiniteRange, SalaryOptions, SearchState, Select, ShiftPreferencesOptions } from "@/types/search";
 import { useState } from "react";
 
@@ -82,13 +82,13 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
 
   const decodeSalary = (salary: SalaryOptions) => {
     if (!salary) return "All";
-    const minRange = decodeRangeString(salary.min_range);
-    const maxRange = decodeRangeString(salary.max_range);
-    if (minRange === "All" && maxRange === "All") return "All";
-    if (minRange === "All") return `Max: $${maxRange} ${salary.unit}`;
-    if (maxRange === "All") return `Min: $${minRange} ${salary.unit}`;
-    if (!minRange.includes('-') && !maxRange.includes('-')) return `$${minRange} - $${maxRange} ${salary.unit}`;
-    return `Min: $${minRange}, Max: $${maxRange} ${salary.unit}`;
+    const minRange = salary.min_range;
+    const maxRange = salary.max_range;
+    if (minRange.min === 0 && minRange.max === 0 && maxRange.min === 0 && maxRange.max === 0) return "All";
+    if (minRange.min === 0 && minRange.max === 0) return `Max: ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
+    if (maxRange.min === 0 && maxRange.max === 0) return `Min: ${formatValue(minRange.min, salary.currency)} ${salary.unit}`;
+    if (minRange.min === minRange.max && maxRange.min === maxRange.max) return `${formatValue(minRange.min, salary.currency)} - ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
+    return `Min: ${formatValue(minRange.min, salary.currency)}, Max: ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
   }
 
   const decodeDegreePreferences = (degree: DegreePreferencesOptions) => {

@@ -26,7 +26,7 @@ export type Select<T, V = "All"> = T[] | V;
 
 export type DepartmentOptions = Select<Department>;
 
-export type SalaryUnit =
+export type SalaryUnit = "Any"
   | "Hourly"
   | "Daily"
   | "Weekly"

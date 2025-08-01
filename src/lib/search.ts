@@ -250,6 +250,41 @@ export function decodeSelectString(select: Select<string> | Select<string, null>
   return select;
 }
 
+export function formatValue(value: number, currency: string, money: boolean = true) {
+  if (!money) return value.toString();
+  
+  if (currency === 'None') return value.toString();
+
+  const rounded = Math.round(value / 1000) * 1000;
+  if (rounded >= 1_000_000) {
+    const millions = rounded / 1_000_000;
+    const formatted = millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(2).replace(/\.?0+$/, '');
+    if (currency.length === 1) {
+      return `${currency}${formatted}M`;
+    } else {
+      try {
+        const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
+        const symbol = parts.replace(/\d|[.,\s]/g, '');
+        return `${symbol}${formatted}M`;
+      } catch {
+        return `${currency}${formatted}M`;
+      }
+    }
+  } else {
+    if (currency.length === 1) {
+      return `${currency}${rounded / 1000}K`;
+    } else {
+      try {
+        const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
+        const symbol = parts.replace(/\d|[.,\s]/g, '');
+        return `${symbol}${rounded / 1000}K`;
+      } catch {
+        return `${currency}${rounded / 1000}K`;
+      }
+    }
+  }
+}
+
 export function decodeRangeString(range: Range | InfiniteRange, moneyFormat: boolean = true) {
   if (!range) return "All";
   if (range.min === 0 && range.max === 0) return "All";
