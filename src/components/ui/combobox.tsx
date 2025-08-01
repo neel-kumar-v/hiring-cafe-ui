@@ -32,9 +32,10 @@ export interface ComboboxProps {
   onChange: (value: string) => void;
   placeholder?: string;
   buttonClassName?: string;
-}
+  modalPopover?: boolean;
+  }
 
-export function Combobox({ items, value, onChange, placeholder, buttonClassName }: ComboboxProps) {
+export function Combobox({ items, value, onChange, placeholder, buttonClassName, modalPopover = true }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
 
@@ -58,7 +59,7 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName 
     )
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={modalPopover}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

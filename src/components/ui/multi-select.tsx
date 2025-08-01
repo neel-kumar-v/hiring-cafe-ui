@@ -318,7 +318,7 @@ export const MultiSelect = React.forwardRef<
               />
               <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
-                <CommandGroup className="*:space-y-1">
+                <CommandGroup>
                   {showSelectAll && (
                     <CommandItem
                       key="all"
