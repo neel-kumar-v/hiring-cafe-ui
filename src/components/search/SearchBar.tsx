@@ -42,7 +42,7 @@ function SearchBarIcon({
   return (
     <UniversalTooltip content={tooltipContent} side="bottom">
       <Icon
-        className={`sm:size-4 size-3 text-neutral-400 transition-all hover:text-pink-500 ${delay} ${clickable ? "opacity-100" : "opacity-0"} cursor-pointer`}
+        className={`sm:size-4 size-4 text-neutral-400 transition-all hover:text-pink-500 ${delay} ${clickable ? "opacity-100" : "opacity-0"} cursor-pointer`}
         onClick={onClick}
         data-icon-type={dataIconType}
       />
@@ -159,7 +159,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-100 hover:delay-0"
+          delay="delay-100 hover:delay-0 hidden sm:block"
           icon={DollarSign}
           tooltipContent="Compensation & Level"
           onClick={() => onIconClick?.("salary")}
@@ -167,7 +167,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-200 hover:delay-0"
+          delay="delay-200 hover:delay-0 hidden sm:block"
           icon={IdCard}
           tooltipContent="Role & Department"
           onClick={() => onIconClick?.("role-department")}
@@ -175,7 +175,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-400 hover:delay-0"
+          delay="delay-400 hover:delay-0 hidden sm:block"
           icon={School}
           tooltipContent="Qualifications"
           onClick={() => onIconClick?.("qualifications")}
@@ -183,7 +183,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-300 hover:delay-0"
+          delay="delay-300 hover:delay-0 hidden sm:block"
           icon={CalendarClock}
           tooltipContent="Availability"
           onClick={() => onIconClick?.("availability")}
@@ -191,7 +191,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-500 hover:delay-0"
+          delay="delay-500 hover:delay-0 hidden sm:block"
           icon={MapPin}
           tooltipContent="Location"
           onClick={() => onIconClick?.("location")}
@@ -199,7 +199,7 @@ export default function SearchBar({
           clickable={!inputValue}
         />
         <SearchBarIcon
-          delay="delay-600 hover:delay-0"
+          delay="delay-600 hover:delay-0 hidden sm:block  "
           icon={Building2}
           tooltipContent="Company"
           onClick={() => onIconClick?.("company")}
