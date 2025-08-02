@@ -1,3 +1,5 @@
+"use client";
+
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Location from "./Location";
 import WorkplaceActivity from "./WorkplaceActivity";

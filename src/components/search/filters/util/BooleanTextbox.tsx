@@ -1,3 +1,5 @@
+"use client";
+
 import { Textarea } from "@/components/ui/textarea";
 import { decodeSearchExpression, parseSearchExpression } from "@/lib/search";
 import type { SearchExpression } from "@/types/search";

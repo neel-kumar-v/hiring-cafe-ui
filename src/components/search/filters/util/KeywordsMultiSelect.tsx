@@ -1,3 +1,5 @@
+"use client";
+
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Keywords } from "@/types/search";
 import { useEffect, useState } from "react";

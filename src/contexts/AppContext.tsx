@@ -1,7 +1,7 @@
 "use client";
 
 import { SearchState } from "@/types/search";
-import { User } from "@/types/user";
+import { JobStatus, User } from "@/types/app";
 import { createContext, ReactNode, useContext, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
 
@@ -22,13 +22,23 @@ interface AppContextType {
   currentSavedSearchId: string | null;
   setCurrentSavedSearchId: (id: string | null) => void;
   saveCurrentSearch: (name?: string) => void;
+
+  // Job state
+  addJob: (jobId: string, status: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
+  removeJob: (jobId: string, status: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
+  moveJob: (jobId: string, fromStatus: "saved" | "applied" | "interviewing" | "rejected" | "hidden", toStatus: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
 }
 
 
 
 const defaultUser: User = {
   name: "Demo User",
-  savedSearches: []
+  savedSearches: [],
+  saved: [],
+  applied: [],
+  interviewing: [],
+  rejected: [],
+  hidden: []
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -85,6 +95,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setHasUnsavedChanges(false);
   };
 
+  const addJob = (jobId: string, status: JobStatus) => {
+    setUser(prev => ({
+      ...prev,
+      [status]: [...prev[status], jobId]
+    }));
+  };
+
+  const removeJob = (jobId: string, status: JobStatus) => {
+    setUser(prev => ({
+      ...prev,
+      [status]: prev[status].filter(id => id !== jobId)
+    }));
+  };
+
+  const moveJob = (jobId: string, fromStatus: JobStatus, toStatus: JobStatus) => {
+    setUser(prev => ({
+      ...prev,
+      [fromStatus]: prev[fromStatus].filter(id => id !== jobId),
+      [toStatus]: [...prev[toStatus], jobId]
+    }));
+  };
+
+ 
+  
+
   return (
     <AppContext.Provider
       value={{
@@ -103,7 +138,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Combined functionality
         currentSavedSearchId,
         setCurrentSavedSearchId,
-        saveCurrentSearch
+        saveCurrentSearch,
+
+        // Job state
+        addJob,
+        removeJob,
+        moveJob
       }}
     >
       {children}

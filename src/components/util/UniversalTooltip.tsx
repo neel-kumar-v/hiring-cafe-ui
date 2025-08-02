@@ -1,3 +1,5 @@
+"use client";
+
 import { Tooltip as TooltipAnimated, TooltipContent as TooltipAnimatedContent, TooltipTrigger as TooltipAnimatedTrigger } from "@/components/ui/motion/tooltip-animated";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";

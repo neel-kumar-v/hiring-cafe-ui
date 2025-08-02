@@ -1,3 +1,5 @@
+"use client";
+
 import { BooleanTextbox } from "@/components/search/filters/util/BooleanTextbox";
 import { useApp } from "@/contexts/AppContext";
 // import { getJobTitlesFromData } from "@/lib/search";

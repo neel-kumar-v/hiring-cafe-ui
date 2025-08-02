@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,7 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useReducedMotion } from "@/contexts/ReducedMotionContext";
+import { useSearchUI } from "@/contexts/SearchContext";
 import {
+  BarChart3,
   Bookmark,
   Briefcase,
   Building,
@@ -25,22 +29,13 @@ import {
   ZapOff,
 } from "lucide-react";
 import Link from "next/link";
-import SearchBar from "./search/SearchBar";
 import { Clock } from "./Clock";
+import SearchBar from "./search/SearchBar";
 
-interface HeaderProps {
-  showLegacyFilters?: boolean;
-  onToggleLegacyFilters?: () => void;
-  onIconClick?: (category: string) => void;
-}
-
-export default function Header({
-  showLegacyFilters = false,
-  onToggleLegacyFilters,
-  onIconClick,
-}: HeaderProps) {
+export default function Header() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { prefersReducedMotion, toggleReducedMotion } = useReducedMotion();
+  const { showLegacyFilters, setShowLegacyFilters, handleSearchIconClick } = useSearchUI();
 
   const handleSearch = (value: string) => {
     // Handle search functionality here
@@ -82,7 +77,7 @@ export default function Header({
           {/* Search Bar */}
           <div className="mx-8 flex-1">
             <div className="flex space-x-2">
-              <SearchBar onSearch={handleSearch} onIconClick={onIconClick} />
+              <SearchBar onSearch={handleSearch} onIconClick={handleSearchIconClick} />
             </div>
           </div>
 
@@ -115,6 +110,13 @@ export default function Header({
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
+
+                <DropdownMenuItem asChild>
+                  <Link href="/tracker">
+                    <BarChart3 className="mr-2 size-4" />
+                    Jobs Tracker
+                  </Link>
+                </DropdownMenuItem>
 
                 <DropdownMenuItem>
                   <Users className="mr-2 size-4" />
@@ -160,7 +162,7 @@ export default function Header({
                   {prefersReducedMotion ? "Enable Animations" : "Reduce Motion"}
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={onToggleLegacyFilters}>
+                <DropdownMenuItem onClick={() => setShowLegacyFilters(!showLegacyFilters)}>
                   <ListFilterPlus className="mr-2 size-4" />
                   {showLegacyFilters
                     ? "Hide Legacy Filters"

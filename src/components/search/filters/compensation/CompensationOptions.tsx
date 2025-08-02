@@ -1,3 +1,5 @@
+"use client";
+
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Benefits from "./Benefits";
 import Commitment from "./Commitment";

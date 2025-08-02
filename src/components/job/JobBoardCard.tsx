@@ -10,6 +10,7 @@ import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
 import CardStats from "./card/CardStats";
 import CardSwipeIndicator from "./card/CardSwipeIndicator";
+import { useApp } from "@/contexts/AppContext";
 
 const JobCardContent = dynamic(() => import("./contents/JobCardContent"), {
   loading: () => null,
@@ -114,12 +115,11 @@ interface JobBoardCardProps {
 
 const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isDesktop } = useResponsiveBreakpoint();
-  
+  const { addJob, removeJob, user } = useApp();
+    
   const currentJob = useMemo(() => 
     jobCollection.jobs[currentJobIndex], 
     [jobCollection.jobs, currentJobIndex]
@@ -159,13 +159,14 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   }, [isTransitioning, jobCollection.jobs.length]);
 
   const handleBookmarkToggle = useCallback(() => {
-    setIsBookmarked(!isBookmarked);
-  }, [isBookmarked]);
+    if (user.saved.includes(currentJob.id)) removeJob(currentJob.id, "saved");
+    else addJob(currentJob.id, "saved");
+  }, [user.saved, currentJob.id, removeJob, addJob]);
 
   const handleApplyToggle = useCallback(() => {
-    // window.open(currentJob.apply_url, "_blank");
-    setIsApplied(!isApplied);
-  }, [isApplied]);
+    if (user.applied.includes(currentJob.id)) removeJob(currentJob.id, "applied");
+    else addJob(currentJob.id, "applied");
+  }, [user.applied, currentJob.id, removeJob, addJob]);
 
   const handleBookmarkClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -176,8 +177,8 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   const handleApplyClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsApplied(!isApplied);
-  }, [isApplied]);
+    handleApplyToggle();
+  }, [handleApplyToggle]);
 
   const handleDrawerClose = useCallback(() => {
     setDrawerOpen(false);
@@ -197,8 +198,8 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
         <JobCard
           currentJob={currentJob}
           currentJobIndex={currentJobIndex}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
+          isApplied={user.applied.includes(currentJob.id)}
+          isBookmarked={user.saved.includes(currentJob.id)}
           isTransitioning={isTransitioning}
           jobCollection={jobCollection}
           onApplyToggle={handleApplyToggle}
@@ -210,8 +211,8 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
         />
           <JobDrawerContent
             currentJob={currentJob}
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
+            isApplied={user.applied.includes(currentJob.id)}
+            isBookmarked={user.saved.includes(currentJob.id)}
             onApplyToggle={handleApplyToggle}
             onBookmarkToggle={handleBookmarkToggle}
             onClose={handleDrawerClose}
@@ -225,24 +226,24 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
     <div key={`desktop-${stableKey}`}>
       <CardContextMenuProvider
         currentJob={currentJob}
-        isApplied={isApplied}
-        isBookmarked={isBookmarked}
+        isApplied={user.applied.includes(currentJob.id)}
+        isBookmarked={user.saved.includes(currentJob.id)}
         onApplyClick={handleApplyClick}
         onBookmarkClick={handleBookmarkClick}
         applyUrl={currentJob.apply_url}
       >
           <JobDialogContent
             currentJob={currentJob}
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
+            isApplied={user.applied.includes(currentJob.id)}
+            isBookmarked={user.saved.includes(currentJob.id)}
             onApplyToggle={handleApplyToggle}
             onBookmarkToggle={handleBookmarkToggle}
           >
             <JobCard
               currentJob={currentJob}
               currentJobIndex={currentJobIndex}
-              isApplied={isApplied}
-              isBookmarked={isBookmarked}
+              isApplied={user.applied.includes(currentJob.id)}
+              isBookmarked={user.saved.includes(currentJob.id)}
               isTransitioning={isTransitioning}
               jobCollection={jobCollection}
               onApplyToggle={handleApplyClick}

@@ -4,9 +4,14 @@ import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { ReducedMotionProvider } from "@/contexts/ReducedMotionContext";
 // import { PerformanceMonitor } from "@/lib/performance-monitor";
 import { AppProvider } from "@/contexts/AppContext";
+import { SearchUIProvider } from "@/contexts/SearchContext";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
+import { Suspense, lazy } from "react";
 import "./globals.css";
+
+const Header = lazy(() => import("@/components/Header"));
+const SearchDialogWrapper = lazy(() => import("@/components/SearchDialog").then(module => ({ default: module.SearchDialogWrapper })));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,7 +48,21 @@ export default function RootLayout({
           <ReducedMotionProvider>
             <TooltipProvider>
               <AppProvider>
-                {children}
+                <SearchUIProvider>
+                  <div className="min-h-screen transition-colors duration-300">
+                    <div className="min-h-screen bg-white dark:bg-neutral-900">
+                      <Suspense fallback={null}>
+                        <Header />
+                      </Suspense>
+                      
+                      <Suspense fallback={null}>
+                        <SearchDialogWrapper />
+                      </Suspense>
+
+                      {children}
+                    </div>
+                  </div>
+                </SearchUIProvider>
               </AppProvider>
             </TooltipProvider>
           </ReducedMotionProvider>

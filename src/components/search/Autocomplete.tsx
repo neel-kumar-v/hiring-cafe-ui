@@ -1,4 +1,7 @@
+"use client";
+
 import { Eye, EyeOff, Search, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import UniversalTooltip from "../util/UniversalTooltip";
@@ -102,6 +105,7 @@ interface DesktopDropdownProps {
   onOptionClick: (option: string) => void;
   onToggleFilters: () => void;
   onIconClick?: (category: string) => void;
+  showFilterControls: boolean;
 }
 
 function DesktopDropdown({
@@ -113,6 +117,7 @@ function DesktopDropdown({
   onOptionClick,
   onToggleFilters,
   onIconClick,
+  showFilterControls,
 }: DesktopDropdownProps) {
   if (!isOpen) return null;
 
@@ -135,7 +140,7 @@ function DesktopDropdown({
       onMouseDown={handleDropdownClick}
     >
       {/* Autocomplete options */}
-      <div className={`overflow-y-auto ${showFilters ? "flex-1" : "w-full"}`}>
+      <div className={`overflow-y-auto ${showFilters && showFilterControls ? "flex-1" : "w-full"}`}>
         {filteredOptions.length > 0 ? (
           displayOptions
             .slice(0, 10)
@@ -154,7 +159,7 @@ function DesktopDropdown({
       </div>
 
       {/* Filters section */}
-      {showFilters && (
+      {showFilters && showFilterControls && (
         <div className="relative w-1/2 overflow-y-hidden border-neutral-200 border-l dark:border-neutral-600">
           <div className="p-3">
             <SearchFilters onIconClick={onIconClick} />
@@ -163,21 +168,23 @@ function DesktopDropdown({
       )}
 
       {/* Eye icons positioned relative to main container */}
-      <UniversalTooltip content={showFilters ? "Hide filters" : "Show filters"}>
-        {showFilters ? (
-          <EyeOff
-            className="absolute right-3 bottom-3 z-10 size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
-            onClick={handleToggleFiltersClick}
-            onMouseDown={handleToggleFiltersClick}
-          />
-        ) : (
-          <Eye
-            className="absolute right-3 bottom-3 z-10 size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
-            onClick={handleToggleFiltersClick}
-            onMouseDown={handleToggleFiltersClick}
-          />
-        )}
-      </UniversalTooltip>
+      {showFilterControls && (
+        <UniversalTooltip content={showFilters ? "Hide filters" : "Show filters"}>
+          {showFilters ? (
+            <EyeOff
+              className="absolute right-3 bottom-3 z-10 size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
+              onClick={handleToggleFiltersClick}
+              onMouseDown={handleToggleFiltersClick}
+            />
+          ) : (
+            <Eye
+              className="absolute right-3 bottom-3 z-10 size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
+              onClick={handleToggleFiltersClick}
+              onMouseDown={handleToggleFiltersClick}
+            />
+          )}
+        </UniversalTooltip>
+      )}
     </div>
   );
 }
@@ -307,11 +314,15 @@ export default function Autocomplete({
   maxTotal = 20,
   onIconClick,
 }: AutocompleteProps) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [showFilters, setShowFilters] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Only show filter controls on the default page (/)
+  const showFilterControls = pathname === "/";
 
   useEffect(() => {
     if (value.trim()) {
@@ -435,6 +446,7 @@ export default function Autocomplete({
           onOptionClick={handleOptionClick}
           onToggleFilters={handleToggleFilters}
           showFilters={showFilters}
+          showFilterControls={showFilterControls}
           onIconClick={onIconClick}
         />
       </div>

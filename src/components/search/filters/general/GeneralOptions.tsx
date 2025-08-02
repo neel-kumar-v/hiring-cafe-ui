@@ -1,3 +1,5 @@
+"use client";
+
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import { CategoryId } from "@/types/search";
 import ApplyForm from "./ApplyForm";

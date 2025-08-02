@@ -1,10 +1,12 @@
+"use client";
+
 import { Combobox } from "@/components/ui/combobox";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
 import { getJobTitlesFromData } from "@/lib/search";

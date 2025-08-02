@@ -1,5 +1,4 @@
 import { formatTool } from "@/lib/job-info";
-import { useMemo } from "react";
 import { MorphingJobTechnicalTools } from "../../ui/motion/morphing-dialog";
 
 const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {

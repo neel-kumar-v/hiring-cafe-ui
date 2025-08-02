@@ -1,3 +1,5 @@
+"use client";
+
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Departments from "./Departments";
 import JobTitles from "./JobTitles";

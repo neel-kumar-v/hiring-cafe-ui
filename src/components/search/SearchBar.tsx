@@ -1,3 +1,5 @@
+"use client";
+
 import jobTitlesData from "@/data/job_titles.json" with { type: "json" };
 import {
   Building2,
@@ -10,6 +12,7 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import UniversalTooltip from "../util/UniversalTooltip";
 import Autocomplete from "./Autocomplete";
@@ -56,7 +59,11 @@ export default function SearchBar({
   onSearch,
   onIconClick,
 }: SearchBarProps) {
+  const pathname = usePathname();
   const [inputValue, setInputValue] = useState("");
+
+  // Only show filter controls on the default page (/)
+  const showFilterControls = pathname === "/";
 
   const jobTitles = useMemo(() => {
     return Array.from(new Set(jobTitlesData.suggestions)).map(title =>
@@ -146,78 +153,80 @@ export default function SearchBar({
         value={inputValue}
         onIconClick={onIconClick}
       />
-      <div
-        className="-translate-y-1/2 absolute top-1/2 right-3 py-3 z-10 flex justify-end gap-1.5"
-        onClick={handleGeneralClick}
-      >
-        <SearchBarIcon
-          delay="delay-0"
-          icon={SlidersHorizontal}
-          tooltipContent="General Filters"
-          onClick={() => onIconClick?.("filters")}
-          dataIconType="filters"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-100 hover:delay-0 hidden sm:block"
-          icon={DollarSign}
-          tooltipContent="Compensation & Level"
-          onClick={() => onIconClick?.("salary")}
-          dataIconType="salary"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-200 hover:delay-0 hidden sm:block"
-          icon={IdCard}
-          tooltipContent="Role & Department"
-          onClick={() => onIconClick?.("role-department")}
-          dataIconType="role-department"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-400 hover:delay-0 hidden sm:block"
-          icon={School}
-          tooltipContent="Qualifications"
-          onClick={() => onIconClick?.("qualifications")}
-          dataIconType="qualifications"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-300 hover:delay-0 hidden sm:block"
-          icon={CalendarClock}
-          tooltipContent="Availability"
-          onClick={() => onIconClick?.("availability")}
-          dataIconType="availability"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-500 hover:delay-0 hidden sm:block"
-          icon={MapPin}
-          tooltipContent="Location"
-          onClick={() => onIconClick?.("location")}
-          dataIconType="location"
-          clickable={!inputValue}
-        />
-        <SearchBarIcon
-          delay="delay-600 hover:delay-0 hidden sm:block  "
-          icon={Building2}
-          tooltipContent="Company"
-          onClick={() => onIconClick?.("company")}
-          dataIconType="company"
-          clickable={!inputValue}
-        />
-        {inputValue && (
-          <UniversalTooltip content="Delete Search" side="bottom" >
-            <X
-              className={
-                "size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
-              }
-              onClick={() => setInputValue("")}
-              data-icon-type="clear"
-            />
-          </UniversalTooltip>
-        )}
-      </div>
+      {showFilterControls && (
+        <div
+          className="-translate-y-1/2 absolute top-1/2 right-3 py-3 z-10 flex justify-end gap-1.5"
+          onClick={handleGeneralClick}
+        >
+          <SearchBarIcon
+            delay="delay-0"
+            icon={SlidersHorizontal}
+            tooltipContent="General Filters"
+            onClick={() => onIconClick?.("filters")}
+            dataIconType="filters"
+            clickable={!inputValue}
+          />
+          <SearchBarIcon
+            delay="delay-100 hover:delay-0 hidden sm:block"
+            icon={DollarSign}
+            tooltipContent="Compensation & Level"
+            onClick={() => onIconClick?.("salary")}
+            dataIconType="salary"
+            clickable={!inputValue}
+          />
+          <SearchBarIcon
+            delay="delay-200 hover:delay-0 hidden sm:block"
+            icon={IdCard}
+            tooltipContent="Role & Department"
+            onClick={() => onIconClick?.("role-department")}
+            dataIconType="role-department"
+            clickable={!inputValue}
+          />
+          <SearchBarIcon
+            delay="delay-400 hover:delay-0 hidden sm:block"
+            icon={School}
+            tooltipContent="Qualifications"
+            onClick={() => onIconClick?.("qualifications")}
+            dataIconType="qualifications"
+            clickable={!inputValue}
+          />
+          <SearchBarIcon
+            delay="delay-300 hover:delay-0 hidden sm:block"
+            icon={CalendarClock}
+            tooltipContent="Availability"
+            onClick={() => onIconClick?.("availability")}
+            dataIconType="availability"
+            clickable={!inputValue}
+          />
+          <SearchBarIcon
+            delay="delay-500 hover:delay-0 hidden sm:block"
+            icon={MapPin}
+            tooltipContent="Location"
+            onClick={() => onIconClick?.("location")}
+            dataIconType="location"
+            clickable={!inputValue}
+          />
+          <SearchBarIcon
+            delay="delay-600 hover:delay-0 hidden sm:block  "
+            icon={Building2}
+            tooltipContent="Company"
+            onClick={() => onIconClick?.("company")}
+            dataIconType="company"
+            clickable={!inputValue}
+          />
+          {inputValue && (
+            <UniversalTooltip content="Delete Search" side="bottom" >
+              <X
+                className={
+                  "size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
+                }
+                onClick={() => setInputValue("")}
+                data-icon-type="clear"
+              />
+            </UniversalTooltip>
+          )}
+        </div>
+      )}
     </div>
   );
 }

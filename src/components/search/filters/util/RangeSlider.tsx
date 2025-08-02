@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { DualRangeSlider } from '@/components/ui/dual-range-slider';
 import { formatValue } from '@/lib/search';

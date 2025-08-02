@@ -1,3 +1,5 @@
+"use client";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
 import { useApp } from "@/contexts/AppContext";

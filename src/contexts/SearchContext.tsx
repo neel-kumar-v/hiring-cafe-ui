@@ -1,4 +1,7 @@
+"use client";
+
 import { SearchState } from "@/types/search";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 export const defaultSearchOptions: SearchState = {
   sort: { by: "Relevance", order: "Most" },
@@ -102,4 +105,51 @@ export const defaultSearchOptions: SearchState = {
   },
   size: "All",
   founding_year: { min: 0, max: 0 },
-}; 
+};
+
+interface SearchUIContextType {
+  searchDialogOpen: boolean;
+  setSearchDialogOpen: (open: boolean) => void;
+  searchDialogFrom: string;
+  setSearchDialogFrom: (from: string) => void;
+  showLegacyFilters: boolean;
+  setShowLegacyFilters: (show: boolean) => void;
+  handleSearchIconClick: (category: string) => void;
+}
+
+const SearchUIContext = createContext<SearchUIContextType | undefined>(undefined);
+
+export function SearchUIProvider({ children }: { children: ReactNode }) {
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchDialogFrom, setSearchDialogFrom] = useState("");
+  const [showLegacyFilters, setShowLegacyFilters] = useState(false);
+
+  const handleSearchIconClick = (category: string) => {
+    setSearchDialogFrom(category);
+    setSearchDialogOpen(true);
+  };
+
+  return (
+    <SearchUIContext.Provider
+      value={{
+        searchDialogOpen,
+        setSearchDialogOpen,
+        searchDialogFrom,
+        setSearchDialogFrom,
+        showLegacyFilters,
+        setShowLegacyFilters,
+        handleSearchIconClick,
+      }}
+    >
+      {children}
+    </SearchUIContext.Provider>
+  );
+}
+
+export function useSearchUI() {
+  const context = useContext(SearchUIContext);
+  if (context === undefined) {
+    throw new Error("useSearchUI must be used within a SearchUIProvider");
+  }
+  return context;
+} 

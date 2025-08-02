@@ -1,3 +1,5 @@
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
 import { CategoryId } from "@/types/search";
 import { AllFilter } from "../util/AllFilter";

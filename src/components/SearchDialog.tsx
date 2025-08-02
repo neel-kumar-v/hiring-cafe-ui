@@ -1,8 +1,12 @@
+"use client";
+
 import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useSearchUI } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { SearchDialogContent } from "./search/contents";
@@ -45,6 +49,7 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
       >
         <VisuallyHidden >
           <DialogTitle className="text-2xl">Create your Job Search</DialogTitle>
+          
         </VisuallyHidden>
 
         <SearchDialogContent
@@ -59,4 +64,18 @@ function SearchDialogInner({ open, onOpenChange, from, isDarkMode }: SearchDialo
 
 export default function SearchDialog(props: SearchDialogProps) {
   return <SearchDialogInner {...props} />;
+}
+
+export function SearchDialogWrapper() {
+  const { searchDialogOpen, setSearchDialogOpen, searchDialogFrom } = useSearchUI();
+  const { isDarkMode } = useDarkMode();
+
+  return (
+    <SearchDialog
+      open={searchDialogOpen}
+      onOpenChange={setSearchDialogOpen}
+      from={searchDialogFrom}
+      isDarkMode={isDarkMode}
+    />
+  );
 }

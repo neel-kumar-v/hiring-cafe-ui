@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { settingsCategories } from "@/data/search-filters";
 import { X } from "lucide-react";

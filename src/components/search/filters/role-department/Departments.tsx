@@ -1,3 +1,5 @@
+"use client";
+
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { useApp } from "@/contexts/AppContext";
 import { cn } from "@/lib/utils";
