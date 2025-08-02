@@ -35,26 +35,26 @@ const defaultUser: User = {
   name: "Demo User",
   savedSearches: [],
   saved: [
-    "successfactors___com___BNSF___1311623400",
-    "ashby___tenex___3b828a98-6e81-4300-a966-eecd4da37a31",
-    "jobvite___tylertech___owuxwfwN",
-    "smartrecruiters___servicenow___eaba760e-a87d-46cf-a0c4-4cff07984f85",
-    "grnhse___twitch___8093301002"
+    "ashby___glide___7902b474-592f-4618-9c7c-23216d033bda",
+    "ashby___ramp___83075cf0-9c22-4475-9c6b-e21923a96df8",
+    "grnhse___affirm___6661800003",
+    "smartrecruiters___paloaltonetworks2___9dd25fe8-bc0f-46ab-bd86-7976534bbc60",
+    "workday___adobe-wd5-external_experienced___software-engineer_r157663-1"
   ],
   applied: [
-    "successfactors___com___BNSF___1310731800",
-    "ashby___jerry___441a20b6-31e5-4887-8bfd-cc16a1e5bcae",
-    "smartrecruiters___experian___f28ce494-9a36-4c53-9c1f-fd9935c5d5b0"
+    "ashby___ramp___a1229aec-1105-4c47-8533-b912e732ed89",
+    "grnhse___pendo___8080105002",
+    "smartrecruiters___oteemoinc___9b60020a-5548-42af-9052-7720fccff5a9"
   ],
   interviewing: [
     "grnhse___stubhubinc___4633507101",
-    "grnhse___nice___4645364101"
+    "grnhse___stubhubinc___4648169101"
   ],
   rejected: [
-    "successfactors___com___advanceameP___1311540100"
+    "successfactors___com___hiitechnic___1313448700"
   ],
   hidden: [
-    "jobvite___tylertech___oN5ywfwG"
+    "grnhse___dvtrading___4589615005"
   ]
 };
 

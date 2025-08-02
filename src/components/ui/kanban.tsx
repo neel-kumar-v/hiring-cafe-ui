@@ -1,5 +1,8 @@
 'use client';
 
+import { Card } from '@/components/ui/card';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 import type {
   Announcements,
   DndContextProps,
@@ -29,9 +32,6 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import tunnel from 'tunnel-rat';
-import { Card } from '@/components/ui/card';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 
 const t = tunnel();
 
@@ -162,10 +162,13 @@ export const KanbanCards = <T extends KanbanItemProps = KanbanItemProps>({
   const items = filteredData.map((item) => item.id);
 
   return (
-    <ScrollArea className="overflow-hidden">
+    <ScrollArea className="overflow-hidden p-2">
       <SortableContext items={items}>
         <div
-          className={cn('flex flex-grow flex-col gap-2 p-2', className)}
+          className={cn(
+            'flex flex-grow flex-col gap-2 min-h-[100px]',
+            className
+          )}
           {...props}
         >
           {filteredData.map(children)}

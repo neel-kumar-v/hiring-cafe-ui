@@ -104,7 +104,7 @@ interface CompanyLogoProps {
   useMorphing?: boolean;
 }
 
-const CompanyLogo = ({
+const CompanyLogo = memo(({
   companyData,
   size = "md",
   variant = "default",
@@ -178,6 +178,8 @@ const CompanyLogo = ({
       useMorphing={useMorphing}
     />
   );
-};
+});
+
+CompanyLogo.displayName = "CompanyLogo";
 
 export default CompanyLogo; 

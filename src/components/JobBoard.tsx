@@ -32,17 +32,17 @@ const JobBoard = () => {
 
     for (let i = 0; i < len; i++) {
       const job = results[i];
-      const key = job.source_and_board_token;
+      const companyName = job.v5_processed_company_data?.name || job.v5_processed_job_data.company_name || "Unknown Company";
       
-      let collection = collectionsMap.get(key);
+      let collection = collectionsMap.get(companyName);
       if (!collection) {
         collection = {
-          source_and_board_token: key,
+          source_and_board_token: job.source_and_board_token,
           source: job.source,
           board_token: job.board_token,
           jobs: [],
         };
-        collectionsMap.set(key, collection);
+        collectionsMap.set(companyName, collection);
       }
 
       collection.jobs.push({
@@ -86,14 +86,19 @@ const JobBoard = () => {
 
   return (
     <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
-      {displayedCollections.map((collection) => (
-        <Suspense key={collection.board_token} fallback={<div className="text-center py-8 text-gray-500">Loading...</div>}>
-          <JobBoardCard 
-            jobCollection={collection}
-            data-job-card="true"
-          />
-        </Suspense>
-      ))}
+      {displayedCollections.map((collection) => {
+        const companyName = collection.jobs[0]?.v5_processed_company_data?.name || 
+                           collection.jobs[0]?.v5_processed_job_data.company_name || 
+                           collection.source_and_board_token;
+        return (
+          <Suspense key={companyName} fallback={<div className="text-center py-8 text-gray-500">Loading...</div>}>
+            <JobBoardCard 
+              jobCollection={collection}
+              data-job-card="true"
+            />
+          </Suspense>
+        );
+      })}
       {isLoading && (
         <div className="col-span-full text-center py-4 text-gray-500">
           Loading more jobs...

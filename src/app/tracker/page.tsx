@@ -1,9 +1,6 @@
 "use client";
 
-import KanbanBoard from "@/components/KanbanBoard";
-import ListView from "@/components/ListView";
-import { Input } from "@/components/ui/input";
-import { Toggle } from "@/components/ui/toggle";
+import { CategoryToggle, KanbanBoard, ListView, SearchBar, ViewToggle } from "@/components/tracker";
 import { useApp } from "@/contexts/AppContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Job } from "@/types/job";
@@ -11,65 +8,6 @@ import { useEffect, useState } from "react";
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 type ViewMode = "board" | "list";
-
-interface CategoryToggleProps {
-  category: JobCategory;
-  isActive: boolean;
-  onToggle: (category: JobCategory) => void;
-}
-
-const CategoryToggle = ({ category, isActive, onToggle}: CategoryToggleProps) => {
-  const getCategoryLabel = (category: JobCategory) => {
-    switch (category) {
-      case "saved":
-        return "Saved";
-      case "applied":
-        return "Applied";
-      case "interviewing":
-        return "Interviewing";
-      case "rejected":
-        return "Rejected";
-      case "hidden":
-        return "Hidden";
-      default:
-        return category;
-    }
-  };
-
-  return (
-    <Toggle
-      pressed={isActive}
-      onPressedChange={() => onToggle(category)}
-      variant="category"
-      size="md"
-    >
-      {getCategoryLabel(category)}
-    </Toggle>
-  );
-};
-
-const ViewToggle = ({ viewMode, onViewChange }: { viewMode: ViewMode; onViewChange: (mode: ViewMode) => void }) => {
-  return (
-    <div className="flex items-center gap-2">
-      <Toggle
-        pressed={viewMode === "board"}
-        onPressedChange={() => onViewChange("board")}
-        variant="category"
-        size="md"
-      >
-        Board
-      </Toggle>
-      <Toggle
-        pressed={viewMode === "list"}
-        onPressedChange={() => onViewChange("list")}
-        variant="category"
-        size="md"
-      >
-        List
-      </Toggle>
-    </div>
-  );
-};
 
 export default function TrackerPage() {
   const { user, moveJob } = useApp();
@@ -153,9 +91,6 @@ export default function TrackerPage() {
     }));
   };
 
-  const getCategoryCount = (category: JobCategory) => {
-    return filteredJobs.filter(job => getJobStatus(job.id) === category).length;
-  };
 
   const getEffectiveViewMode = () => {
     return isLargeScreen ? viewMode : "list";
@@ -184,15 +119,10 @@ export default function TrackerPage() {
           </h1>
 
           <div className="space-y-4 flex lg:flex-row flex-col gap-2">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Search jobs by title, company, or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:min-w-md"
-              />
-            </div>
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
 
             <div className="flex gap-2">
               <CategoryToggle
