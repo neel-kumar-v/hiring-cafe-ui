@@ -1,4 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
+import { createFoundingYearHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import RangeSlider from "../util/RangeSlider";
 
@@ -6,11 +7,7 @@ export default function Founding() {
   const { searchOptions, updateSearchOptions } = useApp();
   const foundingYear = searchOptions.founding_year;
 
-  const handleValueChange = ([min, max]: [number, number]) => {
-    updateSearchOptions({
-      founding_year: { min, max }
-    });
-  };
+  const handleValueChange = createFoundingYearHandler(updateSearchOptions);
 
   return (
     <FilterContainer title="Founding Year">

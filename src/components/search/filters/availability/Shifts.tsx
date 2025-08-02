@@ -1,5 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
-import { type AvailabilityPreferences, type OncallPreferences, type ShiftPreferences } from "@/types/search";
+import { createAvailabilityRadioHandler, createOncallCheckboxHandler, createShiftCheckboxHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
@@ -8,80 +8,37 @@ import LabelRadio from "../util/LabelRadio";
 export default function Shifts() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleShiftCheckboxChange = (shiftType: 'morning' | 'afternoon' | 'night', preference: ShiftPreferences) => {
-    const currentShifts = searchOptions.shift_preferences[shiftType];
-    let newShifts: ShiftPreferences[] | null;
+  const handleShiftCheckboxChange = createShiftCheckboxHandler(
+    searchOptions.shift_preferences,
+    updateSearchOptions
+  );
 
-    if (!Array.isArray(currentShifts)) {
-      const allShiftPreferences: ShiftPreferences[] = ["Required", "Optional", "Not Indicated"];
-      const allExceptSelected = allShiftPreferences.filter(item => item !== preference);
-      newShifts = allExceptSelected;
-    } else if (currentShifts.includes(preference)) {
-      const filtered = currentShifts.filter(item => item !== preference);
-      newShifts = filtered.length === 0 ? null : filtered;
-    } else {
-      newShifts = [...currentShifts, preference];
-      if (newShifts.length === 3) newShifts = null;
-    }
+  const handleAvailabilityRadioChange = createAvailabilityRadioHandler(
+    searchOptions.shift_preferences,
+    updateSearchOptions
+  );
 
-    updateSearchOptions({
-      shift_preferences: {
-        ...searchOptions.shift_preferences,
-        [shiftType]: newShifts
-      }
-    });
-  };
-
-  const handleAvailabilityRadioChange = (availabilityType: 'weekend' | 'holiday' | 'overtime', preference: AvailabilityPreferences) => {
-    updateSearchOptions({
-      shift_preferences: {
-        ...searchOptions.shift_preferences,
-        [availabilityType]: preference
-      }
-    });
-  };
-
-  const handleOncallCheckboxChange = (preference: OncallPreferences) => {
-    const currentOncall = searchOptions.shift_preferences.oncall;
-    let newOncall: OncallPreferences[] | "All";
-
-    const allOncallPreferences: OncallPreferences[] = ["Regular", "Occasional", "None"];
-
-    if (!Array.isArray(currentOncall)) {
-      const allExceptSelected = allOncallPreferences.filter(item => item !== preference);
-      newOncall = allExceptSelected;
-    } else if (currentOncall.includes(preference)) {
-      const filtered = currentOncall.filter(item => item !== preference);
-      newOncall = filtered.length === 0 ? "All" : filtered;
-    } else {
-      newOncall = [...currentOncall, preference];
-      if (newOncall.length === allOncallPreferences.length) newOncall = "All";
-    }
-
-    updateSearchOptions({
-      shift_preferences: {
-        ...searchOptions.shift_preferences,
-        oncall: newOncall
-      }
-    });
-  };
+  const handleOncallCheckboxChange = createOncallCheckboxHandler(
+    searchOptions.shift_preferences,
+    updateSearchOptions
+  );
 
   return (
     <FilterContainer title="Shifts & Schedules">
       <LabelInputContainer title="Morning / Day / First Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Required") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Required") : true} 
           onChange={() => handleShiftCheckboxChange("morning", "Required")}
         />
         <LabelCheckbox 
           label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Optional") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Optional") : true} 
           onChange={() => handleShiftCheckboxChange("morning", "Optional")}
         />
         <LabelCheckbox 
           label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Not Indicated") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Not Indicated") : true} 
           onChange={() => handleShiftCheckboxChange("morning", "Not Indicated")}
           className="lg:col-span-2"
         />
@@ -89,17 +46,17 @@ export default function Shifts() {
       <LabelInputContainer title="Afternoon / Evening / Second Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Required") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Required") : true} 
           onChange={() => handleShiftCheckboxChange("afternoon", "Required")}
         />
         <LabelCheckbox 
           label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Optional") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Optional") : true} 
           onChange={() => handleShiftCheckboxChange("afternoon", "Optional")}
         />
         <LabelCheckbox 
           label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Not Indicated") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Not Indicated") : true} 
           onChange={() => handleShiftCheckboxChange("afternoon", "Not Indicated")}
           className="lg:col-span-2"
         />
@@ -107,17 +64,17 @@ export default function Shifts() {
       <LabelInputContainer title="Overnight / Graveyard / Third Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Required") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Required") : true} 
           onChange={() => handleShiftCheckboxChange("night", "Required")}
         />
         <LabelCheckbox 
           label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Optional") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Optional") : true} 
           onChange={() => handleShiftCheckboxChange("night", "Optional")}
         />
         <LabelCheckbox 
           label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Not Indicated") : false} 
+          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Not Indicated") : true} 
           onChange={() => handleShiftCheckboxChange("night", "Not Indicated")}
           className="lg:col-span-2"
         />

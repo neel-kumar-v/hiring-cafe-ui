@@ -7,198 +7,17 @@ import jobsData from "@/data/jobs_data.json";
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
 import roundTypesData from "@/data/round_types.json" with { type: "json" };
-import { AddressComponent, Benefits, BenefitsOptions, BooleanOperator, CommitmentLevel, CommitmentLevelOptions, CurrentStage, DegreePreferences, DegreePreferencesOptions, Department, DepartmentOptions, Encouraged, EncouragedOptions, Environment, Exclusion, ExclusionOptions, ExperienceLevel, ExperienceLevelOptions, FundingOptions, HiringCafeSearchState, IndustryOptions, InfiniteRange, Intensity, Keywords, LicenseCertificationOptions, Location, LocationType, Mobility, Profit, Range, SearchExpression, SearchState, SecurityClearanceOptions, Select, TravelRequirements, TravelRequirementsOptions, Workplace } from '../types/search';
+import { BooleanOperator, CurrentStage, FundingOptions, IndustryOptions, InfiniteRange, Keywords, LicenseCertificationOptions, Location, LocationType, Profit, Range, SearchExpression, SearchState, Select, USAJobs, Workplace } from '../../types/search';
 
-
-export function convertSearchStateToHiringCafe(searchState: SearchState): HiringCafeSearchState {
-  const convertSelectToArray = <T>(select: T[] | T): string[] => {
-    if (Array.isArray(select)) {
-      return select.map(item => String(item));
-    }
-    return select === "All" ? [] : [String(select)];
-  };
-
-  const convertKeywordsToArray = (keywords: { include: string[] | string; exclude: string[] | string }) => {
-    const include = convertSelectToArray(keywords.include);
-    const exclude = convertSelectToArray(keywords.exclude);
-    return [...include, ...exclude.filter(item => item !== "None")];
-  };
-
-  const convertLocation = (location: Location) => ({
-    address_components: location.address.components.map((comp: AddressComponent) => ({
-      long_name: comp.long_name,
-      short_name: comp.short_name,
-      types: comp.types.map(type => String(type))
-    })),
-    formatted_address: location.address.formatted,
-    geometry: {
-      location: {
-        lat: location.geographical.latitude,
-        lon: location.geographical.longitude
-      }
-    },
-    id: location.id,
-    options: location.options ? {
-      flexible_regions: location.options.flexible_regions.map(type => String(type)),
-      ignore_radius: location.options.ignore_radius,
-      radius: location.options.radius,
-      radius_unit: location.options.radius_unit
-    } : undefined,
-    types: location.types.map(type => String(type)),
-    workplace_types: location.workplace_type ? convertSelectToArray(location.workplace_type) : undefined
-  });
-
-  const convertExperienceLevel = (level: ExperienceLevelOptions): string[] => {
-    if (Array.isArray(level.level)) {
-      return level.level.map((l: ExperienceLevel) => {
-        if (l === "None") return "No Prior Experience Required";
-        return l;
-      });
-    }
-    return level.level === "All" ? [] : [level.level === "None" ? "No Prior Experience Required" : level.level];
-  };
-
-  const convertCommitmentLevel = (commitment: CommitmentLevelOptions): string[] => {
-    if (Array.isArray(commitment)) {
-      return commitment.map((c: CommitmentLevel) => {
-        if (c === "Full Time") return "Full Time";
-        if (c === "Part Time") return "Part Time";
-        return c;
-      });
-    }
-    return commitment === "All" ? [] : [commitment];
-  };
-
-  const convertSecurityClearance = (clearance: SecurityClearanceOptions): string[] => {
-    if (Array.isArray(clearance)) {
-      return clearance;
-    }
-    return clearance === "All" ? [] : [clearance];
-  };
-
-  const convertTravelRequirements = (travel: TravelRequirementsOptions): string[] => {
-    if (Array.isArray(travel.air)) {
-      return travel.air.map((t: TravelRequirements) => {
-        if (t === "Minimum") return "Minimal";
-        return t;
-      });
-    }
-    return travel.air === "All" ? [] : [travel.air === "Minimum" ? "Minimal" : travel.air];
-  };
-
-  const convertDemandsToArray = (demands: Select<Intensity | Mobility | Environment | Workplace>): string[] => {
-    if (Array.isArray(demands)) {
-      return demands.map(d => String(d));
-    }
-    return demands === "All" ? [] : [String(demands)];
-  };
-
-  return {
-    airTravelRequirement: convertTravelRequirements(searchState.travel_requirements),
-    applicationFormEase: [],
-    associatesDegreeFieldsOfStudy: [],
-    associatesDegreeRequirements: [],
-    bachelorsDegreeFieldsOfStudy: [],
-    bachelorsDegreeRequirements: [],
-    benefitsAndPerks: convertSelectToArray(searchState.benefits),
-    calcFrequency: searchState.salary.unit,
-    cognitiveDemandLevels: convertDemandsToArray(searchState.location.workplace_activity.cognitive_intensity),
-    commitmentTypes: convertCommitmentLevel(searchState.commitment),
-    companyKeywords: convertKeywordsToArray(searchState.company),
-    companyKeywordsBooleanOperator: "OR",
-    companyNames: [],
-    companyPublicOrPrivate: Array.isArray(searchState.stage_funding.current) ? "all" : searchState.stage_funding.current === "All" ? "all" : (searchState.stage_funding.current as string).toLowerCase(),
-    companySizeRanges: [],
-    computerUsageLevels: convertDemandsToArray(searchState.location.workplace_activity.computer_usage),
-    currency: {
-      label: "Any",
-      value: null
-    },
-    dateFetchedPastNDays: searchState.date_range.magnitude * (searchState.date_range.unit === "Days" ? 1 : searchState.date_range.unit === "Weeks" ? 7 : searchState.date_range.unit === "Months" ? 30 : 365),
-    defaultToUserLocation: searchState.location.defaultUserLocation,
-    departments: convertSelectToArray(searchState.department),
-    doctorateDegreeFieldsOfStudy: [],
-    doctorateDegreeRequirements: [],
-    encouragedToApply: convertSelectToArray(searchState.encouraged),
-    eveningShiftWork: [],
-    excludeAllLicensesAndCertifications: searchState.license_certification.hide_required,
-    excludedAssociatesDegreeFieldsOfStudy: [],
-    excludedBachelorsDegreeFieldsOfStudy: [],
-    excludedCompanyKeywords: [],
-    excludedCompanyNames: [],
-    excludedDoctorateDegreeFieldsOfStudy: [],
-    excludedIndustries: convertKeywordsToArray(searchState.industry.industry).filter(item => item !== "All"),
-    excludedInvestors: convertKeywordsToArray(searchState.stage_funding.investors),
-    excludedLanguageRequirements: [],
-    excludedLatestInvestmentSeries: convertKeywordsToArray(searchState.stage_funding.latest_round_type),
-    excludedLicensesAndCertifications: convertKeywordsToArray(searchState.license_certification.keywords),
-    excludedMastersDegreeFieldsOfStudy: [],
-    excludeIfManagementYoeIsNotSpecified: searchState.experience.role === "All" ? false : Array.isArray(searchState.experience.role) && searchState.experience.role.includes("People Manager") ? false : false,
-    excludeIfRoleYoeIsNotSpecified: searchState.experience.role === "All" ? false : Array.isArray(searchState.experience.role) && searchState.experience.role.includes("Individual Contributor") ? false : false,
-    excludeJobsWithAdditionalLanguageRequirements: false,
-    frequency: {
-      label: searchState.salary.listedUnit,
-      value: searchState.salary.listedUnit === "Any" ? null : searchState.salary.listedUnit
-    },
-    hiddenCompanies: [],
-    hideJobTypes: convertSelectToArray(searchState.exclusion),
-    holidayAvailabilityRequired: searchState.shift_preferences.holiday === "Required" ? "Required" : "Doesn't Matter",
-    industries: convertKeywordsToArray(searchState.industry.industry),
-    investors: convertKeywordsToArray(searchState.stage_funding.investors),
-    isNonProfit: Array.isArray(searchState.industry.profit) ? "all" : searchState.industry.profit === "All" ? "all" : (searchState.industry.profit as string).toLowerCase(),
-    jobDescriptionQuery: "",
-    jobTitleQuery: "",
-    landTravelRequirement: convertTravelRequirements(searchState.travel_requirements),
-    languageRequirements: convertKeywordsToArray(searchState.language),
-    languageRequirementsOperator: "OR",
-    latestInvestmentAmount: null,
-    latestInvestmentCurrency: [],
-    latestInvestmentSeries: convertKeywordsToArray(searchState.stage_funding.latest_round_type),
-    latestInvestmentYearRange: [searchState.stage_funding.latest_round_amount.min, searchState.stage_funding.latest_round_amount.max],
-    licensesAndCertifications: convertKeywordsToArray(searchState.license_certification.keywords),
-    locations: searchState.location.location.map(convertLocation),
-    managementYoeRange: searchState.experience.role === "All" ? [0, 20] : 
-      Array.isArray(searchState.experience.role) && searchState.experience.role.includes("People Manager") ? 
-        searchState.experience.peopleManager ? [searchState.experience.peopleManager.min, searchState.experience.peopleManager.max] : [0, 20] : [0, 20],
-    mastersDegreeFieldsOfStudy: [],
-    mastersDegreeRequirements: [],
-    maxCompensationHighEnd: searchState.salary.max_range.max,
-    maxCompensationLowEnd: searchState.salary.max_range.max,
-    maxYearFounded: searchState.founding_year.max,
-    minCompensationHighEnd: searchState.salary.min_range.min,
-    minCompensationLowEnd: searchState.salary.min_range.min,
-    minYearFounded: searchState.founding_year.min,
-    morningShiftWork: [],
-    onCallRequirements: convertSelectToArray(searchState.shift_preferences.oncall),
-    oralCommunicationLevels: convertDemandsToArray(searchState.location.workplace_activity.oral_communication),
-    overnightShiftWork: [],
-    overtimeRequired: searchState.shift_preferences.overtime === "Required" ? "Required" : "Doesn't Matter",
-    physicalEnvironments: convertDemandsToArray(searchState.location.workplace_activity.environment),
-    physicalLaborIntensity: convertDemandsToArray(searchState.location.workplace_activity.physical_intensity),
-    physicalPositions: convertDemandsToArray(searchState.location.workplace_activity.mobility),
-    requirementsKeywordsQuery: "",
-    restrictedSearchAttributes: [],
-    restrictJobsToTransparentSalaries: !searchState.salary.undisclosed,
-    roleTypes: searchState.experience.role === "All" ? [] : 
-      Array.isArray(searchState.experience.role) && searchState.experience.role.includes("Individual Contributor") ? 
-        ["Individual Contributor", "People Manager"] : ["Individual Contributor"],
-    roleYoeRange: searchState.experience.role === "All" ? [0, 20] : 
-      Array.isArray(searchState.experience.role) && searchState.experience.role.includes("Individual Contributor") ? 
-        searchState.experience.individualContributor ? [searchState.experience.individualContributor.min, searchState.experience.individualContributor.max] : [0, 20] : [0, 20],
-    searchModeSelectedCompany: null,
-    searchQuery: "",
-    securityClearances: convertSecurityClearance(searchState.security_clearance),
-    seniorityLevel: convertExperienceLevel(searchState.experience),
-    sortBy: "default",
-    technologyKeywordsQuery: "",
-    usaGovPref: searchState.industry.usa_jobs === "All" ? null : searchState.industry.usa_jobs,
-    user: null,
-    userId: "",
-    userLocation: null,
-    weekendAvailabilityRequired: searchState.shift_preferences.weekend === "Required" ? "Required" : "Doesn't Matter",
-    workplaceTypes: convertSelectToArray(searchState.location.workplace_type)
-  };
-} 
+// Export functions from other files
+export { createAvailabilityRadioHandler, createOncallCheckboxHandler, createShiftCheckboxHandler } from './availability';
+export { createCompanyHandler, getCompanyOptions } from './company';
+export { createBenefitsHandler, createDepartmentHandler, createEncouragedHandler } from './compensation';
+export { createExclusionHandler, getApplyFormDescription, getApplyFormMap, getApplyFormValueMap } from './general';
+export { convertSearchStateToHiringCafe } from './hiring-cafe';
+export { createWorkplaceActivityHandler, formatRadiusLabel, getCurrentRadius, getLocationLabels, getRadiusUnit, isFlexibleRegionSelected, isWorkplaceTypeSelected } from './location';
+export { createEducationKeywordsHandler, createEducationPreferenceHandler } from './role-department';
+export { isKeywordsItemSelected, isSelectItemSelected, isSelectWithNullItemSelected } from './util';
 
 export function getJobTitlesFromData(): string[] {
   if (jobsData && Array.isArray(jobsData.results)) {
@@ -669,163 +488,7 @@ export function createNestedBooleanHandler(
   };
 }
 
-// Utility functions for checking if items are selected
 
-export function isSelectItemSelected<T>(
-  currentValue: Select<T>,
-  item: T
-): boolean {
-  if (currentValue === "All") return true;
-  if (Array.isArray(currentValue)) {
-    return currentValue.includes(item);
-  }
-  return false;
-}
-
-export function isSelectWithNullItemSelected<T>(
-  currentValue: Select<T, null>,
-  item: T
-): boolean {
-  if (!Array.isArray(currentValue)) return true;
-  return currentValue.includes(item);
-}
-
-export function isKeywordsItemSelected(
-  keywords: Keywords,
-  item: string,
-  type: 'include' | 'exclude'
-): boolean {
-  const items = keywords[type];
-  if (type === 'exclude' && items === "None") return false;
-  if (Array.isArray(items)) {
-    return items.includes(item);
-  }
-  return false;
-}
-
-// Specialized handlers for common patterns
-
-export function createBenefitsHandler(
-  currentBenefits: BenefitsOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (benefit: Benefits) => {
-    const newBenefits = currentBenefits?.includes(benefit)
-      ? currentBenefits.filter(item => item !== benefit)
-      : [...(currentBenefits || []), benefit];
-    
-    updateSearchOptions({ benefits: newBenefits });
-  };
-}
-
-export function createExclusionHandler(
-  currentExclusion: ExclusionOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (exclusion: Exclusion) => {
-    const newExclusion = currentExclusion.includes(exclusion)
-      ? currentExclusion.filter(item => item !== exclusion)
-      : [...currentExclusion, exclusion];
-    
-    updateSearchOptions({ exclusion: newExclusion });
-  };
-}
-
-export function createEncouragedHandler(
-  currentEncouraged: EncouragedOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (encouraged: Encouraged) => {
-    const newEncouraged = currentEncouraged?.includes(encouraged)
-      ? currentEncouraged.filter(item => item !== encouraged)
-      : [...(currentEncouraged || []), encouraged];
-    
-    updateSearchOptions({ encouraged: newEncouraged });
-  };
-}
-
-export function createDepartmentHandler(
-  currentDepartments: DepartmentOptions,
-  allDepartments: Department[],
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (department: Department) => {
-    let currentDepartmentsArray: Department[] = [];
-    
-    if (currentDepartments === "All") {
-      currentDepartmentsArray = allDepartments.filter(item => item !== department);
-    } else if (Array.isArray(currentDepartments)) {
-      currentDepartmentsArray = [...currentDepartments];
-    }
-    
-    let newDepartments: Select<Department>;
-    
-    if (currentDepartments === "All") {
-      newDepartments = currentDepartmentsArray;
-    } else if (currentDepartmentsArray.includes(department)) {
-      const filtered = currentDepartmentsArray.filter(item => item !== department);
-      newDepartments = filtered.length === 0 ? [] : filtered;
-    } else {
-      const added = [...currentDepartmentsArray, department];
-      newDepartments = added.length === allDepartments.length ? "All" : added;
-    }
-    
-    if (Array.isArray(newDepartments) && newDepartments.length === allDepartments.length) {
-      newDepartments = "All";
-    }
-    
-    updateSearchOptions({ department: newDepartments });
-  };
-}
-
-export function createEducationPreferenceHandler(
-  currentEducation: DegreePreferencesOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', preference: DegreePreferences) => {
-    const currentPreferences = currentEducation[degreeType].preferences;
-    
-    let newPreferences: Select<DegreePreferences, null>;
-    
-    if (Array.isArray(currentPreferences)) {
-      if (currentPreferences.includes(preference)) {
-        const filtered = currentPreferences.filter(p => p !== preference);
-        newPreferences = filtered.length > 0 ? filtered : null;
-      } else {
-        newPreferences = [...currentPreferences, preference];
-      }
-    } else {
-      newPreferences = [preference];
-    }
-    
-    updateSearchOptions({
-      education: {
-        ...currentEducation,
-        [degreeType]: {
-          ...currentEducation[degreeType],
-          preferences: newPreferences
-        }
-      }
-    });
-  };
-}
-
-export function createEducationKeywordsHandler(
-  currentEducation: DegreePreferencesOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', keywords: Keywords) => {
-    updateSearchOptions({
-      education: {
-        ...currentEducation,
-        [degreeType]: {
-          ...currentEducation[degreeType],
-          keywords
-        }
-      }
-    });
-  };
-}
 
 // Specialized handlers for complex nested structures
 
@@ -903,6 +566,27 @@ export function createIndustryProfitHandler(
   };
 }
 
+export function createIndustryKeywordsHandler(
+  currentIndustry: IndustryOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (keywords: Keywords, field: 'activities' | 'industry') => {
+    updateSearchOptions({
+      industry: {
+        ...currentIndustry,
+        [field]: keywords
+      }
+    });
+  };
+}
+
+export function createIndustryUsaJobsHandler(
+  currentIndustry: IndustryOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return createRadioHandler<USAJobs>(updateSearchOptions, "industry.usa_jobs");
+}
+
 export function createStageFundingHandler(
   currentStageFunding: FundingOptions,
   updateSearchOptions: (updates: Partial<SearchState>) => void
@@ -921,32 +605,8 @@ export function createStageFundingCurrentHandler(
   currentStageFunding: FundingOptions,
   updateSearchOptions: (updates: Partial<SearchState>) => void
 ) {
-  return (currentStage: CurrentStage) => {
-    const stagesOptions: CurrentStage[] = ["Public", "Private"];
-    let newCurrentStages: Select<CurrentStage, "All">;
-
-    if (currentStageFunding.current === "All") {
-      const allExceptSelected = stagesOptions.filter((stage: CurrentStage) => stage !== currentStage);
-      newCurrentStages = allExceptSelected;
-    } else if (Array.isArray(currentStageFunding.current)) {
-      if (currentStageFunding.current.includes(currentStage)) {
-        newCurrentStages = currentStageFunding.current.filter(stage => stage !== currentStage);
-        newCurrentStages = newCurrentStages.length === 0 ? "All" : newCurrentStages;
-      } else {
-        newCurrentStages = [...currentStageFunding.current, currentStage];
-        newCurrentStages = newCurrentStages.length === stagesOptions.length ? "All" : newCurrentStages;
-      }
-    } else {
-      newCurrentStages = [currentStage];
-    }
-
-    updateSearchOptions({
-      stage_funding: {
-        ...currentStageFunding,
-        current: newCurrentStages
-      }
-    });
-  };
+  const stagesOptions: CurrentStage[] = ["Public", "Private"];
+  return createSelectHandler(currentStageFunding.current, stagesOptions, updateSearchOptions, "stage_funding.current");
 }
 
 export function createStageFundingRangeHandler(
@@ -954,12 +614,7 @@ export function createStageFundingRangeHandler(
   updateSearchOptions: (updates: Partial<SearchState>) => void
 ) {
   return (field: 'latest_round' | 'latest_round_amount', [min, max]: [number, number]) => {
-    updateSearchOptions({
-      stage_funding: {
-        ...currentStageFunding,
-        [field]: { min, max }
-      }
-    });
+    return createRangeHandler(updateSearchOptions, `stage_funding.${field}`)([min, max]);
   };
 }
 
@@ -1155,3 +810,76 @@ export function createLocationsChangeHandler(
     });
   };
 }
+
+export function getIndustryOptions() {
+  return getIndustriesFromData().map(industry => ({
+    label: industry,
+    value: industry
+  }));
+}
+
+export function getCompanyActivityOptions() {
+  return getCompanyActivitiesFromData().map(activity => ({
+    label: activity,
+    value: activity
+  }));
+}
+
+// Size handlers
+
+export function getSizeRanges(): Array<{ label: string; range: InfiniteRange }> {
+  return [
+    { label: "1-10", range: { min: 1, max: 10 } },
+    { label: "11-50", range: { min: 11, max: 50 } },
+    { label: "51-200", range: { min: 51, max: 200 } },
+    { label: "201-500", range: { min: 201, max: 500 } },
+    { label: "501-1000", range: { min: 501, max: 1000 } },
+    { label: "1001-2000", range: { min: 1001, max: 2000 } },
+    { label: "2001-5000", range: { min: 2001, max: 5000 } },
+    { label: "5001-10000", range: { min: 5001, max: 10000 } },
+    { label: "10000+", range: { min: 10001, max: null } },
+  ];
+}
+
+export function createSizeHandler(
+  currentSize: Select<InfiniteRange, "All">,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (range: InfiniteRange) => {
+    let newSize: Select<InfiniteRange, "All">;
+    
+    const allRanges: InfiniteRange[] = getSizeRanges().map(item => item.range);
+    
+    if (currentSize === "All") {
+      const allExceptSelected = allRanges.filter(item => 
+        !(item.min === range.min && item.max === range.max)
+      );
+      newSize = allExceptSelected;
+    } else if (Array.isArray(currentSize)) {
+      if (currentSize.some(selectedRange => 
+        selectedRange.min === range.min && selectedRange.max === range.max
+      )) {
+        const filtered = currentSize.filter(selectedRange => 
+          !(selectedRange.min === range.min && selectedRange.max === range.max)
+        );
+        newSize = filtered.length === 0 ? "All" : filtered;
+      } else {
+        const added = [...currentSize, range];
+        newSize = added.length === allRanges.length ? "All" : added;
+      }
+    } else {
+      newSize = [range];
+    }
+    
+    updateSearchOptions({ size: newSize });
+  };
+}
+
+// Founding year handlers
+
+export function createFoundingYearHandler(
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return createRangeHandler(updateSearchOptions, "founding_year");
+}
+

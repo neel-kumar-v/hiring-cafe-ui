@@ -8,9 +8,15 @@ import {
   createLocationRadiusHandler,
   createLocationRadiusUnitHandler,
   createLocationsChangeHandler,
-  createLocationWorkplaceTypeHandler
+  createLocationWorkplaceTypeHandler,
+  formatRadiusLabel,
+  getCurrentRadius,
+  getLocationLabels,
+  getRadiusUnit,
+  isFlexibleRegionSelected,
+  isWorkplaceTypeSelected
 } from "@/lib/search";
-import { LocationType, Workplace, type AddressComponent, type Location } from "@/types/search";
+import { LocationType, Workplace, type Location } from "@/types/search";
 import { MapPin } from "lucide-react";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
@@ -31,24 +37,19 @@ export function LocationAccordion({ location, locationIndex }: LocationAccordion
   const handleWorkplaceTypeChange = createLocationWorkplaceTypeHandler(location, searchOptions, updateSearchOptions, locationIndex);
   const handleFlexibleRegionsChange = createLocationFlexibleRegionsHandler(location, searchOptions, updateSearchOptions, locationIndex);
 
-  const isWorkplaceTypeSelected = (workplaceType: Workplace) => {
-    if (location.workplace_type === "All") return false;
-    if (Array.isArray(location.workplace_type)) {
-      return location.workplace_type.includes(workplaceType);
-    }
-    return location.workplace_type === workplaceType;
+  const isWorkplaceTypeSelectedForLocation = (workplaceType: Workplace) => {
+    return isWorkplaceTypeSelected(location, workplaceType);
   };
 
-  const isFlexibleRegionSelected = (region: LocationType) => {
-    return location.options?.flexible_regions?.includes(region) || false;
+  const isFlexibleRegionSelectedForLocation = (region: LocationType) => {
+    return isFlexibleRegionSelected(location, region);
   };
 
-  const currentRadius = location.options?.ignore_radius ? 0 : (location.options?.radius || 25);
-  const radiusUnit = location.options?.radius_unit || "Miles";
+  const currentRadius = getCurrentRadius(location);
+  const radiusUnit = getRadiusUnit(location);
 
-  const formatRadiusLabel = (value: number | undefined) => {
-    const radius = value ?? currentRadius;
-    const label = radius === 0 ? "Exact" : `${radius} ${radiusUnit === "Miles" ? "miles" : "km"}`;
+  const formatRadiusLabelForLocation = (value: number | undefined) => {
+    const label = formatRadiusLabel(value, location);
     
     return (
       <span className="inline-flex items-center justify-center text-center text-foreground  min-w-24">
@@ -57,75 +58,7 @@ export function LocationAccordion({ location, locationIndex }: LocationAccordion
     );
   };
 
-  // Extract location-specific names for labels
-  const getLocationLabels = () => {
-    const address = location.address;
-    const components = address.components || [];
-    
-    let city = '';
-    let state = '';
-    let country = '';
-    let continent = '';
-    
-    components.forEach((component: AddressComponent) => {
-      if (component.types.includes('Locality' as LocationType)) {
-        city = component.long_name;
-      } else if (component.types.includes('Administrative Area Level 1' as LocationType)) {
-        state = component.long_name;
-      } else if (component.types.includes('Country' as LocationType)) {
-        country = component.long_name;
-      } else if (component.types.includes('Continent' as LocationType)) {
-        continent = component.long_name;
-      }
-    });
-
-    // Fallback to parsing from formatted address if components not available
-    if (!city && !state && !country) {
-      const parts = address.formatted.split(', ');
-      if (parts.length >= 2) {
-        city = parts[0];
-        state = parts[1];
-        if (parts.length >= 3) {
-          country = parts[2];
-        }
-      }
-    }
-
-    // If we still don't have a city, try to get it from the formatted address
-    if (!city) {
-      const parts = address.formatted.split(', ');
-      // Look for the first part that's not a state or country
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i].trim();
-        // Skip if it looks like a state abbreviation or country
-        if (part.length <= 3 || part.includes('United States') || part.includes('USA')) {
-          continue;
-        }
-        // Skip if it contains numbers (like zip codes)
-        if (/\d/.test(part)) {
-          continue;
-        }
-        city = part;
-        break;
-      }
-    }
-
-    // Set continent based on country if not found
-    if (!continent && country) {
-      if (country === 'United States' || country === 'Canada' || country === 'Mexico') {
-        continent = 'North America';
-      } else if (country === 'United Kingdom' || country === 'Germany' || country === 'France') {
-        continent = 'Europe';
-      } else if (country === 'China' || country === 'Japan' || country === 'India') {
-        continent = 'Asia';
-      }
-      // Add more continent mappings as needed
-    }
-
-    return { city, state, country, continent };
-  };
-
-  const locationLabels = getLocationLabels();
+  const locationLabels = getLocationLabels(location);
 
   return (
     <Accordion type="multiple" className="last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out" >
@@ -162,7 +95,7 @@ export function LocationAccordion({ location, locationIndex }: LocationAccordion
                   max={100}
                   step={1}
                   className="w-full mt-8"
-                  label={formatRadiusLabel}
+                  label={formatRadiusLabelForLocation}
                   labelPosition="top"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
@@ -181,17 +114,17 @@ export function LocationAccordion({ location, locationIndex }: LocationAccordion
             <LabelInputContainer title="Workplace Type">
               <LabelCheckbox
                 label="On-site"
-                checked={isWorkplaceTypeSelected("Onsite")}
+                checked={isWorkplaceTypeSelectedForLocation("Onsite")}
                 onChange={() => handleWorkplaceTypeChange("Onsite")}
               />
               <LabelCheckbox
                 label="Remote"
-                checked={isWorkplaceTypeSelected("Remote")}
+                checked={isWorkplaceTypeSelectedForLocation("Remote")}
                 onChange={() => handleWorkplaceTypeChange("Remote")}
               />
               <LabelCheckbox
                 label="Hybrid"
-                checked={isWorkplaceTypeSelected("Hybrid")}
+                checked={isWorkplaceTypeSelectedForLocation("Hybrid")}
                 onChange={() => handleWorkplaceTypeChange("Hybrid")}
               />
             </LabelInputContainer>
@@ -199,17 +132,17 @@ export function LocationAccordion({ location, locationIndex }: LocationAccordion
             <LabelInputContainer title="Include Remote Jobs From">
               <LabelCheckbox
                 label={`${locationLabels.state || 'This state'}`}
-                checked={isFlexibleRegionSelected("Admin Area")}
+                checked={isFlexibleRegionSelectedForLocation("Admin Area")}
                 onChange={() => handleFlexibleRegionsChange("Admin Area")}
               />
               <LabelCheckbox
                 label={`${locationLabels.country || 'This country'}`}
-                checked={isFlexibleRegionSelected("Country")}
+                checked={isFlexibleRegionSelectedForLocation("Country")}
                 onChange={() => handleFlexibleRegionsChange("Country")}
               />
               <LabelCheckbox
                 label={`${locationLabels.continent || 'This continent'}`}
-                checked={isFlexibleRegionSelected("Continent")}
+                checked={isFlexibleRegionSelectedForLocation("Continent")}
                 onChange={() => handleFlexibleRegionsChange("Continent")}
               />
             </LabelInputContainer>

@@ -14,7 +14,6 @@ const FIELDS = [
 
 export default function JobTitles() {
   const { searchOptions, updateSearchOptions } = useApp();
-  // const jobTitles = getJobTitlesFromData();
 
   return (
     <FilterContainer title="Job Titles & Keywords" help="Setup a boolean search for job keywords. e.g. 'software engineer AND NOT (react OR angular)' searches for software engineers that don't have react or angular in their job title.">

@@ -1,17 +1,14 @@
 import { useApp } from "@/contexts/AppContext";
-import { getCompanyActivitiesFromData, getIndustriesFromData } from "@/lib/search";
-import { Keywords, Profit, Select, USAJobs } from "@/types/search";
-import { useMemo } from "react";
+import { createIndustryKeywordsHandler, createIndustryProfitHandler, createIndustryUsaJobsHandler, getCompanyActivityOptions, getIndustryOptions } from "@/lib/search";
+import { Profit } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
 import LabelRadio from "../util/LabelRadio";
-import { toast } from "sonner";
 
 export default function Industry() {
   const { searchOptions, updateSearchOptions } = useApp();
-
   const profitOptions: Profit[] = ["For-Profit", "Non-Profit"];
 
   const isProfitSelected = (profit: Profit): boolean => {
@@ -22,65 +19,23 @@ export default function Industry() {
     return false;
   };
 
-  const handleProfitChange = (profit: Profit) => {
-    const currentProfit = searchOptions.industry.profit;
-    let newProfit: Select<Profit, "All">;
-    
-    if (currentProfit === "All") {
-      const allExceptSelected = profitOptions.filter(item => item !== profit);
-      newProfit = allExceptSelected;
-    } else if (Array.isArray(currentProfit)) {
-      if (currentProfit.includes(profit)) {
-        const filtered = currentProfit.filter(item => item !== profit);
-        newProfit = filtered.length === 0 ? "All" : filtered;
-        toast.info("Selecting no profit types is the same as selecting all profit types")
-      } else {
-        const added = [...currentProfit, profit];
-        newProfit = added.length === profitOptions.length ? "All" : added;
-      }
-    } else {
-      newProfit = [profit];
-    }
-    
-    updateSearchOptions({ 
-      industry: { 
-        ...searchOptions.industry, 
-        profit: newProfit 
-      } 
-    });
-  };
+  const handleProfitChange = createIndustryProfitHandler(
+    searchOptions.industry,
+    updateSearchOptions
+  );
 
-  const activities = useMemo(() => {
-    return getCompanyActivitiesFromData().map(activity => ({
-      label: activity,
-      value: activity
-    }));
-  }, []);
+  const activities = getCompanyActivityOptions();
+  const industries = getIndustryOptions();
 
-  const industries = useMemo(() => {
-    return getIndustriesFromData().map(industry => ({
-      label: industry,
-      value: industry
-    }));
-  }, []);
+  const handleKeywordsChange = createIndustryKeywordsHandler(
+    searchOptions.industry,
+    updateSearchOptions
+  );
 
-  const handleKeywordsChange = (keywords: Keywords, id: "activities" | "industry") => {
-    updateSearchOptions({
-      industry: {
-        ...searchOptions.industry,
-        [id]: keywords
-      }
-    });
-  };
-
-  const handleUsaJobsChange = (usaJobs: USAJobs) => {
-    updateSearchOptions({
-      industry: {
-        ...searchOptions.industry,
-        usa_jobs: usaJobs
-      }
-    });
-  };
+  const handleUsaJobsChange = createIndustryUsaJobsHandler(
+    searchOptions.industry,
+    updateSearchOptions
+  );
 
   return (
     <FilterContainer title="Industry">

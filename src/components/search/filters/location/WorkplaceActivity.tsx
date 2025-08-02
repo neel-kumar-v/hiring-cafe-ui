@@ -1,5 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
-import { Environment, Select, type Intensity, type Mobility } from "@/types/search";
+import { createWorkplaceActivityHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
@@ -7,52 +7,10 @@ import LabelInputContainer from "../util/LabelInputContainer";
 export default function WorkplaceActivity() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleWorkplaceActivityChange = (activityType: 'mobility' | 'physical_intensity' | 'cognitive_intensity' | 'computer_usage' | 'oral_communication' | 'environment', value: Intensity | Mobility | Environment) => {
-    const currentActivity = searchOptions.location.workplace_activity[activityType];
-    let newActivity: Select<Intensity | Mobility | Environment>;
-
-    if (activityType === 'mobility') {
-      const allMobilityValues: Mobility[] = ["Sitting", "Active"];
-      if (!Array.isArray(currentActivity)) {
-        const allExceptSelected = allMobilityValues.filter(item => item !== value);
-        newActivity = allExceptSelected;
-      } else {
-        const currentArray = currentActivity as Mobility[];
-        if (currentArray.includes(value as Mobility)) {
-          const filtered = currentArray.filter(item => item !== value);
-          newActivity = filtered.length === 0 ? "All" : filtered;
-        } else {
-          newActivity = [...currentArray, value as Mobility];
-          if (newActivity.length === allMobilityValues.length) newActivity = "All";
-        }
-      }
-    } else {
-      const allIntensityValues: Intensity[] = ["Low", "Medium", "High"];
-      if (!Array.isArray(currentActivity)) {
-        const allExceptSelected = allIntensityValues.filter(item => item !== value);
-        newActivity = allExceptSelected;
-      } else {
-        const currentArray = currentActivity as Intensity[];
-        if (currentArray.includes(value as Intensity)) {
-          const filtered = currentArray.filter(item => item !== value);
-          newActivity = filtered.length === 0 ? "All" : filtered;
-        } else {
-          newActivity = [...currentArray, value as Intensity];
-          if (newActivity.length === allIntensityValues.length) newActivity = "All";
-        }
-      }
-    }
-
-    updateSearchOptions({
-      location: {
-        ...searchOptions.location,
-        workplace_activity: {
-          ...searchOptions.location.workplace_activity,
-          [activityType]: newActivity
-        }
-      }
-    });
-  };
+  const handleWorkplaceActivityChange = createWorkplaceActivityHandler(
+    searchOptions.location,
+    updateSearchOptions
+  );
 
   return (
     <FilterContainer title="Workplace Activity">

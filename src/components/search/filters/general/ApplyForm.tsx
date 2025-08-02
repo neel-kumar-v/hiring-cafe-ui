@@ -3,47 +3,27 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/contexts/AppContext";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import type { ApplyForm } from "@/types/search";
+import { getApplyFormDescription, getApplyFormMap, getApplyFormValueMap } from "@/lib/search";
 import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
 
 export default function ApplyForm() {
   const { isDarkMode } = useDarkMode();
   const { searchOptions, updateSearchOptions } = useApp();
-  
   const [applyFormValue, setApplyFormValue] = useState<string>(() => {
-    const valueMap: Record<ApplyForm, string> = {
-      "All": "all",
-      "Fast": "simple", 
-      "Slow": "time-consuming"
-    };
+    const valueMap = getApplyFormValueMap();
     return valueMap[searchOptions.apply_form] || "all";
   });
 
   useEffect(() => {
-    const applyFormMap: Record<string, ApplyForm> = {
-      "all": "All",
-      "simple": "Fast",
-      "time-consuming": "Slow"
-    };
+    const applyFormMap = getApplyFormMap();
     
     updateSearchOptions({
       apply_form: applyFormMap[applyFormValue] || "All"
     });
   }, [applyFormValue]);
 
-  const getDescription = (value: string) => {
-    switch (value) {
-      case "all":
-        return "All application forms - simple or time-consuming.";
-      case "simple":
-        return "Application forms that don't require account creation.";
-      case "time-consuming":
-        return "Application forms that require account creation and/or resume formatting.";
-      default:
-        return "";
-    }
-  };
+  const getDescription = getApplyFormDescription;
 
   return (
     <FilterContainer title="Apply Form Type">
