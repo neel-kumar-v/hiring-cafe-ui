@@ -13,8 +13,6 @@ import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import {
   BarChart3,
-  Bookmark,
-  Briefcase,
   Building,
   ExternalLink,
   Info,
@@ -96,13 +94,11 @@ export default function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>
-                  <Bookmark className="mr-2 size-4" />
-                  Saved Searches
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Briefcase className="mr-2 size-4" />
-                  Saved Jobs
+                <DropdownMenuItem asChild>
+                  <Link href="/tracker">
+                    <BarChart3 className="mr-2 size-4" />
+                    Saved Jobs
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 size-4" />
@@ -111,12 +107,6 @@ export default function Header() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem asChild>
-                  <Link href="/tracker">
-                    <BarChart3 className="mr-2 size-4" />
-                    Jobs Tracker
-                  </Link>
-                </DropdownMenuItem>
 
                 <DropdownMenuItem>
                   <Users className="mr-2 size-4" />

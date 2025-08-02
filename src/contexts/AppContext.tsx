@@ -1,7 +1,7 @@
 "use client";
 
-import { SearchState } from "@/types/search";
 import { JobStatus, User } from "@/types/app";
+import { SearchState } from "@/types/search";
 import { createContext, ReactNode, useContext, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
 
@@ -34,11 +34,28 @@ interface AppContextType {
 const defaultUser: User = {
   name: "Demo User",
   savedSearches: [],
-  saved: [],
-  applied: [],
-  interviewing: [],
-  rejected: [],
-  hidden: []
+  saved: [
+    "successfactors___com___BNSF___1311623400",
+    "ashby___tenex___3b828a98-6e81-4300-a966-eecd4da37a31",
+    "jobvite___tylertech___owuxwfwN",
+    "smartrecruiters___servicenow___eaba760e-a87d-46cf-a0c4-4cff07984f85",
+    "grnhse___twitch___8093301002"
+  ],
+  applied: [
+    "successfactors___com___BNSF___1310731800",
+    "ashby___jerry___441a20b6-31e5-4887-8bfd-cc16a1e5bcae",
+    "smartrecruiters___experian___f28ce494-9a36-4c53-9c1f-fd9935c5d5b0"
+  ],
+  interviewing: [
+    "grnhse___stubhubinc___4633507101",
+    "grnhse___nice___4645364101"
+  ],
+  rejected: [
+    "successfactors___com___advanceameP___1311540100"
+  ],
+  hidden: [
+    "jobvite___tylertech___oN5ywfwG"
+  ]
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { Suspense, lazy, useState } from "react";
 
@@ -18,7 +17,6 @@ const LoadingFallback = () => (
 );
 
 export default function Page() {
-  const { isDarkMode } = useDarkMode();
   const { showLegacyFilters, handleSearchIconClick } = useSearchUI();
   const [jobCount] = useState(2_057_770);
   const [companyCount] = useState(72_936);

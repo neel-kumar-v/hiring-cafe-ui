@@ -1,19 +1,13 @@
 import {
-  MorphingCompanyLogo,
   MorphingCompanyName,
 } from "@/components/ui/motion/morphing-dialog";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
-  analyzeImageBackground,
   formatCompanyName,
-  getCompanyAbbreviation,
-  getImageBackgroundClass,
-  renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
 import type { V5ProcessedCompanyData } from "@/types/job";
 import { ExternalLink, Link2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import UniversalTooltip from "../../util/UniversalTooltip";
+import CompanyLogo from "../util/CompanyLogo";
 
 const CardCompanyInfo = ({
   companyData,
@@ -22,65 +16,17 @@ const CardCompanyInfo = ({
   companyData: V5ProcessedCompanyData;
   tagline: string;
 }) => {
-  const [imageError, setImageError] = useState(false);
-  const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 728px)");
-
-  useEffect(() => {
-    if (companyData.image_url && !imageError) {
-      analyzeImageBackground(companyData.image_url).then(setBackgroundType);
-    }
-  }, [companyData.image_url, imageError]);
-
-  const backgroundClass = getImageBackgroundClass(
-    companyData.image_url,
-    imageError,
-    backgroundType
-  );
 
 
 
   return (
     <div className="group mb-3 flex items-start space-x-2">
-      {isDesktop ? (
-        <MorphingCompanyLogo
-          className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden ${backgroundClass}`}
-        >
-          {companyData.image_url && !imageError ? (
-            <img
-              alt={companyData.name}
-              className="h-full w-full rounded-[6px] object-contain p-0.75"
-              onError={() => setImageError(true)}
-              src={companyData.image_url}
-            />
-          ) : (
-            <span className="font-semibold text-md max-sm:text-3xl text-pink-600 dark:text-pink-300">
-              {renderCompanyAbbreviationGrid(
-                getCompanyAbbreviation(companyData.name || "")
-              )}
-            </span>
-          )}
-        </MorphingCompanyLogo>
-      ) : (
-        <div
-          className={`flex aspect-square h-14 flex-shrink-0 items-center justify-center rounded overflow-hidden ${backgroundClass}`}
-        >
-          {companyData.image_url && !imageError ? (
-            <img
-              alt={companyData.name}
-              className="h-full w-full rounded-[6px] object-contain p-0.75"
-              onError={() => setImageError(true)}
-              src={companyData.image_url}
-            />
-          ) : (
-            <span className="font-semibold text-md text-pink-600 dark:text-pink-300">
-              {renderCompanyAbbreviationGrid(
-                getCompanyAbbreviation(companyData.name || "")
-              )}
-            </span>
-          )}
-        </div>
-      )}
+      <CompanyLogo
+        companyData={companyData}
+        size="md"
+        variant="card"
+        useMorphing={true}
+      />
       <div className="min-w-0 flex-1">
         <div className="overflow-visible whitespace-nowrap rounded group-hover:w-fit group-hover:backdrop-blur-xl pointer-coarse:w-fit pointer-coarse:backdrop-blur-none pointer-none:w-fit pointer-none:backdrop-blur-none pointer-fine:motion-reduce:w-fit pointer-fine:motion-reduce:backdrop-blur-none">
           {companyData.name ? (
@@ -130,10 +76,6 @@ const CardCompanyInfo = ({
                 </div>
               </UniversalTooltip>
             </>
-          ) : isDesktop ? (
-            <MorphingCompanyName className="line-clamp-1 inline-flex w-fit items-center font-medium text-neutral-900 text-sm transition-all duration-200 dark:text-white">
-              {formatCompanyName(companyData.name)}
-            </MorphingCompanyName>
           ) : (
             <span className="line-clamp-1 inline-flex w-fit items-center font-medium text-neutral-900 text-sm transition-all duration-200 dark:text-white">
               {formatCompanyName(companyData.name)}

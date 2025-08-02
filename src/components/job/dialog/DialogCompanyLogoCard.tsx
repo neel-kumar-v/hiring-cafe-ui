@@ -1,17 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { MorphingCompanyLogo } from "@/components/ui/motion/morphing-dialog";
-import { useReducedMotion } from "@/contexts/ReducedMotionContext";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import {
-  analyzeImageBackground,
-  getCompanyAbbreviation,
-  getImageBackgroundClass,
-  renderCompanyAbbreviationGrid,
-} from "@/lib/company-info";
 import type { V5ProcessedCompanyData } from "@/types/job";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DialogExtendedCompanyInfo from "./DialogExtendedCompanyInfo";
+import CompanyLogo from "../util/CompanyLogo";
 
 const DialogCompanyLogoCard = ({
   companyData,
@@ -20,25 +12,7 @@ const DialogCompanyLogoCard = ({
   companyData: V5ProcessedCompanyData;
   dialog?: boolean;
 }) => {
-  const [imageError, setImageError] = useState(false);
   const [showExtended, setShowExtended] = useState(false);
-  const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
-  const abbreviation = getCompanyAbbreviation(companyData.name || "");
-  const initialsContent = renderCompanyAbbreviationGrid(abbreviation, dialog);
-  const isDesktop = useMediaQuery("(min-width: 728px)");
-  const { prefersReducedMotion } = useReducedMotion();
-
-  useEffect(() => {
-    if (companyData.image_url && !imageError) {
-      analyzeImageBackground(companyData.image_url).then(setBackgroundType);
-    }
-  }, [companyData.image_url, imageError]);
-
-  const backgroundClass = getImageBackgroundClass(
-    companyData.image_url,
-    imageError,
-    backgroundType
-  );
 
   const removeHtmlTags = (str: string) => {
     let result = str.replace(/<[^>]*>/g, "");
@@ -59,41 +33,12 @@ const DialogCompanyLogoCard = ({
   return (
     <div className="my-4 min-h-[120px] items-center gap-x-8 flex flex-col">
       <div className="w-full flex flex-row items-center gap-x-8">
-        {isDesktop && !prefersReducedMotion ? (
-          <MorphingCompanyLogo
-            className={`flex aspect-square h-32 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl ${backgroundClass}`}
-          >
-            {companyData.image_url && !imageError ? (
-              <img
-                alt={companyData.name}
-                className="h-full w-full rounded-xl object-contain drop-shadow-lg"
-                onError={() => setImageError(true)}
-                src={companyData.image_url}
-              />
-            ) : (
-              <span className="flex h-full w-full select-none items-center justify-center bg-pink-100 font-semibold text-3xl text-pink-600 dark:bg-pink-800/15 dark:text-pink-300">
-                {initialsContent}
-              </span>
-            )}
-          </MorphingCompanyLogo>
-        ) : (
-          <div
-            className={`flex aspect-square h-24 flex-shrink-0 items-center justify-center overflow-hidden self-start rounded-xl ${backgroundClass}`}
-          >
-            {companyData.image_url && !imageError ? (
-              <img
-                alt={companyData.name}
-                className="h-full w-full rounded-xl object-contain drop-shadow-lg"
-                onError={() => setImageError(true)}
-                src={companyData.image_url}
-              />
-            ) : (
-              <span className="flex h-full w-full select-none items-center justify-center bg-pink-100 font-semibold text-3xl md:text-[3.5vh] text-pink-600 dark:bg-pink-800/15 dark:text-pink-300">
-                {initialsContent}
-              </span>
-            )}
-          </div>
-        )}
+        <CompanyLogo
+          companyData={companyData}
+          size="xl"
+          variant="dialog"
+          useMorphing={true}
+        />
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center">
           <p className="line-clamp-5 break-words text-neutral-700 md:text-base md:leading-relaxed dark:text-neutral-300">
             {removeHtmlTags(companyData.tagline || "") || (
