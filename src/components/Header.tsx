@@ -100,9 +100,11 @@ export default function Header() {
                     Saved Jobs
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 size-4" />
-                  Account
+                <DropdownMenuItem asChild>
+                  <Link href="/account">
+                    <Settings className="mr-2 size-4" />
+                    Account
+                  </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
