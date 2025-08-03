@@ -97,7 +97,7 @@ export default function Header() {
                 <DropdownMenuItem asChild>
                   <Link href="/tracker">
                     <BarChart3 className="mr-2 size-4" />
-                    Saved Jobs
+                    Job Tracker
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

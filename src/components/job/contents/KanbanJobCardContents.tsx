@@ -29,6 +29,7 @@ const KanbanJobCardContents = memo(({ job, className, useCard = true }: KanbanJo
         size="sm"
         variant="default"
         useMorphing={false}
+        className="self-center"
       />
       
       <div className="min-w-0 flex-1">
