@@ -600,3 +600,10 @@ export const getExperienceInfo = (
     hasAny: hasIndustry || hasLeadership,
   };
 };
+
+export const getRoleActivities = (roleActivities: string[] | null) => {
+  if (!roleActivities || roleActivities.length === 0) return null;
+  if (roleActivities.length === 1) return roleActivities[0];
+  if (roleActivities.length === 2) return `${roleActivities[0]} and ${roleActivities[1]}`;
+  return `${roleActivities.slice(0, -1).join(", ")}, and ${roleActivities[roleActivities.length - 1]}`;
+};

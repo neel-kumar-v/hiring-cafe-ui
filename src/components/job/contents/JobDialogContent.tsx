@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import type React from "react";
 import { DialogBadges, DialogFooter, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills, DialogStats } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
+import DialogResponsibilities from "../dialog/DialogResponsibilities";
 
 interface JobDialogContentProps {
   currentJob: Job;
@@ -74,6 +75,10 @@ const JobDialogContent = ({ currentJob, isBookmarked, isApplied, onBookmarkToggl
       />
 
       <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} dialog={true} />
+
+      <DialogResponsibilities
+        roleActivities={currentJob.v5_processed_job_data.role_activities}
+      />
 
       <DialogRequirements
         requirementsSummary={currentJob.v5_processed_job_data.requirements_summary}
