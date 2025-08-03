@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Rating, RatingButton } from "@/components/ui/rating";
-import UniversalTooltip from "@/components/util/UniversalTooltip";
 import { Send, User } from "lucide-react";
 import { useState } from "react";
 
@@ -79,7 +78,15 @@ const sampleReviews: Review[] = [
   },
 ];
 
-export default function DialogCompanyReviews({ badge = false }: { badge?: boolean }) {
+interface DialogCompanyReviewsProps {
+  badge?: boolean;
+  showUser?: boolean;
+}
+
+export default function DialogCompanyReviews({ 
+  badge = false,
+  showUser = false
+}: DialogCompanyReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>(sampleReviews);
   const [newReview, setNewReview] = useState({
     title: "",
@@ -88,9 +95,7 @@ export default function DialogCompanyReviews({ badge = false }: { badge?: boolea
   });
 
   const handleSubmitReview = () => {
-    if (!newReview.title.trim() || !newReview.review.trim() || newReview.rating === 0) {
-      return;
-    }
+    if (!newReview.title.trim() || !newReview.review.trim() || newReview.rating === 0) return;
 
     const review: Review = {
       id: Date.now().toString(),
@@ -106,27 +111,25 @@ export default function DialogCompanyReviews({ badge = false }: { badge?: boolea
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Write a Review</h3>
+    <div className="space-y-3">
+      <div className="space-y-2 p-2">
         <div className="space-y-3">
-          <Input placeholder="Review title" value={newReview.title} onChange={(e) => setNewReview((prev) => ({ ...prev, title: e.target.value }))} />
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rating:</span>
-            <Rating value={newReview.rating} onValueChange={(value) => setNewReview((prev) => ({ ...prev, rating: value }))} className="gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <UniversalTooltip key={star} content={ratingLabels[star as keyof typeof ratingLabels]}>
-                  <RatingButton index={star - 1} />
-                </UniversalTooltip>
-              ))}
-            </Rating>
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Rating value={newReview.rating} onValueChange={(value) => setNewReview((prev) => ({ ...prev, rating: value }))} className="gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <RatingButton key={star} index={star - 1} />
+                ))}
+              </Rating>
+            </div>
+            <Input placeholder="Review title" value={newReview.title} onChange={(e) => setNewReview((prev) => ({ ...prev, title: e.target.value }))} />
           </div>
           <div className="relative">
             <textarea
               placeholder="Write your review..."
               value={newReview.review}
               onChange={(e) => setNewReview((prev) => ({ ...prev, review: e.target.value }))}
-              className="w-full min-h-[100px] p-3 border border-input rounded-md bg-accent text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="w-full min-h-[50px] p-3 border border-input rounded-md bg-accent text-sm resize-none focus:outline-none focus:ring-2 focus:ring-input focus:ring-offset-0.5"
             />
             <Button
               onClick={handleSubmitReview}
@@ -140,37 +143,31 @@ export default function DialogCompanyReviews({ badge = false }: { badge?: boolea
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Company Reviews</h3>
-        <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="space-y-4 max-h-[35vh] overflow-y-auto p-2">
           {reviews.map((review) => (
-            <div key={review.id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
+            <div key={review.id} className="border border-input rounded-lg p-4 space-y-1">
+                {showUser && (
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium text-sm">{review.username}</span>
-                    {badge ? (
-                        <Badge variant="secondary" className={`text-xs ${ratingColors[review.rating as keyof typeof ratingColors]}`}>
-                            {ratingLabels[review.rating as keyof typeof ratingLabels]}
-                        </Badge>
-                    ) : (
-                        <Rating value={review.rating} readOnly className="gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <RatingButton key={star} index={star - 1} size={14} />
-                        ))}
-                        </Rating>
-                    )}
-                    {/* <span className="text-xs text-muted-foreground">{review.date}</span> */}
                   </div>
-                  <h4 className="font-medium text-sm mb-2">{review.title}</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{review.review}</p>
-                </div>
+                )}
+              <div className="flex items-center gap-2">
+                {badge ? (
+                    <Badge variant="secondary" className={`text-xs ${ratingColors[review.rating as keyof typeof ratingColors]}`}>
+                        {ratingLabels[review.rating as keyof typeof ratingLabels]}
+                    </Badge>
+                ) : (
+                    <Rating value={review.rating} readOnly className="">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <RatingButton key={star} index={star - 1} size={14} />
+                    ))}
+                    </Rating>
+                )}
+                <h4 className="font-bold text-sm">{review.title}</h4>
               </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{review.review}</p>
             </div>
           ))}
         </div>
