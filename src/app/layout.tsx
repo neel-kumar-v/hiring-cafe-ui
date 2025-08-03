@@ -31,7 +31,63 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "Hiring Cafe Clone",
-  description: "Hiring Cafe Clone",
+  description: "UI Redesign of the hiring.cafe website",
+  keywords: ["jobs", "careers", "hiring", "employment", "job board", "recruitment"],
+  authors: [{ name: "Hiring Cafe Clone" }],
+  creator: "Hiring Cafe Clone",
+  publisher: "Hiring Cafe Clone",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL("https://hiring-cafe-clone.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://hiring-cafe-clone.vercel.app",
+    title: "Hiring Cafe Clone",
+    description: "UI Redesign of the hiring.cafe website",
+    siteName: "Hiring Cafe Clone",
+    images: [
+      {
+        url: "/meta.png",
+        width: 1200,
+        height: 630,
+        alt: "Hiring Cafe Clone - Job Board Interface",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hiring Cafe Clone",
+    description: "UI Redesign of the hiring.cafe website",
+    images: ["/meta.png"],
+    creator: "@hiringcafeclone",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

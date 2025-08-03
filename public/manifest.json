@@ -1,0 +1,26 @@
+{
+  "name": "Hiring Cafe Clone",
+  "short_name": "Hiring Cafe",
+  "description": "UI Redesign of the hiring.cafe website",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/meta.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+} 
