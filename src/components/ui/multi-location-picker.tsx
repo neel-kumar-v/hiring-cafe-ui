@@ -70,7 +70,7 @@ export function MultiLocationPicker({
     suggestionsContainer: "w-full bg-transparent rounded-md border border-input shadow-lg max-h-60 overflow-y-auto",
     suggestionItem: "px-4 py-2 hover:bg-muted cursor-pointer border-b border-input last:border-0 transition-colors",
     suggestionLocation: "text-sm font-medium text-foreground",
-    suggestionAddress: "text-xs text-muted-foreground truncate max-w-[250px]",
+    suggestionAddress: "text-xs text-muted-foreground truncate",
     suggestionIcon: "text-primary",
     errorContainer: "w-full bg-destructive/10 rounded-md border border-destructive/20 p-3 text-center",
     loadingContainer: "w-full bg-transparent rounded-md border border-input shadow-md p-4 text-center",
@@ -239,7 +239,8 @@ export function MultiLocationPicker({
   };
 
   const formatLocationName = (suggestion: LocationSuggestion) => {
-    const mainName = suggestion.address?.city || suggestion.address?.state || '';
+    console.log(suggestion);
+    const mainName = suggestion.address.village || suggestion.address?.city || suggestion.address?.state || '';
     const region = suggestion.address?.state || suggestion.address?.country || '';
 
     if (mainName && region && mainName !== region) {
