@@ -5,6 +5,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 import { DialogActionButtons } from "../dialog/DialogFooter";
+import DialogResponsibilities from "../dialog/DialogResponsibilities";
 
 const JobDrawerContent = ({
   currentJob,
@@ -66,6 +67,9 @@ const JobDrawerContent = ({
             workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
             workType={currentJob.v5_processed_job_data.workplace_type}
             compact={true}
+          />
+          <DialogResponsibilities
+            roleActivities={currentJob.v5_processed_job_data.role_activities}
           />
           <DialogRequirements
             requirementsSummary={currentJob.v5_processed_job_data.requirements_summary}
