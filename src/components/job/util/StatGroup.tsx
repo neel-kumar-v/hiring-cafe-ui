@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Bookmark, Eye, Send } from "lucide-react";
+import { Bookmark, Eye, PhoneOutgoingIcon, Send } from "lucide-react";
 import UniversalTooltip from "../../util/UniversalTooltip";
 import StatIcon from "./StatIcon";
 
@@ -9,6 +9,7 @@ export const StatGroup = ({
   appliedCount,
   isBookmarked,
   isApplied,
+  isInterviewing = false,
   handleBookmarkClick,
   handleApplyClick,
   iconClassName = "w-3 h-3",
@@ -19,6 +20,7 @@ export const StatGroup = ({
   appliedCount: number;
   isBookmarked: boolean;
   isApplied: boolean;
+  isInterviewing?: boolean;
   handleBookmarkClick: (e: React.MouseEvent) => void;
   handleApplyClick: (e: React.MouseEvent) => void;
   iconClassName?: string;
@@ -48,7 +50,7 @@ export const StatGroup = ({
         side="bottom"
       >
         <span
-          className="flex cursor-pointer items-center space-x-1 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
+          className="flex cursor-pointer items-center space-x-1"
           onClick={handleBookmarkClick}
         >
           {isBookmarked ? (
@@ -80,7 +82,7 @@ export const StatGroup = ({
         side="bottom"
       >
         <span
-          className="flex cursor-pointer items-center space-x-1 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
+          className="flex cursor-pointer items-center space-x-1"
           onClick={handleApplyClick}
         >
           {isApplied ? (
@@ -99,6 +101,33 @@ export const StatGroup = ({
             />
           )}
           <span className={textClassName}>{appliedCount}</span>
+        </span>
+      </UniversalTooltip>
+      <UniversalTooltip
+        content={
+          isInterviewing
+            ? "You are interviewing for this job"
+            : "No users are interviewing for this job"
+        }
+        side="bottom"
+      >
+        <span className="flex items-center space-x-1">
+          {isInterviewing ? (
+            <PhoneOutgoingIcon
+              className={cn(
+                "inline fill-pink-500 text-pink-500 dark:fill-pink-400 dark:text-pink-400",
+                iconClassName
+              )}
+            />
+          ) : (
+            <PhoneOutgoingIcon
+              className={cn(
+                "inline text-neutral-500 dark:text-neutral-400",
+                iconClassName
+              )}
+            />
+          )}
+          <span className={textClassName}>{isInterviewing ? 1 : 0}</span>
         </span>
       </UniversalTooltip>
     </>

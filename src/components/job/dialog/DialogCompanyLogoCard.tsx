@@ -7,10 +7,8 @@ import CompanyLogo from "../util/CompanyLogo";
 
 const DialogCompanyLogoCard = ({
   companyData,
-  dialog = true,
 }: {
   companyData: V5ProcessedCompanyData;
-  dialog?: boolean;
 }) => {
   const [showExtended, setShowExtended] = useState(false);
 

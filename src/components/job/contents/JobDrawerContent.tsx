@@ -47,7 +47,7 @@ const JobDrawerContent = ({
             workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
             tools={currentJob.v5_processed_job_data.technical_tools}
           />
-          <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} dialog={false} />
+          <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} />
           <DialogBadges
             commitments={currentJob.v5_processed_job_data.commitment}
             compensation={{

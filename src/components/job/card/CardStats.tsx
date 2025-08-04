@@ -9,6 +9,7 @@ const CardStats = ({
   appliedFromUsers = [],
   isBookmarked = false,
   isApplied = false,
+  isInterviewing = false,
   onBookmarkToggle,
   onApplyToggle,
 }: {
@@ -17,6 +18,7 @@ const CardStats = ({
   appliedFromUsers?: string[];
   isBookmarked?: boolean;
   isApplied?: boolean;
+  isInterviewing?: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
   onApplyToggle: (e: React.MouseEvent) => void;
 }) => {
@@ -49,6 +51,7 @@ const CardStats = ({
             handleBookmarkClick={handleBookmarkClick}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
+            isInterviewing={isInterviewing}
             savedCount={savedCount}
             viewedCount={viewedCount}
             iconClassName="size-3"
@@ -62,6 +65,7 @@ const CardStats = ({
             handleBookmarkClick={handleBookmarkClick}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
+            isInterviewing={isInterviewing}
             savedCount={savedCount}
             viewedCount={viewedCount}
             iconClassName="size-3"

@@ -34,6 +34,7 @@ interface JobCardProps {
   isTransitioning: boolean;
   isBookmarked: boolean;
   isApplied: boolean;
+  isInterviewing: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
   onApplyToggle: (e: React.MouseEvent) => void;
   onPrevious: () => void;
@@ -49,6 +50,7 @@ const JobCard = memo(({
   isTransitioning,
   isBookmarked,
   isApplied,
+  isInterviewing,
   onBookmarkToggle,
   onApplyToggle,
   onPrevious,
@@ -83,6 +85,7 @@ const JobCard = memo(({
               appliedFromUsers={currentJob.job_information.appliedFromUsers}
               isApplied={isApplied}
               isBookmarked={isBookmarked}
+              isInterviewing={isInterviewing}
               onApplyToggle={onApplyToggle}
               onBookmarkToggle={onBookmarkToggle}
               savedFromUsers={currentJob.job_information.savedFromUsers}
@@ -173,6 +176,11 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
     [user.applied, user.interviewing, currentJob.id]
   );
 
+  const isInterviewing = useMemo(() => 
+    user.interviewing.includes(currentJob.id),
+    [user.interviewing, currentJob.id]
+  );
+
   const handleBookmarkToggle = useCallback(() => {
     if (isBookmarked) {
       // Remove from all bookmark-related states
@@ -228,6 +236,7 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
           currentJobIndex={currentJobIndex}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
+          isInterviewing={isInterviewing}
           isTransitioning={isTransitioning}
           jobCollection={jobCollection}
           onApplyToggle={handleApplyToggle}
@@ -264,6 +273,7 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
             currentJob={currentJob}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
+            isInterviewing={isInterviewing}
             onApplyToggle={handleApplyToggle}
             onBookmarkToggle={handleBookmarkToggle}
           >
@@ -272,6 +282,7 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
               currentJobIndex={currentJobIndex}
               isApplied={isApplied}
               isBookmarked={isBookmarked}
+              isInterviewing={isInterviewing}
               isTransitioning={isTransitioning}
               jobCollection={jobCollection}
               onApplyToggle={handleApplyClick}

@@ -13,13 +13,14 @@ interface JobDialogContentProps {
   currentJob: Job;
   isBookmarked: boolean;
   isApplied: boolean;
+  isInterviewing: boolean;
   onBookmarkToggle: () => void;
   onApplyToggle: () => void;
   children: React.ReactNode; // This will be the trigger element
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const JobDialogContent = ({ currentJob, isBookmarked, isApplied, onBookmarkToggle, onApplyToggle, children, scrollContainerRef }: JobDialogContentProps) => {
+const JobDialogContent = ({ currentJob, isBookmarked, isApplied, isInterviewing, onBookmarkToggle, onApplyToggle, children, scrollContainerRef }: JobDialogContentProps) => {
   const { prefersReducedMotion } = useReducedMotion();
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
@@ -40,6 +41,7 @@ const JobDialogContent = ({ currentJob, isBookmarked, isApplied, onBookmarkToggl
         appliedFromUsers={currentJob.job_information.appliedFromUsers}
         isApplied={isApplied}
         isBookmarked={isBookmarked}
+        isInterviewing={isInterviewing}
         onApplyClick={handleApplyClick}
         onBookmarkClick={handleBookmarkClick}
         publishDate={currentJob.v5_processed_job_data.estimated_publish_date}
@@ -74,7 +76,7 @@ const JobDialogContent = ({ currentJob, isBookmarked, isApplied, onBookmarkToggl
         workType={currentJob.v5_processed_job_data.workplace_type}
       />
 
-      <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} dialog={true} />
+      <DialogCompanyLogoCard companyData={currentJob.v5_processed_company_data} />
 
       <DialogResponsibilities
         roleActivities={currentJob.v5_processed_job_data.role_activities}

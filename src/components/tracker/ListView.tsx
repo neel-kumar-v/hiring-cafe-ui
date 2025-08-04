@@ -43,6 +43,7 @@ const ListViewJobCard = ({
 
   const isBookmarked = user.saved.includes(job.id) || user.applied.includes(job.id) || user.interviewing.includes(job.id);
   const isApplied = user.applied.includes(job.id) || user.interviewing.includes(job.id);
+  const isInterviewing = user.interviewing.includes(job.id);
 
   const handleBookmarkToggle = useCallback(() => {
     if (isBookmarked) {
@@ -70,6 +71,7 @@ const ListViewJobCard = ({
           currentJob={job}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
+          isInterviewing={isInterviewing}
           onApplyToggle={handleApplyToggle}
           onBookmarkToggle={handleBookmarkToggle}
         >

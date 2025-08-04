@@ -12,6 +12,7 @@ const DialogStats = ({
   appliedFromUsers,
   isBookmarked,
   isApplied,
+  isInterviewing = false,
   onBookmarkClick,
   onApplyClick,
 }: {
@@ -21,6 +22,7 @@ const DialogStats = ({
   appliedFromUsers?: string[];
   isBookmarked: boolean;
   isApplied: boolean;
+  isInterviewing?: boolean;
   onBookmarkClick: (e: React.MouseEvent) => void;
   onApplyClick: (e: React.MouseEvent) => void;
 }) => {
@@ -57,6 +59,7 @@ const DialogStats = ({
             iconClassName="size-4"
             isApplied={isApplied}
             isBookmarked={isBookmarked}
+            isInterviewing={isInterviewing}
             savedCount={savedFromUsers?.length || 0}
             textClassName="text-md"
             viewedCount={(viewedByUsers?.length || 0) + 1}
@@ -71,6 +74,7 @@ const DialogStats = ({
             iconClassName="size-4"
             isApplied={isApplied}
             isBookmarked={isBookmarked}
+            isInterviewing={isInterviewing}
             savedCount={savedFromUsers?.length || 0}
             textClassName="text-md"
             viewedCount={(viewedByUsers?.length || 0) + 1}
