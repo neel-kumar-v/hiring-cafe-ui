@@ -1,5 +1,6 @@
 import { useApp } from "@/contexts/AppContext";
 import { createFoundingYearHandler } from "@/lib/search";
+import { getCurrentYear } from "@/lib/search/company";
 import FilterContainer from "../util/FilterContainer";
 import RangeSlider from "../util/RangeSlider";
 
@@ -13,8 +14,8 @@ export default function Founding() {
     <FilterContainer title="Founding Year">
       <RangeSlider
         min={1800}
-        max={2025}
-        value={[foundingYear.min === 0 ? 1800 : foundingYear.min, foundingYear.max === 0 ? 2025 : foundingYear.max]}
+        max={getCurrentYear()}
+        value={[foundingYear.min === 0 ? 1800 : foundingYear.min, foundingYear.max === 0 ? getCurrentYear() : foundingYear.max]}
         step={1}
         money={false}
         onValueChange={handleValueChange}

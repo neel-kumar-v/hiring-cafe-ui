@@ -7,17 +7,47 @@ import jobsData from "@/data/jobs_data.json";
 import languagesData from "@/data/languages.json" with { type: "json" };
 import licensesData from "@/data/licenses.json" with { type: "json" };
 import roundTypesData from "@/data/round_types.json" with { type: "json" };
-import { BooleanOperator, CurrentStage, FundingOptions, IndustryOptions, InfiniteRange, Keywords, LicenseCertificationOptions, Location, LocationType, Profit, Range, SearchExpression, SearchState, Select, USAJobs, Workplace } from '../../types/search';
+import { InfiniteRange, Keywords, Location, Range, SearchExpression, Select } from '../../types/search';
 
 // Export functions from other files
-export { createAvailabilityRadioHandler, createOncallCheckboxHandler, createShiftCheckboxHandler } from './availability';
-export { createCompanyHandler, getCompanyOptions } from './company';
+export { createAvailabilityRadioHandler, createNestedSelectHandler, createOncallCheckboxHandler, createShiftCheckboxHandler } from './availability';
+export {
+  createCompanyHandler, createFoundingYearHandler, createIndustryKeywordsHandler,
+  createIndustryProfitHandler,
+  createIndustryUsaJobsHandler, createSizeHandler, getCompanyActivityOptions, getCompanyOptions, getIndustryOptions, getSizeRanges
+} from './company';
 export { createBenefitsHandler, createDepartmentHandler, createEncouragedHandler } from './compensation';
 export { createExclusionHandler, getApplyFormDescription, getApplyFormMap, getApplyFormValueMap } from './general';
 export { convertSearchStateToHiringCafe } from './hiring-cafe';
-export { createWorkplaceActivityHandler, formatRadiusLabel, getCurrentRadius, getLocationLabels, getRadiusUnit, isFlexibleRegionSelected, isWorkplaceTypeSelected } from './location';
-export { createEducationKeywordsHandler, createEducationPreferenceHandler } from './role-department';
+export {
+  createLocationFlexibleRegionsHandler,
+  createLocationIgnoreRadiusHandler,
+  createLocationRadiusHandler,
+  createLocationRadiusUnitHandler,
+  createLocationsChangeHandler,
+  createLocationWorkplaceTypeHandler, createWorkplaceActivityHandler,
+  formatRadiusLabel,
+  getCurrentRadius,
+  getLocationLabels,
+  getRadiusUnit,
+  isFlexibleRegionSelected,
+  isWorkplaceTypeSelected
+} from './location';
+export {
+  createKeywordsHandler,
+  createLicenseCertificationHandler,
+  createLicenseCertificationHideRequiredHandler
+} from './qualifications';
+export { createEducationKeywordsHandler, createEducationPreferenceHandler, parseSearchExpression } from './role-department';
 export { isKeywordsItemSelected, isSelectItemSelected, isSelectWithNullItemSelected } from './util';
+
+// Export handler functions from handlers file
+export {
+  createBooleanHandler, createNestedBooleanHandler, createNestedKeywordsHandler, createRadioHandler, createRangeHandler, createSelectHandler,
+  createSelectWithNullHandler
+} from './handlers';
+
+
 
 export function getJobTitlesFromData(): string[] {
   if (jobsData && Array.isArray(jobsData.results)) {
@@ -66,38 +96,43 @@ export function decodeSelectString(select: Select<string> | Select<string, null>
 }
 
 export function formatValue(value: number, currency: string, money: boolean = true) {
-  if (!money) return value.toString();
-  
-  if (currency === 'None') return value.toString();
+  if (!money || currency === 'None') return value.toString();
 
-  const rounded = Math.round(value / 1000) * 1000;
-  if (rounded >= 1_000_000) {
-    const millions = rounded / 1_000_000;
-    const formatted = millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(2).replace(/\.?0+$/, '');
-    if (currency.length === 1) {
-      return `${currency}${formatted}M`;
-    } else {
-      try {
-        const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
-        const symbol = parts.replace(/\d|[.,\s]/g, '');
-        return `${symbol}${formatted}M`;
-      } catch {
-        return `${currency}${formatted}M`;
-      }
-    }
-  } else {
-    if (currency.length === 1) {
-      return `${currency}${rounded / 1000}K`;
-    } else {
-      try {
-        const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
-        const symbol = parts.replace(/\d|[.,\s]/g, '');
-        return `${symbol}${rounded / 1000}K`;
-      } catch {
-        return `${currency}${rounded / 1000}K`;
-      }
+  const units = [
+    { value: 1_000_000_000_000, symbol: 'T' },
+    { value: 1_000_000_000, symbol: 'B' },
+    { value: 1_000_000, symbol: 'M' },
+    { value: 1_000, symbol: 'K' }
+  ];
+
+  let rounded = value;
+  let unit = '';
+  let displayValue: string | number = value;
+
+  for (const u of units) {
+    if (Math.abs(value) >= u.value) {
+      rounded = Math.round(value / (u.value / 10)) / 10;
+      displayValue = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(2).replace(/\.?0+$/, '');
+      unit = u.symbol;
+      break;
     }
   }
+
+  if (!unit) {
+    return value.toString();
+  }
+
+  let symbol = currency;
+  if (currency.length > 1) {
+    try {
+      const parts = (0).toLocaleString('en-US', { style: 'currency', currency });
+      symbol = parts.replace(/\d|[.,\s]/g, '');
+    } catch {
+      symbol = currency;
+    }
+  }
+
+  return `${symbol}${displayValue}${unit}`;
 }
 
 export function decodeRangeString(range: Range | InfiniteRange, moneyFormat: boolean = true) {
@@ -228,658 +263,7 @@ export function decodeKeywords(keywords: Keywords, maxCount: number = 5) {
   return { include, exclude };
 }
 
-export function parseSearchExpression(input: string): SearchExpression<string> {
-  const tokens: string[] = [];
-  let index = 0;
-
-  while (index < input.length) {
-    const char = input[index];
-
-    if (char === ' ') {
-      index++;
-      continue;
-    }
-
-    if (char === '(' || char === ')') {
-      tokens.push(char);
-      index++;
-      continue;
-    }
-
-    if (char === '"') {
-      let end = index + 1;
-      let phrase = '';
-      while (end < input.length && input[end] !== '"') {
-        phrase += input[end++];
-      }
-      tokens.push(phrase);
-      index = end + 1;
-      continue;
-    }
-
-    if (/^[A-Za-z]$/.test(char)) {
-      let end = index;
-      while (end < input.length && /[A-Za-z]/.test(input[end])) end++;
-      const word = input.slice(index, end).toUpperCase();
-      if (word === "AND" || word === "OR" || word === "NOT") {
-        tokens.push(word);
-        index = end;
-        continue;
-      }
-    }
-
-    let end = index;
-    while (end < input.length && ![' ', '(', ')', '"'].includes(input[end])) end++;
-    tokens.push(input.slice(index, end));
-    index = end;
-  }
-
-  let pos = 0;
-
-  function parseExpression(): SearchExpression<string> {
-    let currentOp: "AND" | "OR" | null = null;
-    const exprStack: (SearchExpression<string> | BooleanOperator<string>)[] = [];
-
-    while (pos < tokens.length) {
-      const token = tokens[pos];
-
-      if (token === ')') break;
-
-      if (token === '(') {
-        pos++;
-        const group = parseExpression();
-        if (currentOp && exprStack.length) {
-          const prev = exprStack.pop()!;
-          exprStack.push({ [currentOp]: [prev, group] });
-          currentOp = null;
-        } else {
-          exprStack.push(group);
-        }
-        if (tokens[pos] === ')') pos++;
-        continue;
-      }
-
-      if (token === 'AND' || token === 'OR') {
-        currentOp = token;
-        pos++;
-        continue;
-      }
-
-      if (token === 'NOT') {
-        pos++;
-        let next: SearchExpression<string>;
-        if (tokens[pos] === '(') {
-          pos++;
-          next = parseExpression();
-          if (tokens[pos] === ')') pos++;
-        } else {
-          next = tokens[pos++];
-        }
-        exprStack.push({ NOT: next });
-        continue;
-      }
-
-      if (currentOp && exprStack.length) {
-        const prev = exprStack.pop()!;
-        exprStack.push({ [currentOp]: [prev, token] });
-        currentOp = null;
-      } else {
-        exprStack.push(token);
-      }
-      pos++;
-    }
-
-    while (exprStack.length > 1) {
-      const first = exprStack.shift()!;
-      const second = exprStack.shift()!;
-      exprStack.unshift({ AND: [first, second] });
-    }
-
-    return exprStack[0] ?? "";
-  }
-
-  return parseExpression();
-}
-
-// Generalized handler functions for SearchState updates
-
-export function createSelectHandler<T>(
-  currentValue: Select<T>,
-  allOptions: T[],
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string
-) {
-  return (item: T) => {
-    let newValue: Select<T>;
-    
-    if (currentValue === "All") {
-      const allExceptSelected = allOptions.filter(option => option !== item);
-      newValue = allExceptSelected;
-    } else if (Array.isArray(currentValue)) {
-      if (currentValue.includes(item)) {
-        const filtered = currentValue.filter(option => option !== item);
-        newValue = filtered.length === 0 ? "All" : filtered;
-      } else {
-        const added = [...currentValue, item];
-        newValue = added.length === allOptions.length ? "All" : added;
-      }
-    } else {
-      newValue = [item];
-    }
-    
-    updateSearchOptions({ [path]: newValue } as Partial<SearchState>);
-  };
-}
-
-export function createSelectWithNullHandler<T>(
-  currentValue: Select<T, null>,
-  allOptions: T[],
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string
-) {
-  return (item: T) => {
-    let newValue: Select<T, null>;
-    
-    if (!Array.isArray(currentValue)) {
-      const allExceptSelected = allOptions.filter(option => option !== item);
-      newValue = allExceptSelected;
-    } else if (currentValue.includes(item)) {
-      const filtered = currentValue.filter(option => option !== item);
-      newValue = filtered.length === 0 ? null : filtered;
-    } else {
-      newValue = [...currentValue, item];
-      if (newValue.length === allOptions.length) newValue = null;
-    }
-    
-    updateSearchOptions({ [path]: newValue } as Partial<SearchState>);
-  };
-}
-
-export function createKeywordsHandler(
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string
-) {
-  return (keywords: Keywords) => {
-    updateSearchOptions({ [path]: keywords } as Partial<SearchState>);
-  };
-}
-
-export function createRangeHandler(
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string
-) {
-  return ([min, max]: [number, number]) => {
-    updateSearchOptions({ [path]: { min, max } } as Partial<SearchState>);
-  };
-}
-
-export function createBooleanHandler(
-  currentValue: boolean,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string
-) {
-  return (checked: boolean | "indeterminate") => {
-    updateSearchOptions({ [path]: Boolean(checked) } as Partial<SearchState>);
-  };
-}
-
-export function createRadioHandler<T>(
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string
-) {
-  return (value: T) => {
-    updateSearchOptions({ [path]: value } as Partial<SearchState>);
-  };
-}
-
-export function createNestedSelectHandler<T>(
-  currentValue: { [key: string]: Select<T> },
-  allOptions: T[],
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string,
-  nestedPath: string
-) {
-  return (item: T) => {
-    let newValue: Select<T>;
-    
-    const currentSelectValue = currentValue[nestedPath];
-    
-    if (currentSelectValue === "All") {
-      const allExceptSelected = allOptions.filter(option => option !== item);
-      newValue = allExceptSelected;
-    } else if (Array.isArray(currentSelectValue)) {
-      if (currentSelectValue.includes(item)) {
-        const filtered = currentSelectValue.filter(option => option !== item);
-        newValue = filtered.length === 0 ? "All" : filtered;
-      } else {
-        const added = [...currentSelectValue, item];
-        newValue = added.length === allOptions.length ? "All" : added;
-      }
-    } else {
-      newValue = [item];
-    }
-    
-    const nestedUpdate = { [nestedPath]: newValue };
-    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
-  };
-}
-
-export function createNestedKeywordsHandler(
-  currentValue: { [key: string]: Keywords },
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string,
-  nestedPath: string
-) {
-  return (keywords: Keywords) => {
-    const nestedUpdate = { [nestedPath]: keywords };
-    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
-  };
-}
-
-export function createNestedBooleanHandler(
-  currentValue: { [key: string]: boolean },
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  path: keyof SearchState | string,
-  nestedPath: string
-) {
-  return (checked: boolean | "indeterminate") => {
-    const nestedUpdate = { [nestedPath]: Boolean(checked) };
-    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
-  };
-}
 
 
 
-// Specialized handlers for complex nested structures
-
-export function createLicenseCertificationHandler(
-  currentLicenseCertification: LicenseCertificationOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (keywords: Keywords) => {
-    updateSearchOptions({
-      license_certification: {
-        keywords,
-        hide_required: currentLicenseCertification.hide_required
-      }
-    });
-  };
-}
-
-export function createLicenseCertificationHideRequiredHandler(
-  currentLicenseCertification: LicenseCertificationOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (checked: boolean | "indeterminate") => {
-    updateSearchOptions({
-      license_certification: {
-        keywords: currentLicenseCertification.keywords,
-        hide_required: Boolean(checked)
-      }
-    });
-  };
-}
-
-export function createIndustryHandler(
-  currentIndustry: IndustryOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (keywords: Keywords, field: 'activities' | 'industry') => {
-    updateSearchOptions({
-      industry: {
-        ...currentIndustry,
-        [field]: keywords
-      }
-    });
-  };
-}
-
-export function createIndustryProfitHandler(
-  currentIndustry: IndustryOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (profit: Profit) => {
-    const profitOptions: Profit[] = ["For-Profit", "Non-Profit"];
-    let newProfit: Select<Profit, "All">;
-    
-    if (currentIndustry.profit === "All") {
-      const allExceptSelected = profitOptions.filter(item => item !== profit);
-      newProfit = allExceptSelected;
-    } else if (Array.isArray(currentIndustry.profit)) {
-      if (currentIndustry.profit.includes(profit)) {
-        const filtered = currentIndustry.profit.filter(item => item !== profit);
-        newProfit = filtered.length === 0 ? "All" : filtered;
-      } else {
-        const added = [...currentIndustry.profit, profit];
-        newProfit = added.length === profitOptions.length ? "All" : added;
-      }
-    } else {
-      newProfit = [profit];
-    }
-    
-    updateSearchOptions({ 
-      industry: { 
-        ...currentIndustry, 
-        profit: newProfit 
-      } 
-    });
-  };
-}
-
-export function createIndustryKeywordsHandler(
-  currentIndustry: IndustryOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (keywords: Keywords, field: 'activities' | 'industry') => {
-    updateSearchOptions({
-      industry: {
-        ...currentIndustry,
-        [field]: keywords
-      }
-    });
-  };
-}
-
-export function createIndustryUsaJobsHandler(
-  currentIndustry: IndustryOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return createRadioHandler<USAJobs>(updateSearchOptions, "industry.usa_jobs");
-}
-
-export function createStageFundingHandler(
-  currentStageFunding: FundingOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (keywords: Keywords, field: 'investors' | 'latest_round_type') => {
-    updateSearchOptions({
-      stage_funding: {
-        ...currentStageFunding,
-        [field]: keywords
-      }
-    });
-  };
-}
-
-export function createStageFundingCurrentHandler(
-  currentStageFunding: FundingOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  const stagesOptions: CurrentStage[] = ["Public", "Private"];
-  return createSelectHandler(currentStageFunding.current, stagesOptions, updateSearchOptions, "stage_funding.current");
-}
-
-export function createStageFundingRangeHandler(
-  currentStageFunding: FundingOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (field: 'latest_round' | 'latest_round_amount', [min, max]: [number, number]) => {
-    return createRangeHandler(updateSearchOptions, `stage_funding.${field}`)([min, max]);
-  };
-}
-
-// Location-specific handlers
-
-export function createLocationRadiusHandler(
-  currentLocation: Location,
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
-  return (radius: number) => {
-    const updatedLocation = {
-      ...currentLocation,
-      options: {
-        ...currentLocation.options,
-        radius: radius,
-        radius_unit: currentLocation.options?.radius_unit || "Miles",
-        ignore_radius: radius === 0,
-        flexible_regions: currentLocation.options?.flexible_regions || []
-      }
-    };
-    
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
-    });
-  };
-}
-
-export function createLocationRadiusUnitHandler(
-  currentLocation: Location,
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
-  return (unit: "Miles" | "Kilometers") => {
-    const updatedLocation = {
-      ...currentLocation,
-      options: {
-        ...currentLocation.options,
-        radius: currentLocation.options?.radius || 25,
-        radius_unit: unit,
-        ignore_radius: currentLocation.options?.ignore_radius || false,
-        flexible_regions: currentLocation.options?.flexible_regions || []
-      }
-    };
-    
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
-    });
-  };
-}
-
-export function createLocationIgnoreRadiusHandler(
-  currentLocation: Location,
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
-  return (ignore: boolean) => {
-    const updatedLocation = {
-      ...currentLocation,
-      options: {
-        ...currentLocation.options,
-        radius: ignore ? 0 : (currentLocation.options?.radius || 25),
-        radius_unit: currentLocation.options?.radius_unit || "Miles",
-        ignore_radius: ignore,
-        flexible_regions: currentLocation.options?.flexible_regions || []
-      }
-    };
-    
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
-    });
-  };
-}
-
-export function createLocationWorkplaceTypeHandler(
-  currentLocation: Location,
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
-  return (workplaceType: Workplace) => {
-    let newWorkplaceType: Workplace[] | "All";
-    
-    const currentTypes = Array.isArray(currentLocation.workplace_type) ? currentLocation.workplace_type : 
-      (currentLocation.workplace_type === "All" ? [] : (currentLocation.workplace_type ? [currentLocation.workplace_type as Workplace] : []));
-    
-    if (currentTypes.includes(workplaceType)) {
-      const filtered = currentTypes.filter(type => type !== workplaceType);
-      newWorkplaceType = filtered.length > 0 ? filtered : "All";
-    } else {
-      newWorkplaceType = [...currentTypes, workplaceType];
-    }
-    
-    const updatedLocation = {
-      ...currentLocation,
-      workplace_type: newWorkplaceType
-    };
-    
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
-    });
-  };
-}
-
-export function createLocationFlexibleRegionsHandler(
-  currentLocation: Location,
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
-  return (region: LocationType) => {
-    const currentRegions = currentLocation.options?.flexible_regions || [];
-    let newRegions: LocationType[];
-    
-    if (currentRegions.includes(region)) {
-      newRegions = currentRegions.filter(r => r !== region);
-    } else {
-      newRegions = [...currentRegions, region];
-    }
-
-    const updatedLocation = {
-      ...currentLocation,
-      options: {
-        ...currentLocation.options,
-        radius: currentLocation.options?.radius || 25,
-        radius_unit: currentLocation.options?.radius_unit || "Miles",
-        ignore_radius: currentLocation.options?.ignore_radius || false,
-        flexible_regions: newRegions
-      }
-    };
-    
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
-    });
-  };
-}
-
-export function createLocationRemoveHandler(
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
-  return () => {
-    const updatedLocations = searchState.location.location.filter((_, index) => index !== locationIndex);
-    
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: updatedLocations
-      }
-    });
-  };
-}
-
-export function createLocationsChangeHandler(
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (locations: Location[]) => {
-    updateSearchOptions({
-      location: {
-        ...searchState.location,
-        location: locations
-      }
-    });
-  };
-}
-
-export function getIndustryOptions() {
-  return getIndustriesFromData().map(industry => ({
-    label: industry,
-    value: industry
-  }));
-}
-
-export function getCompanyActivityOptions() {
-  return getCompanyActivitiesFromData().map(activity => ({
-    label: activity,
-    value: activity
-  }));
-}
-
-// Size handlers
-
-export function getSizeRanges(): Array<{ label: string; range: InfiniteRange }> {
-  return [
-    { label: "1-10", range: { min: 1, max: 10 } },
-    { label: "11-50", range: { min: 11, max: 50 } },
-    { label: "51-200", range: { min: 51, max: 200 } },
-    { label: "201-500", range: { min: 201, max: 500 } },
-    { label: "501-1000", range: { min: 501, max: 1000 } },
-    { label: "1001-2000", range: { min: 1001, max: 2000 } },
-    { label: "2001-5000", range: { min: 2001, max: 5000 } },
-    { label: "5001-10000", range: { min: 5001, max: 10000 } },
-    { label: "10000+", range: { min: 10001, max: null } },
-  ];
-}
-
-export function createSizeHandler(
-  currentSize: Select<InfiniteRange, "All">,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (range: InfiniteRange) => {
-    let newSize: Select<InfiniteRange, "All">;
-    
-    const allRanges: InfiniteRange[] = getSizeRanges().map(item => item.range);
-    
-    if (currentSize === "All") {
-      const allExceptSelected = allRanges.filter(item => 
-        !(item.min === range.min && item.max === range.max)
-      );
-      newSize = allExceptSelected;
-    } else if (Array.isArray(currentSize)) {
-      if (currentSize.some(selectedRange => 
-        selectedRange.min === range.min && selectedRange.max === range.max
-      )) {
-        const filtered = currentSize.filter(selectedRange => 
-          !(selectedRange.min === range.min && selectedRange.max === range.max)
-        );
-        newSize = filtered.length === 0 ? "All" : filtered;
-      } else {
-        const added = [...currentSize, range];
-        newSize = added.length === allRanges.length ? "All" : added;
-      }
-    } else {
-      newSize = [range];
-    }
-    
-    updateSearchOptions({ size: newSize });
-  };
-}
-
-// Founding year handlers
-
-export function createFoundingYearHandler(
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return createRangeHandler(updateSearchOptions, "founding_year");
-}
 

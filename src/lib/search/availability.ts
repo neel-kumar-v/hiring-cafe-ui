@@ -1,4 +1,36 @@
-import { AvailabilityPreferences, OncallPreferences, SearchState, ShiftPreferences, ShiftPreferencesOptions } from '../../types/search';
+import { AvailabilityPreferences, OncallPreferences, SearchState, ShiftPreferences, ShiftPreferencesOptions, Select } from '../../types/search';
+
+export function createNestedSelectHandler<T>(
+  currentValue: { [key: string]: Select<T> },
+  allOptions: T[],
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  path: keyof SearchState | string,
+  nestedPath: string
+) {
+  return (item: T) => {
+    let newValue: Select<T>;
+    
+    const currentSelectValue = currentValue[nestedPath];
+    
+    if (currentSelectValue === "All") {
+      const allExceptSelected = allOptions.filter(option => option !== item);
+      newValue = allExceptSelected;
+    } else if (Array.isArray(currentSelectValue)) {
+      if (currentSelectValue.includes(item)) {
+        const filtered = currentSelectValue.filter(option => option !== item);
+        newValue = filtered.length === 0 ? "All" : filtered;
+      } else {
+        const added = [...currentSelectValue, item];
+        newValue = added.length === allOptions.length ? "All" : added;
+      }
+    } else {
+      newValue = [item];
+    }
+    
+    const nestedUpdate = { [nestedPath]: newValue };
+    updateSearchOptions({ [path]: { ...currentValue, ...nestedUpdate } } as Partial<SearchState>);
+  };
+}
 
 export function createShiftCheckboxHandler(
   currentShiftPreferences: ShiftPreferencesOptions,

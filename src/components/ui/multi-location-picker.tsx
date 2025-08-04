@@ -239,7 +239,6 @@ export function MultiLocationPicker({
   };
 
   const formatLocationName = (suggestion: LocationSuggestion) => {
-    console.log(suggestion);
     const mainName = suggestion.address.village || suggestion.address?.city || suggestion.address?.state || '';
     const region = suggestion.address?.state || suggestion.address?.country || '';
 

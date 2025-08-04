@@ -1,4 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
+import { getCurrentYear } from "@/lib/search/company";
 import { getInvestorsFromData, getRoundTypesFromData } from "@/lib/search";
 import { CurrentStage, Keywords, Select } from "@/types/search";
 import { useCallback, useMemo } from "react";
@@ -128,10 +129,10 @@ export default function Stage() {
         <div className="mb-1 text-xs font-medium">Latest Round Year Range</div>
         <RangeSlider
           min={1800}
-          max={2025}
+          max={getCurrentYear()}
           step={1}
           money={false}
-          value={[searchOptions.stage_funding.latest_round.min === 0 ? 1800 : searchOptions.stage_funding.latest_round.min, searchOptions.stage_funding.latest_round.max === 0 ? 2025 : searchOptions.stage_funding.latest_round.max]}
+          value={[searchOptions.stage_funding.latest_round.min === 0 ? 1800 : searchOptions.stage_funding.latest_round.min, searchOptions.stage_funding.latest_round.max === 0 ? getCurrentYear() : searchOptions.stage_funding.latest_round.max]}
           onValueChange={handleLatestRoundChange}
         />
       </div>

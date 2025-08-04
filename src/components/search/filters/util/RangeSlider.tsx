@@ -3,7 +3,7 @@
 import { DualRangeSlider } from '@/components/ui/dual-range-slider';
 import { formatValue } from '@/lib/search';
 import { Edit3 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type RangeSliderProps = {
   min?: number
@@ -31,6 +31,12 @@ const RangeSlider = ({
 
   const values = value ?? internalValues;
 
+  // Calculate dynamic step size to prevent performance issues with large ranges
+  const dynamicStep = useMemo(() => {
+    const minStep = maxValue / 50;
+    return Math.max(step, minStep);
+  }, [maxValue, step]);
+
   // Helper to update values safely
   const updateValues = (newValues: [number, number]) => {
     if (onValueChange) {
@@ -41,7 +47,7 @@ const RangeSlider = ({
   };
 
   return (
-    <div className="px-3">
+    <div className="px-3 group">
       <DualRangeSlider
         className="w-full mt-10"
         label={value => (
@@ -53,11 +59,11 @@ const RangeSlider = ({
         onValueChange={updateValues}
         min={min}
         max={maxValue}
-        step={step}
+        step={dynamicStep}
       />
       <div className="flex w-full justify-between mt-2 text-xs text-muted-foreground select-none">
         <span>{formatValue(min, currency, money)}</span>
-        <span className="flex items-center gap-1 group">
+        <span className="flex items-center gap-1">
           <span className="flex items-center">
             <Edit3 className="size-3 text-gray-400 opacity-0 group-hover:opacity-75 transition-opacity duration-200 mr-1" />
             {editingMax ? (

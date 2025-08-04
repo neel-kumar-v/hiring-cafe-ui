@@ -144,3 +144,195 @@ export function createWorkplaceActivityHandler(
     });
   };
 }
+
+export function createLocationRadiusHandler(
+  currentLocation: Location,
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  locationIndex: number
+) {
+  return (radius: number) => {
+    const updatedLocation = {
+      ...currentLocation,
+      options: {
+        ...currentLocation.options,
+        radius: radius,
+        radius_unit: currentLocation.options?.radius_unit || "Miles",
+        ignore_radius: radius === 0,
+        flexible_regions: currentLocation.options?.flexible_regions || []
+      }
+    };
+    
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: searchState.location.location.map((loc: Location, index: number) => 
+          index === locationIndex ? updatedLocation : loc
+        )
+      }
+    });
+  };
+}
+
+export function createLocationRadiusUnitHandler(
+  currentLocation: Location,
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  locationIndex: number
+) {
+  return (unit: "Miles" | "Kilometers") => {
+    const updatedLocation = {
+      ...currentLocation,
+      options: {
+        ...currentLocation.options,
+        radius: currentLocation.options?.radius || 25,
+        radius_unit: unit,
+        ignore_radius: currentLocation.options?.ignore_radius || false,
+        flexible_regions: currentLocation.options?.flexible_regions || []
+      }
+    };
+    
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: searchState.location.location.map((loc: Location, index: number) => 
+          index === locationIndex ? updatedLocation : loc
+        )
+      }
+    });
+  };
+}
+
+export function createLocationIgnoreRadiusHandler(
+  currentLocation: Location,
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  locationIndex: number
+) {
+  return (ignore: boolean) => {
+    const updatedLocation = {
+      ...currentLocation,
+      options: {
+        ...currentLocation.options,
+        radius: ignore ? 0 : (currentLocation.options?.radius || 25),
+        radius_unit: currentLocation.options?.radius_unit || "Miles",
+        ignore_radius: ignore,
+        flexible_regions: currentLocation.options?.flexible_regions || []
+      }
+    };
+    
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: searchState.location.location.map((loc: Location, index: number) => 
+          index === locationIndex ? updatedLocation : loc
+        )
+      }
+    });
+  };
+}
+
+export function createLocationWorkplaceTypeHandler(
+  currentLocation: Location,
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  locationIndex: number
+) {
+  return (workplaceType: Workplace) => {
+    let newWorkplaceType: Workplace[] | "All";
+    
+    const currentTypes = Array.isArray(currentLocation.workplace_type) ? currentLocation.workplace_type : 
+      (currentLocation.workplace_type === "All" ? [] : (currentLocation.workplace_type ? [currentLocation.workplace_type as Workplace] : []));
+    
+    if (currentTypes.includes(workplaceType)) {
+      const filtered = currentTypes.filter(type => type !== workplaceType);
+      newWorkplaceType = filtered.length > 0 ? filtered : "All";
+    } else {
+      newWorkplaceType = [...currentTypes, workplaceType];
+    }
+    
+    const updatedLocation = {
+      ...currentLocation,
+      workplace_type: newWorkplaceType
+    };
+    
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: searchState.location.location.map((loc: Location, index: number) => 
+          index === locationIndex ? updatedLocation : loc
+        )
+      }
+    });
+  };
+}
+
+export function createLocationFlexibleRegionsHandler(
+  currentLocation: Location,
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  locationIndex: number
+) {
+  return (region: LocationType) => {
+    const currentRegions = currentLocation.options?.flexible_regions || [];
+    let newRegions: LocationType[];
+    
+    if (currentRegions.includes(region)) {
+      newRegions = currentRegions.filter(r => r !== region);
+    } else {
+      newRegions = [...currentRegions, region];
+    }
+
+    const updatedLocation = {
+      ...currentLocation,
+      options: {
+        ...currentLocation.options,
+        radius: currentLocation.options?.radius || 25,
+        radius_unit: currentLocation.options?.radius_unit || "Miles",
+        ignore_radius: currentLocation.options?.ignore_radius || false,
+        flexible_regions: newRegions
+      }
+    };
+    
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: searchState.location.location.map((loc: Location, index: number) => 
+          index === locationIndex ? updatedLocation : loc
+        )
+      }
+    });
+  };
+}
+
+export function createLocationRemoveHandler(
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  locationIndex: number
+) {
+  return () => {
+    const updatedLocations = searchState.location.location.filter((_, index) => index !== locationIndex);
+    
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: updatedLocations
+      }
+    });
+  };
+}
+
+export function createLocationsChangeHandler(
+  searchState: SearchState,
+  updateSearchOptions: (updates: Partial<SearchState>) => void
+) {
+  return (locations: Location[]) => {
+    updateSearchOptions({
+      location: {
+        ...searchState.location,
+        location: locations
+      }
+    });
+  };
+}
+
