@@ -29,11 +29,7 @@ const JobDialogContent = ({ currentJob, isBookmarked, isApplied, isInterviewing,
     onBookmarkToggle();
   };
 
-  const handleApplyClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onApplyToggle();
-  };
+
 
   const dialogContent = (
     <div className="relative p-8 pt-16">
@@ -42,11 +38,11 @@ const JobDialogContent = ({ currentJob, isBookmarked, isApplied, isInterviewing,
         isApplied={isApplied}
         isBookmarked={isBookmarked}
         isInterviewing={isInterviewing}
-        onApplyClick={handleApplyClick}
         onBookmarkClick={handleBookmarkClick}
         publishDate={currentJob.v5_processed_job_data.estimated_publish_date}
         savedFromUsers={currentJob.job_information.savedFromUsers}
         viewedByUsers={currentJob.job_information.viewedByUsers}
+        applyUrl={currentJob.apply_url}
       />
 
       <DialogJobTitle

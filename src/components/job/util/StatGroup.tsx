@@ -11,7 +11,7 @@ export const StatGroup = ({
   isApplied,
   isInterviewing = false,
   handleBookmarkClick,
-  handleApplyClick,
+  applyUrl,
   iconClassName = "w-3 h-3",
   textClassName = "text-sm",
 }: {
@@ -22,7 +22,7 @@ export const StatGroup = ({
   isApplied: boolean;
   isInterviewing?: boolean;
   handleBookmarkClick: (e: React.MouseEvent) => void;
-  handleApplyClick: (e: React.MouseEvent) => void;
+  applyUrl: string;
   iconClassName?: string;
   textClassName?: string;
 }) => {
@@ -81,9 +81,11 @@ export const StatGroup = ({
         }
         side="bottom"
       >
-        <span
+        <a
           className="flex cursor-pointer items-center space-x-1"
-          onClick={handleApplyClick}
+          href={applyUrl}
+          target="_blank"
+          rel="noopener noreferrer external"
         >
           {isApplied ? (
             <Send
@@ -101,7 +103,7 @@ export const StatGroup = ({
             />
           )}
           <span className={textClassName}>{appliedCount}</span>
-        </span>
+        </a>
       </UniversalTooltip>
       <UniversalTooltip
         content={

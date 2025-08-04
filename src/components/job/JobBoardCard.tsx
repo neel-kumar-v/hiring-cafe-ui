@@ -36,7 +36,6 @@ interface JobCardProps {
   isApplied: boolean;
   isInterviewing: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
-  onApplyToggle: (e: React.MouseEvent) => void;
   onPrevious: () => void;
   onNext: () => void;
   onJobSelect: (index: number) => void;
@@ -52,7 +51,6 @@ const JobCard = memo(({
   isApplied,
   isInterviewing,
   onBookmarkToggle,
-  onApplyToggle,
   onPrevious,
   onNext,
   onJobSelect,
@@ -86,10 +84,10 @@ const JobCard = memo(({
               isApplied={isApplied}
               isBookmarked={isBookmarked}
               isInterviewing={isInterviewing}
-              onApplyToggle={onApplyToggle}
               onBookmarkToggle={onBookmarkToggle}
               savedFromUsers={currentJob.job_information.savedFromUsers}
               viewedByUsers={currentJob.job_information.viewedByUsers}
+              applyUrl={currentJob.apply_url}
             />
             {jobCollection.jobs.length > 1 ? (
               <CardNavigation
@@ -239,7 +237,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
           isInterviewing={isInterviewing}
           isTransitioning={isTransitioning}
           jobCollection={jobCollection}
-          onApplyToggle={handleApplyToggle}
           onBookmarkToggle={handleBookmarkToggle}
           onClick={handleDrawerOpen}
           onJobSelect={handleJobIndexChange}
@@ -285,7 +282,6 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
               isInterviewing={isInterviewing}
               isTransitioning={isTransitioning}
               jobCollection={jobCollection}
-              onApplyToggle={handleApplyClick}
               onBookmarkToggle={handleBookmarkClick}
               onClick={handleDrawerOpen}
               onJobSelect={handleJobIndexChange}

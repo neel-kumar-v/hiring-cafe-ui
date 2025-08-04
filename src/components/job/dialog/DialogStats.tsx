@@ -14,7 +14,7 @@ const DialogStats = ({
   isApplied,
   isInterviewing = false,
   onBookmarkClick,
-  onApplyClick,
+  applyUrl,
 }: {
   publishDate: string;
   viewedByUsers?: string[];
@@ -24,7 +24,7 @@ const DialogStats = ({
   isApplied: boolean;
   isInterviewing?: boolean;
   onBookmarkClick: (e: React.MouseEvent) => void;
-  onApplyClick: (e: React.MouseEvent) => void;
+  applyUrl: string;
 }) => {
   const timeSince = getTimeSince(publishDate);
   const { prefersReducedMotion } = useReducedMotion();
@@ -54,7 +54,6 @@ const DialogStats = ({
         <MorphingJobStats className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedFromUsers?.length || 0}
-            handleApplyClick={onApplyClick}
             handleBookmarkClick={onBookmarkClick}
             iconClassName="size-4"
             isApplied={isApplied}
@@ -63,13 +62,13 @@ const DialogStats = ({
             savedCount={savedFromUsers?.length || 0}
             textClassName="text-md"
             viewedCount={(viewedByUsers?.length || 0) + 1}
+            applyUrl={applyUrl}
           />
         </MorphingJobStats>
       ) : (
         <div className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedFromUsers?.length || 0}
-            handleApplyClick={onApplyClick}
             handleBookmarkClick={onBookmarkClick}
             iconClassName="size-4"
             isApplied={isApplied}
@@ -78,6 +77,7 @@ const DialogStats = ({
             savedCount={savedFromUsers?.length || 0}
             textClassName="text-md"
             viewedCount={(viewedByUsers?.length || 0) + 1}
+            applyUrl={applyUrl}
           />
         </div>
       )}

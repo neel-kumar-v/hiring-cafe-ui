@@ -11,7 +11,7 @@ const CardStats = ({
   isApplied = false,
   isInterviewing = false,
   onBookmarkToggle,
-  onApplyToggle,
+  applyUrl,
 }: {
   viewedByUsers?: string[];
   savedFromUsers?: string[];
@@ -20,7 +20,7 @@ const CardStats = ({
   isApplied?: boolean;
   isInterviewing?: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
-  onApplyToggle: (e: React.MouseEvent) => void;
+  applyUrl: string;
 }) => {
   const isDesktop = useMediaQuery("(min-width: 728px)");
   const viewedCount = viewedByUsers.length + 1; // +1 for current user
@@ -31,12 +31,7 @@ const CardStats = ({
     e.stopPropagation();
     onBookmarkToggle(e);
   };
-
-  const handleApplyClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onApplyToggle(e);
-  };
-
+  
   const handleGeneralClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -47,7 +42,6 @@ const CardStats = ({
         <MorphingJobStats className="flex w-fit items-center space-x-3 pr-4 text-neutral-400 text-md dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedCount}
-            handleApplyClick={handleApplyClick}
             handleBookmarkClick={handleBookmarkClick}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
@@ -55,13 +49,13 @@ const CardStats = ({
             savedCount={savedCount}
             viewedCount={viewedCount}
             iconClassName="size-3"
+            applyUrl={applyUrl}
           />
         </MorphingJobStats>
       ) : (
         <div className="flex w-fit items-center space-x-3 pr-4 text-neutral-400 text-md dark:text-neutral-500">
           <StatGroup
             appliedCount={appliedCount}
-            handleApplyClick={handleApplyClick}
             handleBookmarkClick={handleBookmarkClick}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
@@ -69,6 +63,7 @@ const CardStats = ({
             savedCount={savedCount}
             viewedCount={viewedCount}
             iconClassName="size-3"
+            applyUrl={applyUrl}
           />
         </div>
       )}
