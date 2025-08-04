@@ -81,7 +81,7 @@ export const DialogActionButtons = ({
         <a
           href={formatCompanyWebsite(companyWebsite)}
           target="_blank"
-          className="flex items-center gap-2 rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-input/50  px-3 py-[5px]"
+          className="shrink-0 justify-center whitespace-nowrap text-sm outline-none transition-all disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 border shadow-xs hover:text-accent-foreground border-input bg-input/30 hover:bg-input/50 h-8 rounded-md px-3 has-[>svg]:px-2.5 flex items-center gap-2"
           tabIndex={1}
           role="button"
         >
