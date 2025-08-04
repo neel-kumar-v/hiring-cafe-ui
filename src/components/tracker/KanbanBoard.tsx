@@ -9,9 +9,22 @@ import {
   KanbanProvider,
 } from "@/components/ui/kanban";
 import { useApp } from "@/contexts/AppContext";
+import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { JobStatus } from "@/types/app";
 import type { Job } from "@/types/job";
-import { memo, useMemo } from "react";
+import { GripVertical } from "lucide-react";
+import dynamic from "next/dynamic";
+import { memo, useCallback, useMemo, useState } from "react";
+
+const JobDialogContent = dynamic(() => import("../job/contents/JobDialogContent"), {
+  loading: () => null,
+  ssr: false
+});
+
+const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"), {
+  loading: () => null,
+  ssr: false
+});
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 
@@ -21,12 +34,7 @@ interface KanbanBoardProps {
   visibleCategories?: Record<JobCategory, boolean>;
 }
 
-type KanbanJobItem = {
-  id: string;
-  name: string;
-  column: string;
-  job: Job;
-};
+
 
 type KanbanColumn = {
   id: string;
@@ -34,10 +42,148 @@ type KanbanColumn = {
   count: number;
 };
 
+const KanbanCardWithDragHandle = ({ 
+  item, 
+  isDesktop, 
+  onJobClick, 
+  user, 
+  getCurrentStatus, 
+  moveJob,
+  jobMap
+}: { 
+  item: { id: string; name: string; column: string }; 
+  isDesktop: boolean;
+  onJobClick: (job: Job) => void;
+  user: { saved: string[]; applied: string[]; interviewing: string[] };
+  getCurrentStatus: (jobId: string) => string;
+  moveJob: (jobId: string, fromStatus: JobStatus, toStatus: JobStatus) => void;
+  jobMap: Map<string, Job>;
+}) => {
+  const job = jobMap.get(item.id);
+  
+  const isBookmarked = job ? (user.saved.includes(job.id) || user.applied.includes(job.id) || user.interviewing.includes(job.id)) : false;
+  const isApplied = job ? (user.applied.includes(job.id) || user.interviewing.includes(job.id)) : false;
+
+  const handleBookmarkToggle = useCallback(() => {
+    if (!job) return;
+    const jobId = job.id;
+    const currentStatus = getCurrentStatus(jobId);
+    const isCurrentlyBookmarked = user.saved.includes(jobId) || user.applied.includes(jobId) || user.interviewing.includes(jobId);
+    
+    if (isCurrentlyBookmarked) {
+      if (user.saved.includes(jobId)) moveJob(jobId, "saved", "saved");
+      if (user.applied.includes(jobId)) moveJob(jobId, "applied", "saved");
+      if (user.interviewing.includes(jobId)) moveJob(jobId, "interviewing", "saved");
+    } else {
+      moveJob(jobId, currentStatus as JobStatus, "saved");
+    }
+  }, [job, getCurrentStatus, user.saved, user.applied, user.interviewing, moveJob]);
+
+  const handleApplyToggle = useCallback(() => {
+    if (!job) return;
+    const jobId = job.id;
+    const currentStatus = getCurrentStatus(jobId);
+    const isCurrentlyApplied = user.applied.includes(jobId) || user.interviewing.includes(jobId);
+    
+    if (isCurrentlyApplied) {
+      if (user.applied.includes(jobId)) moveJob(jobId, "applied", "saved");
+      if (user.interviewing.includes(jobId)) moveJob(jobId, "interviewing", "saved");
+    } else {
+      moveJob(jobId, currentStatus as JobStatus, "applied");
+    }
+  }, [job, getCurrentStatus, user.applied, user.interviewing, moveJob]);
+
+  const handleJobClick = useCallback((e: React.MouseEvent) => {
+    console.log('🔍 KanbanCardWithDragHandle - Job click detected:', {
+      jobId: job?.id,
+      jobTitle: job?.job_information.title,
+      isDesktop,
+      eventTarget: e.target,
+      currentTarget: e.currentTarget
+    });
+    
+    e.preventDefault();
+    e.stopPropagation();
+    onJobClick(job!);
+  }, [job, isDesktop, onJobClick]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!job) return;
+    
+    console.log('🔍 KanbanCardWithDragHandle - Mouse down on content:', {
+      jobId: job.id,
+      target: e.target,
+      currentTarget: e.currentTarget
+    });
+    
+    // Prevent drag from starting when clicking on content
+    e.stopPropagation();
+  }, [job]);
+
+  if (!job) return null;
+
+  return (
+    <KanbanCard
+      key={item.id}
+      id={item.id}
+      name={item.name}
+      column={item.column}
+      className="mb-2 hover:shadow-md transition-shadow duration-200"
+    >
+      <div className="flex items-start gap-2">
+        <div 
+          className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing"
+          onMouseDown={(e) => {
+            console.log('🔍 KanbanCardWithDragHandle - Mouse down on grip handle:', {
+              jobId: job.id,
+              target: e.target,
+              currentTarget: e.currentTarget
+            });
+          }}
+        >
+          <GripVertical className="h-4 w-4 text-gray-400" />
+        </div>
+        <div 
+          className="flex-1 min-w-0 cursor-pointer" 
+          onClick={handleJobClick}
+          onMouseDown={handleMouseDown}
+        >
+          {isDesktop ? (
+            <JobDialogContent
+              currentJob={job}
+              isApplied={isApplied}
+              isBookmarked={isBookmarked}
+              onApplyToggle={handleApplyToggle}
+              onBookmarkToggle={handleBookmarkToggle}
+            >
+              <div
+                onClick={(e) => {
+                  console.log('🔍 KanbanCardWithDragHandle - Dialog trigger clicked:', {
+                    jobId: job.id,
+                    target: e.target,
+                    currentTarget: e.currentTarget
+                  });
+                }}
+              >
+                <KanbanJobCardContents job={job} />
+              </div>
+            </JobDialogContent>
+          ) : (
+            <KanbanJobCardContents job={job} />
+          )}
+        </div>
+      </div>
+    </KanbanCard>
+  );
+};
+
 const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
+  const { isDesktop } = useResponsiveBreakpoint();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const kanbanData: KanbanJobItem[] = useMemo(() => {
+  const kanbanData = useMemo(() => {
     const allJobIds = new Set([
       ...user.saved,
       ...user.applied,
@@ -62,9 +208,24 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
         id: job.id,
         name: job.job_information.title,
         column,
-        job,
       };
     });
+  }, [jobs, user]);
+
+  const jobMap = useMemo(() => {
+    const allJobIds = new Set([
+      ...user.saved,
+      ...user.applied,
+      ...user.interviewing,
+      ...user.rejected,
+      ...user.hidden,
+    ]);
+
+    const userJobs = jobs.filter(job => allJobIds.has(job.id));
+    const additionalJobs = jobs.slice(0, 5).filter(job => !allJobIds.has(job.id));
+    const jobsToShow = [...userJobs, ...additionalJobs];
+
+    return new Map(jobsToShow.map(job => [job.id, job]));
   }, [jobs, user]);
 
   const columns: KanbanColumn[] = useMemo(() => {
@@ -91,10 +252,19 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     return allColumns;
   }, [kanbanData, visibleCategories]);
 
-  const handleDataChange = (newData: KanbanJobItem[]) => {
+  const handleDataChange = (newData: { id: string; name: string; column: string }[]) => {
+    console.log('🔍 KanbanBoard - handleDataChange called:', {
+      newData: newData.map(item => ({ id: item.id, column: item.column }))
+    });
+    
     newData.forEach(item => {
       const currentStatus = getCurrentStatus(item.id);
       if (currentStatus !== item.column) {
+        console.log('🔍 KanbanBoard - Moving job:', {
+          jobId: item.id,
+          fromStatus: currentStatus,
+          toStatus: item.column
+        });
         moveJob(item.id, currentStatus as JobStatus, item.column as JobStatus);
       }
     });
@@ -107,6 +277,72 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     if (user.hidden.includes(jobId)) return "hidden";
     return "saved";
   };
+
+  const handleJobClick = useCallback((job: Job) => {
+    console.log('🔍 KanbanBoard - handleJobClick called:', {
+      jobId: job.id,
+      jobTitle: job.job_information.title,
+      isDesktop,
+      selectedJob: selectedJob?.id
+    });
+    
+    setSelectedJob(job);
+    if (!isDesktop) {
+      console.log('🔍 KanbanBoard - Opening drawer for mobile');
+      setDrawerOpen(true);
+    } else {
+      console.log('🔍 KanbanBoard - Desktop mode - dialog should open via JobDialogContent');
+    }
+  }, [isDesktop, selectedJob]);
+
+  const handleDrawerClose = useCallback(() => {
+    setDrawerOpen(false);
+    setSelectedJob(null);
+  }, []);
+
+  const isBookmarked = useMemo(() => 
+    selectedJob ? (
+      user.saved.includes(selectedJob.id) || 
+      user.applied.includes(selectedJob.id) || 
+      user.interviewing.includes(selectedJob.id)
+    ) : false,
+    [user.saved, user.applied, user.interviewing, selectedJob]
+  );
+
+  const isApplied = useMemo(() => 
+    selectedJob ? (
+      user.applied.includes(selectedJob.id) || 
+      user.interviewing.includes(selectedJob.id)
+    ) : false,
+    [user.applied, user.interviewing, selectedJob]
+  );
+
+  const handleBookmarkToggle = useCallback(() => {
+    if (!selectedJob) return;
+    
+    if (isBookmarked) {
+      // Remove from all bookmark-related states
+      if (user.saved.includes(selectedJob.id)) moveJob(selectedJob.id, "saved", "saved");
+      if (user.applied.includes(selectedJob.id)) moveJob(selectedJob.id, "applied", "saved");
+      if (user.interviewing.includes(selectedJob.id)) moveJob(selectedJob.id, "interviewing", "saved");
+    } else {
+      // Add to saved (default bookmark state)
+      moveJob(selectedJob.id, getCurrentStatus(selectedJob.id) as JobStatus, "saved");
+    }
+  }, [isBookmarked, user.saved, user.applied, user.interviewing, selectedJob, moveJob, getCurrentStatus]);
+
+  const handleApplyToggle = useCallback(() => {
+    if (!selectedJob) return;
+    
+    if (isApplied) {
+      // Remove from all apply-related states
+      if (user.applied.includes(selectedJob.id)) moveJob(selectedJob.id, "applied", "saved");
+      if (user.interviewing.includes(selectedJob.id)) moveJob(selectedJob.id, "interviewing", "saved");
+    } else {
+      // Add to applied (default apply state)
+      moveJob(selectedJob.id, getCurrentStatus(selectedJob.id) as JobStatus, "applied");
+    }
+  }, [isApplied, user.applied, user.interviewing, selectedJob, moveJob, getCurrentStatus]);
 
   return (
     <div className={`h-full w-full ${className}`}>
@@ -126,20 +362,32 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
             </KanbanHeader>
             <KanbanCards id={column.id} className="flex-1">
               {(item) => (
-                <KanbanCard
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  column={item.column}
-                  className="mb-2"
-                >
-                  <KanbanJobCardContents job={item.job as Job} useCard={false} />
-                </KanbanCard>
+                <KanbanCardWithDragHandle
+                  item={item}
+                  isDesktop={isDesktop}
+                  onJobClick={handleJobClick}
+                  user={user}
+                  getCurrentStatus={getCurrentStatus}
+                  moveJob={moveJob}
+                  jobMap={jobMap}
+                />
               )}
             </KanbanCards>
           </KanbanBoardUI>
         )}
       </KanbanProvider>
+
+      {selectedJob && !isDesktop && (
+        <JobDrawerContent
+          currentJob={selectedJob}
+          isApplied={isApplied}
+          isBookmarked={isBookmarked}
+          onApplyToggle={handleApplyToggle}
+          onBookmarkToggle={handleBookmarkToggle}
+          onClose={handleDrawerClose}
+          open={drawerOpen}
+        />
+      )}
     </div>
   );
 });
