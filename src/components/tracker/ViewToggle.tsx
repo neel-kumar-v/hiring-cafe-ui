@@ -1,6 +1,7 @@
 'use client';
 
 import { Toggle } from "@/components/ui/toggle";
+import { KanbanIcon, LayoutListIcon } from "lucide-react";
 
 type ViewMode = "board" | "list";
 
@@ -18,6 +19,7 @@ const ViewToggle = ({ viewMode, onViewChange }: ViewToggleProps) => {
         variant="category"
         size="md"
       >
+        <KanbanIcon className="size-4"/>
         Board
       </Toggle>
       <Toggle
@@ -26,6 +28,7 @@ const ViewToggle = ({ viewMode, onViewChange }: ViewToggleProps) => {
         variant="category"
         size="md"
       >
+        <LayoutListIcon />
         List
       </Toggle>
     </div>

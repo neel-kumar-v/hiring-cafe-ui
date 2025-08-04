@@ -36,7 +36,7 @@ const DialogBadges = ({
                   className={`flex items-center ${compact ? "gap-1" : "gap-2"} bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}
                   key={index}
                 >
-                  <MapPin className={compact ? "w-3 h-3" : "w-4 h-4"} />
+                  <MapPin className={compact ? "w-3 h-3" : "size-4"} />
                   {loc}
                 </span>
               ))}
@@ -48,7 +48,7 @@ const DialogBadges = ({
               key={index}
               className={`flex items-center ${compact ? "gap-1" : "gap-2"} bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}
             >
-              <MapPin className={compact ? "w-3 h-3" : "w-4 h-4"} />
+              <MapPin className={compact ? "w-3 h-3" : "size-4"} />
               {loc}
             </span>
           ))
@@ -87,13 +87,13 @@ const DialogBadges = ({
           (isDesktop && !prefersReducedMotion ? (
             <MorphingSalary>
               <span className={`flex items-center ${compact ? "gap-1" : "gap-2"} rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} bg-pink-400/75 text-black dark:text-white`}>
-                <DollarSign className={compact ? "w-3 h-3" : "w-4 h-4"} />
+                <DollarSign className={compact ? "w-3 h-3" : "size-4"} />
                 {getCompensation(compensation)}
               </span>
             </MorphingSalary>
           ) : (
             <span className={`flex items-center ${compact ? "gap-1" : "gap-2"} rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} bg-pink-400/75 text-black dark:text-white`}>
-              <DollarSign className={compact ? "w-3 h-3" : "w-4 h-4"} />
+              <DollarSign className={compact ? "w-3 h-3" : "size-4"} />
               {getCompensation(compensation)}
             </span>
           ))}

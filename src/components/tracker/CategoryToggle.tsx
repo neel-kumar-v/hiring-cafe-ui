@@ -8,9 +8,10 @@ interface CategoryToggleProps {
   category: JobCategory;
   isActive: boolean;
   onToggle: (category: JobCategory) => void;
+  icon?: React.ReactNode;
 }
 
-const CategoryToggle = ({ category, isActive, onToggle}: CategoryToggleProps) => {
+const CategoryToggle = ({ category, isActive, onToggle, icon}: CategoryToggleProps) => {
   const getCategoryLabel = (category: JobCategory) => {
     switch (category) {
       case "saved":
@@ -35,6 +36,7 @@ const CategoryToggle = ({ category, isActive, onToggle}: CategoryToggleProps) =>
       variant="category"
       size="md"
     >
+      {icon}
       {getCategoryLabel(category)}
     </Toggle>
   );

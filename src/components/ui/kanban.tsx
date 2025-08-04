@@ -23,10 +23,12 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
 import {
   createContext,
   type HTMLAttributes,
   type ReactNode,
+  useCallback,
   useContext,
   useState,
 } from 'react';
@@ -139,6 +141,104 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
             )}
           >
             {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
+          </Card>
+        </t.In>
+      )}
+    </>
+  );
+};
+
+export type KanbanCardWithDragHandleProps<T extends KanbanItemProps = KanbanItemProps> = T & {
+  children?: ReactNode;
+  className?: string;
+  onJobClick?: (e: React.MouseEvent) => void;
+  dragHandleOnly?: boolean;
+};
+
+export const KanbanCardWithDragHandle = <T extends KanbanItemProps = KanbanItemProps>({
+  id,
+  name,
+  children,
+  className,
+  onJobClick,
+  dragHandleOnly = false,
+}: KanbanCardWithDragHandleProps<T>) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transition,
+    transform,
+    isDragging,
+  } = useSortable({
+    id,
+  });
+  const { activeCardId } = useContext(KanbanContext) as KanbanContextProps;
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  const handleContentMouseDown = useCallback((e: React.MouseEvent) => {
+    if (dragHandleOnly) {
+      e.stopPropagation();
+    }
+  }, [dragHandleOnly]);
+
+  const handleContentClick = useCallback((e: React.MouseEvent) => {
+    if (onJobClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      onJobClick(e);
+    }
+  }, [onJobClick]);
+
+  return (
+    <>
+      <div style={style} ref={setNodeRef}>
+        <Card
+          className={cn(
+            'gap-4 rounded-md p-3 shadow-sm',
+            isDragging && 'pointer-events-none cursor-grabbing opacity-30',
+            className
+          )}
+        >
+          <div className="flex items-start gap-2">
+            <div 
+              className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing self-center"
+              {...listeners}
+              {...attributes}
+            >
+              <GripVertical className="h-4 w-4 text-gray-400" />
+            </div>
+            <div 
+              className="flex-1 min-w-0 cursor-pointer" 
+              onClick={handleContentClick}
+              onMouseDown={handleContentMouseDown}
+            >
+              {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
+            </div>
+          </div>
+        </Card>
+      </div>
+      {activeCardId === id && (
+        <t.In>
+          <Card
+            className={cn(
+              'gap-4 rounded-md p-3 shadow-sm ring-2 ring-primary',
+              isDragging && 'cursor-grabbing',
+              className
+            )}
+          >
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing self-center">
+                <GripVertical className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
+              </div>
+            </div>
           </Card>
         </t.In>
       )}

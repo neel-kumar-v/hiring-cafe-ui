@@ -33,7 +33,7 @@ const DialogStats = ({
       {!prefersReducedMotion ? (
         <MorphingTime className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
           <ScrapeTime
-            iconClassName="w-4 h-4"
+            iconClassName="size-4"
             postedAt={publishDate}
             textClassName="text-md"
           />
@@ -41,7 +41,7 @@ const DialogStats = ({
       ) : (
         <div className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
           <ScrapeTime
-            iconClassName="w-4 h-4"
+            iconClassName="size-4"
             postedAt={publishDate}
             textClassName="text-md"
           />
@@ -54,7 +54,7 @@ const DialogStats = ({
             appliedCount={appliedFromUsers?.length || 0}
             handleApplyClick={onApplyClick}
             handleBookmarkClick={onBookmarkClick}
-            iconClassName="w-4 h-4"
+            iconClassName="size-4"
             isApplied={isApplied}
             isBookmarked={isBookmarked}
             savedCount={savedFromUsers?.length || 0}
@@ -68,7 +68,7 @@ const DialogStats = ({
             appliedCount={appliedFromUsers?.length || 0}
             handleApplyClick={onApplyClick}
             handleBookmarkClick={onBookmarkClick}
-            iconClassName="w-4 h-4"
+            iconClassName="size-4"
             isApplied={isApplied}
             isBookmarked={isBookmarked}
             savedCount={savedFromUsers?.length || 0}

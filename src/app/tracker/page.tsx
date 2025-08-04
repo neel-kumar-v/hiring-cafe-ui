@@ -4,6 +4,7 @@ import { CategoryToggle, KanbanBoard, ListView, SearchBar, ViewToggle } from "@/
 import { useApp } from "@/contexts/AppContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Job } from "@/types/job";
+import { BookmarkIcon, EyeOffIcon, PhoneOutgoingIcon, SendIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
@@ -130,26 +131,31 @@ export default function TrackerPage() {
                 category="saved"
                 isActive={visibleCategories.saved}
                 onToggle={handleCategoryToggle}
+                icon={<BookmarkIcon className="size-4"/>}
               />
               <CategoryToggle
                 category="applied"
                 isActive={visibleCategories.applied}
                 onToggle={handleCategoryToggle}
+                icon={<SendIcon className="size-4"/>}
               />
               <CategoryToggle
                 category="interviewing"
                 isActive={visibleCategories.interviewing}
                 onToggle={handleCategoryToggle}
+                icon={<PhoneOutgoingIcon className="size-4"/>}
               />
               <CategoryToggle
                 category="rejected"
                 isActive={visibleCategories.rejected}
                 onToggle={handleCategoryToggle}
+                icon={<XIcon className="size-4"/>}
               />
               <CategoryToggle
                 category="hidden"
                 isActive={visibleCategories.hidden}
                 onToggle={handleCategoryToggle}
+                icon={<EyeOffIcon className="size-4"/>}
               />
             </div>
 
