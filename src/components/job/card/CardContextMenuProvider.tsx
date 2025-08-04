@@ -5,6 +5,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { formatCompanyWebsite } from "@/lib/company-info";
 import type { Job } from "@/types/job";
 import {
   Bookmark,
@@ -47,7 +48,7 @@ const CardContextMenuProvider = ({
           {isBookmarked ? "Unsave Job" : "Save Job"}
         </ContextMenuItem>
         <ContextMenuItem className="group">
-          <a href={applyUrl} target="_blank" className="flex items-center gap-2 group-hover:underline">
+          <a href={applyUrl} target="_blank" rel="noopener noreferrer external" className="flex items-center gap-2 group-hover:underline">
             <Send className="mr-2 size-4" />
             Apply Now
           </a>
@@ -63,9 +64,11 @@ const CardContextMenuProvider = ({
           <ExternalLink className="mr-2 size-4" />
           View all Jobs from {currentJob.v5_processed_company_data.name}
         </ContextMenuItem>
-        <ContextMenuItem>
-          <Link2 className="mr-2 size-4" />
-          Go to Company Website
+        <ContextMenuItem className="group">
+          <a href={formatCompanyWebsite(currentJob.v5_processed_company_data.website)} target="_blank" rel="noopener noreferrer external" className="flex items-center gap-2 group-hover:underline">
+            <Link2 className="mr-2 size-4" />
+            Go to Company Website
+          </a>
         </ContextMenuItem>
         <ContextMenuItem>
           <Share2 className="mr-2 size-4" />
