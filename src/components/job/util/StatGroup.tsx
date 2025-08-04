@@ -107,7 +107,7 @@ export const StatGroup = ({
         content={
           isInterviewing
             ? "You are interviewing for this job"
-            : "No users are interviewing for this job"
+            : "No hiring.cafe users have marked that they are interviewing for this job"
         }
         side="bottom"
       >
