@@ -85,7 +85,7 @@ const JobBoard = () => {
   }, [loadedCount, isLoading]);
 
   return (
-    <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+    <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 min-h-screen">
       {displayedCollections.map((collection) => {
         const companyName = collection.jobs[0]?.v5_processed_company_data?.name || 
                            collection.jobs[0]?.v5_processed_job_data.company_name || 
