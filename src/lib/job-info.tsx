@@ -112,7 +112,7 @@ const removeShiftTimings = (title: string): string => {
 };
 
 const removeTrailingPunctuation = (title: string): string => {
-  return title.replace(/[\s\-|,:–]+$/, "").trim();
+  return title.replace(/[\s\-|,:–*]+$/, "").trim();
 };
 
 const removeTools = (title: string, tools: string[]): string => {
