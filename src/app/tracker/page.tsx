@@ -116,6 +116,7 @@ export default function TrackerPage() {
         <div className="mb-3">
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
             Job Tracker
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-normal">Click on a card to view more details or drag and drop to move between stages</p>
           </h1>
 
           <div className="space-y-4 flex lg:flex-row flex-col gap-2">

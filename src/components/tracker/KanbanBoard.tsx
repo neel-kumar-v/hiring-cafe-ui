@@ -360,7 +360,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
                 {column.count}
               </span>
             </KanbanHeader>
-            <KanbanCards id={column.id} className="flex-1">
+            <KanbanCards id={column.id} key={column.id} className="flex-1">
               {(item) => (
                 <KanbanCardWithDragHandle
                   item={item}
