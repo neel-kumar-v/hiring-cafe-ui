@@ -61,7 +61,7 @@ const ListJobCardContents = memo(({
           value={currentStage} 
           onValueChange={(e) => handleStageChange(e)}
         >
-          <SelectTrigger className="w-32 max-[400px]:w-full px-3 py-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white text-sm">
+          <SelectTrigger className="w-32 max-[400px]:w-full px-3 py-2 border  rounded-md  text-sm">
             <SelectValue placeholder="Select Stage" />
           </SelectTrigger>
           <SelectContent>
