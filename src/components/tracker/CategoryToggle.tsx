@@ -37,7 +37,7 @@ const CategoryToggle = ({ category, isActive, onToggle, icon}: CategoryTogglePro
       size="md"
     >
       {icon}
-      {getCategoryLabel(category)}
+      <span className="hidden min-[500px]:inline">{getCategoryLabel(category)}</span>
     </Toggle>
   );
 };
