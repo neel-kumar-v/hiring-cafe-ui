@@ -365,7 +365,7 @@ function Tooltip({
 }: TooltipProps) {
   const id = React.useId();
   const [content, setContent] = React.useState<React.ReactNode>(null);
-  const [arrow, setArrow] = React.useState(true);
+  const [arrow, setArrow] = React.useState(false);
   const [blur, setBlur] = React.useState(false);
 
   return (

@@ -32,7 +32,7 @@ function TooltipContent({
   align = "center",
   children,
   blur = true,
-  arrow = true,
+  arrow = false,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content> & {
   blur?: boolean;

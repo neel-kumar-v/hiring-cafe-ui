@@ -21,7 +21,7 @@ interface AppContextType {
   // Combined functionality
   currentSavedSearchId: string | null;
   setCurrentSavedSearchId: (id: string | null) => void;
-  saveCurrentSearch: (name?: string) => void;
+  saveCurrentSearch: (name?: string) => string;
 
   // Job state
   addJob: (jobId: string, status: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
@@ -32,7 +32,9 @@ interface AppContextType {
 
 
 const defaultUser: User = {
-  name: "Demo User",
+  name: "Test User",
+  email: "test@gmail.com",
+  skills: ["React", "Next.js"],
   savedSearches: [],
   saved: [
     "ashby___glide___7902b474-592f-4618-9c7c-23216d033bda",
@@ -95,6 +97,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveCurrentSearch = (name: string = "New Search") => {
+    // If we're currently editing a saved search, first save any changes to it
+    if (currentSavedSearchId) {
+      setUser(prevUser => ({
+        ...prevUser,
+        savedSearches: prevUser.savedSearches.map(search =>
+          search.id === currentSavedSearchId
+            ? { ...search, searchState: JSON.parse(JSON.stringify(searchOptions)), modifiedAt: new Date() }
+            : search
+        )
+      }));
+    }
+
+    // Create a new saved search
     const newId = Date.now().toString();
     setUser(prev => {
       const newSearch = {
@@ -108,8 +123,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         savedSearches: [newSearch, ...prev.savedSearches]
       };
     });
+    
+    // Switch to editing the new saved search
     setCurrentSavedSearchId(newId);
     setHasUnsavedChanges(false);
+    
+    return newId;
   };
 
   const addJob = (jobId: string, status: JobStatus) => {

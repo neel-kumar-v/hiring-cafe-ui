@@ -14,6 +14,7 @@ import { useSearchUI } from "@/contexts/SearchContext";
 import {
   BarChart3,
   Building,
+  CircleUser,
   ExternalLink,
   Info,
   ListFilterPlus,
@@ -102,7 +103,7 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/account">
-                    <Settings className="mr-2 size-4" />
+                    <CircleUser className="mr-2 size-4" />
                     Account
                   </Link>
                 </DropdownMenuItem>

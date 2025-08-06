@@ -7,6 +7,8 @@ export interface SavedSearch {
 
 export interface User {
   name: string;
+  email: string;
+  skills: string[];
   savedSearches: SavedSearch[];
   saved: string[];
   applied: string[];
