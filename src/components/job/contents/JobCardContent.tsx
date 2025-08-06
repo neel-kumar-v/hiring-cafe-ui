@@ -78,7 +78,6 @@ const JobCardContent = memo(({
           companyName={currentJob.v5_processed_company_data.name}
           compensation={compensation}
           jobTitle={currentJob.job_information.title}
-          postedAt={currentJob.v5_processed_job_data.estimated_publish_date}
           workplaceCities={currentJob.v5_processed_job_data.workplace_cities}
           workType={currentJob.v5_processed_job_data.workplace_type}
         />

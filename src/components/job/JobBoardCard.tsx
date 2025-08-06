@@ -1,16 +1,16 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { Job, JobCollection } from "@/types/job";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
-// import CardCompanyJobs from "./card/CardCompanyJobs";
-import { useApp } from "@/contexts/AppContext";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
 import CardNavigation from "./card/CardNavigation";
 import CardStats from "./card/CardStats";
 import CardSwipeIndicator from "./card/CardSwipeIndicator";
+import ScrapeTime from "./util/ScrapeTime";
 
 const JobCardContent = dynamic(() => import("./contents/JobCardContent"), {
   loading: () => null,
@@ -100,7 +100,12 @@ const JobCard = memo(({
             ) : (
               <div className="col-span-1"></div>
             )}
-            {/* <CardCompanyJobs /> */}
+            {/* <CardSkillMatch technicalTools={currentJob.v5_processed_job_data.technical_tools} /> */}
+            <ScrapeTime
+              postedAt={currentJob.v5_processed_job_data.estimated_publish_date}
+              iconClassName="w-3 h-3"
+              textClassName="text-xs"
+            />
           </div>
         </CardContent>
       </Card>
@@ -297,3 +302,4 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
 JobBoardCard.displayName = "JobBoardCard";
 
 export default JobBoardCard;
+

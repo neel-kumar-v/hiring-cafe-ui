@@ -56,22 +56,20 @@ export default function SavedSearches() {
   };
 
   const handleSaveSearch = () => {
-    const existingSearch = user.savedSearches.find(saved => 
-      JSON.stringify(saved.searchState) === JSON.stringify(searchOptions)
-    );
-    
-    if (existingSearch) {
-      toast.error(`This search already exists with name "${existingSearch.name}"`);
-      return;
+    // Clear any current editing state first
+    if (editingId) {
+      handleEditSave(editingId);
     }
-
-    saveCurrentSearch("New Search");
-    const newId = currentSavedSearchId;
+    
+    const newId = saveCurrentSearch("New Search");
+    
+    // Start editing the new search immediately
     if (newId) {
       setTimeout(() => {
         handleEditStart(newId, "New Search");
       }, 0);
     }
+    
     toast.success("Search saved successfully!");
   };
 

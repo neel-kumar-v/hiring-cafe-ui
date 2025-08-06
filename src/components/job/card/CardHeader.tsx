@@ -10,7 +10,8 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getCleanJobTitle, getCompensation, getLocations } from "@/lib/job-info";
 import { CompensationRange } from "@/types/job";
 import { DollarSign, MapPin } from "lucide-react";
-import ScrapeTime from "../util/ScrapeTime";
+import CardSkillMatch from "./CardSkillMatch";
+import { useMemo } from "react";
 
 const CardHeader = ({
   jobTitle,
@@ -19,7 +20,6 @@ const CardHeader = ({
   commitments,
   workType,
   compensation,
-  postedAt,
   tools,
 }: {
   jobTitle: string;
@@ -28,7 +28,6 @@ const CardHeader = ({
   commitments: string[];
   workType: string;
   compensation: CompensationRange;
-  postedAt: string;
   tools: string[];
 }) => {
   const isDesktop = useMediaQuery("(min-width: 728px)");
@@ -42,6 +41,10 @@ const CardHeader = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const possibleHeights = "pointer-fine:group-hover:max-h-36 pointer-fine:group-hover:max-h-30 pointer-fine:group-hover:max-h-24 pointer-fine:group-hover:max-h-18 pointer-fine:group-hover:max-h-12 pointer-fine:group-hover:max-h-6"
 
+  const skillMatchComponent = useMemo(() => {
+    return <CardSkillMatch technicalTools={tools} />
+  }, [tools]);  
+
   return (
     <div className="mb-4">
       <div className="flex flex-row justify-between items-center">
@@ -51,7 +54,8 @@ const CardHeader = ({
               {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </MorphingJobTitle>
             <MorphingTime className="flex items-center space-x-1 -translate-y-0.5">
-              <ScrapeTime postedAt={postedAt} />
+              {/* <ScrapeTime postedAt={postedAt} /> */}  
+              {skillMatchComponent}
             </MorphingTime>
           </>
         ) : (
@@ -60,7 +64,8 @@ const CardHeader = ({
               {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
             </div>
             <div className="flex items-center space-x-1 -translate-y-0.5">
-              <ScrapeTime postedAt={postedAt} />
+              {/* <ScrapeTime postedAt={postedAt} /> */}
+              {skillMatchComponent}
             </div>
           </>
         )}
