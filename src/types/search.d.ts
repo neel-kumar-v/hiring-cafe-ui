@@ -1,5 +1,5 @@
 export interface SortOptions {
-  by: "Relevance" | "Recency" | "Salary" | "Experience";
+  by: "Relevance" | "Recency" | "Salary" | "Experience" | "Match Score";
   order: "Most" | "Least";
 }
 export type TimeUnits =

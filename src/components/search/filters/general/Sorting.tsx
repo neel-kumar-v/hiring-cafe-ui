@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
 
 
-type SortCategory = "relevance" | "recent" | "salary" | "experience";
+type SortCategory = "relevance" | "recent" | "salary" | "experience" | "matchScore";
 
 export default function Sorting() {
   const { isDarkMode } = useDarkMode();
@@ -20,7 +20,8 @@ export default function Sorting() {
       Relevance: "relevance",
       Recency: "recent", 
       Salary: "salary",
-      Experience: "experience"
+      Experience: "experience",
+      "Match Score": "matchScore"
     };
     return categoryMap[searchOptions.sort.by] || "relevance";
   });
@@ -30,11 +31,12 @@ export default function Sorting() {
   });
 
   useEffect(() => {
-    const categoryMap: Record<SortCategory, "Relevance" | "Recency" | "Salary" | "Experience"> = {
+    const categoryMap: Record<SortCategory, "Relevance" | "Recency" | "Salary" | "Experience" | "Match Score"> = {
       relevance: "Relevance",
       recent: "Recency",
       salary: "Salary", 
-      experience: "Experience"
+      experience: "Experience",
+      matchScore: "Match Score"
     };
     
     updateSearchOptions({
@@ -75,6 +77,10 @@ export default function Sorting() {
               if (value === "relevance") {
                 setIsAscending(true);
               }
+              // Default to "Most" (highest match score first) when selecting Match Score
+              if (value === "matchScore") {
+                setIsAscending(true);
+              }
             }}
             value={sortCategory}
           >
@@ -86,6 +92,7 @@ export default function Sorting() {
               <SelectItem value="recent">Recent</SelectItem>
               <SelectItem value="salary">Salary</SelectItem>
               <SelectItem value="experience">Experience</SelectItem>
+              <SelectItem value="matchScore">Match Score</SelectItem>
             </SelectContent>
           </Select>
         </div>

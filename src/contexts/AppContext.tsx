@@ -27,6 +27,10 @@ interface AppContextType {
   addJob: (jobId: string, status: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
   removeJob: (jobId: string, status: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
   moveJob: (jobId: string, fromStatus: "saved" | "applied" | "interviewing" | "rejected" | "hidden", toStatus: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
+
+  // Skill management
+  addSkill: (skill: string) => void;
+  removeSkill: (skill: string) => void;
 }
 
 
@@ -153,6 +157,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const addSkill = (skill: string) => {
+    setUser(prev => ({
+      ...prev,
+      skills: [...prev.skills, skill].filter((s, i, arr) => arr.indexOf(s) === i) // Remove duplicates
+    }));
+  };
+
+  const removeSkill = (skill: string) => {
+    setUser(prev => ({
+      ...prev,
+      skills: prev.skills.filter(s => s !== skill)
+    }));
+  };
+
  
   
 
@@ -179,7 +197,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Job state
         addJob,
         removeJob,
-        moveJob
+        moveJob,
+
+        // Skill management
+        addSkill,
+        removeSkill
       }}
     >
       {children}
