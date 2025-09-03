@@ -39,38 +39,38 @@ export const StatGroup = ({
         iconClassName={iconClassName}
         textClassName={textClassName}
       />
-      <UniversalTooltip
-        content={
-          isBookmarked
-            ? "You have saved this job"
-            : savedCount === 0
-              ? "Be the first to save this job!"
+      {savedCount > 0 && (
+        <UniversalTooltip
+          content={
+            isBookmarked
+              ? "You have saved this job"
               : `Saved by ${savedCount} users`
-        }
-        side="bottom"
-      >
-        <span
-          className="flex cursor-pointer items-center space-x-1"
-          onClick={handleBookmarkClick}
+          }
+          side="bottom"
         >
-          {isBookmarked ? (
-            <Bookmark
-              className={cn(
-                "inline fill-current text-pink-500 dark:text-pink-400",
-                iconClassName
-              )}
-            />
-          ) : (
-            <Bookmark
-              className={cn(
-                "inline text-neutral-500 dark:text-neutral-400",
-                iconClassName
-              )}
-            />
-          )}
-          <span className={textClassName}>{savedCount}</span>
-        </span>
-      </UniversalTooltip>
+          <span
+            className="flex cursor-pointer items-center space-x-1"
+            onClick={handleBookmarkClick}
+          >
+            {isBookmarked ? (
+              <Bookmark
+                className={cn(
+                  "inline fill-current text-pink-500 dark:text-pink-400",
+                  iconClassName
+                )}
+              />
+            ) : (
+              <Bookmark
+                className={cn(
+                  "inline text-neutral-500 dark:text-neutral-400",
+                  iconClassName
+                )}
+              />
+            )}
+            <span className={textClassName}>{savedCount}</span>
+          </span>
+        </UniversalTooltip>
+      )}
       <UniversalTooltip
         content={
           isApplied
@@ -105,33 +105,22 @@ export const StatGroup = ({
           <span className={textClassName}>{appliedCount}</span>
         </a>
       </UniversalTooltip>
-      <UniversalTooltip
-        content={
-          isInterviewing
-            ? "You are interviewing for this job"
-            : "No hiring.cafe users have marked that they are interviewing for this job"
-        }
-        side="bottom"
-      >
-        <span className="flex items-center space-x-1">
-          {isInterviewing ? (
+      {isInterviewing && (
+        <UniversalTooltip
+          content="You are interviewing for this job"
+          side="bottom"
+        >
+          <span className="flex items-center space-x-1">
             <PhoneOutgoingIcon
               className={cn(
                 "inline fill-pink-500 text-pink-500 dark:fill-pink-400 dark:text-pink-400",
                 iconClassName
               )}
             />
-          ) : (
-            <PhoneOutgoingIcon
-              className={cn(
-                "inline text-neutral-500 dark:text-neutral-400",
-                iconClassName
-              )}
-            />
-          )}
-          <span className={textClassName}>{isInterviewing ? 1 : 0}</span>
-        </span>
-      </UniversalTooltip>
+            <span className={textClassName}>1</span>
+          </span>
+        </UniversalTooltip>
+      )}
     </>
   );
 };

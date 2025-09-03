@@ -27,7 +27,7 @@ const JobBoard = () => {
 
   const allJobCollections = useMemo(() => {
     const collectionsMap = new Map<string, JobCollection>();
-    const results = jobsData.results;
+    const results = jobsData.jobs;
     const len = results.length;
 
     for (let i = 0; i < len; i++) {
