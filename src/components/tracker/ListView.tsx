@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Card } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
@@ -10,12 +10,12 @@ import { ListJobCardContents } from "../job/contents";
 
 const JobDialogContent = dynamic(() => import("../job/contents/JobDialogContent"), {
   loading: () => null,
-  ssr: false
+  ssr: false,
 });
 
 const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"), {
   loading: () => null,
-  ssr: false
+  ssr: false,
 });
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
@@ -27,13 +27,13 @@ interface ListViewProps {
   onMoveJob?: (jobId: string, fromStatus: JobCategory, toStatus: JobCategory) => void;
 }
 
-const ListViewJobCard = ({ 
-  job, 
-  currentStage, 
+const ListViewJobCard = ({
+  job,
+  currentStage,
   onMoveJob,
-  onJobClick
-}: { 
-  job: Job; 
+  onJobClick,
+}: {
+  job: Job;
   currentStage: JobCategory;
   onMoveJob?: (jobId: string, fromStatus: JobCategory, toStatus: JobCategory) => void;
   onJobClick: (job: Job) => void;
@@ -47,9 +47,10 @@ const ListViewJobCard = ({
 
   const handleBookmarkToggle = useCallback(() => {
     if (isBookmarked) {
-      if (user.saved.includes(job.id)) onMoveJob?.(job.id, "saved", "saved");
-      if (user.applied.includes(job.id)) onMoveJob?.(job.id, "applied", "saved");
-      if (user.interviewing.includes(job.id)) onMoveJob?.(job.id, "interviewing", "saved");
+      // Remove from all bookmark-related states
+      if (user.saved.includes(job.id)) onMoveJob?.(job.id, "saved", "hidden");
+      if (user.applied.includes(job.id)) onMoveJob?.(job.id, "applied", "hidden");
+      if (user.interviewing.includes(job.id)) onMoveJob?.(job.id, "interviewing", "hidden");
     } else {
       onMoveJob?.(job.id, currentStage, "saved");
     }
@@ -76,20 +77,12 @@ const ListViewJobCard = ({
           onBookmarkToggle={handleBookmarkToggle}
         >
           <div onClick={() => onJobClick(job)}>
-            <ListJobCardContents
-              job={job}
-              currentStage={currentStage}
-              onMoveJob={onMoveJob}
-            />
+            <ListJobCardContents job={job} currentStage={currentStage} onMoveJob={onMoveJob} />
           </div>
         </JobDialogContent>
       ) : (
         <div onClick={() => onJobClick(job)}>
-          <ListJobCardContents
-            job={job}
-            currentStage={currentStage}
-            onMoveJob={onMoveJob}
-          />
+          <ListJobCardContents job={job} currentStage={currentStage} onMoveJob={onMoveJob} />
         </div>
       )}
     </Card>
@@ -102,47 +95,44 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useApp();
 
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = jobs.filter((job) => {
     const status = getJobStatus(job.id);
     return visibleCategories?.[status] ?? true;
   });
 
-  const handleJobClick = useCallback((job: Job) => {
-    setSelectedJob(job);
-    if (!isDesktop) {
-      setDrawerOpen(true);
-    }
-  }, [isDesktop]);
+  const handleJobClick = useCallback(
+    (job: Job) => {
+      setSelectedJob(job);
+      if (!isDesktop) {
+        setDrawerOpen(true);
+      }
+    },
+    [isDesktop]
+  );
 
   const handleDrawerClose = useCallback(() => {
     setDrawerOpen(false);
     setSelectedJob(null);
   }, []);
 
-  const isBookmarked = useMemo(() => 
-    selectedJob ? (
-      user.saved.includes(selectedJob.id) || 
-      user.applied.includes(selectedJob.id) || 
-      user.interviewing.includes(selectedJob.id)
-    ) : false,
+  const isBookmarked = useMemo(
+    () => (selectedJob ? user.saved.includes(selectedJob.id) || user.applied.includes(selectedJob.id) || user.interviewing.includes(selectedJob.id) : false),
     [user.saved, user.applied, user.interviewing, selectedJob]
   );
 
-  const isApplied = useMemo(() => 
-    selectedJob ? (
-      user.applied.includes(selectedJob.id) || 
-      user.interviewing.includes(selectedJob.id)
-    ) : false,
+  const isApplied = useMemo(
+    () => (selectedJob ? user.applied.includes(selectedJob.id) || user.interviewing.includes(selectedJob.id) : false),
     [user.applied, user.interviewing, selectedJob]
   );
 
   const handleBookmarkToggle = useCallback(() => {
     if (!selectedJob) return;
-    
+
     if (isBookmarked) {
-      if (user.saved.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "saved", "saved");
-      if (user.applied.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "applied", "saved");
-      if (user.interviewing.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "interviewing", "saved");
+      // Remove from all bookmark-related states
+      if (user.saved.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "saved", "hidden");
+      if (user.applied.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "applied", "hidden");
+      if (user.interviewing.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "interviewing", "hidden");
     } else {
       onMoveJob?.(selectedJob.id, getJobStatus(selectedJob.id), "saved");
     }
@@ -150,7 +140,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
 
   const handleApplyToggle = useCallback(() => {
     if (!selectedJob) return;
-    
+
     if (isApplied) {
       if (user.applied.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "applied", "saved");
       if (user.interviewing.includes(selectedJob.id)) onMoveJob?.(selectedJob.id, "interviewing", "saved");
@@ -162,13 +152,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
   return (
     <div className="h-full overflow-y-auto">
       {filteredJobs.map((job) => (
-        <ListViewJobCard 
-          key={job.id} 
-          job={job} 
-          currentStage={getJobStatus(job.id)}
-          onMoveJob={onMoveJob}
-          onJobClick={handleJobClick}
-        />
+        <ListViewJobCard key={job.id} job={job} currentStage={getJobStatus(job.id)} onMoveJob={onMoveJob} onJobClick={handleJobClick} />
       ))}
 
       {selectedJob && !isDesktop && (
@@ -188,4 +172,4 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
 
 ListView.displayName = "ListView";
 
-export default ListView; 
+export default ListView;

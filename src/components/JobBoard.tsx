@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 const JobBoardCard = dynamic(() => import("./job/JobBoardCard"), {
-    ssr: false
+  ssr: false,
 });
 
 const JobBoard = () => {
@@ -33,7 +33,7 @@ const JobBoard = () => {
     for (let i = 0; i < len; i++) {
       const job = results[i];
       const companyName = job.v5_processed_company_data?.name || job.v5_processed_job_data.company_name || "Unknown Company";
-      
+
       let collection = collectionsMap.get(companyName);
       if (!collection) {
         collection = {
@@ -60,7 +60,7 @@ const JobBoard = () => {
 
   const loadMoreItems = () => {
     if (isLoading || loadedCount >= allJobCollections.length) return;
-    
+
     setIsLoading(true);
     setTimeout(() => {
       const newCount = Math.min(loadedCount + 8, allJobCollections.length);
@@ -80,30 +80,21 @@ const JobBoard = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [loadedCount, isLoading]);
 
   return (
     <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 min-h-screen">
       {displayedCollections.map((collection) => {
-        const companyName = collection.jobs[0]?.v5_processed_company_data?.name || 
-                           collection.jobs[0]?.v5_processed_job_data.company_name || 
-                           collection.source_and_board_token;
+        const companyName = collection.jobs[0]?.v5_processed_company_data?.name || collection.jobs[0]?.v5_processed_job_data.company_name || collection.source_and_board_token;
         return (
           <Suspense key={companyName} fallback={<div className="text-center py-8 text-gray-500">Loading...</div>}>
-            <JobBoardCard 
-              jobCollection={collection}
-              data-job-card="true"
-            />
+            <JobBoardCard jobCollection={collection} data-job-card="true" />
           </Suspense>
         );
       })}
-      {isLoading && (
-        <div className="col-span-full text-center py-4 text-gray-500">
-          Loading more jobs...
-        </div>
-      )}
+      {isLoading && <div className="col-span-full text-center py-4 text-gray-500">Loading more jobs...</div>}
     </div>
   );
 };
