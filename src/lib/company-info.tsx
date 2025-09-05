@@ -44,7 +44,10 @@ const imageBackgroundCache = new Map<string, Promise<"light" | "dark" | null>>()
 
 export const analyzeImageBackground = async (imageUrl: string): Promise<"light" | "dark" | null> => {
   if (imageBackgroundCache.has(imageUrl)) {
-    return imageBackgroundCache.get(imageUrl)!;
+    const cachedPromise = imageBackgroundCache.get(imageUrl);
+    if (cachedPromise) {
+      return cachedPromise;
+    }
   }
   const promise = (async () => {
     try {
@@ -106,8 +109,14 @@ export const analyzeImageBackground = async (imageUrl: string): Promise<"light" 
       return null;
     }
   })();
-  imageBackgroundCache.set(imageUrl, promise);
-  return promise;
+
+  try {
+    imageBackgroundCache.set(imageUrl, promise);
+    return promise;
+  } catch (error) {
+    console.warn("Failed to cache image analysis promise:", error);
+    return promise;
+  }
 };
 
 export const getImageBackgroundClass = (imageUrl: string | null, imageError: boolean, backgroundType: "light" | "dark" | null): string => {

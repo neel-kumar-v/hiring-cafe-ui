@@ -29,16 +29,16 @@ export default function TrackerPage() {
   useEffect(() => {
     const loadJobs = async () => {
       try {
-        const response = await fetch('/api/jobs');
+        const response = await fetch("/api/jobs");
         if (response.ok) {
           const data = await response.json();
-          const jobsData = data.results || [];
+          const jobsData = data.jobs || [];
           setJobs(jobsData);
         } else {
-          console.error('Failed to load jobs');
+          console.error("Failed to load jobs");
         }
       } catch (error) {
-        console.error('Error loading jobs:', error);
+        console.error("Error loading jobs:", error);
       } finally {
         setLoading(false);
       }
@@ -60,38 +60,29 @@ export default function TrackerPage() {
   };
 
   // First, filter to only include jobs that are in the user's arrays
-  const userJobs = jobs.filter(job => {
-    const allJobIds = new Set([
-      ...user.saved,
-      ...user.applied,
-      ...user.interviewing,
-      ...user.rejected,
-      ...user.hidden,
-    ]);
+  const userJobs = jobs.filter((job) => {
+    const allJobIds = new Set([...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden]);
     return allJobIds.has(job.id);
   });
 
   // Then apply search filter to user jobs only
-  const filteredJobs = userJobs.filter(job => {
+  const filteredJobs = userJobs.filter((job) => {
     if (!searchQuery.trim()) return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     const titleMatch = job.job_information.title.toLowerCase().includes(searchLower);
     const companyMatch = job.v5_processed_company_data.name?.toLowerCase().includes(searchLower);
-    const locationMatch = job.v5_processed_job_data.workplace_cities.some(city => 
-      city.toLowerCase().includes(searchLower)
-    );
-    
+    const locationMatch = job.v5_processed_job_data.workplace_cities.some((city) => city.toLowerCase().includes(searchLower));
+
     return titleMatch || companyMatch || locationMatch;
   });
 
   const handleCategoryToggle = (category: JobCategory) => {
-    setVisibleCategories(prev => ({
+    setVisibleCategories((prev) => ({
       ...prev,
-      [category]: !prev[category]
+      [category]: !prev[category],
     }));
   };
-
 
   const getEffectiveViewMode = () => {
     return isLargeScreen ? viewMode : "list";
@@ -102,9 +93,7 @@ export default function TrackerPage() {
       <div className="min-h-[calc(100vh-4.5rem)] bg-white dark:bg-neutral-900">
         <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <div className="text-center py-16">
-            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
-              Loading...
-            </h1>
+            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">Loading...</h1>
           </div>
         </div>
       </div>
@@ -118,47 +107,19 @@ export default function TrackerPage() {
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
             Job Tracker
             <p className="text-neutral-500 dark:text-neutral-400 text-sm font-normal">
-                Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
+              Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
             </p>
           </h1>
 
           <div className="space-y-4 flex lg:flex-row flex-col gap-2">
-            <SearchBar
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
+            <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
             <div className="flex gap-2">
-              <CategoryToggle
-                category="saved"
-                isActive={visibleCategories.saved}
-                onToggle={handleCategoryToggle}
-                icon={<BookmarkIcon className="size-4"/>}
-              />
-              <CategoryToggle
-                category="applied"
-                isActive={visibleCategories.applied}
-                onToggle={handleCategoryToggle}
-                icon={<SendIcon className="size-4"/>}
-              />
-              <CategoryToggle
-                category="interviewing"
-                isActive={visibleCategories.interviewing}
-                onToggle={handleCategoryToggle}
-                icon={<PhoneOutgoingIcon className="size-4"/>}
-              />
-              <CategoryToggle
-                category="rejected"
-                isActive={visibleCategories.rejected}
-                onToggle={handleCategoryToggle}
-                icon={<XIcon className="size-4"/>}
-              />
-              <CategoryToggle
-                category="hidden"
-                isActive={visibleCategories.hidden}
-                onToggle={handleCategoryToggle}
-                icon={<EyeOffIcon className="size-4"/>}
-              />
+              <CategoryToggle category="saved" isActive={visibleCategories.saved} onToggle={handleCategoryToggle} icon={<BookmarkIcon className="size-4" />} />
+              <CategoryToggle category="applied" isActive={visibleCategories.applied} onToggle={handleCategoryToggle} icon={<SendIcon className="size-4" />} />
+              <CategoryToggle category="interviewing" isActive={visibleCategories.interviewing} onToggle={handleCategoryToggle} icon={<PhoneOutgoingIcon className="size-4" />} />
+              <CategoryToggle category="rejected" isActive={visibleCategories.rejected} onToggle={handleCategoryToggle} icon={<XIcon className="size-4" />} />
+              <CategoryToggle category="hidden" isActive={visibleCategories.hidden} onToggle={handleCategoryToggle} icon={<EyeOffIcon className="size-4" />} />
             </div>
 
             {isLargeScreen && (
@@ -168,23 +129,15 @@ export default function TrackerPage() {
             )}
           </div>
         </div>
-        
+
         <div className="h-[calc(100vh-250px)]">
           {getEffectiveViewMode() === "board" ? (
-            <KanbanBoard 
-              jobs={filteredJobs} 
-              visibleCategories={visibleCategories}
-            />
+            <KanbanBoard jobs={filteredJobs} visibleCategories={visibleCategories} />
           ) : (
-            <ListView 
-              jobs={filteredJobs}
-              visibleCategories={visibleCategories}
-              getJobStatus={getJobStatus}
-              onMoveJob={handleMoveJob}
-            />
+            <ListView jobs={filteredJobs} visibleCategories={visibleCategories} getJobStatus={getJobStatus} onMoveJob={handleMoveJob} />
           )}
         </div>
       </div>
     </div>
   );
-} 
+}
