@@ -1,45 +1,88 @@
-import csv
 import os
+import time
+import threading
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 
-def read_job_links_from_csv(csv_file_path="job_links.csv"):
+def read_job_links_from_txt(txt_file_path="job_links.txt"):
     """
-    Read job links from the CSV file.
-    Returns a list of tuples (job_title, application_link, company_name, location).
+    Read job links from the TXT file.
+    Returns a list of job links.
     """
     job_links = []
     
-    if not os.path.exists(csv_file_path):
-        print(f"CSV file not found: {csv_file_path}")
-        print("Please run extract_links.py first to generate job_links.csv")
+    if not os.path.exists(txt_file_path):
+        print(f"TXT file not found: {txt_file_path}")
+        print("Please run extract_links.py first to generate job_links.txt")
         return job_links
     
     try:
-        with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                job_title = row['Job Title']
-                application_link = row['Application Link']
-                company_name = row['Company']
-                location = row['Location']
-                job_links.append((job_title, application_link, company_name, location))
+        with open(txt_file_path, 'r', encoding='utf-8') as txtfile:
+            for line in txtfile:        
+                line = line.strip()  # Remove whitespace and newlines
+                if line:  # Only add non-empty lines
+                    job_links.append(line)
     except Exception as e:
-        print(f"Error reading CSV file: {e}")
+        print(f"Error reading TXT file: {e}")
         return job_links
     
-    print(f"Loaded {len(job_links)} job links from CSV")
+    print(f"Loaded {len(job_links)} job links from TXT")
+    
     return job_links
+
+def open_job_links_batch(driver, job_links, start_index, batch_size, total_links):
+    """
+    Open a batch of job links in new tabs.
+    """
+    end_index = min(start_index + batch_size, len(job_links))
+    
+    for i in range(start_index, end_index):
+        application_link = job_links[i].strip()  # Remove any whitespace/newlines
+        print(f"{i+1}/{total_links}: {application_link}")
+        
+        try:
+            # Open new tab
+            driver.execute_script("window.open('');")
+            driver.switch_to.window(driver.window_handles[-1])
+            driver.get(application_link)
+        except Exception as e:
+            print(f"Error opening link: {e}")
+
+def monitor_tabs_and_refill(driver, job_links, current_index, total_links):
+    """
+    Monitor the number of open tabs and open more when only 1 tab is left.
+    """
+    while current_index < len(job_links):
+        try:
+            # Count open tabs
+            open_tabs = len(driver.window_handles)
+            
+            if open_tabs <= 1 and current_index < len(job_links):
+                print(f"\nOnly {open_tabs} tab(s) left. Opening next 10 tabs...")
+                
+                # Open next 10 tabs (or remaining tabs if less than 10)
+                batch_size = min(10, len(job_links) - current_index)
+                open_job_links_batch(driver, job_links, current_index, batch_size, total_links)
+                current_index += batch_size
+                
+                print(f"Opened {batch_size} more tabs. Total opened: {current_index}/{total_links}")
+            
+            # Check every 5 seconds
+            time.sleep(5)
+            
+        except Exception as e:
+            print(f"Error monitoring tabs: {e}")
+            time.sleep(5)
 
 def open_all_job_links(job_links):
     """
-    Open all job links in Chrome with extensions preserved.
-    All links open in one window with multiple tabs.
+    Open job links in Chrome with extensions preserved.
+    Opens 10 tabs initially, then opens 10 more when only 1 tab is left.
     """
-    print(f"Opening {len(job_links)} job application links in Chrome...")
+    print(f"Opening job application links in Chrome...")
     print("Extensions will be preserved!")
-    print("All links will open in one window with multiple tabs.")
+    print("Will open 10 tabs initially, then 10 more when only 1 tab is left.")
     
     # Chrome options to preserve extensions and user data
     options = Options()
@@ -66,29 +109,23 @@ def open_all_job_links(job_links):
         service = ChromeService(executable_path=r"C:\Drivers\Chrome\chromedriver-win64\chromedriver.exe")
         driver = webdriver.Chrome(service=service, options=options)
         
-        print("Opening all job application links...")
+        print("Opening initial 10 job application links...")
         
-        # Open first link in current tab
-        if job_links:
-            first_job = job_links[0]
-            print(f"1/{len(job_links)}: {first_job[0]} at {first_job[2]}")
-            driver.get(first_job[1])
+        # Open first 10 links (or all if less than 10)
+        initial_batch_size = min(10, len(job_links))
+        open_job_links_batch(driver, job_links, 0, initial_batch_size, len(job_links))
         
-        # Open remaining links in new tabs (no delays)
-        for i in range(1, len(job_links)):
-            job_title, application_link, company_name, location = job_links[i]
-            print(f"{i+1}/{len(job_links)}: {job_title} at {company_name}")
-            
-            try:
-                # Open new tab
-                driver.execute_script("window.open('');")
-                driver.switch_to.window(driver.window_handles[-1])
-                driver.get(application_link)
-            except Exception as e:
-                print(f"Error opening link: {e}")
+        current_index = initial_batch_size
+        print(f"\nSuccessfully opened {initial_batch_size} job application tabs!")
+        print("Monitoring tabs... Will open 10 more when only 1 tab is left.")
         
-        print(f"\nSuccessfully opened {len(job_links)} job application tabs!")
-        print("Chrome will remain open. Close it manually when you're done applying.")
+        # Start monitoring thread
+        monitor_thread = threading.Thread(
+            target=monitor_tabs_and_refill, 
+            args=(driver, job_links, current_index, len(job_links))
+        )
+        monitor_thread.daemon = True
+        monitor_thread.start()
         
         # Keep the browser open for user interaction
         input("Press Enter to close all Chrome windows...")
@@ -102,8 +139,8 @@ def main():
     print("Job Application Link Opener")
     print("=" * 40)
     
-    # Read job links from CSV
-    job_links = read_job_links_from_csv()
+    # Read job links from TXT
+    job_links = read_job_links_from_txt("C:\\Users\\green\\Downloads\\saved-application-links(1).txt")
     
     if not job_links:
         print("No job links found. Please run extract_links.py first.")
