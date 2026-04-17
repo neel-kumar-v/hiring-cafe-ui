@@ -1,250 +1,223 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { PencilIcon, SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { settingsCategories } from "@/data/search-filters";
-import { CategoryId, CategoryType } from "@/types/search";
-import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { useApp } from "@/contexts/AppContext";
+import { getEditedTags, initialSearchState } from "@/lib/edited-filters";
+import { FocusedFilterProvider, useFocusedFilter } from "@/lib/focused-filter";
+import type { CategoryType } from "@/types/search";
+import { filters } from "@/data/search-filters";
 import {
-  AvailabilityOptions,
-  CompanyOptions,
-  CompensationOptions,
-  GeneralOptions,
-  LocationOptions,
-  QualificationsOptions,
-  RoleDepartmentOptions,
-} from "../filters";
+  getGroupedCategories,
+  renderCategoryContent,
+  renderFilteredCategoriesContent,
+  useCategoryState,
+} from ".";
 
 interface SearchDialogContentProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   from?: string;
+  singlePage?: boolean;
 }
-
-
 
 export default function SearchDialogContent({
   open,
   from,
+  singlePage = false,
 }: SearchDialogContentProps) {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType>(() => {
-    if (from) {
-      const category = settingsCategories.find(
-        (cat) =>
-          cat.name.toLowerCase().includes(from.toLowerCase()) ||
-          cat.id.toLowerCase().includes(from.toLowerCase()) ||
-          cat.type.toLowerCase() === from.toLowerCase()
-      );
-      return (
-        (category?.type as CategoryType) ||
-        (settingsCategories[0].type as CategoryType)
-      );
-    }
-    return settingsCategories[0].type as CategoryType;
-  });
-
-  const [scrollToSection, setScrollToSection] = useState<string | undefined>();
-
-  const selectedCategoryData = settingsCategories.find(
-    (cat) => cat.type === selectedCategory
+  const { searchOptions } = useApp();
+  const editedTags = useMemo(
+    () => getEditedTags(searchOptions, initialSearchState),
+    [searchOptions]
+  );
+  const categoryState = useCategoryState(from, open, filters[0].type as CategoryType);
+  const clearScrollToSection = useCallback(
+    () => categoryState.setScrollToSection(undefined),
+    [categoryState]
   );
 
+  return (
+    <FocusedFilterProvider>
+      <SearchDialogContentInner
+        editedTags={editedTags}
+        clearScrollToSection={clearScrollToSection}
+        singlePage={singlePage}
+        {...categoryState}
+      />
+    </FocusedFilterProvider>
+  );
+}
+
+function SearchDialogContentInner({
+  editedTags,
+  selectedCategory,
+  scrollToSection,
+  selectedCategoryData,
+  handleFilterSelectWithScroll,
+  handleFilterSelectNoScroll,
+  handleHeaderClick,
+  clearScrollToSection,
+  singlePage,
+}: {
+  editedTags: Set<string>;
+  selectedCategory: CategoryType;
+  scrollToSection: string | undefined;
+  selectedCategoryData: { name: string } | undefined;
+  handleFilterSelectWithScroll: (categoryId: string) => void;
+  handleFilterSelectNoScroll: (categoryId: string) => void;
+  handleHeaderClick: (categoryType: CategoryType) => void;
+  clearScrollToSection: () => void;
+  singlePage: boolean;
+}) {
+  const { focusedFilterId, setFocusedFilterId } = useFocusedFilter();
+  const [sidebarSearch, setSidebarSearch] = useState("");
+
+  const filteredCategories = useMemo(() => {
+    const query = sidebarSearch.trim().toLowerCase();
+    const base = getGroupedCategories();
+
+    if (!query) return base;
+
+    return base
+      .map((category) => {
+        if (category.name.toLowerCase().includes(query)) {
+          return category;
+        }
+
+        const matchingSubfilters = category.categories.filter((item) =>
+          item.name.toLowerCase().includes(query)
+        );
+
+        if (!matchingSubfilters.length) {
+          return null;
+        }
+
+        return {
+          ...category,
+          categories: matchingSubfilters,
+        };
+      })
+      .filter((category): category is (typeof base)[number] => category !== null);
+  }, [sidebarSearch]);
+
   useEffect(() => {
-    if (open && from) {
-      const category = settingsCategories.find(
-        (cat) =>
-          cat.name.toLowerCase().includes(from.toLowerCase()) ||
-          cat.id.toLowerCase().includes(from.toLowerCase()) ||
-          cat.type.toLowerCase() === from.toLowerCase()
-      );
-      if (category && category.type !== selectedCategory) {
-        setSelectedCategory(category.type as CategoryType);
-      }
+    if (scrollToSection) {
+      setFocusedFilterId(scrollToSection);
     }
-  }, [from, open]);
+  }, [scrollToSection, setFocusedFilterId]);
 
-  const handleCategoryClick = (categoryId: CategoryId) => {
-    const category = settingsCategories.find((cat) => cat.id === categoryId);
-
-    if (category?.type) {
-      setSelectedCategory(category.type as CategoryType);
-      setScrollToSection(categoryId);
-    } else {
-      setSelectedCategory(categoryId as CategoryType);
-      setScrollToSection(undefined);
-    }
+  const handleFilterClickWithScroll = (categoryId: string) => {
+    handleFilterSelectWithScroll(categoryId);
+    setFocusedFilterId(categoryId);
   };
 
-  const handleHeaderClick = (categoryType: CategoryType) => {
-    setSelectedCategory(categoryType);
-    setScrollToSection(undefined);
+  const handleHeaderClickWithScroll = (categoryType: CategoryType) => {
+    const firstFilterId = filters.find((category) => category.type === categoryType)?.id ?? null;
+    setFocusedFilterId(firstFilterId);
+    handleHeaderClick(categoryType);
   };
 
+  const handleFilterFocusNoScroll = (categoryId: string) => {
+    handleFilterSelectNoScroll(categoryId);
+    setFocusedFilterId(categoryId);
+  };
 
-  const renderContent = () => {
-    switch (selectedCategory) {
-      case "general":
-        return (
-          <GeneralOptions
-            scrollToSection={scrollToSection}
-            handleCategoryClick={handleCategoryClick}
-          />
-        );
-      case "compensation":
-        return (
-          <CompensationOptions
-            scrollToSection={scrollToSection}
-          />
-        );
-      case "role-department":
-        return (
-          <RoleDepartmentOptions
-            scrollToSection={scrollToSection}
-          />
-        );
-      case "qualifications":
-        return (
-          <QualificationsOptions
-            scrollToSection={scrollToSection}
-          />
-        );
-      case "availability":
-        return (
-          <AvailabilityOptions
-            scrollToSection={scrollToSection}
-          />
-        );
-      case "location":
-        return (
-          <LocationOptions
-            scrollToSection={scrollToSection}
-          />
-        );
-      case "company":
-        return (
-          <CompanyOptions
-            scrollToSection={scrollToSection}
-          />
-        );
-      default:
-        return (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">
-              {selectedCategoryData?.name || "Unknown"}
-            </h3>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              Settings for {selectedCategoryData?.name.toLowerCase()} will be implemented here.
-            </p>
-            <div className="rounded-lg border-2 border-neutral-300 border-dashed p-8 text-center dark:border-neutral-600">
-              <p className="text-neutral-500 dark:text-neutral-400">
-                Content for {selectedCategoryData?.name} will be added later
-              </p>
-            </div>
+  return (
+    <div className="flex h-full min-h-0">
+      <div className="flex w-[220px] flex-col rounded-l-md border-r border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
+        <div className="p-2">
+          <div className="relative">
+            <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              value={sidebarSearch}
+              onChange={(event) => setSidebarSearch(event.target.value)}
+              placeholder="Search filters..."
+              aria-label="Search filters"
+              className="h-8 pl-8 text-xs"
+            />
           </div>
-        );
-    }
-  };
+        </div>
 
-  const renderSidebar = () => {
-    const generalCategories = settingsCategories.filter((cat) => cat.type === "general");
-    const compensationCategories = settingsCategories.filter((cat) => cat.type === "compensation");
-    const roleDepartmentCategories = settingsCategories.filter((cat) => cat.type === "role-department");
-    const qualificationsCategories = settingsCategories.filter((cat) => cat.type === "qualifications");
-    const availabilityCategories = settingsCategories.filter((cat) => cat.type === "availability");
-    const companyCategories = settingsCategories.filter((cat) => cat.type === "company");
-    const locationCategories = settingsCategories.filter((cat) => cat.type === "location");
-
-    const categories = [
-      {
-        name: "General",
-        type: "general" as CategoryType,
-        categories: generalCategories,
-      },
-      {
-        name: "Compensation & Levels",
-        type: "compensation" as CategoryType,
-        categories: compensationCategories,
-      },
-      {
-        name: "Role & Department",
-        type: "role-department" as CategoryType,
-        categories: roleDepartmentCategories,
-      },
-      {
-        name: "Qualifications",
-        type: "qualifications" as CategoryType,
-        categories: qualificationsCategories,
-      },
-      {
-        name: "Availability",
-        type: "availability" as CategoryType,
-        categories: availabilityCategories,
-      },
-      {
-        name: "Location",
-        type: "location" as CategoryType,
-        categories: locationCategories,
-      },
-      {
-        name: "Company",
-        type: "company" as CategoryType,
-        categories: companyCategories,
-      },
-    ];
-
-    return (
-      <div className="w-[200px] flex flex-col border-neutral-200 border-r bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 rounded-l-md py-4">
-        <div className="overflow-y-auto">
-          <div className="space-y-px p-2 pt-0">
-            {categories.map((category) => {
+        <div className="overflow-y-auto overflow-x-hidden pt-1">
+          <div className="space-y-3 p-2 pt-0">
+            {filteredCategories.map((category) => {
               const isSelected = selectedCategory === category.type;
+
               return (
-                <div className="mt-2 first-of-type:mt-0 gap-y-1" key={category.name}>
+                <div key={category.name} className="mt-2 gap-y-1 first-of-type:mt-0">
                   <Button
-                    className={`h-auto w-full transition-all duration-300 ease-in-out justify-start p-2 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:transition-none  ${
-                      isSelected
-                        ? "dark:bg-pink-700 bg-pink-400 text-black dark:text-white dark:hover:bg-pink-800 hover:bg-pink-500"
-                        : ""
-                    }`}
-                    onClick={() => handleHeaderClick(category.type)}
+                    className={cn(
+                      "h-auto w-full justify-start rounded-none p-2 text-left text-black transition-all duration-300 ease-in-out hover:bg-neutral-200 hover:transition-none dark:text-white dark:hover:bg-neutral-700",
+                      isSelected &&
+                        "bg-pink-400 hover:bg-pink-400 dark:bg-pink-700 dark:hover:bg-pink-700"
+                    )}
+                    onClick={() => handleHeaderClickWithScroll(category.type)}
                     variant={isSelected ? "default" : "ghost"}
                   >
                     <h3 className="text-xs font-semibold uppercase tracking-wide">
                       {category.name}
                     </h3>
                   </Button>
-                  {category.categories.map((cat) => (
-                    <Button
-                      className={`h-auto w-full transition-all duration-300 ease-in-out justify-start px-2 py-0.5 my-0.5 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:transition-none ${
-                        !isSelected ? "text-black/75 dark:text-white/75 hover:text-black dark:hover:text-white" : ""
-                      }`}
-                      key={cat.id}
-                      onClick={() => handleCategoryClick(cat.id)}
-                      variant="ghost"
-                    >
-                      <div className="flex flex-col items-start">
-                        <span>{cat.name}</span>
-                      </div>
-                    </Button>
-                  ))}
+
+                  {category.categories.map((item) => {
+                    const isEdited = editedTags.has(item.name);
+                    const isFocused = focusedFilterId === item.id;
+
+                    return (
+                      <Button
+                        key={item.id}
+                        className={cn(
+                          "group h-auto w-full justify-start rounded-none border-l-2 border-neutral-200 px-2 py-1 text-left text-black/75 transition-all duration-300 ease-in-out hover:border-pink-500 hover:bg-neutral-200 hover:text-black hover:transition-none dark:border-neutral-700 dark:text-white/75 dark:hover:border-pink-800 dark:hover:bg-neutral-700 dark:hover:text-white",
+                          isFocused &&
+                            "border-pink-500 bg-neutral-200 text-black dark:border-pink-800 dark:bg-neutral-700 dark:text-white"
+                        )}
+                        onClick={() => handleFilterClickWithScroll(item.id)}
+                        variant="ghost"
+                      >
+                        <span className="flex w-full items-center gap-2">
+                          {item.name}
+                          {isEdited ? (
+                            <PencilIcon
+                              className="size-3 shrink-0 translate-y-px text-black/75 transition-all duration-300 ease-in-out group-hover:text-black group-hover:transition-none dark:text-white/75 dark:group-hover:text-white"
+                              aria-hidden
+                            />
+                          ) : null}
+                        </span>
+                      </Button>
+                    );
+                  })}
                 </div>
               );
             })}
           </div>
         </div>
       </div>
-    );
-  };
 
-  const renderContentArea = () => (
-    <div className="flex-1 flex flex-col overflow-hidden w-full bg-neutral-100 dark:bg-neutral-800 rounded-r-md">
-      <div className="flex-1 overflow-y-auto p-6 py-4 pr-10">{renderContent()}</div>
-    </div>
-  );
-
-  return (
-    <div className="flex h-[90vh]">
-      {renderSidebar()}
-      {renderContentArea()}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-r-md bg-neutral-100 dark:bg-neutral-800">
+        <div className="flex-1 overflow-y-auto p-6 py-4 pr-10">
+          {singlePage
+            ? renderFilteredCategoriesContent(
+                filteredCategories,
+                scrollToSection,
+                handleFilterFocusNoScroll,
+                clearScrollToSection
+              )
+            : renderCategoryContent(
+                selectedCategory,
+                handleFilterFocusNoScroll,
+                selectedCategoryData,
+                {
+                  scrollToSection,
+                  clearScrollToSection,
+                }
+              )}
+        </div>
+      </div>
     </div>
   );
 }

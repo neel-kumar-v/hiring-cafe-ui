@@ -1,10 +1,10 @@
 import { useApp } from "@/contexts/AppContext";
-import { createLicenseCertificationHandler, createLicenseCertificationHideRequiredHandler, getLicensesFromData } from "@/lib/search";
-import { useMemo } from "react";
+import { createLicenseCertificationHandler, createLicenseCertificationHideRequiredHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
+import { useSearchData } from "@/hooks/useSearchData";
 
 export default function Licenses() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -19,15 +19,10 @@ export default function Licenses() {
     updateSearchOptions
   );
 
-  const licenses = useMemo(() => {
-    return getLicensesFromData().map(license => ({
-      label: license,
-      value: license
-    }));
-  }, []);
+  const { options: licenses, loading } = useSearchData("licenses", false);
 
   return (
-    <FilterContainer title="Licenses & Certifications">
+    <FilterContainer categoryId="licenses" title="Licenses & Certifications">
       <LabelInputContainer midColCount={1} lgColCount={1}>
         <LabelCheckbox
           label="Hide Required Licenses"
@@ -35,14 +30,18 @@ export default function Licenses() {
           onChange={handleHideRequiredLicensesChange}
         />
       </LabelInputContainer>
-      <KeywordsMultiSelect
-        value={searchOptions.license_certification.keywords}
-        onChange={handleLicensesChange}
-        includeOptions={licenses}
-        excludeOptions={licenses}
-        includePlaceholder="Include Licenses"
-        excludePlaceholder="Exclude Licenses"
-      />
+      {loading ? (
+        <div className="text-sm text-gray-500">Loading licenses...</div>
+      ) : (
+        <KeywordsMultiSelect
+          value={searchOptions.license_certification.keywords}
+          onChange={handleLicensesChange}
+          includeOptions={licenses}
+          excludeOptions={licenses}
+          includePlaceholder="Include Licenses"
+          excludePlaceholder="Exclude Licenses"
+        />
+      )}
     </FilterContainer>
   );
 } 

@@ -1,159 +1,63 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/contexts/AppContext";
-import { useDarkMode } from "@/contexts/DarkModeContext";
-import { TimeUnits } from "@/types/search";
-import { useEffect, useState } from "react";
+import type { TimeUnits } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
+import LabelInputContainer from "../util/LabelInputContainer";
+import LabelRadio from "../util/LabelRadio";
 
-// Custom debounce hook
-function useDebounce(value: string, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+type DatePreset = {
+  label: string;
+  magnitude: number;
+  unit: TimeUnits;
+};
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+const DATE_PRESETS: DatePreset[] = [
+  { label: "All time", magnitude: 10, unit: "Years" },
+  { label: "Past 24 hours", magnitude: 24, unit: "Hours" },
+  { label: "3 days", magnitude: 3, unit: "Days" },
+  { label: "1 week", magnitude: 1, unit: "Weeks" },
+  { label: "2 weeks", magnitude: 2, unit: "Weeks" },
+  { label: "3 weeks", magnitude: 3, unit: "Weeks" },
+  { label: "1 month", magnitude: 1, unit: "Months" },
+  { label: "2 months", magnitude: 2, unit: "Months" },
+  { label: "3 months", magnitude: 3, unit: "Months" },
+  { label: "4 months", magnitude: 4, unit: "Months" },
+  { label: "5 months", magnitude: 5, unit: "Months" },
+  { label: "6 months", magnitude: 6, unit: "Months" },
+  { label: "1 year", magnitude: 1, unit: "Years" },
+  { label: "2 years", magnitude: 2, unit: "Years" },
+  { label: "3 years", magnitude: 3, unit: "Years" },
+];
 
 export default function DateRange() {
-  const { isDarkMode } = useDarkMode();
   const { searchOptions, updateSearchOptions } = useApp();
-  
-  const [customTimeValue, setCustomTimeValue] = useState(searchOptions.date_range.magnitude.toString());
-  const [customTimeUnit, setCustomTimeUnit] = useState(searchOptions.date_range.unit.toLowerCase());
-  const [isAllTime, setIsAllTime] = useState(false);
 
-  const debouncedTimeValue = useDebounce(customTimeValue, 500);
-
-  const getTimeUnitLimits = (unit: string) => {
-    const limits: { [key: string]: { min: number; max: number } } = {
-      minutes: { min: 1, max: 60 },
-      hours: { min: 1, max: 48 },
-      days: { min: 1, max: 90 },
-      months: { min: 1, max: 24 },
-      years: { min: 1, max: 10 },
-    };
-    return limits[unit] || { min: 1, max: 100 };
-  };
-
-  const handleNumberChange = (value: string) => {
-    const numValue = Number.parseInt(value) || 0;
-    const limits = getTimeUnitLimits(customTimeUnit);
-
-    if (numValue < limits.min) {
-      setCustomTimeValue(limits.min.toString());
-    } else if (numValue > limits.max) {
-      setCustomTimeValue(limits.max.toString());
-    } else {
-      setCustomTimeValue(value);
-    }
-  };
-
-  const handleTimeUnitChangeWithValidation = (unit: string) => {
-    if (unit === "all-time") {
-      setIsAllTime(true);
-      setCustomTimeUnit("days");
-      updateSearchOptions({
-        date_range: {
-          magnitude: 365,
-          unit: "Days"
-        }
-      });
-      return;
-    }
-
-    setIsAllTime(false);
-    setCustomTimeUnit(unit);
-
-    const defaults: { [key: string]: string } = {
-      minutes: "1",
-      hours: "24",
-      days: "3",
-      weeks: "2",
-      years: "1",
-    };
-
-    const newValue = defaults[unit] || "1";
-    setCustomTimeValue(newValue);
-    
-    const timeUnitMap: { [key: string]: TimeUnits } = {
-      minutes: "Minutes",
-      hours: "Hours", 
-      days: "Days",
-      weeks: "Weeks",
-      months: "Months",
-      years: "Years"
-    };
-
-    updateSearchOptions({
-      date_range: {
-        magnitude: parseInt(newValue),
-        unit: timeUnitMap[unit] || "Days"
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (debouncedTimeValue && customTimeUnit && !isAllTime) {
-      const timeUnitMap: { [key: string]: TimeUnits } = {
-        minutes: "Minutes",
-        hours: "Hours", 
-        days: "Days",
-        weeks: "Weeks",
-        months: "Months",
-        years: "Years"
-      };
-
-      updateSearchOptions({
-        date_range: {
-          magnitude: parseInt(debouncedTimeValue),
-          unit: timeUnitMap[customTimeUnit] || "Days"
-        }
-      });
-    }
-  }, [debouncedTimeValue, customTimeUnit, isAllTime]);
+  const currentPreset = DATE_PRESETS.find(
+    (preset) =>
+      preset.magnitude === searchOptions.date_range.magnitude &&
+      preset.unit === searchOptions.date_range.unit
+  );
 
   return (
-    <FilterContainer title="Show jobs from the past">
-      <div className="flex items-center space-x-2">
-        <Input
-          className="w-12  text-center text-text placeholder:text-muted-foreground text-sm ring-0 [-moz-appearance:textfield]  [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-          disabled={isAllTime}
-          max={getTimeUnitLimits(customTimeUnit).max}
-          min={getTimeUnitLimits(customTimeUnit).min}
-          onChange={(e) => handleNumberChange(e.target.value)}
-          placeholder="Enter number"
-          type="number"
-          value={customTimeValue}
-        />
-        <Select
-          onValueChange={handleTimeUnitChangeWithValidation}
-          value={isAllTime ? "all-time" : customTimeUnit}
-        >
-          <SelectTrigger className="w-full text-text placeholder:text-muted-foreground text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className={isDarkMode ? "dark" : ""}>
-            <SelectItem value="all-time">All time</SelectItem>
-            <SelectItem value="minutes">Minutes</SelectItem>
-            <SelectItem value="hours">Hours</SelectItem>
-            <SelectItem value="days">Days</SelectItem>
-            <SelectItem value="weeks">Weeks</SelectItem>
-            <SelectItem value="months">Months</SelectItem>
-            <SelectItem value="years">Years</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <FilterContainer categoryId="date-range" title="Show jobs from the past">
+      <LabelInputContainer midColCount={3} lgColCount={3}>
+        {DATE_PRESETS.map((preset) => (
+          <LabelRadio
+            key={preset.label}
+            label={preset.label}
+            checked={currentPreset?.label === preset.label}
+            onChange={() =>
+              updateSearchOptions({
+                date_range: {
+                  magnitude: preset.magnitude,
+                  unit: preset.unit,
+                },
+              })
+            }
+          />
+        ))}
+      </LabelInputContainer>
     </FilterContainer>
   );
-} 
+}

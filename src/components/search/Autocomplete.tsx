@@ -1,23 +1,25 @@
 "use client";
 
-import { Eye, EyeOff, Search, X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Search, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import UniversalTooltip from "../util/UniversalTooltip";
-import SearchFilters from "./SearchFilters";
+import { cn } from "@/lib/utils";
 
 interface AutocompleteProps {
-  options: string[];
   value: string;
   onChange: (value: string) => void;
+  options?: string[];
   placeholder?: string;
   className?: string;
   maxTotal?: number;
-  onIconClick?: (category: string) => void;
+  showClearButton?: boolean;
+  onClear?: () => void;
+  onFocus?: () => void;
+  iconButtons?: React.ReactNode;
+  locationButton?: React.ReactNode;
+  salaryButton?: React.ReactNode;
 }
 
-// Component for individual autocomplete option
 interface AutocompleteOptionProps {
   option: string;
   index: number;
@@ -34,15 +36,15 @@ function AutocompleteOption({
   isMobile = false,
 }: AutocompleteOptionProps) {
   const baseClasses = isMobile
-    ? "px-4 py-3 cursor-pointer text-base transition-colors border-b border-neutral-100 dark:border-neutral-800"
-    : "px-3 py-2 cursor-pointer text-sm transition-colors";
+    ? "px-4 py-3 cursor-pointer text-base border-b border-neutral-100 dark:border-neutral-800"
+    : "px-3 py-2 cursor-pointer text-sm transition-colors duration-300 hover:transition-none hover:cursor-pointer";
 
   const highlightClasses =
     index === highlightedIndex
       ? "bg-pink-100 dark:bg-pink-900 text-pink-900 dark:text-pink-100"
       : isMobile
-        ? "hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white"
-        : "hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white";
+        ? "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white"
+        : "hover:bg-neutral-100 dark:hover:bg-neutral-700/25 text-neutral-900 dark:text-white";
 
   return (
     <div
@@ -60,12 +62,7 @@ function AutocompleteOption({
   );
 }
 
-// Component for no results state
-interface NoResultsProps {
-  isMobile?: boolean;
-}
-
-function NoResults({ isMobile = false }: NoResultsProps) {
+function NoResults({ isMobile = false }: { isMobile?: boolean }) {
   const iconSize = isMobile ? "w-12 h-12" : "w-8 h-8";
   const textSize = isMobile ? "text-lg" : "text-base";
   const containerClasses = isMobile
@@ -74,38 +71,13 @@ function NoResults({ isMobile = false }: NoResultsProps) {
 
   return (
     <div className={containerClasses}>
-      <svg
-        className={`${iconSize} mb-${isMobile ? "4" : "2"}`}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        viewBox="0 0 24 24"
-      >
+      <svg className={`${iconSize} mb-${isMobile ? "4" : "2"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-        <path
-          d="M21 21l-4.35-4.35"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-        />
+        <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
       </svg>
       <span className={textSize}>No results found</span>
     </div>
   );
-}
-
-// Component for desktop dropdown
-interface DesktopDropdownProps {
-  isOpen: boolean;
-  filteredOptions: string[];
-  displayOptions: string[];
-  highlightedIndex: number;
-  showFilters: boolean;
-  onOptionClick: (option: string) => void;
-  onToggleFilters: () => void;
-  onIconClick?: (category: string) => void;
-  showFilterControls: boolean;
 }
 
 function DesktopDropdown({
@@ -113,12 +85,18 @@ function DesktopDropdown({
   filteredOptions,
   displayOptions,
   highlightedIndex,
-  showFilters,
   onOptionClick,
-  onToggleFilters,
-  onIconClick,
-  showFilterControls,
-}: DesktopDropdownProps) {
+  maxTotal,
+  containerRef,
+}: {
+  isOpen: boolean;
+  filteredOptions: string[];
+  displayOptions: string[];
+  highlightedIndex: number;
+  onOptionClick: (option: string) => void;
+  maxTotal: number;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
+}) {
   if (!isOpen) return null;
 
   const handleDropdownClick = (e: React.MouseEvent) => {
@@ -126,95 +104,46 @@ function DesktopDropdown({
     e.stopPropagation();
   };
 
-  const handleToggleFiltersClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onToggleFilters();
-  };
-
   return (
     <div
-      className="absolute z-50 hidden h-[361px] w-full overflow-visible rounded-b-md border border-neutral-200 bg-white shadow-lg md:flex dark:border-neutral-600 dark:bg-neutral-800"
+      className="absolute z-50 hidden max-h-[361px] w-full rounded-b-[24px] border border-t-0 border-neutral-200 bg-white shadow-lg md:flex dark:border-neutral-600 dark:bg-neutral-800 overflow-hidden"
       data-dropdown="autocomplete"
       onClick={handleDropdownClick}
       onMouseDown={handleDropdownClick}
+      style={{
+        width: containerRef?.current?.offsetWidth || "100%",
+        left: 0,
+      }}
     >
-      {/* Autocomplete options */}
-      <div className={`overflow-y-auto ${showFilters && showFilterControls ? "flex-1" : "w-full"}`}>
+      <div className="overflow-y-auto w-full max-h-[361px] min-h-[100px]">
         {filteredOptions.length > 0 ? (
-          displayOptions
-            .slice(0, 10)
-            .map((option, index) => (
-              <AutocompleteOption
-                highlightedIndex={highlightedIndex}
-                index={index}
-                key={option}
-                onClick={onOptionClick}
-                option={option}
-              />
-            ))
+          displayOptions.slice(0, maxTotal).map((option, index) => (
+            <AutocompleteOption
+              highlightedIndex={highlightedIndex}
+              index={index}
+              key={option}
+              onClick={onOptionClick}
+              option={option}
+            />
+          ))
         ) : (
           <NoResults />
         )}
       </div>
-
-      {/* Filters section */}
-      {showFilters && showFilterControls && (
-        <div className="relative w-1/2 overflow-y-hidden border-neutral-200 border-l dark:border-neutral-600">
-          <div className="p-3">
-            <SearchFilters onIconClick={onIconClick} />
-          </div>
-        </div>
-      )}
-
-      {/* Eye icons positioned relative to main container */}
-      {showFilterControls && (
-        <UniversalTooltip content={showFilters ? "Hide filters" : "Show filters"}>
-          {showFilters ? (
-            <EyeOff
-              className="absolute right-3 bottom-3 z-10 size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
-              onClick={handleToggleFiltersClick}
-              onMouseDown={handleToggleFiltersClick}
-            />
-          ) : (
-            <Eye
-              className="absolute right-3 bottom-3 z-10 size-4 cursor-pointer text-neutral-400 transition-all hover:text-pink-500"
-              onClick={handleToggleFiltersClick}
-              onMouseDown={handleToggleFiltersClick}
-            />
-          )}
-        </UniversalTooltip>
-      )}
     </div>
   );
 }
 
-// Component for mobile overlay header
-interface MobileHeaderProps {
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  onBack: () => void;
-}
-
-function MobileHeader({
-  value,
-  placeholder,
-  onChange,
-  onBack,
-}: MobileHeaderProps) {
+function MobileHeader({ value, placeholder, onChange, onBack }: { value: string, placeholder: string, onChange: (value: string) => void, onBack: () => void }) {
   return (
     <div className="flex flex-shrink-0 items-center gap-3 border-neutral-200 border-b p-4 dark:border-neutral-700">
-      <button
-        className="rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-        onClick={onBack}
-      >
+      <button className="rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800" onClick={onBack}>
         <X className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
       </button>
       <div className="relative flex-1">
         <input
           autoFocus
-          className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 pl-10 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+          className="w-full rounded-[24px] border border-neutral-200 bg-neutral-50 px-3 py-2 pl-10 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           type="text"
@@ -226,18 +155,7 @@ function MobileHeader({
   );
 }
 
-// Component for mobile overlay content
-interface MobileContentProps {
-  displayOptions: string[];
-  highlightedIndex: number;
-  onOptionClick: (option: string) => void;
-}
-
-function MobileContent({
-  displayOptions,
-  highlightedIndex,
-  onOptionClick,
-}: MobileContentProps) {
+function MobileContent({ displayOptions, highlightedIndex, onOptionClick }: { displayOptions: string[], highlightedIndex: number, onOptionClick: (option: string) => void }) {
   return (
     <div className="flex-1 overflow-hidden">
       <div className="h-full overflow-y-auto overscroll-contain">
@@ -260,7 +178,6 @@ function MobileContent({
   );
 }
 
-// Component for mobile overlay
 interface MobileOverlayProps {
   isOpen: boolean;
   value: string;
@@ -290,71 +207,69 @@ function MobileOverlay({
       onClick={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
     >
-      <MobileHeader
-        onBack={onBack}
-        onChange={onChange}
-        placeholder={placeholder}
-        value={value}
-      />
-      <MobileContent
-        displayOptions={displayOptions}
-        highlightedIndex={highlightedIndex}
-        onOptionClick={onOptionClick}
-      />
+      <MobileHeader onBack={onBack} onChange={onChange} placeholder={placeholder} value={value} />
+      <MobileContent displayOptions={displayOptions} highlightedIndex={highlightedIndex} onOptionClick={onOptionClick} />
     </div>
   );
 }
 
+// Ensure useMediaQuery doesn't break if not found, simplified version:
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) setMatches(media.matches);
+    const listener = () => setMatches(media.matches);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
+  }, [matches, query]);
+  return matches;
+}
+
 export default function Autocomplete({
-  options,
   value,
   onChange,
+  options = [],
   placeholder = "Search",
   className = "",
   maxTotal = 20,
-  onIconClick,
+  showClearButton = false,
+  onClear,
+  onFocus,
+  iconButtons,
+  locationButton,
+  salaryButton,
 }: AutocompleteProps) {
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [showFilters, setShowFilters] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Only show filter controls on the default page (/)
-  const showFilterControls = pathname === "/";
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
     if (value.trim()) {
       const filtered = options
-        .filter((option) => option.toLowerCase().includes(value.toLowerCase()))
+        .filter((option) => option.toLowerCase().includes(value.trim().toLowerCase()))
         .slice(0, maxTotal);
       setFilteredOptions(filtered);
     } else {
       setFilteredOptions(options.slice(0, maxTotal));
     }
-    setHighlightedIndex(-1);
   }, [value, options, maxTotal]);
 
   const handleInputFocus = () => {
     setIsOpen(true);
+    onFocus?.();
   };
 
   const handleInputBlur = (e: React.FocusEvent) => {
     if (window.innerWidth >= 768) {
-      const dropdownElement = document.querySelector(
-        '[data-dropdown="autocomplete"]'
-      );
-      if (
-        dropdownElement &&
-        dropdownElement.contains(e.relatedTarget as Node)
-      ) {
+      const dropdownElement = document.querySelector('[data-dropdown="autocomplete"]');
+      if (dropdownElement && dropdownElement.contains(e.relatedTarget as Node)) {
         return;
       }
-
-      setTimeout(() => {
-        setIsOpen(false);
-      }, 150);
+      setTimeout(() => setIsOpen(false), 150);
     }
   };
 
@@ -375,9 +290,7 @@ export default function Autocomplete({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev < filteredOptions.length - 1 ? prev + 1 : prev
-        );
+        setHighlightedIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : prev));
         break;
       case "ArrowUp":
         e.preventDefault();
@@ -387,81 +300,125 @@ export default function Autocomplete({
         e.preventDefault();
         if (highlightedIndex >= 0 && filteredOptions[highlightedIndex]) {
           handleOptionClick(filteredOptions[highlightedIndex]);
+        } else if (value.trim()) {
+          setIsOpen(false);
         }
         break;
       case "Escape":
         setIsOpen(false);
+        inputRef.current?.blur();
         setHighlightedIndex(-1);
         break;
     }
   };
 
-  const handleBack = () => {
-    setIsOpen(false);
-  };
-
-  const handleToggleFilters = () => {
-    setShowFilters(!showFilters);
-  };
+  const handleBack = () => setIsOpen(false);
 
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
     if (isOpen && isMobile) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
     }
-
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
-  const displayOptions = filteredOptions;
+  const displayOptions = value.trim()
+    ? Array.from(new Set([value.trim(), ...filteredOptions].filter((q) => q.trim())))
+    : filteredOptions;
+
+  const hasIcons = !!iconButtons || !!locationButton || !!salaryButton;
+  const inputRoundedClasses = hasIcons
+    ? isOpen ? " lg:pr-3 pl-10 rounded-l-[24px] rounded-r-none rounded-b-none border-r-0" : " lg:pr-3 pl-10 rounded-l-[24px] rounded-r-none border-r-0"
+    : isOpen ? " lg:pr-3 pt-[8px] pl-10 pb-[10px] rounded-[24px] rounded-b-none" : "rounded-[24px]";
+
+  const containerClasses = hasIcons
+    ? `flex h-11 items-center w-full border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
+    : `flex h-11 items-center w-full ${isOpen ? "rounded-t-[24px]" : ""}`;
+
+  const inputBorderClasses = hasIcons
+    ? "border-0"
+    : "border border-neutral-200 dark:border-neutral-600";
 
   return (
     <>
-      <div className="relative group">
-        <input
-          className={`w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 pt-[8px] sm:pl-10 pl-7 pb-[10px] text-neutral-900 transition-all duration-200 ease-in-out focus:rounded-b-none focus:border-neutral-200 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-neutral-600 text-base ${className}`}
-          onBlur={handleInputBlur}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={handleInputFocus}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          ref={inputRef}
-          type="text"
-          value={value}
-        />
-
-        {/* Search icon */}
-        <Search className="-translate-y-1/2 absolute top-1/2 sm:left-3 left-[9px] sm:size-4 size-4  transform text-neutral-400 group-hover:text-pink-500 transition-all duration-500 ease-in-out" />
-
-        {/* Desktop dropdown */}
+      <div className="relative group w-full" ref={containerRef}>
+        {isMobile ? (
+          <div className="flex flex-col w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
+            <div className="relative flex items-center">
+              <input
+                className={`w-full bg-white dark:bg-neutral-800 px-3 pl-10 text-[15px] text-neutral-900 transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:text-white ${className}`}
+                onBlur={handleInputBlur}
+                onChange={(e) => onChange(e.target.value)}
+                onFocus={handleInputFocus}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                ref={inputRef}
+                type="text"
+                value={value}
+              />
+              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-neutral-400" />
+              {showClearButton && value && (
+                <button onClick={onClear} className="px-3 py-3 flex items-center justify-center" type="button">
+                  <X className="size-4 cursor-pointer text-neutral-400 transition-[transform,opacity] hover:text-pink-500" />
+                </button>
+              )}
+              {iconButtons && <div className="pr-3 gap-1.5 py-3 flex items-center justify-center">{iconButtons}</div>}
+            </div>
+            {(salaryButton || locationButton) && (
+              <div className="flex w-full border-t border-neutral-200 dark:border-neutral-600">
+                {salaryButton && <div className={`basis-1/4 flex-shrink-0 ${locationButton ? "border-r border-neutral-200 dark:border-neutral-600" : ""}`}>{salaryButton}</div>}
+                {locationButton && <div className="basis-3/4 flex-1">{locationButton}</div>}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className={containerClasses || "relative"}>
+            <div className="relative flex-1 h-full">
+              <input
+                className={`w-full h-full bg-transparent lg:pr-3 pl-10 text-[15px] text-neutral-900 transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:text-white ${inputBorderClasses} ${inputRoundedClasses} ${className}`}
+                onBlur={handleInputBlur}
+                onChange={(e) => onChange(e.target.value)}
+                onFocus={handleInputFocus}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                ref={inputRef}
+                type="text"
+                value={value}
+              />
+              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-neutral-400 group-hover:text-pink-500 transition-[transform,opacity] duration-200 ease-in-out" />
+            </div>
+            {showClearButton && value && (
+              <button onClick={onClear} className="px-2 h-full flex items-center justify-center" type="button">
+                <X className="size-4 cursor-pointer text-neutral-400 transition-[transform,opacity] hover:text-pink-500" />
+              </button>
+            )}
+            {salaryButton && (
+              <div className="max-w-[20%] h-full border-x border-neutral-200 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700 duration-150 ease-in-out hover:transition-colors">
+                {salaryButton}
+              </div>
+            )}
+            {locationButton && (
+              <div className={cn("max-w-[30%] h-full border-r border-neutral-200 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700 duration-150 ease-in-out hover:transition-colors", !salaryButton && "border-l")}>
+                {locationButton}
+              </div>
+            )}
+            {iconButtons && <div className="h-full px-3 flex items-center justify-end gap-1.5 rounded-r-[24px]">{iconButtons}</div>}
+          </div>
+        )}
         <DesktopDropdown
+          containerRef={containerRef}
           displayOptions={displayOptions}
           filteredOptions={filteredOptions}
           highlightedIndex={highlightedIndex}
           isOpen={isOpen}
           onOptionClick={handleOptionClick}
-          onToggleFilters={handleToggleFilters}
-          showFilters={showFilters}
-          showFilterControls={showFilterControls}
-          onIconClick={onIconClick}
+          maxTotal={maxTotal}
         />
       </div>
-
-      {/* Mobile full-screen overlay */}
-      <MobileOverlay
-        displayOptions={displayOptions}
-        highlightedIndex={highlightedIndex}
-        isOpen={isOpen}
-        onBack={handleBack}
-        onChange={onChange}
-        onOptionClick={handleOptionClick}
-        placeholder={placeholder}
-        value={value}
-      />
+      <MobileOverlay displayOptions={displayOptions} highlightedIndex={highlightedIndex} isOpen={isOpen} onBack={handleBack} onChange={onChange} onOptionClick={handleOptionClick} placeholder={placeholder} value={value} />
     </>
   );
 }

@@ -113,7 +113,7 @@ export default function Experience() {
       : undefined;
 
   return (
-    <FilterContainer title="Experience">
+    <FilterContainer categoryId="experience" title="Experience">
       <LabelInputContainer title="Seniority">
         <LabelCheckbox 
           label="No Experience Required" 

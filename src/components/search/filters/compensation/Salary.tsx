@@ -1,149 +1,205 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Combobox } from "@/components/ui/combobox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useApp } from "@/contexts/AppContext";
-import currenciesData from "@/data/currencies.json";
-import { SalaryUnit } from "@/types/search";
-import { useEffect, useRef, useState } from "react";
+import { useSearchData } from "@/hooks/useSearchData";
+import type { SalaryUnit } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
-import RangeSlider from "../util/RangeSlider";
 
-function useDebouncedEffect(effect: () => void, deps: ReadonlyArray<unknown>, delay: number) {
-  const callback = useRef(effect);
-  useEffect(() => {
-    callback.current = effect;
-  }, [effect]);
-  useEffect(() => {
-    const handler = setTimeout(() => callback.current(), delay);
-    return () => clearTimeout(handler);
-  }, [...deps, delay]);
+const frequencyOptions: SalaryUnit[] = [
+  "Any",
+  "Hourly",
+  "Daily",
+  "Weekly",
+  "Bi-Weekly",
+  "Monthly",
+  "Yearly",
+];
+
+type MoneyInputProps = {
+  label: string;
+  currencySymbol: string;
+  value: string;
+  placeholder: string;
+  onChangeValue: (nextValue: string) => void;
+  onBlurCommit: () => void;
+};
+
+function getCurrencySymbol(currencyCode: string) {
+  try {
+    const parts = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode,
+    }).formatToParts(0);
+    return parts.find((part) => part.type === "currency")?.value ?? "$";
+  } catch {
+    return "$";
+  }
+}
+
+function MoneyInput({
+  label,
+  currencySymbol,
+  value,
+  placeholder,
+  onChangeValue,
+  onBlurCommit,
+}: MoneyInputProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs font-medium text-foreground">{label}</label>
+      <div className="relative">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+          {currencySymbol}
+        </span>
+        <Input
+          className="w-full pl-8 text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+          inputMode="numeric"
+          placeholder={placeholder}
+          type="text"
+          value={value}
+          onChange={(e) => onChangeValue(e.target.value)}
+          onBlur={onBlurCommit}
+        />
+      </div>
+    </div>
+  );
 }
 
 export default function Salary() {
   const { searchOptions, updateSearchOptions } = useApp();
+  const { options: currencyItems, loading: currenciesLoading } = useSearchData("currencies");
   const salary = searchOptions.salary;
   const [advanced, setAdvanced] = useState(false);
 
-  // Local state for sliders
-  const [salaryMinLow, setSalaryMinLow] = useState(salary.min_range.min === 0 ? 0 : salary.min_range.min);
-  const [salaryMinHigh, setSalaryMinHigh] = useState(salary.min_range.max === 0 ? 0 : salary.min_range.max);
-  const [salaryMaxLow, setSalaryMaxLow] = useState(salary.max_range.min === 0 ? 250000 : salary.max_range.min);
-  const [salaryMaxHigh, setSalaryMaxHigh] = useState(salary.max_range.max === 0 ? 250000 : salary.max_range.max);
+  const [simpleAmount, setSimpleAmount] = useState("");
+  const [advMinLow, setAdvMinLow] = useState("");
+  const [advMinHigh, setAdvMinHigh] = useState("");
+  const [advMaxLow, setAdvMaxLow] = useState("");
+  const [advMaxHigh, setAdvMaxHigh] = useState("");
 
-  const currencyItems = currenciesData.suggestions.map(currency => ({
-    value: currency,
-    label: currency
-  }));
+  useEffect(() => {
+    const hasAdvancedValues =
+      salary.min_range.max > 0 ||
+      salary.max_range.min !== salary.max_range.max ||
+      salary.min_range.min !== salary.min_range.max;
 
-  const frequencyOptions = [
-    { value: "Any", label: "Any" },
-    { value: "Hourly", label: "Hourly" },
-    { value: "Daily", label: "Daily" },
-    { value: "Weekly", label: "Weekly" },
-    { value: "Bi-Weekly", label: "Bi-Weekly" },
-    { value: "Monthly", label: "Monthly" },
-    { value: "Yearly", label: "Yearly" }
-  ];
+    setAdvanced(hasAdvancedValues);
+  }, [salary.max_range.max, salary.max_range.min, salary.min_range.max, salary.min_range.min]);
 
-  useDebouncedEffect(() => {
-    updateSearchOptions({
-      salary: {
-        ...salary,
-        min_range: { min: salaryMinLow, max: salaryMinHigh },
-        max_range: { min: salaryMaxLow, max: salaryMaxHigh },
-      },
-    });
-  }, [salaryMinLow, salaryMinHigh, salaryMaxLow, salaryMaxHigh], 500);
+  useEffect(() => {
+    setSimpleAmount(salary.max_range.max > 0 ? String(salary.max_range.max) : "");
+    setAdvMinLow(salary.min_range.min > 0 ? String(salary.min_range.min) : "");
+    setAdvMinHigh(salary.min_range.max > 0 ? String(salary.min_range.max) : "");
+    setAdvMaxLow(salary.max_range.min > 0 ? String(salary.max_range.min) : "");
+    setAdvMaxHigh(salary.max_range.max > 0 ? String(salary.max_range.max) : "");
+  }, [salary.max_range.max, salary.max_range.min, salary.min_range.max, salary.min_range.min]);
 
-  // Handlers for checkboxes
-  const handleUndisclosedChange = (checked: boolean | "indeterminate") => {
-    updateSearchOptions({
-      salary: { ...salary, undisclosed: Boolean(checked) },
-    });
+  const cleanDigits = (value: string) => value.replace(/[^0-9]/g, "");
+  const toNumberOrZero = (value: string) => {
+    const cleaned = cleanDigits(value);
+    if (!cleaned) return 0;
+    const parsed = Number.parseInt(cleaned, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const handleAdvancedChange = (checked: boolean | "indeterminate") => {
-    setSalaryMinHigh(Math.min(salary.min_range.max + 50000, salary.max_range.max));
-    setSalaryMaxLow(Math.max(salary.max_range.min - 50000, salary.min_range.min));
-    setAdvanced(Boolean(checked));
-  };
-
-  // Currency handler
-  const handleCurrencyChange = (value: string) => {
-    updateSearchOptions({
-      salary: { ...salary, currency: value },
-    });
-  };
-
-  // Frequency handler
-  const handleFrequencyChange = (value: string) => {
-    updateSearchOptions({
-      salary: { ...salary, unit: value as SalaryUnit },
-    });
-  };
-
-  // Simple slider handler
-  const handleSimpleSlider = ([min, max]: [number, number]) => {
-    setSalaryMinLow(min);
-    setSalaryMinHigh(min);
-    setSalaryMaxLow(max);
-    setSalaryMaxHigh(max);
-  };
-
-  // Advanced min slider handler
-  const handleAdvMinSlider = ([min, max]: [number, number]) => {
-    setSalaryMinLow(min);
-    setSalaryMinHigh(max);
-  };
-
-  // Advanced max slider handler
-  const handleAdvMaxSlider = ([min, max]: [number, number]) => {
-    setSalaryMaxLow(min);
-    setSalaryMaxHigh(max);
-  };
+  const currencySymbol = getCurrencySymbol(salary.currency || "USD");
 
   return (
-    <FilterContainer title="Salary Range">
-      <p className="mb-2 -mt-2 text-xs text-muted-foreground">
-        Max slider value can be updated
+    <FilterContainer categoryId="salary" title="Salary Range">
+      <p className="-mt-2 mb-2 text-xs text-muted-foreground">
+        Enter salary amounts directly. Leave fields blank to remove that bound.
       </p>
-      
+
       <div className="grid grid-cols-1 gap-4">
         <LabelCheckbox
           label="Hide Jobs with undisclosed salaries?"
           checked={salary.undisclosed}
-          onChange={handleUndisclosedChange}
+          onChange={(checked) =>
+            updateSearchOptions({
+              salary: {
+                ...salary,
+                undisclosed: Boolean(checked),
+              },
+            })
+          }
         />
         <LabelCheckbox
           label="Advanced Salary Control"
           checked={advanced}
-          onChange={handleAdvancedChange}
+          onChange={(checked) => {
+            const nextAdvanced = Boolean(checked);
+            setAdvanced(nextAdvanced);
+
+            if (!nextAdvanced) {
+              const nextAmount = toNumberOrZero(advMaxHigh || advMaxLow || advMinLow || simpleAmount);
+              updateSearchOptions({
+                salary: {
+                  ...salary,
+                  min_range: { min: 0, max: 0 },
+                  max_range: { min: nextAmount, max: nextAmount },
+                },
+              });
+            }
+          }}
         />
       </div>
-      
-      <div className="flex flex-col md:flex-row gap-4 mt-4">
+
+      <div className="mt-4 flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
-          <label className="text-xs font-medium mb-2 block text-foreground">Currency</label>
-          <Combobox
-            items={currencyItems}
-            value={salary.currency}
-            onChange={handleCurrencyChange}
-            placeholder="Select currency"
-            buttonClassName="w-full h-9 px-3 py-2 text-sm border-border bg-accent text-foreground hover:bg-accent"
-          />
+          <label className="mb-2 block text-xs font-medium text-foreground">Currency</label>
+          {currenciesLoading ? (
+            <div className="h-9 w-full rounded-md border border-border bg-accent px-3 py-2 text-sm text-gray-500">
+              Loading...
+            </div>
+          ) : (
+            <Combobox
+              items={currencyItems}
+              value={salary.currency}
+              onChange={(value) =>
+                updateSearchOptions({
+                  salary: {
+                    ...salary,
+                    currency: value || "USD",
+                  },
+                })
+              }
+              placeholder="Select currency"
+              buttonClassName="w-full h-9 px-3 py-2 text-sm border-border bg-accent text-foreground hover:bg-accent"
+            />
+          )}
         </div>
+
         <div className="flex-1">
-          <label className="text-xs font-medium mb-2 block text-foreground">Frequency</label>
-          <Select value={salary.unit} onValueChange={handleFrequencyChange}>
+          <label className="mb-2 block text-xs font-medium text-foreground">Frequency</label>
+          <Select
+            value={salary.unit}
+            onValueChange={(value: SalaryUnit) =>
+              updateSearchOptions({
+                salary: {
+                  ...salary,
+                  unit: value,
+                },
+              })
+            }
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
             <SelectContent>
               {frequencyOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                <SelectItem key={option} value={option}>
+                  {option}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -151,43 +207,113 @@ export default function Salary() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 mt-4">
+      <div className="mt-4 flex flex-col gap-4">
         {!advanced ? (
-          <RangeSlider
-            min={0}
-            max={250000}
-            step={1000}
-            currency={salary.currency}
-            value={[salaryMinLow, salaryMaxHigh]}
-            onValueChange={handleSimpleSlider}
+          <MoneyInput
+            label="Amount"
+            currencySymbol={currencySymbol}
+            placeholder="Enter amount"
+            value={simpleAmount}
+            onChangeValue={(nextValue) => setSimpleAmount(cleanDigits(nextValue))}
+            onBlurCommit={() => {
+              const amount = toNumberOrZero(simpleAmount);
+              updateSearchOptions({
+                salary: {
+                  ...salary,
+                  min_range: { min: 0, max: 0 },
+                  max_range: { min: amount, max: amount },
+                },
+              });
+            }}
           />
         ) : (
           <>
             <div>
-              <div className="mb-1 text-xs font-medium">Min Salary</div>
-              <RangeSlider
-                min={0}
-                max={250000}
-                step={1000}
-                currency={salary.currency}
-                value={[salaryMinLow, salaryMinHigh]}
-                onValueChange={handleAdvMinSlider}
-              />
+              <div className="mb-1 text-xs font-medium">Minimum Salary Range</div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <MoneyInput
+                  label="Low"
+                  currencySymbol={currencySymbol}
+                  placeholder="No min"
+                  value={advMinLow}
+                  onChangeValue={(nextValue) => setAdvMinLow(cleanDigits(nextValue))}
+                  onBlurCommit={() =>
+                    updateSearchOptions({
+                      salary: {
+                        ...salary,
+                        min_range: {
+                          ...salary.min_range,
+                          min: toNumberOrZero(advMinLow),
+                        },
+                      },
+                    })
+                  }
+                />
+                <MoneyInput
+                  label="High"
+                  currencySymbol={currencySymbol}
+                  placeholder="No max"
+                  value={advMinHigh}
+                  onChangeValue={(nextValue) => setAdvMinHigh(cleanDigits(nextValue))}
+                  onBlurCommit={() =>
+                    updateSearchOptions({
+                      salary: {
+                        ...salary,
+                        min_range: {
+                          ...salary.min_range,
+                          max: toNumberOrZero(advMinHigh),
+                        },
+                      },
+                    })
+                  }
+                />
+              </div>
             </div>
+
             <div>
-              <div className="mb-1 text-xs font-medium">Max Salary</div>
-              <RangeSlider
-                min={0}
-                max={250000}
-                step={1000}
-                currency={salary.currency}
-                value={[salaryMaxLow, salaryMaxHigh]}
-                onValueChange={handleAdvMaxSlider}
-              />
+              <div className="mb-1 text-xs font-medium">Maximum Salary Range</div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <MoneyInput
+                  label="Low"
+                  currencySymbol={currencySymbol}
+                  placeholder="No min"
+                  value={advMaxLow}
+                  onChangeValue={(nextValue) => setAdvMaxLow(cleanDigits(nextValue))}
+                  onBlurCommit={() =>
+                    updateSearchOptions({
+                      salary: {
+                        ...salary,
+                        max_range: {
+                          ...salary.max_range,
+                          min: toNumberOrZero(advMaxLow),
+                        },
+                      },
+                    })
+                  }
+                />
+                <MoneyInput
+                  label="High"
+                  currencySymbol={currencySymbol}
+                  placeholder="No max"
+                  value={advMaxHigh}
+                  onChangeValue={(nextValue) => setAdvMaxHigh(cleanDigits(nextValue))}
+                  onBlurCommit={() =>
+                    updateSearchOptions({
+                      salary: {
+                        ...salary,
+                        max_range: {
+                          ...salary.max_range,
+                          max: toNumberOrZero(advMaxHigh),
+                        },
+                      },
+                    })
+                  }
+                />
+              </div>
             </div>
           </>
         )}
       </div>
     </FilterContainer>
   );
-} 
+}

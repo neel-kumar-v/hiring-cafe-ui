@@ -1,23 +1,17 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useApp } from "@/contexts/AppContext";
-import { createEducationKeywordsHandler, createEducationPreferenceHandler, getDegreeTitlesFromData } from "@/lib/search";
+import { createEducationKeywordsHandler, createEducationPreferenceHandler } from "@/lib/search";
 import { DegreePreferences } from "@/types/search";
-import { useMemo } from "react";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
+import { useSearchData } from "@/hooks/useSearchData";
 
 export default function Education() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const degreeTitles = useMemo(() => {
-    const titles = getDegreeTitlesFromData();
-    return titles.map(title => ({
-      label: title,
-      value: title
-    }));
-  }, []);
+  const { options: degreeTitles, loading } = useSearchData("bachelors_degree_titles", true);
 
   const handlePreferenceChange = createEducationPreferenceHandler(
     searchOptions.education,
@@ -35,9 +29,12 @@ export default function Education() {
   };
 
   return (
-    <FilterContainer title="Education">
-      <Accordion type="multiple" className="w-full">
-        <AccordionItem value="associate" className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out">
+    <FilterContainer categoryId="education" title="Education">
+      {loading ? (
+        <div className="text-sm text-gray-500">Loading degree titles...</div>
+      ) : (
+        <Accordion type="multiple" className="w-full">
+          <AccordionItem value="associate" className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out">
           <AccordionTrigger className="text-base font-medium">
             Associate&apos;s Degree
           </AccordionTrigger>
@@ -173,6 +170,7 @@ export default function Education() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+      )}
     </FilterContainer>
   );
 } 

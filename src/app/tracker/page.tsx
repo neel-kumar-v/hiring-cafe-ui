@@ -3,15 +3,20 @@
 import { CategoryToggle, KanbanBoard, ListView, SearchBar, ViewToggle } from "@/components/tracker";
 import { useApp } from "@/contexts/AppContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { getCompanyName } from "@/lib/job-company";
+import { normalizeJob } from "@/lib/jobs/normalizeJob";
 import type { Job } from "@/types/job";
+import { api } from "../../../convex/_generated/api";
+import { useConvex } from "convex/react";
 import { BookmarkIcon, EyeOffIcon, PhoneOutgoingIcon, SendIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 type ViewMode = "board" | "list";
 
 export default function TrackerPage() {
   const { user, moveJob } = useApp();
+  const convex = useConvex();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,17 +31,38 @@ export default function TrackerPage() {
 
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
+  const trackedJobIds = useMemo(() => {
+    const ids = [
+      ...user.saved,
+      ...user.applied,
+      ...user.interviewing,
+      ...user.rejected,
+      ...user.hidden,
+    ];
+    const unique = [...new Set(ids)];
+    unique.sort();
+    return unique;
+  }, [user.saved, user.applied, user.interviewing, user.rejected, user.hidden]);
+
   useEffect(() => {
     const loadJobs = async () => {
+      setLoading(true);
       try {
-        const response = await fetch("/api/jobs");
-        if (response.ok) {
-          const data = await response.json();
-          const jobsData = data.jobs || [];
-          setJobs(jobsData);
-        } else {
-          console.error("Failed to load jobs");
+        if (trackedJobIds.length === 0) {
+          setJobs([]);
+          return;
         }
+
+        const chunkSize = 400;
+        const merged: Job[] = [];
+        for (let i = 0; i < trackedJobIds.length; i += chunkSize) {
+          const slice = trackedJobIds.slice(i, i + chunkSize);
+          const data = await convex.query(api.jobs.byExternalIds, { ids: slice });
+          for (const row of data ?? []) {
+            merged.push(normalizeJob(row));
+          }
+        }
+        setJobs(merged);
       } catch (error) {
         console.error("Error loading jobs:", error);
       } finally {
@@ -45,7 +71,7 @@ export default function TrackerPage() {
     };
 
     loadJobs();
-  }, []);
+  }, [convex, trackedJobIds]);
 
   const getJobStatus = (jobId: string): JobCategory => {
     if (user.applied.includes(jobId)) return "applied";
@@ -71,8 +97,9 @@ export default function TrackerPage() {
 
     const searchLower = searchQuery.toLowerCase();
     const titleMatch = job.job_information.title.toLowerCase().includes(searchLower);
-    const companyMatch = job.v5_processed_company_data.name?.toLowerCase().includes(searchLower);
-    const locationMatch = job.v5_processed_job_data.workplace_cities.some((city) => city.toLowerCase().includes(searchLower));
+    const companyMatch = getCompanyName(job).toLowerCase().includes(searchLower);
+    const cities = job.processed_job_data.workplace_cities ?? [];
+    const locationMatch = cities.some((city) => city.toLowerCase().includes(searchLower));
 
     return titleMatch || companyMatch || locationMatch;
   });

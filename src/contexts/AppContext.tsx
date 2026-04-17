@@ -4,6 +4,8 @@ import { JobStatus, User } from "@/types/app";
 import { SearchState } from "@/types/search";
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
+import { getAuthEmail, onAuthChanged } from "@/lib/local-auth";
+import { decodeSearchState, encodeSearchState } from "@/lib/url-search-state";
 
 interface AppContextType {
   // User state
@@ -38,76 +40,37 @@ interface AppContextType {
 }
 
 const defaultUser: User = {
-  name: "Test User",
-  email: "test@gmail.com",
-  skills: [
-    "React",
-    "Java",
-    "Python",
-    "C++",
-    "C#",
-    "Flask",
-    "Node.js",
-    "Git",
-    "GitHub",
-    "GitLab",
-    "CI/CD",
-    "OOP",
-
-    "Next.js",
-    "React Native",
-    "Expo",
-    "Vue.js",
-    "HTML",
-    "CSS",
-    "SQL",
-    "NoSQL",
-    "JavaScript",
-    "TypeScript",
-    "Node.js",
-    "Docker",
-    "Kubernetes",
-    "AWS",
-    "Azure",
-    "Linux",
-    "iOS",
-    "Android",
-    "Swift",
-    "Kotlin",
-    "Flutter",
-  ],
+  name: "Guest",
+  email: "",
+  skills: [],
   savedSearches: [],
-  saved: [
-    "ashby___glide___7902b474-592f-4618-9c7c-23216d033bda",
-    "ashby___ramp___83075cf0-9c22-4475-9c6b-e21923a96df8",
-    "grnhse___affirm___6661800003",
-    "smartrecruiters___paloaltonetworks2___9dd25fe8-bc0f-46ab-bd86-7976534bbc60",
-    "workday___adobe-wd5-external_experienced___software-engineer_r157663-1",
-  ],
-  applied: ["ashby___ramp___a1229aec-1105-4c47-8533-b912e732ed89", "grnhse___pendo___8080105002", "smartrecruiters___oteemoinc___9b60020a-5548-42af-9052-7720fccff5a9"],
-  interviewing: ["grnhse___stubhubinc___4633507101", "grnhse___stubhubinc___4648169101"],
-  rejected: ["successfactors___com___hiitechnic___1313448700"],
-  hidden: ["grnhse___dvtrading___4589615005"],
+  saved: [],
+  applied: [],
+  interviewing: [],
+  rejected: [],
+  hidden: [],
 };
 
-// localStorage key for user data
-const USER_STORAGE_KEY = "hiring-cafe-user-data";
+function getUserStorageKey(email: string | null) {
+  const normalized = (email ?? "").trim().toLowerCase();
+  return normalized ? `hiring-cafe-user-data:${normalized}` : "hiring-cafe-user-data:guest";
+}
 
 // Helper functions for localStorage
-const saveUserToStorage = (user: User) => {
+const saveUserToStorage = (user: User, email: string | null) => {
   try {
     if (typeof window !== "undefined" && window.localStorage) {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      localStorage.setItem(getUserStorageKey(email), JSON.stringify(user));
     }
   } catch (error) {
     console.error("Failed to save user data to localStorage:", error);
   }
 };
 
-const loadUserFromStorage = (): User | null => {
+const loadUserFromStorage = (email: string | null): User | null => {
   try {
     if (typeof window !== "undefined" && window.localStorage) {
-      const stored = localStorage.getItem(USER_STORAGE_KEY);
+      const stored = localStorage.getItem(getUserStorageKey(email));
       if (stored) {
         return JSON.parse(stored);
       }
@@ -124,8 +87,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // User state - initialize from localStorage or use default
   const [user, setUser] = useState<User>(() => {
     if (typeof window !== "undefined") {
-      const storedUser = loadUserFromStorage();
-      return storedUser || defaultUser;
+      const email = getAuthEmail();
+      const storedUser = loadUserFromStorage(email);
+      return storedUser || { ...defaultUser, email: email ?? "" };
     }
     return defaultUser;
   });
@@ -137,6 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Save user data to localStorage whenever it changes (but not on initial render)
   const isFirstRender = useRef(true);
+  const hasHydratedSearchStateRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -144,9 +109,67 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isFirstRender.current = false;
         return;
       }
-      saveUserToStorage(user);
+      saveUserToStorage(user, getAuthEmail());
     }
   }, [user]);
+
+  // --- URL <-> searchOptions sync ---
+  const lastAppliedUrlStateRef = useRef<string | null>(null);
+  const lastWrittenUrlStateRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const applyStateFromUrl = () => {
+      const raw = new URLSearchParams(window.location.search).get("searchState");
+      hasHydratedSearchStateRef.current = true;
+
+      if (!raw) {
+        lastAppliedUrlStateRef.current = null;
+        return;
+      }
+
+      if (raw === lastAppliedUrlStateRef.current) return;
+
+      const decoded = decodeSearchState(raw);
+      if (!decoded) return;
+
+      lastAppliedUrlStateRef.current = raw;
+      lastWrittenUrlStateRef.current = raw;
+      setSearchOptions(decoded);
+    };
+
+    applyStateFromUrl();
+    window.addEventListener("popstate", applyStateFromUrl);
+    return () => window.removeEventListener("popstate", applyStateFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !hasHydratedSearchStateRef.current) return;
+
+    const raw = encodeSearchState(searchOptions);
+    if (raw === lastWrittenUrlStateRef.current) return;
+
+    const id = window.setTimeout(() => {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set("searchState", raw);
+
+      lastWrittenUrlStateRef.current = raw;
+      lastAppliedUrlStateRef.current = raw;
+      window.history.replaceState(window.history.state, "", nextUrl);
+    }, 250);
+
+    return () => window.clearTimeout(id);
+  }, [searchOptions]);
+
+  // When the local-dev auth email changes, swap to the corresponding profile.
+  useEffect(() => {
+    return onAuthChanged(() => {
+      const email = getAuthEmail();
+      const stored = loadUserFromStorage(email);
+      setUser(stored || { ...defaultUser, email: email ?? "" });
+    });
+  }, []);
 
   const updateSearchOptions = (updates: Partial<SearchState>) => {
     setSearchOptions((prev) => {

@@ -26,7 +26,7 @@ export default function ApplyForm() {
   const getDescription = getApplyFormDescription;
 
   return (
-    <FilterContainer title="Apply Form Type">
+    <FilterContainer categoryId="apply-form" title="Apply Form Type">
       
       <Select onValueChange={setApplyFormValue} value={applyFormValue}>
         <SelectTrigger className="w-full text-text placeholder:text-muted-foreground text-sm">

@@ -27,7 +27,7 @@ export default function Security() {
   );
 
   return (
-    <FilterContainer title="Security Clearance">
+    <FilterContainer categoryId="security" title="Security Clearance">
       <LabelInputContainer>
         <LabelCheckbox 
           label="None" 

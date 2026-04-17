@@ -26,7 +26,7 @@ export default function Commitment() {
   );
 
   return (
-    <FilterContainer title="Commitment Level">
+    <FilterContainer categoryId="commitment" title="Commitment Level">
       <LabelInputContainer>
         <LabelCheckbox 
           label="Full Time" 

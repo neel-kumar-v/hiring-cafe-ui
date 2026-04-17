@@ -9,9 +9,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
-import { getJobTitlesFromData } from "@/lib/search";
 import type { BooleanOperator, SearchExpression } from "@/types/search";
+import { api } from "../../../../../convex/_generated/api";
+import { useConvex } from "convex/react";
 import { useEffect, useState } from "react";
+
+type TitleOption = { value: string; label: string };
+
+let jobTitleOptionsCache: TitleOption[] | null = null;
+let jobTitleOptionsInflight: Promise<TitleOption[]> | null = null;
+
+function loadJobTitleOptionsOnce(convex: ReturnType<typeof useConvex>): Promise<TitleOption[]> {
+  if (jobTitleOptionsCache) return Promise.resolve(jobTitleOptionsCache);
+  if (jobTitleOptionsInflight) return jobTitleOptionsInflight;
+  jobTitleOptionsInflight = convex
+    .query(api.jobs.distinctJobTitles, { limit: 500 })
+    .then((titles) => {
+      const opts = (titles ?? []).map((t) => ({ value: t, label: t }));
+      jobTitleOptionsCache = opts;
+      return opts;
+    })
+    .catch(() => {
+      jobTitleOptionsCache = [];
+      return [];
+    })
+    .finally(() => {
+      jobTitleOptionsInflight = null;
+    });
+  return jobTitleOptionsInflight;
+}
 
 export function BooleanBuilder({
   value,
@@ -29,8 +55,19 @@ export function BooleanBuilder({
   parentIsNot?: boolean;
 }) {
   const isString = typeof value === "string";
-  const jobTitleOptions = getJobTitlesFromData().map((t) => ({ value: t, label: t }));
+  const convex = useConvex();
+  const [jobTitleOptions, setJobTitleOptions] = useState<TitleOption[]>([]);
   const [input, setInput] = useState(isString ? value : "");
+
+  useEffect(() => {
+    let cancelled = false;
+    loadJobTitleOptionsOnce(convex).then((opts) => {
+      if (!cancelled) setJobTitleOptions(opts);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [convex]);
 
   useEffect(() => {
     if (isString) setInput(value as string);

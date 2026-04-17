@@ -1,11 +1,12 @@
 import { useApp } from "@/contexts/AppContext";
-import { createIndustryKeywordsHandler, createIndustryProfitHandler, createIndustryUsaJobsHandler, getCompanyActivityOptions, getIndustryOptions } from "@/lib/search";
+import { createIndustryKeywordsHandler, createIndustryProfitHandler, createIndustryUsaJobsHandler } from "@/lib/search";
 import { Profit } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
 import LabelRadio from "../util/LabelRadio";
+import { useSearchData } from "@/hooks/useSearchData";
 
 export default function Industry() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -24,8 +25,8 @@ export default function Industry() {
     updateSearchOptions
   );
 
-  const activities = getCompanyActivityOptions();
-  const industries = getIndustryOptions();
+  const { options: activities, loading: activitiesLoading } = useSearchData("company_activities", true);
+  const { options: industries, loading: industriesLoading } = useSearchData("industries", true);
 
   const handleKeywordsChange = createIndustryKeywordsHandler(
     searchOptions.industry,
@@ -38,7 +39,7 @@ export default function Industry() {
   );
 
   return (
-    <FilterContainer title="Industry">
+    <FilterContainer categoryId="industry" title="Industry">
       <LabelInputContainer title="Profit" midColCount={2} lgColCount={2}>
         {profitOptions.map((profit) => (
           <LabelCheckbox
@@ -49,22 +50,30 @@ export default function Industry() {
           />
         ))}
       </LabelInputContainer>
-      <KeywordsMultiSelect
-        value={searchOptions.industry.activities}
-        onChange={(keywords) => handleKeywordsChange(keywords, "activities")}
-        includeOptions={activities}
-        excludeOptions={activities}
-        includePlaceholder="Include Company Activities"
-        excludePlaceholder="Exclude Company Activities"
-      />
-      <KeywordsMultiSelect
-        value={searchOptions.industry.industry}
-        onChange={(keywords) => handleKeywordsChange(keywords, "industry")}
-        includeOptions={industries}
-        excludeOptions={industries}
-        includePlaceholder="Include Company Industries"
-        excludePlaceholder="Exclude Company Industries"
-      />
+      {activitiesLoading ? (
+        <div className="text-sm text-gray-500">Loading activities...</div>
+      ) : (
+        <KeywordsMultiSelect
+          value={searchOptions.industry.activities}
+          onChange={(keywords) => handleKeywordsChange(keywords, "activities")}
+          includeOptions={activities}
+          excludeOptions={activities}
+          includePlaceholder="Include Company Activities"
+          excludePlaceholder="Exclude Company Activities"
+        />
+      )}
+      {industriesLoading ? (
+        <div className="text-sm text-gray-500">Loading industries...</div>
+      ) : (
+        <KeywordsMultiSelect
+          value={searchOptions.industry.industry}
+          onChange={(keywords) => handleKeywordsChange(keywords, "industry")}
+          includeOptions={industries}
+          excludeOptions={industries}
+          includePlaceholder="Include Company Industries"
+          excludePlaceholder="Exclude Company Industries"
+        />
+      )}
       <LabelInputContainer title="USA Jobs" midColCount={1} lgColCount={1}>
         <LabelRadio
           label="OK to include jobs from USAJobs.gov"

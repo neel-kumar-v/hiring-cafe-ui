@@ -11,7 +11,7 @@ export default function Founding() {
   const handleValueChange = createFoundingYearHandler(updateSearchOptions);
 
   return (
-    <FilterContainer title="Founding Year">
+    <FilterContainer categoryId="founding" title="Founding Year">
       <RangeSlider
         min={1800}
         max={getCurrentYear()}

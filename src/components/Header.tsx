@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDarkMode } from "@/contexts/DarkModeContext";
-import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import {
   BarChart3,
@@ -20,31 +19,36 @@ import {
   ListFilterPlus,
   Mail,
   Moon,
-  Settings,
   Sun,
   User,
   Users,
-  Zap,
-  ZapOff,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Clock } from "./Clock";
 import SearchBar from "./search/SearchBar";
+import SearchFilters from "./search/SearchFilters";
 
 export default function Header() {
+  const pathname = usePathname();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { prefersReducedMotion, toggleReducedMotion } = useReducedMotion();
-  const { showLegacyFilters, setShowLegacyFilters, handleSearchIconClick } = useSearchUI();
+  const {
+    showFilterRibbon,
+    showLegacyFilters,
+    setShowLegacyFilters,
+    handleSearchIconClick,
+    boardSearchQuery,
+    setBoardSearchQuery,
+  } = useSearchUI();
 
   const handleSearch = (value: string) => {
-    // Handle search functionality here
-    console.log("Searching for:", value);
+    setBoardSearchQuery(value);
   };
 
   return (
     <header className="sticky top-0 z-50 border-neutral-200 border-b bg-white dark:border-neutral-700 dark:bg-neutral-900">
       <div className="mx-auto max-w-full px-4 transition-[padding] duration-500 ease-in-out lg:px-8 xl:px-12">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex min-h-16 items-center justify-between gap-4 py-3">
           {/* Logo */}
           <div className="flex items-center space-x-0 lg:space-x-3">
             <div className="w-fit rounded-full bg-pink-500 p-2 text-white">
@@ -74,10 +78,12 @@ export default function Header() {
           </div>
 
           {/* Search Bar */}
-          <div className="mx-8 flex-1">
-            <div className="flex space-x-2">
-              <SearchBar onSearch={handleSearch} onIconClick={handleSearchIconClick} />
-            </div>
+          <div className="mx-8 min-w-0 flex-1">
+            <SearchBar
+              value={boardSearchQuery}
+              onSearch={handleSearch}
+              onIconClick={handleSearchIconClick}
+            />
           </div>
 
 
@@ -146,15 +152,6 @@ export default function Header() {
                   {isDarkMode ? "Light Mode" : "Dark Mode"}
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={toggleReducedMotion}>
-                  {prefersReducedMotion ? (
-                    <Zap className="mr-2 size-4" />
-                  ) : (
-                    <ZapOff className="mr-2 size-4" />
-                  )}
-                  {prefersReducedMotion ? "Enable Animations" : "Reduce Motion"}
-                </DropdownMenuItem>
-
                 <DropdownMenuItem onClick={() => setShowLegacyFilters(!showLegacyFilters)}>
                   <ListFilterPlus className="mr-2 size-4" />
                   {showLegacyFilters
@@ -165,6 +162,12 @@ export default function Header() {
             </DropdownMenu>
           </div>
         </div>
+
+        {pathname === "/" && showFilterRibbon ? (
+          <div className="pb-4">
+            <SearchFilters onIconClick={handleSearchIconClick} />
+          </div>
+        ) : null}
       </div>
     </header>
   );

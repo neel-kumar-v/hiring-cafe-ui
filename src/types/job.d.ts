@@ -6,8 +6,9 @@ export interface GeoLoc {
 export interface JobInformation {
 	title: string;
 	description: string;
+	job_title_raw?: string;
 	viewedByUsers?: string[];
-	hiddenFromUsers: string[] | undefined;
+	hiddenFromUsers?: string[];
 	appliedFromUsers?: string[];
 	savedFromUsers?: string[];
 }
@@ -27,7 +28,7 @@ export interface CompensationRange {
 	daily_max_compensation: number | null;
 }
 
-export interface V5ProcessedJobData {
+export interface ProcessedJobData {
 	core_job_title: string;
 	requirements_summary: string;
 	technical_tools: string[];
@@ -115,7 +116,30 @@ export interface V5ProcessedJobData {
 	company_tagline: string;
 }
 
-export interface V5ProcessedCompanyData {
+/** Company enrichment from API when the processed company block is omitted. */
+export interface EnrichedCompanyData {
+	activities?: string[];
+	enriched_at?: string;
+	homepage_uri?: string;
+	hq_country?: string;
+	industries?: string[];
+	latest_funding_amount?: number | null;
+	latest_funding_investors?: string | string[] | null;
+	latest_funding_type?: string | null;
+	latest_funding_year?: number | null;
+	name?: string;
+	nb_employees?: number;
+	organization_type?: string;
+	parent_company?: string;
+	status?: string;
+	stock_exchange?: string | null;
+	stock_symbol?: string | null;
+	subsidiaries?: string[];
+	tagline?: string;
+	year_founded?: number;
+}
+
+export interface ProcessedCompanyData {
 	name: string;
 	image_url: string;
 	subsidiaries: string[];
@@ -153,9 +177,14 @@ export interface Job {
 	apply_url: string;
 	source_and_board_token: string;
 	job_information: JobInformation;
-	v5_processed_job_data: V5ProcessedJobData;
-	v5_processed_company_data: V5ProcessedCompanyData;
-	_geoloc: GeoLoc[];
+	processed_job_data: ProcessedJobData;
+	/** Older scraped payloads; newer payloads may use `enriched_company_data` instead. */
+	processed_company_data?: ProcessedCompanyData;
+	enriched_company_data?: EnrichedCompanyData;
+	collapse_key?: string;
+	is_expired?: boolean;
+	requisition_id?: string;
+	_geoloc?: GeoLoc[];
 	objectID: string;
 	currentJobIndex: number;
 }

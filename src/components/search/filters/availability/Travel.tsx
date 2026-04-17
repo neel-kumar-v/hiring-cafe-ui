@@ -27,7 +27,7 @@ export default function Travel() {
   );
 
   return (
-    <FilterContainer title="Travel Requirements">
+    <FilterContainer categoryId="travel" title="Travel Requirements">
       <LabelInputContainer title="Air Travel" midColCount={2} lgColCount={2}>
         {allTravelRequirements.map((requirement) => (
           <LabelCheckbox

@@ -8,52 +8,45 @@ import Security from "./Security";
 
 interface QualificationsOptionsProps {
   scrollToSection?: string;
+  clearScrollToSection?: () => void;
+  filterIds?: string[];
 }
 
-export default function QualificationsOptions({
-  scrollToSection,
-}: QualificationsOptionsProps) {
-  const refs = createRefs([
-    "education",
-    "licenses",
-    "security",
-    "languages"
-  ]);
+export default function QualificationsOptions({ scrollToSection, clearScrollToSection, filterIds }: QualificationsOptionsProps) {
+  const refs = createRefs(["education", "licenses", "security", "languages"]);
 
-  useScrollToSection(scrollToSection, refs);
+  useScrollToSection(scrollToSection, refs, clearScrollToSection);
+
+  const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
     <div className="space-y-8">
+      {shouldShow("education") ? (
+        <div className="scroll-mt-14" ref={refs.education}>
+          <Education />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.education}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Education />
-      </div>
+      {shouldShow("licenses") ? (
+        <div className="scroll-mt-14" ref={refs.licenses}>
+          <Licenses />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.licenses}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Licenses />
-      </div>
+      {shouldShow("security") ? (
+        <div className="scroll-mt-14" ref={refs.security}>
+          <Security />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.security}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Security />
-      </div>
+      {shouldShow("languages") ? (
+        <div className="scroll-mt-14" ref={refs.languages}>
+          <Languages />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.languages}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Languages />
-      </div>
       <br className="md:hidden" />
       <br className="md:hidden" />
     </div>
   );
-} 
+}

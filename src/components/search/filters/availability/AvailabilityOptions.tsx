@@ -6,37 +6,33 @@ import Travel from "./Travel";
 
 interface AvailabilityOptionsProps {
   scrollToSection?: string;
+  clearScrollToSection?: () => void;
+  filterIds?: string[];
 }
 
-export default function AvailabilityOptions({
-  scrollToSection,
-}: AvailabilityOptionsProps) {
-  const refs = createRefs([
-    "shifts",
-    "travel"
-  ]);
+export default function AvailabilityOptions({ scrollToSection, clearScrollToSection, filterIds }: AvailabilityOptionsProps) {
+  const refs = createRefs(["shifts", "travel"]);
 
-  useScrollToSection(scrollToSection, refs);
+  useScrollToSection(scrollToSection, refs, clearScrollToSection);
+
+  const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
     <div className="space-y-8">
+      {shouldShow("shifts") ? (
+        <div className="scroll-mt-14" ref={refs.shifts}>
+          <Shifts />
+        </div>
+      ) : null}
 
+      {shouldShow("travel") ? (
+        <div className="scroll-mt-14" ref={refs.travel}>
+          <Travel />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.shifts}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Shifts />
-      </div>
-
-      <div
-        ref={refs.travel}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Travel />
-      </div>
       <br className="md:hidden" />
       <br className="md:hidden" />
     </div>
   );
-} 
+}

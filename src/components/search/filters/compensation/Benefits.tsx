@@ -13,7 +13,7 @@ export default function Benefits() {
   );
 
   return (
-    <FilterContainer title="Benefits & Perks">
+    <FilterContainer categoryId="benefits" title="Benefits & Perks">
       <LabelInputContainer>
         <LabelCheckbox 
           label="PTO" 

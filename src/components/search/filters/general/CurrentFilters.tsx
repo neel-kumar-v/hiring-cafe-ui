@@ -17,7 +17,7 @@ export default function CurrentFilters({handleCategoryClick}: {handleCategoryCli
     : "Current Filters";
 
   return (
-    <FilterContainer title={title}>
+    <FilterContainer categoryId="filters" title={title}>
       <AllFilter 
         handleCategoryClick={handleCategoryClick} 
         searchOptions={searchOptions} 

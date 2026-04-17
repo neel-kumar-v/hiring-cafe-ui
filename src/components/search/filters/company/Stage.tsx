@@ -1,6 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
 import { getCurrentYear } from "@/lib/search/company";
-import { getInvestorsFromData, getRoundTypesFromData } from "@/lib/search";
 import { CurrentStage, Keywords, Select } from "@/types/search";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
@@ -9,6 +8,7 @@ import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
 import RangeSlider from "../util/RangeSlider";
+import { useSearchData } from "@/hooks/useSearchData";
 
 export default function Stage() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -51,19 +51,8 @@ export default function Stage() {
     });
   }, [searchOptions.stage_funding, updateSearchOptions]);
 
-  const roundTypes = useMemo(() => {
-    return getRoundTypesFromData().map(roundType => ({
-      label: roundType,
-      value: roundType
-    }));
-  }, []);
-
-  const investors = useMemo(() => {
-    return getInvestorsFromData().map(investor => ({
-      label: investor,
-      value: investor
-    }));
-  }, []);
+  const { options: roundTypes, loading: roundTypesLoading } = useSearchData("round_types", false);
+  const { options: investors, loading: investorsLoading } = useSearchData("investors", false);
 
   const handleKeywordsChange = useCallback((keywords: Keywords, id: "round_types" | "investors") => {
     updateSearchOptions({
@@ -96,7 +85,7 @@ export default function Stage() {
   const investorsKeywords = useMemo(() => searchOptions.stage_funding.investors, [searchOptions.stage_funding.investors]);
 
   return (
-    <FilterContainer title="Stage & Funding">
+    <FilterContainer categoryId="stage" title="Stage & Funding">
       <LabelInputContainer title="Current Stage" midColCount={2} lgColCount={2}>
         <LabelCheckbox
           label="Public"
@@ -109,22 +98,30 @@ export default function Stage() {
           onChange={() => handleCurrentStageChange("Private")}
         />
       </LabelInputContainer>
-      <KeywordsMultiSelect
-        value={roundTypesKeywords}
-        onChange={(keywords) => handleKeywordsChange(keywords, "round_types")}
-        includeOptions={roundTypes}
-        excludeOptions={roundTypes}
-        includePlaceholder="Include Round Types"
-        excludePlaceholder="Exclude Round Types"
-      />
-      <KeywordsMultiSelect
-        value={investorsKeywords}
-        onChange={(keywords) => handleKeywordsChange(keywords, "investors")}
-        includeOptions={investors}
-        excludeOptions={investors}
-        includePlaceholder="Include Investors"
-        excludePlaceholder="Exclude Investors"
-      />
+      {roundTypesLoading ? (
+        <div className="text-sm text-gray-500">Loading round types...</div>
+      ) : (
+        <KeywordsMultiSelect
+          value={roundTypesKeywords}
+          onChange={(keywords) => handleKeywordsChange(keywords, "round_types")}
+          includeOptions={roundTypes}
+          excludeOptions={roundTypes}
+          includePlaceholder="Include Round Types"
+          excludePlaceholder="Exclude Round Types"
+        />
+      )}
+      {investorsLoading ? (
+        <div className="text-sm text-gray-500">Loading investors...</div>
+      ) : (
+        <KeywordsMultiSelect
+          value={investorsKeywords}
+          onChange={(keywords) => handleKeywordsChange(keywords, "investors")}
+          includeOptions={investors}
+          excludeOptions={investors}
+          includePlaceholder="Include Investors"
+          excludePlaceholder="Exclude Investors"
+        />
+      )}
       <div>
         <div className="mb-1 text-xs font-medium">Latest Round Year Range</div>
         <RangeSlider

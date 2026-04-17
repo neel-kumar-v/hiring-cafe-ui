@@ -8,51 +8,45 @@ import Salary from "./Salary";
 
 interface CompensationOptionsProps {
   scrollToSection?: string;
+  clearScrollToSection?: () => void;
+  filterIds?: string[];
 }
 
-export default function CompensationOptions({
-  scrollToSection,
-}: CompensationOptionsProps) {
-  const refs = createRefs([
-    "salary",
-    "commitment", 
-    "experience",
-    "benefits"
-  ]);
+export default function CompensationOptions({ scrollToSection, clearScrollToSection, filterIds }: CompensationOptionsProps) {
+  const refs = createRefs(["salary", "commitment", "experience", "benefits"]);
 
-  useScrollToSection(scrollToSection, refs);
+  useScrollToSection(scrollToSection, refs, clearScrollToSection);
+
+  const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
     <div className="space-y-8">
-      <div
-        ref={refs.salary}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Salary />
-      </div>
+      {shouldShow("salary") ? (
+        <div className="scroll-mt-14" ref={refs.salary}>
+          <Salary />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.commitment}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Commitment />
-      </div>
+      {shouldShow("commitment") ? (
+        <div className="scroll-mt-14" ref={refs.commitment}>
+          <Commitment />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.experience}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Experience />
-      </div>
+      {shouldShow("experience") ? (
+        <div className="scroll-mt-14" ref={refs.experience}>
+          <Experience />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.benefits}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Benefits />
-      </div>
+      {shouldShow("benefits") ? (
+        <div className="scroll-mt-14" ref={refs.benefits}>
+          <Benefits />
+        </div>
+      ) : null}
+
       <br className="md:hidden" />
       <br className="md:hidden" />
     </div>
   );
-} 
+}

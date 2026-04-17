@@ -24,7 +24,7 @@ export default function Shifts() {
   );
 
   return (
-    <FilterContainer title="Shifts & Schedules">
+    <FilterContainer categoryId="shifts" title="Shifts & Schedules">
       <LabelInputContainer title="Morning / Day / First Shift" midColCount={3}>
         <LabelCheckbox 
           label="Required" 

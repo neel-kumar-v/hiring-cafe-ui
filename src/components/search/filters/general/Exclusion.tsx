@@ -14,7 +14,7 @@ export default function Exclusion() {
   );
 
   return (
-    <FilterContainer title="Exclude Jobs you have">
+    <FilterContainer categoryId="exclusion" title="Exclude Jobs you have">
       <LabelInputContainer>
         <LabelCheckbox 
           label="Applied" 

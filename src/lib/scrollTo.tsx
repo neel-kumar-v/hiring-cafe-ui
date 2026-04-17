@@ -4,7 +4,11 @@ interface ScrollRefs {
   [key: string]: RefObject<HTMLDivElement | null>;
 }
 
-export function useScrollToSection(scrollToSection?: string, refs?: ScrollRefs) {
+export function useScrollToSection(
+  scrollToSection?: string,
+  refs?: ScrollRefs,
+  onComplete?: () => void
+) {
   useEffect(() => {
     if (scrollToSection && refs) {
       const targetRef = refs[scrollToSection];
@@ -13,21 +17,22 @@ export function useScrollToSection(scrollToSection?: string, refs?: ScrollRefs) 
           behavior: "smooth",
           block: "start",
         });
-        targetRef.current.classList.add(
-          "ring-2",
-          "ring-pink-500",
-          "ring-opacity-50"
-        );
-        setTimeout(() => {
-          targetRef.current?.classList.remove(
-            "ring-2",
-            "ring-pink-500",
-            "ring-opacity-50"
-          );
-        }, 2000);
+        // targetRef.current.classList.add(
+        //   "ring-2",
+        //   "ring-pink-500",
+        //   "ring-opacity-50"
+        // );
+        // setTimeout(() => {
+        //   targetRef.current?.classList.remove(
+        //     "ring-2",
+        //     "ring-pink-500",
+        //     "ring-opacity-50"
+        //   );
+        // }, 2000);
+        onComplete?.();
       }
     }
-  }, [scrollToSection, refs]);
+  }, [onComplete, refs, scrollToSection]);
 }
 
 export function createRefs<T extends string>(keys: T[]): Record<T, RefObject<HTMLDivElement | null>> {

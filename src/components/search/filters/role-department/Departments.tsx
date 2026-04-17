@@ -162,7 +162,7 @@ export default function Departments() {
   };
   
   return (
-    <FilterContainer title="Departments">
+    <FilterContainer categoryId="departments" title="Departments">
       <FilterSection title="Technology" items={technologyItems} handleCheckboxChange={handleCheckboxChange} setDepartmentsForSection={setDepartmentsForSection} />
       <FilterSection title="Design" items={designItems} handleCheckboxChange={handleCheckboxChange} setDepartmentsForSection={setDepartmentsForSection} />
       <FilterSection title="Business Operations" items={businessOperationsItems} handleCheckboxChange={handleCheckboxChange} setDepartmentsForSection={setDepartmentsForSection} />

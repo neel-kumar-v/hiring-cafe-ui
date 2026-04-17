@@ -13,7 +13,7 @@ export default function WorkplaceActivity() {
   );
 
   return (
-    <FilterContainer title="Workplace Activity">
+    <FilterContainer categoryId="workplace-activity" title="Workplace Activity">
       <LabelInputContainer title="Physical Position">
         <LabelCheckbox 
           label="Sitting / Desk Jobs" 

@@ -4,36 +4,35 @@ import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Departments from "./Departments";
 import JobTitles from "./JobTitles";
 
-export default function RoleDepartmentOptions({
-  scrollToSection,
-}: {
+interface RoleDepartmentOptionsProps {
   scrollToSection?: string;
-}) {
-  const refs = createRefs([
-    "departments",
-    "job-titles"
-  ]);
+  clearScrollToSection?: () => void;
+  filterIds?: string[];
+}
 
-  useScrollToSection(scrollToSection, refs);
+export default function RoleDepartmentOptions({ scrollToSection, clearScrollToSection, filterIds }: RoleDepartmentOptionsProps) {
+  const refs = createRefs(["departments", "job-titles"]);
+
+  useScrollToSection(scrollToSection, refs, clearScrollToSection);
+
+  const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
     <div className="space-y-8">
+      {shouldShow("departments") ? (
+        <div className="scroll-mt-14" ref={refs.departments}>
+          <Departments />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.departments}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Departments />
-      </div>
+      {shouldShow("job-titles") ? (
+        <div className="scroll-mt-14" ref={refs["job-titles"]}>
+          <JobTitles />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs["job-titles"]}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <JobTitles />
-      </div>
       <br className="md:hidden" />
       <br className="md:hidden" />
     </div>
   );
-} 
+}

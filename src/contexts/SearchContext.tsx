@@ -112,9 +112,14 @@ interface SearchUIContextType {
   setSearchDialogOpen: (open: boolean) => void;
   searchDialogFrom: string;
   setSearchDialogFrom: (from: string) => void;
+  showFilterRibbon: boolean;
+  setShowFilterRibbon: (show: boolean) => void;
   showLegacyFilters: boolean;
   setShowLegacyFilters: (show: boolean) => void;
   handleSearchIconClick: (category: string) => void;
+  /** Header search text; drives the home job board query. */
+  boardSearchQuery: string;
+  setBoardSearchQuery: (value: string) => void;
 }
 
 const SearchUIContext = createContext<SearchUIContextType | undefined>(undefined);
@@ -122,7 +127,9 @@ const SearchUIContext = createContext<SearchUIContextType | undefined>(undefined
 export function SearchUIProvider({ children }: { children: ReactNode }) {
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [searchDialogFrom, setSearchDialogFrom] = useState("");
+  const [showFilterRibbon, setShowFilterRibbon] = useState(true);
   const [showLegacyFilters, setShowLegacyFilters] = useState(false);
+  const [boardSearchQuery, setBoardSearchQuery] = useState("");
 
   const handleSearchIconClick = (category: string) => {
     setSearchDialogFrom(category);
@@ -136,9 +143,13 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
         setSearchDialogOpen,
         searchDialogFrom,
         setSearchDialogFrom,
+        showFilterRibbon,
+        setShowFilterRibbon,
         showLegacyFilters,
         setShowLegacyFilters,
         handleSearchIconClick,
+        boardSearchQuery,
+        setBoardSearchQuery,
       }}
     >
       {children}

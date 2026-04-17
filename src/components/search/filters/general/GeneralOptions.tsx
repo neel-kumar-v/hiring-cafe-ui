@@ -1,7 +1,7 @@
 "use client";
 
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
-import { CategoryId } from "@/types/search";
+import type { CategoryId } from "@/types/search";
 import ApplyForm from "./ApplyForm";
 import CurrentFilters from "./CurrentFilters";
 import DateRange from "./DateRange";
@@ -12,79 +12,66 @@ import Sorting from "./Sorting";
 
 interface GeneralOptionsProps {
   scrollToSection?: string;
+  clearScrollToSection?: () => void;
+  filterIds?: string[];
   handleCategoryClick: (categoryType: CategoryId) => void;
 }
 
-export default function GeneralOptions({
-  scrollToSection,
-  handleCategoryClick,
-}: GeneralOptionsProps) {
-  const refs = createRefs([
-    "filters",
-    "saved", 
-    "date-range",
-    "sorting",
-    "apply-form",
-    "exclusion",
-    "encouraged"
-  ]);
+export default function GeneralOptions({ scrollToSection, clearScrollToSection, filterIds, handleCategoryClick }: GeneralOptionsProps) {
+  const refs = createRefs(["filters", "saved", "date-range", "sorting", "apply-form", "exclusion", "encouraged"]);
 
-  useScrollToSection(scrollToSection, refs);
+  useScrollToSection(scrollToSection, refs, clearScrollToSection);
+
+  const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
     <div className="space-y-2">
-      <div
-        ref={refs.filters}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <CurrentFilters handleCategoryClick={handleCategoryClick} />
-      </div>
+      {shouldShow("filters") ? (
+        <div className="scroll-mt-14" ref={refs.filters}>
+          <CurrentFilters handleCategoryClick={handleCategoryClick} />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.saved}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <SavedSearches />
-      </div>
+      {shouldShow("saved") ? (
+        <div className="scroll-mt-14" ref={refs.saved}>
+          <SavedSearches />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs["date-range"]}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <DateRange />
-      </div>
+      {shouldShow("date-range") ? (
+        <div className="scroll-mt-14" ref={refs["date-range"]}>
+          <DateRange />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.sorting}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <Sorting />
-      </div>
+      {shouldShow("sorting") ? (
+        <div className="scroll-mt-14" ref={refs.sorting}>
+          <Sorting />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs["apply-form"]}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <ApplyForm />
-      </div>
+      {shouldShow("apply-form") ? (
+        <div className="scroll-mt-14" ref={refs["apply-form"]}>
+          <ApplyForm />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.exclusion}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <Exclusion />
-      </div>
+      {shouldShow("exclusion") ? (
+        <div className="scroll-mt-14" ref={refs.exclusion}>
+          <Exclusion />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.encouraged}
-        className="space-y-4 p-4 border border-border/20 rounded-lg transition-all duration-500 ease-in-out"
-      >
-        <Encouraged />
-      </div>
+      {shouldShow("encouraged") ? (
+        <div className="scroll-mt-14" ref={refs.encouraged}>
+          <Encouraged />
+        </div>
+      ) : null}
+
       <br className="md:hidden" />
       <br className="md:hidden" />
       <br className="md:hidden" />
       <br className="md:hidden" />
     </div>
   );
-} 
+}

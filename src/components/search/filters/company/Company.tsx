@@ -1,25 +1,29 @@
 import { useApp } from "@/contexts/AppContext";
-import { createCompanyHandler, getCompanyOptions } from "@/lib/search";
+import { createCompanyHandler } from "@/lib/search";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
+import { useSearchData } from "@/hooks/useSearchData";
 
 export default function Company() {
-  const companies = getCompanyOptions();
+  const { options: companies, loading } = useSearchData("companies", true);
   const { searchOptions, updateSearchOptions } = useApp();
 
   const handleCompanyChange = createCompanyHandler(updateSearchOptions);
 
-
   return (
-    <FilterContainer title="Company Keywords">
-      <KeywordsMultiSelect 
-        value={searchOptions.company} 
-        onChange={handleCompanyChange} 
-        includeOptions={companies} 
-        excludeOptions={companies} 
-        includePlaceholder="Include Company Names"
-        excludePlaceholder="Exclude Company Names"
-      />
+    <FilterContainer categoryId="company" title="Company Keywords">
+      {loading ? (
+        <div className="text-sm text-gray-500">Loading companies...</div>
+      ) : (
+        <KeywordsMultiSelect 
+          value={searchOptions.company} 
+          onChange={handleCompanyChange} 
+          includeOptions={companies} 
+          excludeOptions={companies} 
+          includePlaceholder="Include Company Names"
+          excludePlaceholder="Exclude Company Names"
+        />
+      )}
     </FilterContainer>
   );
-} 
+}

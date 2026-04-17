@@ -9,61 +9,51 @@ import Stage from "./Stage";
 
 interface CompanyOptionsProps {
   scrollToSection?: string;
+  clearScrollToSection?: () => void;
+  filterIds?: string[];
 }
 
-export default function CompanyOptions({
-  scrollToSection,
-}: CompanyOptionsProps) {
-  const refs = createRefs([
-    "company",
-    "industry",
-    "stage",
-    "size",
-    "founding"
-  ]);
+export default function CompanyOptions({ scrollToSection, clearScrollToSection, filterIds }: CompanyOptionsProps) {
+  const refs = createRefs(["company", "industry", "stage", "size", "founding"]);
 
-  useScrollToSection(scrollToSection, refs);
+  useScrollToSection(scrollToSection, refs, clearScrollToSection);
+
+  const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
     <div className="space-y-8">
+      {shouldShow("company") ? (
+        <div className="scroll-mt-14" ref={refs.company}>
+          <Company />
+        </div>
+      ) : null}
 
+      {shouldShow("industry") ? (
+        <div className="scroll-mt-14" ref={refs.industry}>
+          <Industry />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.company}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Company />
-      </div>
+      {shouldShow("stage") ? (
+        <div className="scroll-mt-14" ref={refs.stage}>
+          <Stage />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.industry}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Industry />
-      </div>
+      {shouldShow("size") ? (
+        <div className="scroll-mt-14" ref={refs.size}>
+          <Size />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.stage}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Stage />
-      </div>
+      {shouldShow("founding") ? (
+        <div className="scroll-mt-14" ref={refs.founding}>
+          <Founding />
+        </div>
+      ) : null}
 
-      <div
-        ref={refs.size}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Size />
-      </div>
-
-      <div
-        ref={refs.founding}
-        className="space-y-4 p-4 border border-neutral-200 rounded-lg dark:border-neutral-700 transition-all duration-500 ease-in-out"
-      >
-        <Founding />
-      </div>
       <br className="md:hidden" />
       <br className="md:hidden" />
     </div>
   );
-} 
+}

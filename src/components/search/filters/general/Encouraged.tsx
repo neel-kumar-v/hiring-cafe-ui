@@ -13,7 +13,7 @@ export default function Encouraged() {
   );
 
   return (
-    <FilterContainer title="Encouraged to Apply">
+    <FilterContainer categoryId="encouraged" title="Encouraged to Apply">
       <LabelInputContainer>
         <LabelCheckbox 
           label="Veteran" 

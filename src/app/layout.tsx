@@ -1,10 +1,9 @@
-import { TooltipProvider } from "@/components/ui/motion/tooltip-animated";
 import { Toaster } from "@/components/ui/sonner";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
-import { ReducedMotionProvider } from "@/contexts/ReducedMotionContext";
 // import { PerformanceMonitor } from "@/lib/performance-monitor";
 import { AppProvider } from "@/contexts/AppContext";
 import { SearchUIProvider } from "@/contexts/SearchContext";
+import { ConvexClientProvider } from "@/providers/convex-client-provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import { Suspense, lazy } from "react";
@@ -101,8 +100,8 @@ export default function RootLayout({
         className={`antialiased ${geistSans.variable} ${geistMono.variable} ${montserrat.variable}`}
       >
         <DarkModeProvider>
-          <ReducedMotionProvider>
-            <TooltipProvider>
+          <ConvexClientProvider>
+            <Suspense fallback={null}>
               <AppProvider>
                 <SearchUIProvider>
                   <div className="min-h-screen transition-colors duration-300">
@@ -110,7 +109,7 @@ export default function RootLayout({
                       <Suspense fallback={null}>
                         <Header />
                       </Suspense>
-                      
+
                       <Suspense fallback={null}>
                         <SearchDialogWrapper />
                       </Suspense>
@@ -120,8 +119,8 @@ export default function RootLayout({
                   </div>
                 </SearchUIProvider>
               </AppProvider>
-            </TooltipProvider>
-          </ReducedMotionProvider>
+            </Suspense>
+          </ConvexClientProvider>
         </DarkModeProvider>
         <Toaster />
         {/* <PerformanceMonitorScript /> */}

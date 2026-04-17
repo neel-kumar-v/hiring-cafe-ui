@@ -27,7 +27,7 @@ export default function Size() {
   );
 
   return (
-    <FilterContainer title="Company Size">
+    <FilterContainer categoryId="size" title="Company Size">
       <LabelInputContainer title="Employees" midColCount={3} lgColCount={3}> 
         {sizeRanges.map(({ label, range }) => (
           <LabelCheckbox
