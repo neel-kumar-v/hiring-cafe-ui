@@ -1,12 +1,12 @@
 "use client";
 
+import HomeSearchActions from "@/components/search/HomeSearchActions";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { Suspense, lazy, useState } from "react";
 
 const JobBoard = lazy(() => import("@/components/JobBoard"));
 const ApplyFormSelect = lazy(() => import("@/components/search/legacy/ApplyFormSelect"));
 const DateRangePopover = lazy(() => import("@/components/search/legacy/DateRangePopover"));
-const Filters = lazy(() => import("@/components/search/legacy/Filters"));
 const SortPopover = lazy(() => import("@/components/search/legacy/SortPopover"));
 
 const LoadingFallback = () => (
@@ -17,7 +17,7 @@ const LoadingFallback = () => (
 );
 
 export default function Page() {
-  const { showLegacyFilters, handleSearchIconClick } = useSearchUI();
+  const { showLegacyFilters } = useSearchUI();
   const [jobCount] = useState(2_057_770);
   const [companyCount] = useState(72_936);
   const [location] = useState("United States");
@@ -28,11 +28,7 @@ export default function Page() {
 
   return (
     <>
-      <div className={showLegacyFilters ? "" : "hidden"}>
-        <Suspense fallback={null}>
-          <Filters onIconClick={handleSearchIconClick} />
-        </Suspense>
-      </div>
+      <HomeSearchActions />
 
       <div className={showLegacyFilters ? "" : "hidden"}>
         <div className="mx-auto max-w-full px-2 py-4 sm:px-4 lg:px-8">
