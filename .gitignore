@@ -41,4 +41,7 @@ yarn-error.log*
 next-env.d.ts
 scraper.log
 package-lock.json
+
+# Local SQLite job store (generated from jobs_data.json)
+src/data/jobs.db
 CLAUDE.md
