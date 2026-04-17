@@ -45,3 +45,5 @@ package-lock.json
 # Local SQLite job store (generated from jobs_data.json)
 src/data/jobs.db
 CLAUDE.md
+/.agents
+/.claude
