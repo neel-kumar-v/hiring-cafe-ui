@@ -1,7 +1,5 @@
-import { useReducedMotion } from "@/contexts/ReducedMotionContext";
 import { getTimeSince } from "@/lib/job-info";
 import type React from "react";
-import { MorphingJobStats, MorphingTime } from "../../ui/motion/morphing-dialog";
 import ScrapeTime from "../util/ScrapeTime";
 import StatGroup from "../util/StatGroup";
 
@@ -27,60 +25,32 @@ const DialogStats = ({
   applyUrl: string;
 }) => {
   const timeSince = getTimeSince(publishDate);
-  const { prefersReducedMotion } = useReducedMotion();
   if (!timeSince) return null;
 
   return (
     <div className="absolute top-8 left-8 flex items-center gap-3">
-      {!prefersReducedMotion ? (
-        <MorphingTime className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
-          <ScrapeTime
-            iconClassName="size-4"
-            postedAt={publishDate}
-            textClassName="text-md"
-          />
-        </MorphingTime>
-      ) : (
-        <div className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
-          <ScrapeTime
-            iconClassName="size-4"
-            postedAt={publishDate}
-            textClassName="text-md"
-          />
-        </div>
-      )}
+      <div className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
+        <ScrapeTime
+          iconClassName="size-4"
+          postedAt={publishDate}
+          textClassName="text-md"
+        />
+      </div>
 
-      {!prefersReducedMotion ? (
-        <MorphingJobStats className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
-          <StatGroup
-            appliedCount={appliedFromUsers?.length || 0}
-            handleBookmarkClick={onBookmarkClick}
-            iconClassName="size-4"
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
-            isInterviewing={isInterviewing}
-            savedCount={savedFromUsers?.length || 0}
-            textClassName="text-md"
-            viewedCount={(viewedByUsers?.length || 0) + 1}
-            applyUrl={applyUrl}
-          />
-        </MorphingJobStats>
-      ) : (
-        <div className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
-          <StatGroup
-            appliedCount={appliedFromUsers?.length || 0}
-            handleBookmarkClick={onBookmarkClick}
-            iconClassName="size-4"
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
-            isInterviewing={isInterviewing}
-            savedCount={savedFromUsers?.length || 0}
-            textClassName="text-md"
-            viewedCount={(viewedByUsers?.length || 0) + 1}
-            applyUrl={applyUrl}
-          />
-        </div>
-      )}
+      <div className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
+        <StatGroup
+          appliedCount={appliedFromUsers?.length || 0}
+          handleBookmarkClick={onBookmarkClick}
+          iconClassName="size-4"
+          isApplied={isApplied}
+          isBookmarked={isBookmarked}
+          isInterviewing={isInterviewing}
+          savedCount={savedFromUsers?.length || 0}
+          textClassName="text-md"
+          viewedCount={(viewedByUsers?.length || 0) + 1}
+          applyUrl={applyUrl}
+        />
+      </div>
     </div>
   );
 };

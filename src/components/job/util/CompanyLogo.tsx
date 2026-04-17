@@ -1,21 +1,17 @@
-import { MorphingCompanyLogo } from "@/components/ui/motion/morphing-dialog";
-import { useReducedMotion } from "@/contexts/ReducedMotionContext";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   analyzeImageBackground,
   getCompanyAbbreviation,
   getImageBackgroundClass,
   renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
-import type { V5ProcessedCompanyData } from "@/types/job";
+import type { ProcessedCompanyData } from "@/types/job";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 interface CompanyLogoInnerProps {
-  companyData: V5ProcessedCompanyData;
+  companyData: ProcessedCompanyData;
   containerClassName: string;
   imageClassName: string;
   fallbackClassName: string;
-  useMorphing: boolean;
 }
 
 const CompanyLogoInner = memo(({
@@ -23,20 +19,17 @@ const CompanyLogoInner = memo(({
   containerClassName,
   imageClassName,
   fallbackClassName,
-  useMorphing,
 }: CompanyLogoInnerProps) => {
   const [imageError, setImageError] = useState(false);
   const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 728px)");
-  const { prefersReducedMotion } = useReducedMotion();
 
-  const abbreviation = useMemo(() => 
-    getCompanyAbbreviation(companyData.name || ""), 
+  const abbreviation = useMemo(() =>
+    getCompanyAbbreviation(companyData.name || ""),
     [companyData.name]
   );
 
-  const initialsContent = useMemo(() => 
-    renderCompanyAbbreviationGrid(abbreviation, false), 
+  const initialsContent = useMemo(() =>
+    renderCompanyAbbreviationGrid(abbreviation, false),
     [abbreviation]
   );
 
@@ -50,12 +43,12 @@ const CompanyLogoInner = memo(({
     }
   }, [companyData.image_url, imageError]);
 
-  const backgroundClass = useMemo(() => 
+  const backgroundClass = useMemo(() =>
     getImageBackgroundClass(companyData.image_url, imageError, backgroundType),
     [companyData.image_url, imageError, backgroundType]
   );
 
-  const finalContainerClasses = useMemo(() => 
+  const finalContainerClasses = useMemo(() =>
     `${containerClassName} ${backgroundClass}`,
     [containerClassName, backgroundClass]
   );
@@ -77,16 +70,6 @@ const CompanyLogoInner = memo(({
     </>
   ), [companyData.image_url, companyData.name, imageError, imageClassName, fallbackClassName, initialsContent, handleImageError]);
 
-  const shouldUseMorphing = useMorphing && isDesktop && !prefersReducedMotion;
-
-  if (shouldUseMorphing) {
-    return (
-      <MorphingCompanyLogo className={finalContainerClasses}>
-        {logoContent}
-      </MorphingCompanyLogo>
-    );
-  }
-
   return (
     <div className={finalContainerClasses}>
       {logoContent}
@@ -97,11 +80,10 @@ const CompanyLogoInner = memo(({
 CompanyLogoInner.displayName = "CompanyLogoInner";
 
 interface CompanyLogoProps {
-  companyData: V5ProcessedCompanyData;
+  companyData: ProcessedCompanyData;
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "default" | "dialog" | "card";
   className?: string;
-  useMorphing?: boolean;
 }
 
 const CompanyLogo = memo(({
@@ -109,7 +91,6 @@ const CompanyLogo = memo(({
   size = "md",
   variant = "default",
   className = "",
-  useMorphing = true,
 }: CompanyLogoProps) => {
   const sizeClasses = {
     sm: "h-12",
@@ -141,31 +122,31 @@ const CompanyLogo = memo(({
 
   const containerClasses = useMemo(() => {
     const baseClasses = `flex aspect-square flex-shrink-0 items-center justify-center overflow-hidden ${sizeClasses[size]} ${roundedClasses[size]} ${className}`;
-    
+
     if (variant === "dialog") {
       return `${baseClasses} self-start`;
     }
-    
+
     return baseClasses;
   }, [size, variant, className]);
 
   const imageClasses = useMemo(() => {
     const baseClasses = `h-full w-full object-contain ${roundedClasses[size]} ${paddingClasses[size]}`;
-    
+
     if (variant === "dialog") {
       return `${baseClasses} drop-shadow-lg`;
     }
-    
+
     return baseClasses;
   }, [size, variant]);
 
   const fallbackClasses = useMemo(() => {
     const baseClasses = `font-semibold text-pink-600 dark:text-pink-300 ${textSizes[size]}`;
-    
+
     if (variant === "dialog") {
       return `flex h-full w-full select-none items-center justify-center bg-pink-100 ${baseClasses} dark:bg-pink-800/15`;
     }
-    
+
     return baseClasses;
   }, [size, variant]);
 
@@ -175,11 +156,10 @@ const CompanyLogo = memo(({
       containerClassName={containerClasses}
       imageClassName={imageClasses}
       fallbackClassName={fallbackClasses}
-      useMorphing={useMorphing}
     />
   );
 });
 
 CompanyLogo.displayName = "CompanyLogo";
 
-export default CompanyLogo; 
+export default CompanyLogo;

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
-import type { V5ProcessedCompanyData } from "@/types/job";
+import type { ProcessedCompanyData } from "@/types/job";
 import { BadgeDollarSign, Building2, Calendar, DollarSign, Globe, Landmark, Linkedin, Users } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import DialogCompanyReviews from "./DialogCompanyReviews";
@@ -19,7 +19,7 @@ function InfoListItem({ icon: Icon, header, value, wrap = false }: { icon: IconT
   );
 }
 
-function CompanyInfoContent({ companyData }: { companyData: V5ProcessedCompanyData }) {
+function CompanyInfoContent({ companyData }: { companyData: ProcessedCompanyData }) {
   const linkedinUrl = /^https?:\/\//.test(companyData.linkedin_url) ? companyData.linkedin_url : `https://${companyData.linkedin_url}`;
   const linkedinUrlWithoutProtocol = linkedinUrl.replace(/^https?:\/\//, "");
 
@@ -76,7 +76,7 @@ function CompanyInfoContent({ companyData }: { companyData: V5ProcessedCompanyDa
   );
 }
 
-export default function DialogExtendedCompanyInfo({ companyData }: { companyData: V5ProcessedCompanyData }) {
+export default function DialogExtendedCompanyInfo({ companyData }: { companyData: ProcessedCompanyData }) {
   return (
     <Tabs defaultValue="company-info" className="w-full mt-4">
       <TabsList className="grid w-full grid-cols-2 bg-black/10 dark:bg-white/10">

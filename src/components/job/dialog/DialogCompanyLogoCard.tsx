@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import type { V5ProcessedCompanyData } from "@/types/job";
+import type { ProcessedCompanyData } from "@/types/job";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import DialogExtendedCompanyInfo from "./DialogExtendedCompanyInfo";
@@ -8,7 +8,7 @@ import CompanyLogo from "../util/CompanyLogo";
 const DialogCompanyLogoCard = ({
   companyData,
 }: {
-  companyData: V5ProcessedCompanyData;
+  companyData: ProcessedCompanyData;
 }) => {
   const [showExtended, setShowExtended] = useState(false);
 
@@ -35,7 +35,6 @@ const DialogCompanyLogoCard = ({
           companyData={companyData}
           size="xl"
           variant="dialog"
-          useMorphing={true}
         />
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center">
           <p className="line-clamp-5 break-words text-neutral-700 md:text-base md:leading-relaxed dark:text-neutral-300">

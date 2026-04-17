@@ -1,10 +1,7 @@
 import {
-  MorphingCompanyName,
-} from "@/components/ui/motion/morphing-dialog";
-import {
   formatCompanyName,
 } from "@/lib/company-info";
-import type { V5ProcessedCompanyData } from "@/types/job";
+import type { ProcessedCompanyData } from "@/types/job";
 import { ExternalLink, Link2 } from "lucide-react";
 import UniversalTooltip from "../../util/UniversalTooltip";
 import CompanyLogo from "../util/CompanyLogo";
@@ -13,7 +10,7 @@ const CardCompanyInfo = ({
   companyData,
   tagline,
 }: {
-  companyData: V5ProcessedCompanyData;
+  companyData: ProcessedCompanyData;
   tagline: string;
 }) => {
 
@@ -25,7 +22,6 @@ const CardCompanyInfo = ({
         companyData={companyData}
         size="md"
         variant="card"
-        useMorphing={true}
       />
       <div className="min-w-0 flex-1">
         <div className="overflow-visible whitespace-nowrap rounded group-hover:w-fit group-hover:backdrop-blur-xl pointer-coarse:w-fit pointer-coarse:backdrop-blur-none pointer-none:w-fit pointer-none:backdrop-blur-none pointer-fine:motion-reduce:w-fit pointer-fine:motion-reduce:backdrop-blur-none">
@@ -55,9 +51,9 @@ const CardCompanyInfo = ({
                   >
                     <Link2 className="-rotate-45 size-3 text-neutral-400 dark:text-neutral-300" />
                   </span>
-                  <MorphingCompanyName className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-2 pointer-coarse:translate-x-2 pointer-none:translate-x-2 pointer-fine:motion-reduce:translate-x-2">
+                  <span className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-2 pointer-coarse:translate-x-2 pointer-none:translate-x-2 pointer-fine:motion-reduce:translate-x-2">
                     {formatCompanyName(companyData.name)}
-                  </MorphingCompanyName>
+                  </span>
                 </a>
               </UniversalTooltip>
               <UniversalTooltip

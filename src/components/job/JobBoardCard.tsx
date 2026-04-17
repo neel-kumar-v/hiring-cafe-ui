@@ -2,7 +2,9 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
+import { getCompanyName } from "@/lib/job-company";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
+import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import type { Job, JobCollection } from "@/types/job";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -56,10 +58,20 @@ const JobCard = memo(({
   onJobSelect,
   onClick,
 }: JobCardProps) => {
+  const { prefetch, cancel } = useJobDetailsPrefetch({ delayMs: 200, maxInflight: 2 });
+
   const cardKey = useMemo(() => 
     `${jobCollection.source_and_board_token}-${currentJobIndex}`, 
     [jobCollection.source_and_board_token, currentJobIndex]
   );
+
+  const onHoverStart = useCallback(() => {
+    prefetch(currentJob.id);
+  }, [prefetch, currentJob.id]);
+
+  const onHoverEnd = useCallback(() => {
+    cancel(currentJob.id);
+  }, [cancel, currentJob.id]);
 
   return (
     <CardSwipeIndicator
@@ -71,6 +83,8 @@ const JobCard = memo(({
         className="h-full cursor-pointer border bg-white shadow-sm transition-shadow duration-300 ease-in hover:shadow-lg dark:border-pink-700/20 dark:bg-neutral-800 dark:transition-colors dark:hover:border-pink-700/50 dark:hover:bg-neutral-700/50 group "
         key={cardKey}
         onClick={onClick}
+        onMouseEnter={onHoverStart}
+        onMouseLeave={onHoverEnd}
         data-job-card="true"
       >
         <CardContent className="flex h-full flex-col p-4 py-3">
@@ -100,9 +114,9 @@ const JobCard = memo(({
             ) : (
               <div className="col-span-1"></div>
             )}
-            {/* <CardSkillMatch technicalTools={currentJob.v5_processed_job_data.technical_tools} /> */}
+            {/* <CardSkillMatch technicalTools={currentJob.processed_job_data.technical_tools} /> */}
             <ScrapeTime
-              postedAt={currentJob.v5_processed_job_data.estimated_publish_date}
+              postedAt={currentJob.processed_job_data.estimated_publish_date ?? ""}
               iconClassName="w-3 h-3"
               textClassName="text-xs"
             />
@@ -132,10 +146,8 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   );
 
   const stableKey = useMemo(() => {
-    const companyName = jobCollection.jobs[0]?.v5_processed_company_data?.name || 
-                       jobCollection.jobs[0]?.v5_processed_job_data.company_name || 
-                       jobCollection.source_and_board_token;
-    return companyName;
+    const first = jobCollection.jobs[0];
+    return (first && getCompanyName(first)) || jobCollection.source_and_board_token;
   }, [jobCollection.jobs, jobCollection.source_and_board_token]);
 
   const handleNextJob = useCallback(() => {
@@ -226,6 +238,7 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   const handleDrawerOpen = useCallback(() => {
     setDrawerOpen(true);
   }, []);
+
 
   const handleJobIndexChange = useCallback((index: number) => {
     setCurrentJobIndex(index);

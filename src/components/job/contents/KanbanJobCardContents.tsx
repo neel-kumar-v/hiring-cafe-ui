@@ -1,6 +1,7 @@
 'use client';
 
 import { getCleanJobTitle } from "@/lib/job-info";
+import { getCompanyName, toCardCompanyData } from "@/lib/job-company";
 import type { Job } from "@/types/job";
 import { memo } from "react";
 import CompanyLogo from "../util/CompanyLogo";
@@ -11,31 +12,35 @@ interface KanbanJobCardProps {
 }
 
 const KanbanJobCardContents = memo(({ job, className, }: KanbanJobCardProps) => {
+  const processed = job.processed_job_data;
+  const companyData = toCardCompanyData(job);
+  const cities = processed.workplace_cities ?? [];
+  const states = processed.workplace_states ?? [];
+  const countries = processed.workplace_countries ?? [];
 
-  const locations = job.v5_processed_job_data.workplace_cities.length > 0
-    ? job.v5_processed_job_data.workplace_cities.join(", ")
-    : job.v5_processed_job_data.workplace_states.length > 0
-    ? job.v5_processed_job_data.workplace_states.join(", ")
-    : job.v5_processed_job_data.workplace_countries.length > 0
-    ? job.v5_processed_job_data.workplace_countries.join(", ")
+  const locations = cities.length > 0
+    ? cities.join(", ")
+    : states.length > 0
+    ? states.join(", ")
+    : countries.length > 0
+    ? countries.join(", ")
     : "Remote";
 
   const content = (
     <div className="flex items-start space-x-3">
       <CompanyLogo
-        companyData={job.v5_processed_company_data}
+        companyData={companyData}
         size="sm"
         variant="default"
-        useMorphing={false}
         className="self-center select-none"
       />
       
       <div className="min-w-0 flex-1">
         <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 line-clamp-2 mb-1 select-none">
-          {getCleanJobTitle(job.job_information.title, job.v5_processed_company_data.name, locations, job.v5_processed_job_data.technical_tools)}
+          {getCleanJobTitle(job.job_information.title, getCompanyName(job), locations, processed.technical_tools ?? [])}
         </h3>
         <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 select-none">
-          {job.v5_processed_company_data.name}
+          {getCompanyName(job)}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-1 select-none ">
           {locations}

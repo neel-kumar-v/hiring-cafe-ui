@@ -2,17 +2,15 @@ import { formatTool } from "@/lib/job-info";
 import { useApp } from "@/contexts/AppContext";
 import { useMemo } from "react";
 import { Check } from "lucide-react";
-import { MorphingJobTechnicalTools } from "../../ui/motion/morphing-dialog";
 
 const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
   const { user, addSkill, removeSkill } = useApp();
+  const tools = technicalTools ?? [];
   
-  if (!technicalTools || technicalTools.length === 0) return null;
-
   const minHeight = 12;
 
   const maxHeight = () => {
-    const combined = technicalTools.join("  ");
+    const combined = tools.join("  ");
     return Math.max(12, Math.ceil(combined.length / 50 + 1) * 6);
   };
 
@@ -27,7 +25,7 @@ const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) =>
 
     const normalizedUserSkills = user.skills.map(normalizeSkill);
     
-    return technicalTools.map(tool => {
+    return tools.map(tool => {
       const normalizedTool = normalizeSkill(tool);
       const isMatched = normalizedUserSkills.includes(normalizedTool);
       return {
@@ -36,7 +34,7 @@ const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) =>
         isMatched
       };
     });
-  }, [user.skills, technicalTools]);
+  }, [user.skills, tools]);
 
   const handleSkillClick = (e: React.MouseEvent, skillInfo: { original: string; isMatched: boolean }) => {
     e.stopPropagation(); // Prevent card dialog from opening
@@ -49,9 +47,11 @@ const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) =>
     }
   };
 
+  if (!tools.length) return null;
+
   return (
     <div className="flex grow min-w-0 flex-wrap items-center gap-1">
-      <MorphingJobTechnicalTools
+      <div
         className={`flex pointer-fine:max-h-${minHeight}  pointer-fine:group-hover:max-h-${maxHeight} max-h-${minHeight} pointer-fine:motion-reduce:max-h-${minHeight} min-w-0 flex-wrap gap-1 overflow-hidden transition-all duration-700 ease-out`}
       >
         {skillMatchInfo.map((skillInfo, skillIndex) => (
@@ -70,7 +70,7 @@ const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) =>
             {formatTool(skillInfo.original)}
           </button>
         ))}
-      </MorphingJobTechnicalTools>
+      </div>
     </div>
   );
 };

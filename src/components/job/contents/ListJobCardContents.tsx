@@ -2,6 +2,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCleanJobTitle } from "@/lib/job-info";
+import { getCompanyName, toCardCompanyData } from "@/lib/job-company";
 import type { Job } from "@/types/job";
 import { memo } from "react";
 import CompanyLogo from "../util/CompanyLogo";
@@ -19,12 +20,18 @@ const ListJobCardContents = memo(({
   currentStage, 
   onMoveJob 
 }: ListJobCardContentsProps) => {
-  const locations = job.v5_processed_job_data.workplace_cities.length > 0
-    ? job.v5_processed_job_data.workplace_cities.join(", ")
-    : job.v5_processed_job_data.workplace_states.length > 0
-    ? job.v5_processed_job_data.workplace_states.join(", ")
-    : job.v5_processed_job_data.workplace_countries.length > 0
-    ? job.v5_processed_job_data.workplace_countries.join(", ")
+  const processed = job.processed_job_data;
+  const companyData = toCardCompanyData(job);
+  const cities = processed.workplace_cities ?? [];
+  const states = processed.workplace_states ?? [];
+  const countries = processed.workplace_countries ?? [];
+
+  const locations = cities.length > 0
+    ? cities.join(", ")
+    : states.length > 0
+    ? states.join(", ")
+    : countries.length > 0
+    ? countries.join(", ")
     : "Remote";
 
   const handleStageChange = (stageId: string) => {
@@ -37,18 +44,17 @@ const ListJobCardContents = memo(({
     <div className="flex flex-row max-[400px]:flex-col items-center justify-between">
       <div className="flex items-center space-x-4 flex-1 max-[400px]:w-full max-[400px]:mb-2">
         <CompanyLogo
-          companyData={job.v5_processed_company_data}
+          companyData={companyData}
           size="sm"
           variant="default"
-          useMorphing={false}
         />
         
         <div className="min-w-0 flex-1">
           <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 line-clamp-1 mb-1">
-            {getCleanJobTitle(job.job_information.title, job.v5_processed_company_data.name, locations, job.v5_processed_job_data.technical_tools)}
+            {getCleanJobTitle(job.job_information.title, getCompanyName(job), locations, processed.technical_tools ?? [])}
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-            {job.v5_processed_company_data.name}
+            {getCompanyName(job)}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-1">
             {locations}

@@ -6,6 +6,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { formatCompanyWebsite } from "@/lib/company-info";
+import { toCardCompanyData } from "@/lib/job-company";
 import type { Job } from "@/types/job";
 import {
   Bookmark,
@@ -35,6 +36,8 @@ const CardContextMenuProvider = ({
   onApplyClick: (e: React.MouseEvent) => void;
   applyUrl: string;
 }) => {
+  const companyData = toCardCompanyData(currentJob);
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>{children}</ContextMenuTrigger>
@@ -62,10 +65,10 @@ const CardContextMenuProvider = ({
         <ContextMenuSeparator />
         <ContextMenuItem>
           <ExternalLink className="mr-2 size-4" />
-          View all Jobs from {currentJob.v5_processed_company_data.name}
+          View all Jobs from {companyData.name}
         </ContextMenuItem>
         <ContextMenuItem className="group">
-          <a href={formatCompanyWebsite(currentJob.v5_processed_company_data.website)} target="_blank" rel="noopener noreferrer external" className="flex items-center gap-2 group-hover:underline">
+          <a href={formatCompanyWebsite(companyData.website)} target="_blank" rel="noopener noreferrer external" className="flex items-center gap-2 group-hover:underline">
             <Link2 className="mr-2 size-4" />
             Go to Company Website
           </a>

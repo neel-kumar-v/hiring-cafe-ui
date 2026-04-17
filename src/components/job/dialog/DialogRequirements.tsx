@@ -1,7 +1,4 @@
-import { MorphingJobDescription } from "@/components/ui/motion/morphing-dialog";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
-import { useReducedMotion } from "@/contexts/ReducedMotionContext";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getExperienceInfo } from "@/lib/job-info";
 import { FileChartColumnIncreasing, FileUser } from "lucide-react";
 
@@ -14,9 +11,6 @@ const DialogRequirements = ({
   minIndustryAndRoleYoe?: number | null;
   minManagementAndLeadershipYoe?: number | null;
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 728px)");
-  const { prefersReducedMotion } = useReducedMotion();
-
   if (!requirementsSummary) return null;
 
   const experienceInfo = getExperienceInfo(
@@ -54,24 +48,17 @@ const DialogRequirements = ({
         </span>
       )}
     </>
-  )
+  );
 
   return (
     <div className="mb-6">
       <h3 className="mb-3 font-medium text-neutral-900 text-lg dark:text-white">
         Requirements
       </h3>
-      {isDesktop && !prefersReducedMotion ? (
-        <MorphingJobDescription className="text-neutral-700 leading-relaxed dark:text-neutral-300">
-          {experienceInfo.hasAny && renderBadges()}
-          {requirementsSummary}
-        </MorphingJobDescription>
-      ) : (
-        <div className="text-neutral-700 leading-relaxed dark:text-neutral-300">
-          {experienceInfo.hasAny && renderBadges()}
-          {requirementsSummary}
-        </div>
-      )}
+      <div className="text-neutral-700 leading-relaxed dark:text-neutral-300">
+        {experienceInfo.hasAny && renderBadges()}
+        {requirementsSummary}
+      </div>
     </div>
   );
 };

@@ -1,14 +1,32 @@
-import jobsData from "@/data/jobs_data.json" with { type: "json" };
+import { useApp } from "@/contexts/AppContext";
+import { useSearchUI } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { getCompanyName } from "@/lib/job-company";
+import { normalizeJob } from "@/lib/jobs/normalizeJob";
+import { toConvexJobSearchFilters } from "@/lib/search/toConvexFilters";
 import type { Job, JobCollection } from "@/types/job";
+import { usePaginatedQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { api } from "../../convex/_generated/api";
 
 const JobBoardCard = dynamic(() => import("./job/JobBoardCard"), {
   ssr: false,
 });
 
+// Keeping pages smaller avoids Convex "many bytes read" warnings when job payloads are large.
+const PAGE_LIMIT = 50;
+
 const JobBoard = () => {
+  const { boardSearchQuery } = useSearchUI();
+  const { searchOptions } = useApp();
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedQuery(boardSearchQuery.trim()), 280);
+    return () => window.clearTimeout(id);
+  }, [boardSearchQuery]);
+
   const is3xl = useMediaQuery("(min-width: 1920px)");
   const is2xl = useMediaQuery("(min-width: 1536px)");
   const isXl = useMediaQuery("(min-width: 1280px)");
@@ -22,17 +40,31 @@ const JobBoard = () => {
 
   const initialCount = columns * 4;
   const [loadedCount, setLoadedCount] = useState(initialCount);
-  const [isLoading, setIsLoading] = useState(false);
+  const [revealLoading, setRevealLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const convexFilters = useMemo(() => toConvexJobSearchFilters(searchOptions), [searchOptions]);
+
+  const {
+    results: accumulatedJobs,
+    status,
+    loadMore,
+    isLoading,
+  } = usePaginatedQuery(api.jobs.search, { q: debouncedQuery || undefined, filters: convexFilters }, { initialNumItems: PAGE_LIMIT });
+
+  useEffect(() => {
+    setLoadedCount(columns * 4);
+  }, [columns]);
+
   const allJobCollections = useMemo(() => {
+    if (!accumulatedJobs.length) return [];
+
     const collectionsMap = new Map<string, JobCollection>();
-    const results = jobsData.jobs;
-    const len = results.length;
+    const len = accumulatedJobs.length;
 
     for (let i = 0; i < len; i++) {
-      const job = results[i];
-      const companyName = job.v5_processed_company_data?.name || job.v5_processed_job_data.company_name || "Unknown Company";
+      const job = normalizeJob(accumulatedJobs[i]);
+      const companyName = getCompanyName(job) || "Unknown Company";
 
       let collection = collectionsMap.get(companyName);
       if (!collection) {
@@ -52,26 +84,28 @@ const JobBoard = () => {
     }
 
     return Array.from(collectionsMap.values());
-  }, []);
+  }, [accumulatedJobs]);
 
   const displayedCollections = useMemo(() => {
     return allJobCollections.slice(0, loadedCount);
   }, [allJobCollections, loadedCount]);
 
   const loadMoreItems = () => {
-    if (isLoading || loadedCount >= allJobCollections.length) return;
+    if (revealLoading || isLoading) return;
 
-    setIsLoading(true);
-    setTimeout(() => {
-      const newCount = Math.min(loadedCount + 8, allJobCollections.length);
-      setLoadedCount(newCount);
-      setIsLoading(false);
-    }, 100);
+    if (loadedCount < allJobCollections.length) {
+      setRevealLoading(true);
+      window.setTimeout(() => {
+        setLoadedCount((c) => Math.min(c + 8, allJobCollections.length));
+        setRevealLoading(false);
+      }, 100);
+      return;
+    }
+
+    if (status === "CanLoadMore") {
+      loadMore(PAGE_LIMIT);
+    }
   };
-
-  useEffect(() => {
-    setLoadedCount(columns * 4);
-  }, [columns]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,19 +116,40 @@ const JobBoard = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadedCount, isLoading]);
+  }, [loadedCount, loadMoreItems]);
+
+  if (status === "LoadingFirstPage") {
+    return <div className="col-span-full text-center py-16 text-text">Loading jobs...</div>;
+  }
+
+  if (!accumulatedJobs.length) {
+    const searched = Boolean(debouncedQuery.trim());
+    if (searched) {
+      return (
+        <div className="col-span-full text-center py-16 text-text">
+          No jobs match <span className="font-medium text-pink-600 dark:text-pink-400">&quot;{debouncedQuery.trim()}&quot;</span>
+          Try different keywords or clear the search bar.
+        </div>
+      );
+    }
+    return (
+      <div className="col-span-full text-center py-16 text-text">
+        No jobs found in Convex. Run the scraper, then import into Convex: <code className="text-sm">python scraper/import_json_to_convex.py</code>.
+      </div>
+    );
+  }
 
   return (
-    <div ref={containerRef} className="grid 3xl:grid-cols-5 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 min-h-screen">
+    <div ref={containerRef} className="grid min-h-screen scroll-mt-14 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5">
       {displayedCollections.map((collection) => {
-        const companyName = collection.jobs[0]?.v5_processed_company_data?.name || collection.jobs[0]?.v5_processed_job_data.company_name || collection.source_and_board_token;
+        const companyName = getCompanyName(collection.jobs[0]) || collection.source_and_board_token;
         return (
           <Suspense key={companyName} fallback={<div className="text-center py-8 text-gray-500">Loading...</div>}>
             <JobBoardCard jobCollection={collection} data-job-card="true" />
           </Suspense>
         );
       })}
-      {isLoading && <div className="col-span-full text-center py-4 text-gray-500">Loading more jobs...</div>}
+      {(revealLoading || isLoading) && <div className="col-span-full text-center py-4 text-gray-500">Loading more jobs...</div>}
     </div>
   );
 };
