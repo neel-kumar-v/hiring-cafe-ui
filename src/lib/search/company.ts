@@ -1,6 +1,6 @@
 import { CurrentStage, FundingOptions, IndustryOptions, InfiniteRange, Keywords, Profit, SearchState, Select, USAJobs } from '../../types/search';
 import { createRadioHandler, createSelectHandler } from './handlers';
-import { createRangeHandler, getCompaniesFromData, getCompanyActivitiesFromData, getIndustriesFromData } from './index';
+import { createRangeHandler } from './index';
 
 export function createCompanyHandler(
   updateSearchOptions: (updates: Partial<SearchState>) => void
@@ -12,13 +12,6 @@ export function createCompanyHandler(
   };
 }
 
-export function getCompanyOptions() {
-  return getCompaniesFromData().map(company => ({
-    label: company,
-    value: company,
-  }));
-}
-
 export const getCurrentYear = () => {
   return new Date().getFullYear();
 }
@@ -27,20 +20,6 @@ export function createFoundingYearHandler(
   updateSearchOptions: (updates: Partial<SearchState>) => void
 ) {
   return createRangeHandler(updateSearchOptions, "founding_year");
-}
-
-export function getIndustryOptions() {
-  return getIndustriesFromData().map(industry => ({
-    label: industry,
-    value: industry
-  }));
-}
-
-export function getCompanyActivityOptions() {
-  return getCompanyActivitiesFromData().map(activity => ({
-    label: activity,
-    value: activity
-  }));
 }
 
 // Size handlers

@@ -46,7 +46,7 @@ const companyTags = [
   "Founding Year",
 ];
 
-const settingsCategories: SettingsCategory[] = [
+const filters: SettingsCategory[] = [
   // General categories
   { id: "filters", name: "Current Filters", type: "general", },
   { id: "saved", name: "Saved Searches", type: "general", },
@@ -94,6 +94,6 @@ export {
   legacyFilterTags, locationTags, miscellaneousTags,
   qualificationsTags,
   roleDepartmentTags,
-  settingsCategories
+  filters
 };
 

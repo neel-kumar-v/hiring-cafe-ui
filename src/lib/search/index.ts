@@ -1,12 +1,3 @@
-import companiesData from "@/data/companies.json" with { type: "json" };
-import companyActivitiesData from "@/data/company_activities.json" with { type: "json" };
-import degreeTitlesData from "@/data/degree_titles.json" with { type: "json" };
-import industriesData from "@/data/industries.json" with { type: "json" };
-import investorsData from "@/data/investors.json" with { type: "json" };
-import jobsData from "@/data/jobs_data.json";
-import languagesData from "@/data/languages.json" with { type: "json" };
-import licensesData from "@/data/licenses.json" with { type: "json" };
-import roundTypesData from "@/data/round_types.json" with { type: "json" };
 import { InfiniteRange, Keywords, Location, Range, SearchExpression, Select } from '../../types/search';
 
 // Export functions from other files
@@ -14,7 +5,7 @@ export { createAvailabilityRadioHandler, createNestedSelectHandler, createOncall
 export {
   createCompanyHandler, createFoundingYearHandler, createIndustryKeywordsHandler,
   createIndustryProfitHandler,
-  createIndustryUsaJobsHandler, createSizeHandler, getCompanyActivityOptions, getCompanyOptions, getIndustryOptions, getSizeRanges
+  createIndustryUsaJobsHandler, createSizeHandler, getSizeRanges
 } from './company';
 export { createBenefitsHandler, createDepartmentHandler, createEncouragedHandler } from './compensation';
 export { createExclusionHandler, getApplyFormDescription, getApplyFormMap, getApplyFormValueMap } from './general';
@@ -48,46 +39,6 @@ export {
 } from './handlers';
 
 
-
-export function getJobTitlesFromData(): string[] {
-  if (jobsData && Array.isArray(jobsData.results)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const titles = (jobsData.results as any[])
-      .map(
-        (job) =>
-          job.v5_processed_job_data?.core_job_title ||
-          job.job_information?.title
-      )
-      .filter((title): title is string => Boolean(title));
-    return Array.from(new Set(titles));
-  }
-  return [];
-}
-
-export function getDataFromSource<T extends { suggestions: string[] }>(
-  data: T | null,
-  uppercase: boolean = false
-): string[] {
-  if (data && Array.isArray(data.suggestions)) {
-    const uniqueData = Array.from(new Set(data.suggestions));
-    if (uppercase) {
-      return uniqueData.map(item =>
-        item.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1))
-      );
-    }
-    return uniqueData;
-  }
-  return [];
-}
-
-export function getLanguagesFromData() { return getDataFromSource(languagesData, true); }
-export function getDegreeTitlesFromData() { return getDataFromSource(degreeTitlesData, true); }
-export function getLicensesFromData() { return getDataFromSource(licensesData, false); }
-export function getCompaniesFromData() { return getDataFromSource(companiesData, true); }
-export function getIndustriesFromData() { return getDataFromSource(industriesData, true); }
-export function getCompanyActivitiesFromData() { return getDataFromSource(companyActivitiesData, true); }
-export function getRoundTypesFromData() { return getDataFromSource(roundTypesData, false); }
-export function getInvestorsFromData() { return getDataFromSource(investorsData, false); }
 
 export function decodeSelectString(select: Select<string> | Select<string, null> | Select<string, string>, maxCount: number = 3) {
   if (!select) return "None";
