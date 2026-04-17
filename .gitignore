@@ -47,3 +47,4 @@ src/data/jobs.db
 CLAUDE.md
 /.agents
 /.claude
+/convex/_generated
