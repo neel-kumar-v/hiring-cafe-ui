@@ -25,6 +25,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
+from convex_payload import strip_json_nones
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(REPO_ROOT, "src", "data", "jobs_data.json")
 ENV_PATH = os.path.join(REPO_ROOT, ".env.local")
@@ -126,6 +128,7 @@ def _convex_mutation_url(convex_url: str, fn: str) -> str:
 
 
 def _post_mutation(convex_url: str, fn: str, args: dict, timeout_s: int = 60) -> Any:
+    args = strip_json_nones(args)
     url = _convex_mutation_url(convex_url, fn)
     # `requests.post(..., json=...)` uses Python's default JSON encoder, which
     # can't serialize Decimal/datetime/uuid that may appear in job payloads.
@@ -170,37 +173,28 @@ def main() -> int:
 
     print(f"Importing jobs from {JSON_PATH}")
     print(f"Target Convex URL: {convex_url}")
+    print("Note: This importer maps JSON -> typed Convex ingestBatch.")
 
     with open(JSON_PATH, "rb") as f:
         for job in ijson.items(f, "jobs.item"):
             if not isinstance(job, dict):
                 continue
             fallback_i += 1
-            external_id = _job_id(job, fallback_i)
-            company = _company_name(job)
-            title = _job_title(job)
-            wt = _workplace_type(job)
-            search_text = _search_text(title, company, job)
 
-            batch.append(
-                {
-                    "externalId": external_id,
-                    "jobTitle": title,
-                    "companyName": company,
-                    "workplaceType": wt,
-                    "searchText": search_text,
-                    "raw": _normalize_job_raw(job),
-                }
-            )
+            # Convert raw HiringCafe job object into typed Convex ingest args.
+            raw = _normalize_job_raw(job)
+            from scraper.scrape_to_convex import _build_ingest_item  # local import to avoid selenium startup cost
+
+            batch.append(_build_ingest_item(raw, fallback_i))
 
             if len(batch) >= BATCH_SIZE:
-                _post_mutation(convex_url, "jobs:upsertBatch", {"jobs": batch})
+                _post_mutation(convex_url, "jobs:ingestBatch", {"items": batch})
                 total += len(batch)
                 print(f"Upserted {total} jobs...")
                 batch.clear()
 
     if batch:
-        _post_mutation(convex_url, "jobs:upsertBatch", {"jobs": batch})
+        _post_mutation(convex_url, "jobs:ingestBatch", {"items": batch})
         total += len(batch)
 
     print(f"Done. Upserted {total} jobs.")
