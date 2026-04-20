@@ -12,50 +12,171 @@ export default defineSchema({
 		.index("by_authSubject", ["authSubject"])
 		.index("by_email", ["email"]),
 
-	jobs: defineTable({
-		// Stable identifier from scraped dataset (must be unique).
-		externalId: v.string(),
+	companies: defineTable({
+		/** Stable slug used for routing (derived from canonical domain when present). */
+		companyId: v.string(),
+		/** Canonical domain when known (e.g. rogersandhollands.com). */
+		canonicalDomain: v.optional(v.string()),
+		name: v.string(),
 
-		jobTitle: v.string(),
-		companyName: v.string(),
+		homepageUri: v.optional(v.string()),
+		imageUrl: v.optional(v.string()),
+		tagline: v.optional(v.string()),
+		description: v.optional(v.string()),
 
-		// Normalized for simple filtering.
-		// (We’ll expand these as filter functionality is implemented.)
-		workplaceType: v.optional(v.string()), // e.g. remote/hybrid/onsite
-		country: v.optional(v.string()),
-		region: v.optional(v.string()), // state/province
-		city: v.optional(v.string()),
+		yearFounded: v.optional(v.number()),
+		numEmployees: v.optional(v.number()),
+		hqCountry: v.optional(v.string()),
+		industries: v.array(v.string()),
+		activities: v.array(v.string()),
 
-		// Simple text search field for quick parity with SQLite `LIKE`.
-		searchText: v.optional(v.string()),
+		/** Small preview list for company pages (max 5, maintained during ingestion). */
+		jobIdsPreview: v.array(v.id("jobs")),
 
-		// Timestamps (ms since epoch).
-		dateFetched: v.optional(v.number()),
 		createdAt: v.number(),
 		updatedAt: v.number(),
+	})
+		.index("by_companyId", ["companyId"])
+		.index("by_canonicalDomain", ["canonicalDomain"]),
 
-		// Full raw job payload (JSON-compatible).
-		// NOTE: kept lightweight; heavy fields (e.g. description) are stored in `jobDetails`.
-		raw: v.any(),
+	jobs: defineTable({
+		/** Stable identifier from scraped dataset (must be unique). */
+		externalId: v.string(),
+
+		title: v.string(),
+		applyUrl: v.optional(v.string()),
+
+		companyId: v.id("companies"),
+
+		/** For quick display and full-text search; should include title/company/summary/etc. */
+		searchText: v.string(),
+
+		/** Dialog payload lives in `jobDetails`. */
+		detailsId: v.id("jobDetails"),
+
+		// --- Card fields ---
+		workplaceType: v.optional(v.string()), // Remote/Hybrid/Onsite
+		commitment: v.array(v.string()), // Full Time, Part Time, etc.
+
+		workplaceCities: v.array(v.string()),
+		workplaceStates: v.array(v.string()),
+		workplaceCountries: v.array(v.string()),
+		workplaceContinents: v.array(v.string()),
+
+		geoloc: v.array(v.object({ lat: v.number(), lon: v.number() })),
+
+		minIcYoe: v.optional(v.number()),
+		minMgmtYoe: v.optional(v.number()),
+
+		requirementsSummary: v.optional(v.string()),
+		skills: v.array(v.string()),
+
+		estimatedPublishDate: v.optional(v.string()),
+		estimatedPublishDateMillis: v.optional(v.number()),
+
+		views: v.number(),
+		saves: v.number(),
+		applies: v.number(),
+
+		// --- Advanced search fields (mirrors `src/types/search.d.ts`) ---
+		department: v.optional(v.string()),
+
+		// Salary / compensation
+		listedCompensationCurrency: v.optional(v.string()),
+		listedCompensationFrequency: v.optional(v.string()),
+		isCompensationTransparent: v.optional(v.boolean()),
+		hourlyMinComp: v.optional(v.number()),
+		hourlyMaxComp: v.optional(v.number()),
+		dailyMinComp: v.optional(v.number()),
+		dailyMaxComp: v.optional(v.number()),
+		weeklyMinComp: v.optional(v.number()),
+		weeklyMaxComp: v.optional(v.number()),
+		biWeeklyMinComp: v.optional(v.number()),
+		biWeeklyMaxComp: v.optional(v.number()),
+		monthlyMinComp: v.optional(v.number()),
+		monthlyMaxComp: v.optional(v.number()),
+		yearlyMinComp: v.optional(v.number()),
+		yearlyMaxComp: v.optional(v.number()),
+
+		// Workplace activity / physical + cognitive requirements
+		workplaceEnvironment: v.optional(v.string()),
+		workplaceMobility: v.optional(v.string()),
+		physicalLaborIntensity: v.optional(v.string()),
+		cognitiveDemand: v.optional(v.string()),
+		computerUsage: v.optional(v.string()),
+		oralCommunicationLevel: v.optional(v.string()),
+
+		// Education
+		associatesDegreeRequirement: v.optional(v.string()),
+		associatesDegreeFieldsOfStudy: v.array(v.string()),
+		bachelorsDegreeRequirement: v.optional(v.string()),
+		bachelorsDegreeFieldsOfStudy: v.array(v.string()),
+		mastersDegreeRequirement: v.optional(v.string()),
+		mastersDegreeFieldsOfStudy: v.array(v.string()),
+		doctorateDegreeRequirement: v.optional(v.string()),
+		doctorateDegreeFieldsOfStudy: v.array(v.string()),
+
+		// Licenses / certifications
+		licensesOrCertifications: v.array(v.string()),
+		licensesOrCertificationsNotMentioned: v.optional(v.boolean()),
+
+		securityClearance: v.optional(v.string()),
+		languageRequirements: v.array(v.string()),
+
+		// Shifts / availability / on-call / travel
+		morningShiftWork: v.optional(v.string()),
+		eveningShiftWork: v.optional(v.string()),
+		overnightWork: v.optional(v.string()),
+		weekendAvailabilityRequired: v.optional(v.boolean()),
+		holidayAvailabilityRequired: v.optional(v.boolean()),
+		overtimeRequired: v.optional(v.boolean()),
+		onCallRequirement: v.optional(v.string()),
+		airTravelRequirement: v.optional(v.string()),
+		landTravelRequirement: v.optional(v.string()),
+
+		// Benefits + encouraged flags
+		generousPaidTimeOff: v.optional(v.boolean()),
+		fourDayWorkWeek: v.optional(v.boolean()),
+		matching401k: v.optional(v.boolean()),
+		generousParentalLeave: v.optional(v.boolean()),
+		retirementPlan: v.optional(v.boolean()),
+		tuitionReimbursement: v.optional(v.boolean()),
+		visaSponsorship: v.optional(v.boolean()),
+		relocationAssistance: v.optional(v.boolean()),
+		militaryVeterans: v.optional(v.boolean()),
+		fairChance: v.optional(v.boolean()),
+
+		// Company-related search fields (denormalized for single-query filtering)
+		companyProfit: v.optional(v.string()), // For-Profit | Non-Profit
+		companyStage: v.optional(v.string()), // Public | Private
+		companyFoundedYear: v.optional(v.number()),
+		companyNumEmployees: v.optional(v.number()),
+		companyIndustries: v.array(v.string()),
+		companyActivities: v.array(v.string()),
+
+		createdAt: v.number(),
+		updatedAt: v.number(),
 	})
 		.index("by_externalId", ["externalId"])
-		.index("by_companyName", ["companyName"])
-		.index("by_jobTitle", ["jobTitle"])
-		.index("by_workplaceType", ["workplaceType"])
-		.index("by_workplaceType_companyName", ["workplaceType", "companyName"])
+		.index("by_companyId", ["companyId"])
 		.searchIndex("search_searchText", {
 			searchField: "searchText",
-			filterFields: ["companyName", "jobTitle", "workplaceType"],
+			filterFields: [
+				"companyId",
+				"workplaceType",
+				"department",
+				"listedCompensationCurrency",
+				"listedCompensationFrequency",
+			],
 		}),
 
 	jobDetails: defineTable({
-		// Stable identifier from scraped dataset (must be unique).
-		externalId: v.string(),
-		// Full raw payload (including large description text).
-		raw: v.any(),
+		jobId: v.optional(v.id("jobs")),
+		description: v.string(),
+		roleActivities: v.array(v.string()),
 		createdAt: v.number(),
 		updatedAt: v.number(),
-	}).index("by_externalId", ["externalId"]),
+	}).index("by_jobId", ["jobId"]),
 
 	savedSearches: defineTable({
 		userId: v.id("users"),
@@ -79,5 +200,12 @@ export default defineSchema({
 			searchField: "value",
 			filterFields: ["type"],
 		}),
+
+	/** Denormalized counters (e.g. total jobs) so queries avoid full table scans. */
+	counters: defineTable({
+		name: v.string(),
+		value: v.number(),
+		updatedAt: v.number(),
+	}).index("by_name", ["name"]),
 });
 

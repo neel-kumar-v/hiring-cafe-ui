@@ -8,8 +8,9 @@ export const getOptions = query({
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, { type, query, limit }) => {
-		const max = Math.min(Math.max(limit ?? 50, 1), 2000);
-		
+		// Hard cap keeps worst-case reads predictable (large option lists + long strings).
+		const max = Math.min(Math.max(limit ?? 50, 1), 1000);
+
 		let docs;
 		if (query && query.trim()) {
 			docs = await ctx.db
