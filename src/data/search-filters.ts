@@ -1,10 +1,12 @@
 import { SettingsCategory } from "@/types/search";
 
 const legacyFilterTags = [
-  "Departments",
+  "Encouraged to Apply",
   "Salary",
   "Commitment",
   "Experience",
+  "Benefits & Perks",
+  "Departments",
   "Job Titles & Keywords",
   "Education",
   "Licenses & Certifications",
@@ -12,8 +14,6 @@ const legacyFilterTags = [
   "Languages",
   "Shifts & Schedules",
   "Travel Requirement",
-  "Benefits & Perks",
-  "Encouraged to Apply",
 ];
 
 const locationTags = ["Location", "Workplace Type", "Options"];
