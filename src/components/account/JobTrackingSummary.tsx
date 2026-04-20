@@ -8,9 +8,9 @@ interface JobTrackingSummaryProps {
 
 export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 relative">
+    <div className="bg-background dark:bg-card rounded-lg border border-border dark:border-border p-6 relative">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-foreground dark:text-foreground">
           Job Tracking Summary
         </h2>
         <Link
@@ -26,7 +26,7 @@ export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
           <div className="text-2xl font-bold text-white">
             {user.saved.length}
           </div>
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
             Saved
           </div>
         </div>
@@ -34,7 +34,7 @@ export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
           <div className="text-2xl font-bold text-white">
             {user.applied.length}
           </div>
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
             Applied
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
           <div className="text-2xl font-bold text-white">
             {user.interviewing.length}
           </div>
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
             Interviewing
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
           <div className="text-2xl font-bold text-white">
             {user.rejected.length}
           </div>
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
             Rejected
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
           <div className="text-2xl font-bold text-white">
             {user.hidden.length}
           </div>
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
             Hidden
           </div>
         </div>

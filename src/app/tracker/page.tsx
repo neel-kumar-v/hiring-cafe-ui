@@ -3,13 +3,11 @@
 import { CategoryToggle, KanbanBoard, ListView, SearchBar, ViewToggle } from "@/components/tracker";
 import { useApp } from "@/contexts/AppContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getCompanyName } from "@/lib/job-company";
-import { normalizeJob } from "@/lib/jobs/normalizeJob";
-import type { Job } from "@/types/job";
-import { api } from "../../../convex/_generated/api";
+import type { JobCardResultDTO } from "@/types/convexJobs";
 import { useConvex } from "convex/react";
 import { BookmarkIcon, EyeOffIcon, PhoneOutgoingIcon, SendIcon, XIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { api } from "../../../convex/_generated/api";
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 type ViewMode = "board" | "list";
@@ -17,7 +15,7 @@ type ViewMode = "board" | "list";
 export default function TrackerPage() {
   const { user, moveJob } = useApp();
   const convex = useConvex();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<JobCardResultDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("board");
@@ -32,13 +30,7 @@ export default function TrackerPage() {
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
   const trackedJobIds = useMemo(() => {
-    const ids = [
-      ...user.saved,
-      ...user.applied,
-      ...user.interviewing,
-      ...user.rejected,
-      ...user.hidden,
-    ];
+    const ids = [...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden];
     const unique = [...new Set(ids)];
     unique.sort();
     return unique;
@@ -54,13 +46,11 @@ export default function TrackerPage() {
         }
 
         const chunkSize = 400;
-        const merged: Job[] = [];
+        const merged: JobCardResultDTO[] = [];
         for (let i = 0; i < trackedJobIds.length; i += chunkSize) {
           const slice = trackedJobIds.slice(i, i + chunkSize);
           const data = await convex.query(api.jobs.byExternalIds, { ids: slice });
-          for (const row of data ?? []) {
-            merged.push(normalizeJob(row));
-          }
+          for (const row of (data ?? []) as unknown as JobCardResultDTO[]) merged.push(row);
         }
         setJobs(merged);
       } catch (error) {
@@ -86,19 +76,19 @@ export default function TrackerPage() {
   };
 
   // First, filter to only include jobs that are in the user's arrays
-  const userJobs = jobs.filter((job) => {
+  const userJobs = jobs.filter(({ job }) => {
     const allJobIds = new Set([...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden]);
-    return allJobIds.has(job.id);
+    return allJobIds.has(job.externalId);
   });
 
   // Then apply search filter to user jobs only
-  const filteredJobs = userJobs.filter((job) => {
+  const filteredJobs = userJobs.filter(({ job, company }) => {
     if (!searchQuery.trim()) return true;
 
     const searchLower = searchQuery.toLowerCase();
-    const titleMatch = job.job_information.title.toLowerCase().includes(searchLower);
-    const companyMatch = getCompanyName(job).toLowerCase().includes(searchLower);
-    const cities = job.processed_job_data.workplace_cities ?? [];
+    const titleMatch = job.title.toLowerCase().includes(searchLower);
+    const companyMatch = (company?.name ?? "").toLowerCase().includes(searchLower);
+    const cities = job.workplaceCities ?? [];
     const locationMatch = cities.some((city) => city.toLowerCase().includes(searchLower));
 
     return titleMatch || companyMatch || locationMatch;
@@ -117,10 +107,10 @@ export default function TrackerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-4.5rem)] bg-white dark:bg-neutral-900">
+      <div className="min-h-[calc(100vh-4.5rem)] bg-background">
         <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <div className="text-center py-16">
-            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">Loading...</h1>
+            <h1 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">Loading...</h1>
           </div>
         </div>
       </div>
@@ -128,12 +118,12 @@ export default function TrackerPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-white dark:bg-neutral-900">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-background">
       <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out lg:p-8">
         <div className="mb-3">
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
             Job Tracker
-            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-normal">
+            <p className="text-muted-foreground dark:text-muted-foreground text-sm font-normal">
               Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
             </p>
           </h1>

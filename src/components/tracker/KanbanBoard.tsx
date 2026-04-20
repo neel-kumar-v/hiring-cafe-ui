@@ -5,7 +5,7 @@ import { KanbanBoard as KanbanBoardUI, KanbanCardWithDragHandle, KanbanCards, Ka
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import type { JobStatus } from "@/types/app";
-import type { Job } from "@/types/job";
+import type { JobCardResultDTO } from "@/types/convexJobs";
 import { Copy } from "lucide-react";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -23,7 +23,7 @@ const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 
 interface KanbanBoardProps {
-  jobs: Job[];
+  jobs: JobCardResultDTO[];
   className?: string;
   visibleCategories?: Record<JobCategory, boolean>;
 }
@@ -37,27 +37,27 @@ type KanbanColumn = {
 const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
   const { isDesktop } = useResponsiveBreakpoint();
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobCardResultDTO | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const kanbanData = useMemo(() => {
     const allJobIds = new Set([...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden]);
 
     // Show jobs that are in the user's arrays, plus some additional jobs for testing
-    const userJobs = jobs.filter((job) => allJobIds.has(job.id));
-    const additionalJobs = jobs.slice(0, 5).filter((job) => !allJobIds.has(job.id));
+    const userJobs = jobs.filter(({ job }) => allJobIds.has(job.externalId));
+    const additionalJobs = jobs.slice(0, 5).filter(({ job }) => !allJobIds.has(job.externalId));
     const jobsToShow = [...userJobs, ...additionalJobs];
 
-    return jobsToShow.map((job) => {
+    return jobsToShow.map(({ job }) => {
       let column = "saved";
-      if (user.applied.includes(job.id)) column = "applied";
-      else if (user.interviewing.includes(job.id)) column = "interviewing";
-      else if (user.rejected.includes(job.id)) column = "rejected";
-      else if (user.hidden.includes(job.id)) column = "hidden";
+      if (user.applied.includes(job.externalId)) column = "applied";
+      else if (user.interviewing.includes(job.externalId)) column = "interviewing";
+      else if (user.rejected.includes(job.externalId)) column = "rejected";
+      else if (user.hidden.includes(job.externalId)) column = "hidden";
 
       return {
-        id: job.id,
-        name: job.job_information.title,
+        id: job.externalId,
+        name: job.title,
         column,
       };
     });
@@ -66,11 +66,11 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
   const jobMap = useMemo(() => {
     const allJobIds = new Set([...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden]);
 
-    const userJobs = jobs.filter((job) => allJobIds.has(job.id));
-    const additionalJobs = jobs.slice(0, 5).filter((job) => !allJobIds.has(job.id));
+    const userJobs = jobs.filter(({ job }) => allJobIds.has(job.externalId));
+    const additionalJobs = jobs.slice(0, 5).filter(({ job }) => !allJobIds.has(job.externalId));
     const jobsToShow = [...userJobs, ...additionalJobs];
 
-    return new Map(jobsToShow.map((job) => [job.id, job]));
+    return new Map(jobsToShow.map((row) => [row.job.externalId, row]));
   }, [jobs, user]);
 
   const columns: KanbanColumn[] = useMemo(() => {
@@ -126,18 +126,18 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
   const handleJobClick = useCallback(
     (e: React.MouseEvent) => {
       const jobId = e.currentTarget.getAttribute("data-job-id");
-      const job = jobMap.get(jobId!);
+      const row = jobMap.get(jobId!);
 
-      if (!job) return;
+      if (!row) return;
 
       console.log("🔍 KanbanBoard - handleJobClick called:", {
-        jobId: job.id,
-        jobTitle: job.job_information.title,
+        jobId: row.job.externalId,
+        jobTitle: row.job.title,
         isDesktop,
-        selectedJob: selectedJob?.id,
+        selectedJob: selectedJob?.job.externalId,
       });
 
-      setSelectedJob(job);
+      setSelectedJob(row);
       if (!isDesktop) {
         console.log("🔍 KanbanBoard - Opening drawer for mobile");
         setDrawerOpen(true);
@@ -154,12 +154,18 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
   }, []);
 
   const isBookmarked = useMemo(
-    () => (selectedJob ? user.saved.includes(selectedJob.id) || user.applied.includes(selectedJob.id) || user.interviewing.includes(selectedJob.id) : false),
+    () =>
+      selectedJob
+        ? user.saved.includes(selectedJob.job.externalId) ||
+          user.applied.includes(selectedJob.job.externalId) ||
+          user.interviewing.includes(selectedJob.job.externalId)
+        : false,
     [user.saved, user.applied, user.interviewing, selectedJob]
   );
 
   const isApplied = useMemo(
-    () => (selectedJob ? user.applied.includes(selectedJob.id) || user.interviewing.includes(selectedJob.id) : false),
+    () =>
+      selectedJob ? user.applied.includes(selectedJob.job.externalId) || user.interviewing.includes(selectedJob.job.externalId) : false,
     [user.applied, user.interviewing, selectedJob]
   );
 
@@ -168,12 +174,12 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
 
     if (isBookmarked) {
       // Remove from all bookmark-related states
-      if (user.saved.includes(selectedJob.id)) moveJob(selectedJob.id, "saved", "hidden");
-      if (user.applied.includes(selectedJob.id)) moveJob(selectedJob.id, "applied", "hidden");
-      if (user.interviewing.includes(selectedJob.id)) moveJob(selectedJob.id, "interviewing", "hidden");
+      if (user.saved.includes(selectedJob.job.externalId)) moveJob(selectedJob.job.externalId, "saved", "hidden");
+      if (user.applied.includes(selectedJob.job.externalId)) moveJob(selectedJob.job.externalId, "applied", "hidden");
+      if (user.interviewing.includes(selectedJob.job.externalId)) moveJob(selectedJob.job.externalId, "interviewing", "hidden");
     } else {
       // Add to saved (default bookmark state)
-      moveJob(selectedJob.id, getCurrentStatus(selectedJob.id) as JobStatus, "saved");
+      moveJob(selectedJob.job.externalId, getCurrentStatus(selectedJob.job.externalId) as JobStatus, "saved");
     }
   }, [isBookmarked, user.saved, user.applied, user.interviewing, selectedJob, moveJob, getCurrentStatus]);
 
@@ -182,11 +188,11 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
 
     if (isApplied) {
       // Remove from all apply-related states
-      if (user.applied.includes(selectedJob.id)) moveJob(selectedJob.id, "applied", "saved");
-      if (user.interviewing.includes(selectedJob.id)) moveJob(selectedJob.id, "interviewing", "saved");
+      if (user.applied.includes(selectedJob.job.externalId)) moveJob(selectedJob.job.externalId, "applied", "saved");
+      if (user.interviewing.includes(selectedJob.job.externalId)) moveJob(selectedJob.job.externalId, "interviewing", "saved");
     } else {
       // Add to applied (default apply state)
-      moveJob(selectedJob.id, getCurrentStatus(selectedJob.id) as JobStatus, "applied");
+      moveJob(selectedJob.job.externalId, getCurrentStatus(selectedJob.job.externalId) as JobStatus, "applied");
     }
   }, [isApplied, user.applied, user.interviewing, selectedJob, moveJob, getCurrentStatus]);
 
@@ -196,10 +202,10 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
       const columnJobs = kanbanData
         .filter((item) => item.column === columnId)
         .map((item) => jobMap.get(item.id))
-        .filter(Boolean) as Job[];
+        .filter(Boolean) as JobCardResultDTO[];
 
       // Extract application links
-      const applicationLinks = columnJobs.map((job) => job.apply_url).filter(Boolean);
+      const applicationLinks = columnJobs.map((row: any) => row.job.applyUrl).filter(Boolean);
 
       if (applicationLinks.length === 0) {
         alert("No application links found in this column.");
@@ -233,12 +239,12 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => downloadApplicationLinks(column.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-muted dark:hover:bg-muted rounded"
                   title="Copy list of application links"
                 >
-                  <Copy className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <Copy className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
                 </button>
-                <span className="text-xs text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full">{column.count}</span>
+                <span className="text-xs text-muted-foreground bg-muted dark:bg-muted px-2 py-1 rounded-full">{column.count}</span>
               </div>
             </KanbanHeader>
             <KanbanCards id={column.id} key={column.id} className="flex-1">
@@ -246,12 +252,14 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
                 const job = jobMap.get(item.id);
                 if (!job) return null;
 
-                const isBookmarked = user.saved.includes(job.id) || user.applied.includes(job.id) || user.interviewing.includes(job.id);
-                const isApplied = user.applied.includes(job.id) || user.interviewing.includes(job.id);
-                const isInterviewing = user.interviewing.includes(job.id);
+                const jobExternalId = job.job.externalId;
+                const isBookmarked =
+                  user.saved.includes(jobExternalId) || user.applied.includes(jobExternalId) || user.interviewing.includes(jobExternalId);
+                const isApplied = user.applied.includes(jobExternalId) || user.interviewing.includes(jobExternalId);
+                const isInterviewing = user.interviewing.includes(jobExternalId);
 
                 const handleBookmarkToggle = () => {
-                  const jobId = job.id;
+                  const jobId = jobExternalId;
                   const currentStatus = getCurrentStatus(jobId);
                   const isCurrentlyBookmarked = user.saved.includes(jobId) || user.applied.includes(jobId) || user.interviewing.includes(jobId);
 
@@ -266,7 +274,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
                 };
 
                 const handleApplyToggle = () => {
-                  const jobId = job.id;
+                  const jobId = jobExternalId;
                   const currentStatus = getCurrentStatus(jobId);
                   const isCurrentlyApplied = user.applied.includes(jobId) || user.interviewing.includes(jobId);
 
@@ -290,20 +298,21 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
                   >
                     {isDesktop ? (
                       <JobDialogContent
-                        currentJob={job}
+                        currentJob={job.job}
+                        company={job.company}
                         isApplied={isApplied}
                         isBookmarked={isBookmarked}
                         isInterviewing={isInterviewing}
                         onApplyToggle={handleApplyToggle}
                         onBookmarkToggle={handleBookmarkToggle}
                       >
-                        <div data-job-id={job.id}>
-                          <KanbanJobCardContents job={job} />
+                        <div data-job-id={job.job.externalId}>
+                          <KanbanJobCardContents job={job.job} company={job.company} />
                         </div>
                       </JobDialogContent>
                     ) : (
-                      <div data-job-id={job.id}>
-                        <KanbanJobCardContents job={job} />
+                      <div data-job-id={job.job.externalId}>
+                        <KanbanJobCardContents job={job.job} company={job.company} />
                       </div>
                     )}
                   </KanbanCardWithDragHandle>
@@ -316,7 +325,8 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
 
       {selectedJob && !isDesktop && (
         <JobDrawerContent
-          currentJob={selectedJob}
+          currentJob={selectedJob.job}
+          company={selectedJob.company}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           onApplyToggle={handleApplyToggle}

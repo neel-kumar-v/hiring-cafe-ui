@@ -39,9 +39,9 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
+    <div className="bg-background dark:bg-card rounded-lg border border-border dark:border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-foreground dark:text-foreground">
           Skills
         </h2>
         <Button
@@ -60,13 +60,13 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
             {user.skills.map((skill) => (
               <span
                 key={skill}
-                className="flex items-center gap-1 rounded-md bg-pink-100 px-3 py-1 text-black/65 text-base dark:bg-pink-700/50 dark:text-pink-400"
+                className="flex items-center gap-1 rounded-md bg-brand-soft px-3 py-1 text-brand-soft-foreground text-base dark:bg-brand-soft dark:text-primary"
                 style={{ whiteSpace: "nowrap" }}
               >
                 {skill}
                 <button
                   onClick={() => removeSkill(skill)}
-                  className="ml-1 hover:text-red-500 transition-colors cursor-pointer"
+                  className="ml-1 cursor-pointer transition-colors hover:text-destructive"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -98,7 +98,7 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
             user.skills.map((skill) => (
               <span
                 key={skill}
-                className="rounded-md bg-pink-100 px-3 py-1 text-black/65 text-base dark:bg-pink-700/50 dark:text-pink-400"
+                className="rounded-md bg-brand-soft px-3 py-1 text-brand-soft-foreground text-base dark:bg-brand-soft dark:text-primary"
                 style={{ whiteSpace: "nowrap" }}
                 title={skill}
               >
@@ -106,7 +106,7 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
               </span>
             ))
           ) : (
-            <p className="text-neutral-500 dark:text-neutral-400 italic">
+            <p className="text-muted-foreground dark:text-muted-foreground italic">
               No skills added yet. Click edit to add your skills.
             </p>
           )}
