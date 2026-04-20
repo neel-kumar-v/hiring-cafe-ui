@@ -95,20 +95,20 @@ export default function DateRangePopover() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          className="w-fit rounded bg-white text-neutral-900 text-sm dark:bg-neutral-800 dark:text-white"
+          className="w-fit rounded bg-background text-foreground text-sm dark:bg-card dark:text-foreground"
           variant="outline"
         >
           {isAllTime ? "All time" : `${customTimeValue} ${customTimeUnit}`}
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className={`dark:border-neutral-600 dark:bg-neutral-800 ${
+        className={`dark:border-border dark:bg-card ${
           isDarkMode ? "dark" : ""
         }`}
       >
         <div className="flex items-center space-x-2">
           <Input
-            className="w-12 border-neutral-200 bg-white text-center text-neutral-900 text-sm ring-0 [-moz-appearance:textfield] dark:border-neutral-600 dark:bg-neutral-700 dark:text-white [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+            className="w-12 border-border bg-background text-center text-foreground text-sm ring-0 [-moz-appearance:textfield] dark:border-border dark:bg-secondary dark:text-foreground [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
             disabled={isAllTime}
             max={getTimeUnitLimits(customTimeUnit).max}
             min={getTimeUnitLimits(customTimeUnit).min}
@@ -121,7 +121,7 @@ export default function DateRangePopover() {
             onValueChange={handleTimeUnitChangeWithValidation}
             value={isAllTime ? "all-time" : customTimeUnit}
           >
-            <SelectTrigger className="w-24 border-neutral-200 bg-white text-neutral-900 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-white">
+            <SelectTrigger className="w-24 border-border bg-background text-foreground text-sm dark:border-border dark:bg-secondary dark:text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className={isDarkMode ? "dark" : ""}>

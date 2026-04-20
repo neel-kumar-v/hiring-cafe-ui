@@ -14,7 +14,7 @@ export default function SearchFilters({ onIconClick }: SearchFiltersProps) {
     <div className="flex flex-wrap gap-2">
       {legacyFilterTags.map((tag, index) => (
         <Badge
-          className="cursor-pointer rounded-sm border-neutral-300 bg-white text-neutral-700 transition-all duration-300 hover:bg-neutral-100 lg:text-md 2xl:text-lg dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+          className="cursor-pointer rounded-sm border-border/70 bg-background text-foreground/80 transition-all duration-300 hover:bg-secondary lg:text-md dark:border-border dark:bg-secondary dark:text-foreground/80 dark:hover:bg-accent"
           key={index}
           onClick={() => handleFilterClick(tag)}
           variant="outline"
@@ -22,12 +22,12 @@ export default function SearchFilters({ onIconClick }: SearchFiltersProps) {
           {tag}
         </Badge>
       ))}
-      {/* <span className="text-neutral-500/25 dark:text-neutral-400/25 text-2xl h-min leading-none">
+      {/* <span className="text-muted-foreground/25 dark:text-muted-foreground/25 text-2xl h-min leading-none">
         •
       </span> */}
       {companyTags.map((tag, index) => (
         <Badge
-          className="cursor-pointer rounded-sm border-orange-300 bg-orange-100 text-orange-700 transition-all duration-300 hover:bg-orange-200 lg:text-md 2xl:text-lg dark:border-orange-700 dark:bg-orange-900 dark:text-orange-300 dark:hover:bg-orange-800"
+          className="cursor-pointer rounded-sm border-warning/30 bg-warning-soft text-warning-soft-foreground transition-all duration-300 hover:bg-warning-soft/80 lg:text-md"
           key={index}
           onClick={() => handleFilterClick(tag)}
           variant="outline"

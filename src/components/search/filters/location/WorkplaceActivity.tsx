@@ -14,7 +14,7 @@ export default function WorkplaceActivity() {
 
   return (
     <FilterContainer categoryId="workplace-activity" title="Workplace Activity">
-      <LabelInputContainer title="Physical Position">
+      <LabelInputContainer title="Physical Position" midColCount={2} lgColCount={2}>
         <LabelCheckbox 
           label="Sitting / Desk Jobs" 
           checked={Array.isArray(searchOptions.location.workplace_activity.mobility) ? searchOptions.location.workplace_activity.mobility.includes("Sitting") : searchOptions.location.workplace_activity.mobility === "All"} 

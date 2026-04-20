@@ -47,14 +47,14 @@ export default function SortPopover() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          className="flex w-fit items-center space-x-2 rounded bg-white text-neutral-900 text-sm transition-all duration-300 dark:bg-neutral-800 dark:text-white"
+          className="flex w-fit items-center space-x-2 rounded bg-background text-foreground text-sm transition-all duration-300 dark:bg-card dark:text-foreground"
           variant="outline"
         >
           <span>{getSortDisplayText()}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className={`dark:border-neutral-600 dark:bg-neutral-800 ${
+        className={`dark:border-border dark:bg-card ${
           isDarkMode ? "dark" : ""
         }`}
       >
@@ -69,7 +69,7 @@ export default function SortPopover() {
               }}
               value={sortCategory}
             >
-              <SelectTrigger className="w-full border-neutral-200 bg-white text-neutral-900 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-white">
+              <SelectTrigger className="w-full border-border bg-background text-foreground text-sm dark:border-border dark:bg-secondary dark:text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className={isDarkMode ? "dark" : ""}>
@@ -81,7 +81,7 @@ export default function SortPopover() {
             </Select>
           </div>
           <Toggle
-            className="flex w-full items-center justify-center rounded bg-neutral-100 text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600"
+            className="flex w-full items-center justify-center rounded bg-secondary text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-secondary dark:text-foreground dark:hover:bg-accent"
             disabled={sortCategory === "relevance"}
             onClick={() => setIsAscending(!isAscending)}
             type="button"

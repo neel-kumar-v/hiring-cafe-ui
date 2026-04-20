@@ -10,7 +10,7 @@ export default function LabelRadio({ label, checked, onChange, className }: Labe
     <label className={`flex items-center gap-2 group ${className}`}>
       <input 
         type="radio" 
-        className="size-4 group-hover:scale-125 transition-all duration-300 ease-out appearance-none border-2 border-gray-300 rounded-full checked:bg-pink-600 checked:border-pink-600 dark:border-gray-600 dark:checked:bg-pink-600 dark:checked:border-pink-600 [&:not(:checked)]:dark:bg-gray-700" 
+        className="size-4 group-hover:scale-125 transition-all duration-300 ease-out appearance-none border-2 border-border/70 rounded-full checked:bg-primary checked:border-primary dark:border-border dark:checked:bg-primary dark:checked:border-primary [&:not(:checked)]:dark:bg-muted" 
         checked={checked} 
         onChange={() => onChange(!checked)} 
       />

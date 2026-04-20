@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Hitbox } from "@/components/ui/hitbox";
 import { useApp } from "@/contexts/AppContext";
 import { defaultSearchOptions, useSearchUI } from "@/contexts/SearchContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -54,42 +55,43 @@ export default function HomeSearchActions() {
   };
 
   return (
-    <div className="border-neutral-200 border-b bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
-      <div className="mx-auto flex max-w-full flex-col gap-3 px-4 py-4 transition-[padding] duration-500 ease-in-out lg:px-8 xl:px-12 xl:flex-row xl:items-center xl:justify-between">
+    <div>
+      <div className="mx-auto flex max-w-full flex-col gap-3 px-4 py-4 transition-[padding] duration-500 ease-in-out lg:px-8 xl:px-12 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <span className="text-sm font-medium text-foreground/80">
             Saved searches:
           </span>
-          <Button
-            className="h-9 rounded-full border-dashed border-neutral-400 bg-transparent px-4 text-sm text-neutral-900 hover:bg-neutral-100 dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-700"
-            onClick={handleSaveSearch}
-            variant="outline"
-          >
-            <Plus className="size-4" />
-            Save Current Search
-          </Button>
+          <Hitbox size="sm" radius="lg">
+            <Button
+              className="h-9 px-4 text-sm"
+              onClick={handleSaveSearch}
+              variant="dashed"
+            >
+              <Plus className="size-4" />
+              Save Current Search
+            </Button>
+          </Hitbox>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-          <Button
-            className={cn(
-              "h-9 rounded-full px-4 text-sm",
-              "bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
-            )}
-            onClick={handleClearFilters}
-            variant="destructive"
-          >
-            <RotateCcw className="size-4" />
-            Clear filters
-          </Button>
-          <Button
-            className="h-9 rounded-full px-4 text-sm"
-            onClick={handleRibbonToggle}
-            variant="outline"
-          >
-            <ChevronUp className={cn("size-4 transition-transform", !showFilterRibbon && "rotate-180")} />
-            {showFilterRibbon ? "Collapse filter ribbon" : "Expand filter ribbon"}
-          </Button>
+          <Hitbox size="sm" radius="lg">
+            <Button className="h-9 px-4 text-sm" onClick={handleClearFilters} variant="destructive">
+              <RotateCcw className="size-4" />
+              Clear filters
+            </Button>
+          </Hitbox>
+          <div className="hidden md:block">
+            <Hitbox size="sm" radius="lg">
+              <Button
+                className="h-9 rounded-lg px-4 text-sm"
+                onClick={handleRibbonToggle}
+                variant="outline"
+              >
+                <ChevronUp className={cn("size-4 transition-transform", !showFilterRibbon && "rotate-180")} />
+                {showFilterRibbon ? "Collapse filter ribbon" : "Expand filter ribbon"}
+              </Button>
+            </Hitbox>
+          </div>
         </div>
       </div>
     </div>

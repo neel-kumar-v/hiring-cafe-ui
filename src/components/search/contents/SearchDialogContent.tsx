@@ -128,7 +128,7 @@ function SearchDialogContentInner({
 
   return (
     <div className="flex h-full min-h-0">
-      <div className="flex w-[220px] flex-col rounded-l-md border-r border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
+      <div className="flex w-[220px] flex-col rounded-l-md border-r border-neutral-200 bg-background dark:border-neutral-700 ">
         <div className="p-2">
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -198,7 +198,7 @@ function SearchDialogContentInner({
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-r-md bg-neutral-100 dark:bg-neutral-800">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-r-md bg-background">
         <div className="flex-1 overflow-y-auto p-6 py-4 pr-10">
           {singlePage
             ? renderFilteredCategoriesContent(

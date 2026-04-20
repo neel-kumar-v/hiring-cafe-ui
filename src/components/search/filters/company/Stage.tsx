@@ -99,7 +99,7 @@ export default function Stage() {
         />
       </LabelInputContainer>
       {roundTypesLoading ? (
-        <div className="text-sm text-gray-500">Loading round types...</div>
+        <div className="text-sm text-muted-foreground">Loading round types...</div>
       ) : (
         <KeywordsMultiSelect
           value={roundTypesKeywords}
@@ -111,7 +111,7 @@ export default function Stage() {
         />
       )}
       {investorsLoading ? (
-        <div className="text-sm text-gray-500">Loading investors...</div>
+        <div className="text-sm text-muted-foreground">Loading investors...</div>
       ) : (
         <KeywordsMultiSelect
           value={investorsKeywords}

@@ -13,13 +13,18 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import UniversalTooltip from "@/components/util/UniversalTooltip";
+import type React from "react";
+
 import Autocomplete from "./Autocomplete";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
-import type { AddressComponent, Location as SearchLocation, SearchState } from "@/types/search";
+import { Hitbox } from "@/components/ui/hitbox";
 import { useConvex } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import type { AddressComponent, Location as SearchLocation, SearchState } from "@/types/search";
+import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -32,24 +37,20 @@ interface SearchBarProps {
 const workplaceTypeOptions = ["Remote", "Hybrid", "Onsite"];
 type LocationComponent = SearchLocation["address"]["components"][number];
 
-function findAddressComponent(
-  components: LocationComponent[] | undefined,
-  type: string
-) {
-  return components?.find((component) =>
-    component.types.includes(type as AddressComponent["types"][number])
-  );
+function findAddressComponent(components: LocationComponent[] | undefined, type: string) {
+  return components?.find((component) => component.types.includes(type as AddressComponent["types"][number]));
 }
 
 const getLocationLabel = (location: SearchLocation) => {
   if (!location) {
     return "";
   }
+
   let label = "";
   const { formatted, components } = location.address || {};
   label = formatted || "Unknown";
-  
-  if (!components) return label; // Fallback
+
+  if (!components) return label;
 
   const city = findAddressComponent(components, "Locality")?.long_name;
   const state = findAddressComponent(components, "Admin Area")?.long_name;
@@ -70,6 +71,7 @@ const getLocationLabel = (location: SearchLocation) => {
       if (continent) label = continent;
       break;
   }
+
   return label;
 };
 
@@ -78,7 +80,7 @@ const getLocationDisplayLabel = (locations: SearchLocation[]) => {
     const loc = locations[0];
     const { formatted, components } = loc.address || {};
     let label = formatted || "Unknown";
-    
+
     const city = findAddressComponent(components, "Locality")?.long_name;
     if (city) label = city;
 
@@ -91,7 +93,7 @@ const getLocationDisplayLabel = (locations: SearchLocation[]) => {
     if (options.ignore_radius) {
       label = "Exactly in " + label;
     } else {
-      label += " • " + (options.radius || 50) + ` ${options.radius_unit || "Miles"}`;
+      label += " - " + (options.radius || 50) + ` ${options.radius_unit || "Miles"}`;
     }
     return label;
   }
@@ -99,15 +101,12 @@ const getLocationDisplayLabel = (locations: SearchLocation[]) => {
   if ((locations || []).length > 2) {
     return `${locations.length} Places`;
   }
-  
-  return (
-    (locations || []).map((loc) => getLocationLabel(loc)).join(" | ") ||
-    "Anywhere in the world"
-  );
+
+  return (locations || []).map((loc) => getLocationLabel(loc)).join(" | ") || "Anywhere in the world";
 };
 
 const formatWorkplaceTypesLabel = (types?: string | string[]) => {
-  if (!types || types === "All") return "All Environments";
+  if (!types || types === "All") return "";
   if (typeof types === "string") return `${types} only`;
 
   if (types.length === 1) {
@@ -118,55 +117,107 @@ const formatWorkplaceTypesLabel = (types?: string | string[]) => {
   return effectiveTypes.join(" · ");
 };
 
-interface IconButton {
+interface IconButtonProps {
   icon: LucideIcon;
-  tooltipContent: string;
-  delay?: string;
+  label: string;
+  className?: string;
   onClick?: () => void;
   dataIconType?: string;
   clickable?: boolean;
+  buttonClassName?: string;
 }
 
 function IconButton({
   icon: Icon,
-  tooltipContent,
-  delay = "delay-0",
+  label,
+  className,
   onClick,
   dataIconType,
+  buttonClassName,
   clickable = true,
-}: IconButton) {
-  const visibilityClass = clickable ? `${delay} opacity-100` : "hidden";
+}: IconButtonProps) {
+  const visibilityClass = clickable ? "" : "hidden";
+
   return (
-    <UniversalTooltip content={tooltipContent} side="bottom">
+    <Hitbox
+      size="sm"
+      position="vertical"
+      className={cn(visibilityClass, "h-full shrink-0", className)}
+    >
       <button
         type="button"
-        className={visibilityClass}
+        className={cn("group/icon inline-flex h-full items-center justify-center text-muted-foreground", buttonClassName)}
         onClick={onClick}
         data-icon-type={dataIconType}
-        aria-label={tooltipContent}
+        aria-label={label}
+        title={label}
       >
-        <Icon className="size-4 cursor-pointer text-neutral-400 transition-[transform,opacity] hover:text-pink-700 sm:size-4 dark:hover:text-pink-600" />
+        <Icon className="size-4 transition-colors group-hover/icon:text-primary" />
       </button>
-    </UniversalTooltip>
+    </Hitbox>
   );
 }
 
 interface IconButtonsProps {
-  showFilterControls: boolean;
+  variant: "full" | "general";
   inputFocused: boolean;
   handleIconClick: (category: string) => void;
 }
 
-function IconButtons({ showFilterControls, inputFocused, handleIconClick }: IconButtonsProps) {
-  if (!showFilterControls) return null;
+function IconButtons({ variant, inputFocused, handleIconClick }: IconButtonsProps) {
+  if (variant === "general") {
+    return (
+      <IconButton
+        icon={SlidersHorizontal}
+        label="General Filters"
+        onClick={() => handleIconClick("filters")}
+        dataIconType="filters"
+        buttonClassName="w-9"
+      />
+    );
+  }
+
   return (
-    <>
-      <IconButton icon={SlidersHorizontal} tooltipContent="General Filters" onClick={() => handleIconClick("filters")} dataIconType="filters" />
-      <IconButton delay="hidden xs:block" icon={IdCard} tooltipContent="Role & Department" onClick={() => handleIconClick("role-department")} dataIconType="role-department" clickable={!inputFocused} />
-      <IconButton delay="hidden xs:block" icon={School} tooltipContent="Qualifications" onClick={() => handleIconClick("qualifications")} dataIconType="qualifications" clickable={!inputFocused} />
-      <IconButton delay="hidden xs:block" icon={CalendarClock} tooltipContent="Availability" onClick={() => handleIconClick("availability")} dataIconType="availability" clickable={!inputFocused} />
-      <IconButton delay="hidden xs:block" icon={Building2} tooltipContent="Company" onClick={() => handleIconClick("company")} dataIconType="company" clickable={!inputFocused} />
-    </>
+    <div className="flex flex-row gap-2 px-2">
+      <IconButton
+        className="hidden xs:block"
+        icon={IdCard}
+        label="Role & Department"
+        onClick={() => handleIconClick("role-department")}
+        dataIconType="role-department"
+        clickable={!inputFocused}
+      />
+      <IconButton
+        className="hidden xs:block"
+        icon={School}
+        label="Qualifications"
+        onClick={() => handleIconClick("qualifications")}
+        dataIconType="qualifications"
+        clickable={!inputFocused}
+      />
+      <IconButton
+        className="hidden xs:block"
+        icon={CalendarClock}
+        label="Availability"
+        onClick={() => handleIconClick("availability")}
+        dataIconType="availability"
+        clickable={!inputFocused}
+      />
+      <IconButton
+        className="hidden xs:block"
+        icon={Building2}
+        label="Company"
+        onClick={() => handleIconClick("company")}
+        dataIconType="company"
+        clickable={!inputFocused}
+      />
+      <IconButton
+        icon={SlidersHorizontal}
+        label="General Filters"
+        onClick={() => handleIconClick("filters")}
+        dataIconType="filters"
+      />
+    </div>
   );
 }
 
@@ -188,20 +239,39 @@ function FilterButton({
   showChevron = false,
 }: FilterButtonProps) {
   return (
-    <button onClick={onClick} className={`group/filter px-3 py-[8px] h-full flex items-center justify-between gap-2 ${className}`} type="button">
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        {Icon && <Icon className={`size-4 flex-none text-neutral-400 dark:text-neutral-500 ${header === "" ? "hidden md:block" : ""}`} />}
-        <div className="flex flex-col text-xs text-left truncate min-w-0 translate-y-px">
-          <span className={`font-bold truncate text-neutral-900 dark:text-white transition-[transform,opacity] duration-200 ease-in-out`}>{header}</span>
-          {subtitle && <span className={`truncate text-[14px] font-medium text-neutral-600 dark:text-neutral-400`}>{subtitle}</span>}
+    <Hitbox size="sm" radius="lg" className={cn("h-full w-full", className)}>
+      <button
+        onClick={onClick}
+        className="group/filter flex h-full w-full items-center justify-between gap-2 px-3 py-2"
+        type="button"
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {Icon && (
+            <Icon
+              className={`size-4 flex-none text-muted-foreground dark:text-muted-foreground ${
+                header === "" ? "hidden md:block" : ""
+              }`}
+            />
+          )}
+          <div className="flex min-w-0 flex-col truncate text-left text-xs translate-y-px">
+            <span className="truncate font-bold text-foreground transition-[transform,opacity] duration-200 ease-in-out dark:text-foreground">
+              {header}
+            </span>
+            {subtitle && (
+              <span className="truncate text-[14px] font-medium text-muted-foreground dark:text-muted-foreground">
+                {subtitle}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      {showChevron && <ChevronDown className="size-4 flex-none text-neutral-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-[transform,opacity] duration-200 ease-in-out" />}
-    </button>
+        {showChevron && (
+          <ChevronDown className="size-4 flex-none text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary dark:group-hover:text-primary" />
+        )}
+      </button>
+    </Hitbox>
   );
 }
 
-// LocationButton component
 function LocationButton({
   showFilterControls,
   locationDisplay,
@@ -212,19 +282,42 @@ function LocationButton({
   handleIconClick: (category: string) => void;
 }) {
   if (!showFilterControls) return null;
+
   return (
     <FilterButton
       icon={MapPin}
-      header={<>{locationDisplay.location}<span className="font-medium text-[12px] text-neutral-600 dark:text-neutral-400 ml-2 max-xs:hidden md:hidden lg:inline">{locationDisplay.workplaces}</span></>}
+      header={
+        <>
+          {locationDisplay.location}
+          <span className="ml-2 text-[12px] font-medium text-muted-foreground dark:text-muted-foreground max-xs:hidden md:hidden lg:inline">
+            {locationDisplay.workplaces}
+          </span>
+        </>
+      }
       onClick={() => handleIconClick("location")}
       className="min-w-[30%] w-full lg:min-w-[300px]"
     />
   );
 }
 
-// SalaryButton component
-const frequencies: Record<string, string> = { Hourly: "hr", Daily: "day", Weekly: "wk", "Bi-Weekly": "bi-wk", Monthly: "mo", Yearly: "yr" };
-function SalaryButton({ showFilterControls, currentSearchState, handleIconClick }: { showFilterControls: boolean, currentSearchState: SearchState, handleIconClick: (category: string) => void }) {
+const frequencies: Record<string, string> = {
+  Hourly: "hr",
+  Daily: "day",
+  Weekly: "wk",
+  "Bi-Weekly": "bi-wk",
+  Monthly: "mo",
+  Yearly: "yr",
+};
+
+function SalaryButton({
+  showFilterControls,
+  currentSearchState,
+  handleIconClick,
+}: {
+  showFilterControls: boolean;
+  currentSearchState: SearchState;
+  handleIconClick: (category: string) => void;
+}) {
   if (!showFilterControls) return null;
 
   const salary = currentSearchState.salary;
@@ -235,17 +328,18 @@ function SalaryButton({ showFilterControls, currentSearchState, handleIconClick 
   const calcFrequency = frequencies[salary.unit] || "yr";
 
   const currencyValue = salary.currency || "USD";
-  
   let currencySymbol = "$";
   try {
-    const parts = new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyValue }).formatToParts(0);
-    const symb = parts.find(p => p.type === 'currency');
+    const parts = new Intl.NumberFormat("en-US", { style: "currency", currency: currencyValue }).formatToParts(0);
+    const symb = parts.find((p) => p.type === "currency");
     if (symb) currencySymbol = symb.value;
-  } catch {}
+  } catch {
+    // fall back to $
+  }
 
   const hasAnySalaryFilter = minLow > 0 || minHigh > 0 || maxLow > 0 || maxHigh > 0;
 
-  const formatAmount = (amount: number, includeSymbol: boolean = true) => {
+  const formatAmount = (amount: number, includeSymbol = true) => {
     if (amount <= 0) return "";
     const symbol = includeSymbol ? currencySymbol : "";
     const isShort = ["Hourly", "Daily", "Weekly", "Bi-Weekly"].includes(salary.unit);
@@ -254,15 +348,18 @@ function SalaryButton({ showFilterControls, currentSearchState, handleIconClick 
     if (baseAmount >= 1000000) {
       const mil = baseAmount / 1000000;
       return `${symbol}${Number.isInteger(mil) ? mil : mil.toFixed(1)}M`;
-    } else if (baseAmount >= 1000) {
+    }
+
+    if (baseAmount >= 1000) {
       const k = baseAmount / 1000;
       return `${symbol}${Number.isInteger(k) ? k : k.toFixed(1)}k`;
     }
+
     return `${symbol}${baseAmount}`;
   };
 
-  const getDisplayMin = () => (minLow > 0 ? minLow : (maxLow > 0 && minLow <= 0 ? maxLow : null));
-  const getDisplayMax = () => (maxHigh > 0 ? maxHigh : (minHigh > 0 && maxHigh <= 0 ? minHigh : null));
+  const getDisplayMin = () => (minLow > 0 ? minLow : maxLow > 0 && minLow <= 0 ? maxLow : null);
+  const getDisplayMax = () => (maxHigh > 0 ? maxHigh : minHigh > 0 && maxHigh <= 0 ? minHigh : null);
 
   let mainLabel = "Any";
   if (hasAnySalaryFilter) {
@@ -272,23 +369,49 @@ function SalaryButton({ showFilterControls, currentSearchState, handleIconClick 
     if (!displayMin && !displayMax) mainLabel = "Any";
     else if (displayMin && !displayMax) mainLabel = formatAmount(displayMin);
     else if (!displayMin && displayMax) mainLabel = `Up to ${formatAmount(displayMax)}`;
-    else if (displayMin && displayMax) mainLabel = `${formatAmount(displayMin)}–${formatAmount(displayMax, false)}`;
+    else if (displayMin && displayMax) mainLabel = `${formatAmount(displayMin)}-${formatAmount(displayMax, false)}`;
   }
 
-  const header = mainLabel === "Any" ? "Any" : <>{mainLabel}<span className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400"> / {calcFrequency}</span></>;
-  return <FilterButton icon={DollarSign} header={header} onClick={() => handleIconClick("salary")} className="min-w-[max(80px, fit-content)] lg:min-w-[200px]" />;
+  const header =
+    mainLabel === "Any" ? (
+      "Any"
+    ) : (
+      <>
+        {mainLabel}
+        <span className="text-[12px] font-medium text-muted-foreground dark:text-muted-foreground"> / {calcFrequency}</span>
+      </>
+    );
+
+  return (
+    <FilterButton
+      icon={DollarSign}
+      header={header}
+      onClick={() => handleIconClick("salary")}
+      className="min-w-[max(80px, fit-content)] lg:min-w-[200px]"
+    />
+  );
 }
 
-export default function SearchBar({ placeholder = "Search", className = "", onSearch, onIconClick, value: controlledValue }: SearchBarProps) {
+export default function SearchBar({
+  placeholder = "Search",
+  className = "",
+  onSearch,
+  onIconClick,
+  value: controlledValue,
+}: SearchBarProps) {
   const pathname = usePathname();
   const { searchOptions: currentSearchState } = useApp();
   const { handleSearchIconClick } = useSearchUI();
-  
+
   const [inputValue, setInputValue] = useState(controlledValue || "");
   const [inputFocused, setInputFocused] = useState(false);
-  
+
   const convex = useConvex();
   const [jobTitles, setJobTitles] = useState<string[]>([]);
+
+  const isMobile = useIsMobile(768);
+  const isLg = useMediaQuery("(min-width: 1024px)");
+  const isXl = useMediaQuery("(min-width: 1280px)");
 
   const handleIconClick = onIconClick || handleSearchIconClick;
   const showFilterControls = pathname === "/";
@@ -305,14 +428,22 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
         setJobTitles([]);
         return;
       }
-      void convex.query(api.jobs.distinctJobTitles, { query: q, limit: 50 }).then((titles) => {
-        if (cancelled) return;
-        setJobTitles((titles ?? []).map((t) => t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))));
-      }).catch(() => {
-        if (!cancelled) setJobTitles([]);
-      });
+
+      void convex
+        .query(api.jobs.distinctJobTitles, { query: q, limit: 50 })
+        .then((titles) => {
+          if (cancelled) return;
+          setJobTitles((titles ?? []).map((t) => t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))));
+        })
+        .catch(() => {
+          if (!cancelled) setJobTitles([]);
+        });
     }, 180);
-    return () => { cancelled = true; window.clearTimeout(id); };
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
   }, [convex, inputValue]);
 
   const handleInputChange = (value: string) => {
@@ -322,6 +453,7 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
 
   const handleClear = () => {
     setInputValue("");
+    setInputFocused(false);
     if (onSearch) onSearch("");
   };
 
@@ -329,26 +461,53 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
     const locations = currentSearchState.location.location || [];
     const locationStr = getLocationDisplayLabel(locations);
     const workplaces = formatWorkplaceTypesLabel(currentSearchState.location.workplace_type);
-    
-    // Simplification for UI consistency
+
     return {
       location: locationStr,
       workplaces,
     };
   }, [currentSearchState]);
 
+  const showFullIconGroup = showFilterControls && !isLg;
+  const showGeneralIconOnly = showFilterControls && isLg;
+  const showLocation = showFilterControls && (isMobile || isLg);
+  const showSalary = showFilterControls && (isMobile || isXl);
+
+  const iconButtons = showFullIconGroup ? (
+    <IconButtons variant="full" inputFocused={inputFocused} handleIconClick={handleIconClick} />
+  ) : showGeneralIconOnly ? (
+    <IconButtons variant="general" inputFocused={inputFocused} handleIconClick={handleIconClick} />
+  ) : null;
+
+  const locationButton = showLocation ? (
+    <LocationButton
+      handleIconClick={handleIconClick}
+      locationDisplay={locationDisplay}
+      showFilterControls={showFilterControls}
+    />
+  ) : null;
+
+  const salaryButton = showSalary ? (
+    <SalaryButton
+      currentSearchState={currentSearchState}
+      handleIconClick={handleIconClick}
+      showFilterControls={showFilterControls}
+    />
+  ) : null;
+
   return (
     <div className="relative flex-1 sm:px-4">
       <Autocomplete
         className={className}
-        options={jobTitles}
-        iconButtons={<IconButtons showFilterControls={showFilterControls} inputFocused={inputFocused} handleIconClick={handleIconClick} />}
-        locationButton={<LocationButton showFilterControls={showFilterControls} locationDisplay={locationDisplay} handleIconClick={handleIconClick} />}
-        salaryButton={<SalaryButton showFilterControls={showFilterControls} currentSearchState={currentSearchState} handleIconClick={handleIconClick} />}
+        iconButtons={iconButtons}
+        locationButton={locationButton}
+        onBlur={() => setInputFocused(false)}
         onChange={handleInputChange}
         onClear={handleClear}
         onFocus={() => setInputFocused(true)}
+        options={jobTitles}
         placeholder={placeholder}
+        salaryButton={salaryButton}
         showClearButton={showFilterControls && !!inputValue}
         value={inputValue}
       />

@@ -65,7 +65,7 @@ const RangeSlider = ({
         <span>{formatValue(min, currency, money)}</span>
         <span className="flex items-center gap-1">
           <span className="flex items-center">
-            <Edit3 className="size-3 text-gray-400 opacity-0 group-hover:opacity-75 transition-opacity duration-200 mr-1" />
+            <Edit3 className="size-3 text-muted-foreground opacity-0 group-hover:opacity-75 transition-opacity duration-200 mr-1" />
             {editingMax ? (
               <input
                 type="text"

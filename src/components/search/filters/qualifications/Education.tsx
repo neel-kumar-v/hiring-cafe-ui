@@ -31,7 +31,7 @@ export default function Education() {
   return (
     <FilterContainer categoryId="education" title="Education">
       {loading ? (
-        <div className="text-sm text-gray-500">Loading degree titles...</div>
+        <div className="text-sm text-muted-foreground">Loading degree titles...</div>
       ) : (
         <Accordion type="multiple" className="w-full">
           <AccordionItem value="associate" className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out">

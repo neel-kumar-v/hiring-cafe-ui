@@ -28,7 +28,7 @@ function FilterItem({ label, value, categoryId, isExtended, isImportant = false,
     <p>
       {label}: <span 
         onClick={() => handleCategoryClick(categoryId)} 
-        className="cursor-pointer font-semibold dark:hover:text-pink-400 hover:text-pink-600 transition-all duration-300 ease-in-out"
+        className="cursor-pointer font-semibold dark:hover:text-primary hover:text-primary transition-all duration-300 ease-in-out"
       >
         {value || "None"}
       </span>
@@ -768,7 +768,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
           <div className="sticky bottom-4 right-4 flex justify-end z-20">
             <Button
               onClick={() => setExtended(!extended)}
-              className="w-fit backdrop-blur-md"
+              className="w-fit"
               variant="outline"
             >
               {extended ? "Hide unchanged filters" : "Show unchanged filters"}

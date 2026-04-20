@@ -182,11 +182,11 @@ export function renderCategoryContent(
           <h3 className="text-lg font-semibold">
             {selectedCategoryData?.name || "Unknown"}
           </h3>
-          <p className="text-neutral-600 dark:text-neutral-400">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             Settings for {selectedCategoryData?.name.toLowerCase()} will be implemented here.
           </p>
-          <div className="rounded-lg border-2 border-dashed border-neutral-300 p-8 text-center dark:border-neutral-600">
-            <p className="text-neutral-500 dark:text-neutral-400">
+          <div className="rounded-lg border-2 border-dashed border-border/70 p-8 text-center dark:border-border">
+            <p className="text-muted-foreground dark:text-muted-foreground">
               Content for {selectedCategoryData?.name} will be added later
             </p>
           </div>
@@ -229,7 +229,7 @@ export function renderFilteredCategoriesContent(
             id={group.type}
             className="scroll-mt-4 max-md:max-w-screen"
           >
-            <h2 className="mb-4 border-b border-neutral-200 pb-1 text-sm font-semibold uppercase tracking-wide text-neutral-700 dark:border-neutral-600 dark:text-neutral-300">
+            <h2 className="mb-4 border-b border-border pb-1 text-sm font-semibold uppercase tracking-wide text-foreground/80 dark:border-border dark:text-foreground/80">
               {header}
             </h2>
             {renderCategoryContent(group.type, handleCategoryClick, { name: header }, {

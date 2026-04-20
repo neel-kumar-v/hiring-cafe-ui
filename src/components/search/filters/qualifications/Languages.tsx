@@ -17,7 +17,7 @@ export default function Languages() {
   return (
     <FilterContainer categoryId="languages" title="Languages">
       {loading ? (
-        <div className="text-sm text-gray-500">Loading languages...</div>
+        <div className="text-sm text-muted-foreground">Loading languages...</div>
       ) : (
         <KeywordsMultiSelect
           value={searchOptions.language}

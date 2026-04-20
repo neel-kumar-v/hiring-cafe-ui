@@ -128,7 +128,7 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [searchDialogFrom, setSearchDialogFrom] = useState("");
   const [showFilterRibbon, setShowFilterRibbon] = useState(true);
-  const [showLegacyFilters, setShowLegacyFilters] = useState(false);
+  const [showLegacyFilters, setShowLegacyFilters] = useState(true);
   const [boardSearchQuery, setBoardSearchQuery] = useState("");
 
   const handleSearchIconClick = (category: string) => {

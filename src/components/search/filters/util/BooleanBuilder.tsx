@@ -80,7 +80,7 @@ export function BooleanBuilder({
   // --- NOT node ---
   if (isBooleanOperator(value) && value.NOT !== undefined) {
     return (
-      <div className="flex flex-row items-center gap-1 border border-input bg-muted/30 rounded-md px-2 py-1 max-w-full text-black dark:text-white">
+      <div className="flex flex-row items-center gap-1 border border-input bg-muted/30 rounded-md px-2 py-1 max-w-full text-foreground dark:text-foreground">
         <UniversalTooltip content="Remove NOT Group">
           <span 
             className="text-sm font-medium mr-1 cursor-pointer"

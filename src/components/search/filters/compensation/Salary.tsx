@@ -159,7 +159,7 @@ export default function Salary() {
         <div className="flex-1">
           <label className="mb-2 block text-xs font-medium text-foreground">Currency</label>
           {currenciesLoading ? (
-            <div className="h-9 w-full rounded-md border border-border bg-accent px-3 py-2 text-sm text-gray-500">
+            <div className="h-9 w-full rounded-md border border-border bg-accent px-3 py-2 text-sm text-muted-foreground">
               Loading...
             </div>
           ) : (

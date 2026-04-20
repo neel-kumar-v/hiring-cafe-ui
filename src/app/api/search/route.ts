@@ -15,12 +15,24 @@ export async function GET(request: NextRequest) {
   const limit = limitStr ? parseInt(limitStr, 10) : 50;
 
   try {
-    const result = await fetchQuery(api.searchOptions.getOptions, {
-      type,
-      query,
-      limit,
-    });
+    // Prefer deriving suggestions from actual job data so local dev works even
+    // when the `searchOptions` table hasn't been backfilled.
+    if (type === "job_title") {
+      const suggestions = await fetchQuery(api.jobs.distinctJobTitles, { query, limit });
+      return NextResponse.json({ suggestions: suggestions ?? [] });
+    }
 
+    if (type === "technology_keywords" || type === "description_keywords") {
+      const suggestions = await fetchQuery(api.jobs.distinctSkills, { query, limit });
+      return NextResponse.json({ suggestions: suggestions ?? [] });
+    }
+
+    if (type === "requirements_keywords") {
+      const suggestions = await fetchQuery(api.jobs.distinctRequirementsSummaries, { query, limit });
+      return NextResponse.json({ suggestions: suggestions ?? [] });
+    }
+
+    const result = await fetchQuery(api.searchOptions.getOptions, { type, query, limit });
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching search options:", error);

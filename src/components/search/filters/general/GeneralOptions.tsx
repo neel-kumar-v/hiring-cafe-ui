@@ -25,7 +25,7 @@ export default function GeneralOptions({ scrollToSection, clearScrollToSection, 
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {shouldShow("filters") ? (
         <div className="scroll-mt-14" ref={refs.filters}>
           <CurrentFilters handleCategoryClick={handleCategoryClick} />

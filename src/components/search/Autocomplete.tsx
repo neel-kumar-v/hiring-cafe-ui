@@ -1,9 +1,12 @@
 "use client";
 
+import { Hitbox } from "@/components/ui/hitbox";
+import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AutocompleteProps {
   value: string;
@@ -15,6 +18,7 @@ interface AutocompleteProps {
   showClearButton?: boolean;
   onClear?: () => void;
   onFocus?: () => void;
+  onBlur?: () => void;
   iconButtons?: React.ReactNode;
   locationButton?: React.ReactNode;
   salaryButton?: React.ReactNode;
@@ -36,15 +40,15 @@ function AutocompleteOption({
   isMobile = false,
 }: AutocompleteOptionProps) {
   const baseClasses = isMobile
-    ? "px-4 py-3 cursor-pointer text-base border-b border-neutral-100 dark:border-neutral-800"
-    : "px-3 py-2 cursor-pointer text-sm transition-colors duration-300 hover:transition-none hover:cursor-pointer";
+    ? "cursor-pointer border-b border-border/60 px-4 py-3 text-base"
+    : "cursor-pointer px-3 py-2 text-sm transition-colors duration-300 hover:transition-none";
 
   const highlightClasses =
     index === highlightedIndex
-      ? "bg-pink-100 dark:bg-pink-900 text-pink-900 dark:text-pink-100"
+      ? "bg-brand-soft text-brand-soft-foreground"
       : isMobile
-        ? "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white"
-        : "hover:bg-neutral-100 dark:hover:bg-neutral-700/25 text-neutral-900 dark:text-white";
+        ? "text-foreground hover:bg-accent"
+        : "text-foreground hover:bg-secondary dark:hover:bg-accent/25";
 
   return (
     <div
@@ -66,12 +70,12 @@ function NoResults({ isMobile = false }: { isMobile?: boolean }) {
   const iconSize = isMobile ? "w-12 h-12" : "w-8 h-8";
   const textSize = isMobile ? "text-lg" : "text-base";
   const containerClasses = isMobile
-    ? "flex flex-col items-center justify-center h-full py-8 text-neutral-400 dark:text-neutral-500"
-    : "flex-1 flex flex-col items-center justify-center py-8 text-neutral-400 dark:text-neutral-500";
+    ? "flex h-full flex-col items-center justify-center py-8 text-muted-foreground dark:text-muted-foreground"
+    : "flex flex-1 flex-col items-center justify-center py-8 text-muted-foreground dark:text-muted-foreground";
 
   return (
     <div className={containerClasses}>
-      <svg className={`${iconSize} mb-${isMobile ? "4" : "2"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <svg className={cn(iconSize, isMobile ? "mb-4" : "mb-2")} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
         <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
       </svg>
@@ -106,7 +110,7 @@ function DesktopDropdown({
 
   return (
     <div
-      className="absolute z-50 hidden max-h-[361px] w-full rounded-b-[24px] border border-t-0 border-neutral-200 bg-white shadow-lg md:flex dark:border-neutral-600 dark:bg-neutral-800 overflow-hidden"
+      className="absolute z-50 hidden max-h-[361px] w-full overflow-hidden rounded-b-[24px] border border-t-0 border-border bg-background shadow-lg md:flex dark:border-border dark:bg-card"
       data-dropdown="autocomplete"
       onClick={handleDropdownClick}
       onMouseDown={handleDropdownClick}
@@ -115,7 +119,7 @@ function DesktopDropdown({
         left: 0,
       }}
     >
-      <div className="overflow-y-auto w-full max-h-[361px] min-h-[100px]">
+      <div className="w-full max-h-[361px] min-h-[100px] overflow-y-auto">
         {filteredOptions.length > 0 ? (
           displayOptions.slice(0, maxTotal).map((option, index) => (
             <AutocompleteOption
@@ -134,28 +138,53 @@ function DesktopDropdown({
   );
 }
 
-function MobileHeader({ value, placeholder, onChange, onBack }: { value: string, placeholder: string, onChange: (value: string) => void, onBack: () => void }) {
+function MobileHeader({
+  value,
+  placeholder,
+  onChange,
+  onBack,
+}: {
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+  onBack: () => void;
+}) {
   return (
-    <div className="flex flex-shrink-0 items-center gap-3 border-neutral-200 border-b p-4 dark:border-neutral-700">
-      <button className="rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800" onClick={onBack}>
-        <X className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-      </button>
+    <div className="flex flex-shrink-0 items-center gap-3 border-b border-border p-4 dark:border-border">
+      <Hitbox size="sm" radius="full">
+        <button
+          aria-label="Close search"
+          className="rounded-lg p-2 transition-colors hover:bg-secondary dark:hover:bg-accent"
+          onClick={onBack}
+          type="button"
+        >
+          <X className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
+        </button>
+      </Hitbox>
       <div className="relative flex-1">
         <input
           autoFocus
-          className="w-full rounded-[24px] border border-neutral-200 bg-neutral-50 px-3 py-2 pl-10 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+          className="w-full rounded-[24px] border border-border bg-secondary/60 px-3 py-2 pl-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-border dark:bg-card dark:text-foreground"
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           type="text"
           value={value}
         />
-        <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-neutral-400" />
+        <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground" />
       </div>
     </div>
   );
 }
 
-function MobileContent({ displayOptions, highlightedIndex, onOptionClick }: { displayOptions: string[], highlightedIndex: number, onOptionClick: (option: string) => void }) {
+function MobileContent({
+  displayOptions,
+  highlightedIndex,
+  onOptionClick,
+}: {
+  displayOptions: string[];
+  highlightedIndex: number;
+  onOptionClick: (option: string) => void;
+}) {
   return (
     <div className="flex-1 overflow-hidden">
       <div className="h-full overflow-y-auto overscroll-contain">
@@ -203,7 +232,7 @@ function MobileOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-white md:hidden dark:bg-neutral-900"
+      className="fixed inset-0 z-50 flex flex-col bg-background md:hidden dark:bg-background"
       onClick={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
     >
@@ -211,19 +240,6 @@ function MobileOverlay({
       <MobileContent displayOptions={displayOptions} highlightedIndex={highlightedIndex} onOptionClick={onOptionClick} />
     </div>
   );
-}
-
-// Ensure useMediaQuery doesn't break if not found, simplified version:
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) setMatches(media.matches);
-    const listener = () => setMatches(media.matches);
-    window.addEventListener("resize", listener);
-    return () => window.removeEventListener("resize", listener);
-  }, [matches, query]);
-  return matches;
 }
 
 export default function Autocomplete({
@@ -236,6 +252,7 @@ export default function Autocomplete({
   showClearButton = false,
   onClear,
   onFocus,
+  onBlur,
   iconButtons,
   locationButton,
   salaryButton,
@@ -245,7 +262,7 @@ export default function Autocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile(768);
 
   useEffect(() => {
     if (value.trim()) {
@@ -264,6 +281,8 @@ export default function Autocomplete({
   };
 
   const handleInputBlur = (e: React.FocusEvent) => {
+    onBlur?.();
+
     if (window.innerWidth >= 768) {
       const dropdownElement = document.querySelector('[data-dropdown="autocomplete"]');
       if (dropdownElement && dropdownElement.contains(e.relatedTarget as Node)) {
@@ -329,27 +348,29 @@ export default function Autocomplete({
     ? Array.from(new Set([value.trim(), ...filteredOptions].filter((q) => q.trim())))
     : filteredOptions;
 
-  const hasIcons = !!iconButtons || !!locationButton || !!salaryButton;
-  const inputRoundedClasses = hasIcons
-    ? isOpen ? " lg:pr-3 pl-10 rounded-l-[24px] rounded-r-none rounded-b-none border-r-0" : " lg:pr-3 pl-10 rounded-l-[24px] rounded-r-none border-r-0"
-    : isOpen ? " lg:pr-3 pt-[8px] pl-10 pb-[10px] rounded-[24px] rounded-b-none" : "rounded-[24px]";
+  const hasRightControls = Boolean(iconButtons || locationButton || salaryButton);
+  const inputRoundedClasses = hasRightControls
+    ? isOpen
+      ? "pl-10 rounded-l-[24px] rounded-r-none rounded-b-none border-r-0"
+      : "pl-10 rounded-l-[24px] rounded-r-none border-r-0"
+    : isOpen
+      ? "pl-10 rounded-[24px] rounded-b-none"
+      : "rounded-[24px]";
 
-  const containerClasses = hasIcons
-    ? `flex h-11 items-center w-full border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
-    : `flex h-11 items-center w-full ${isOpen ? "rounded-t-[24px]" : ""}`;
+  const containerClasses = hasRightControls
+    ? `flex h-11 w-full items-center border border-border bg-background dark:border-border dark:bg-card ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
+    : `flex h-11 w-full items-center ${isOpen ? "rounded-t-[24px]" : ""}`;
 
-  const inputBorderClasses = hasIcons
-    ? "border-0"
-    : "border border-neutral-200 dark:border-neutral-600";
+  const inputBorderClasses = hasRightControls ? "border-0" : "border border-border dark:border-border";
 
   return (
     <>
-      <div className="relative group w-full" ref={containerRef}>
+      <div className="group relative w-full" ref={containerRef}>
         {isMobile ? (
-          <div className="flex flex-col w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
-            <div className="relative flex items-center">
+          <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-sm dark:border-border dark:bg-card">
+            <div className="relative flex h-11 items-center">
               <input
-                className={`w-full bg-white dark:bg-neutral-800 px-3 pl-10 text-[15px] text-neutral-900 transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:text-white ${className}`}
+                className={`h-full w-full bg-background px-3 pl-10 text-[15px] text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:bg-card dark:text-foreground ${className}`}
                 onBlur={handleInputBlur}
                 onChange={(e) => onChange(e.target.value)}
                 onFocus={handleInputFocus}
@@ -359,26 +380,37 @@ export default function Autocomplete({
                 type="text"
                 value={value}
               />
-              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-neutral-400" />
+              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground" />
               {showClearButton && value && (
-                <button onClick={onClear} className="px-3 py-3 flex items-center justify-center" type="button">
-                  <X className="size-4 cursor-pointer text-neutral-400 transition-[transform,opacity] hover:text-pink-500" />
-                </button>
+                <Hitbox size="sm" radius="full">
+                  <button
+                    aria-label="Clear search"
+                    className="flex h-full items-center justify-center px-3"
+                    onClick={() => onClear?.()}
+                    type="button"
+                  >
+                    <X className="size-4 cursor-pointer text-muted-foreground transition-[transform,opacity] hover:text-primary" />
+                  </button>
+                </Hitbox>
               )}
-              {iconButtons && <div className="pr-3 gap-1.5 py-3 flex items-center justify-center">{iconButtons}</div>}
+              {iconButtons && <div className="flex h-full items-stretch justify-center">{iconButtons}</div>}
             </div>
             {(salaryButton || locationButton) && (
-              <div className="flex w-full border-t border-neutral-200 dark:border-neutral-600">
-                {salaryButton && <div className={`basis-1/4 flex-shrink-0 ${locationButton ? "border-r border-neutral-200 dark:border-neutral-600" : ""}`}>{salaryButton}</div>}
+              <div className="flex w-full border-t border-border dark:border-border">
+                {salaryButton && (
+                  <div className={cn("basis-1/4 flex-shrink-0", locationButton && "border-r border-border dark:border-border")}>
+                    {salaryButton}
+                  </div>
+                )}
                 {locationButton && <div className="basis-3/4 flex-1">{locationButton}</div>}
               </div>
             )}
           </div>
         ) : (
-          <div className={containerClasses || "relative"}>
-            <div className="relative flex-1 h-full">
+          <div className={containerClasses}>
+            <div className="relative h-full flex-1">
               <input
-                className={`w-full h-full bg-transparent lg:pr-3 pl-10 text-[15px] text-neutral-900 transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:text-white ${inputBorderClasses} ${inputRoundedClasses} ${className}`}
+                className={`h-full w-full bg-transparent pl-10 pr-3 text-[15px] text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:text-foreground ${inputBorderClasses} ${inputRoundedClasses} ${className}`}
                 onBlur={handleInputBlur}
                 onChange={(e) => onChange(e.target.value)}
                 onFocus={handleInputFocus}
@@ -388,24 +420,45 @@ export default function Autocomplete({
                 type="text"
                 value={value}
               />
-              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-neutral-400 group-hover:text-pink-500 transition-[transform,opacity] duration-200 ease-in-out" />
+              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary" />
             </div>
             {showClearButton && value && (
-              <button onClick={onClear} className="px-2 h-full flex items-center justify-center" type="button">
-                <X className="size-4 cursor-pointer text-neutral-400 transition-[transform,opacity] hover:text-pink-500" />
-              </button>
-            )}
-            {salaryButton && (
-              <div className="max-w-[20%] h-full border-x border-neutral-200 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700 duration-150 ease-in-out hover:transition-colors">
-                {salaryButton}
-              </div>
+              <Hitbox size="sm" radius="full">
+                <button
+                  aria-label="Clear search"
+                  className="flex h-full items-center justify-center px-2"
+                  onClick={() => onClear?.()}
+                  type="button"
+                >
+                  <X className="size-4 cursor-pointer text-muted-foreground transition-[transform,opacity] hover:text-primary" />
+                </button>
+              </Hitbox>
             )}
             {locationButton && (
-              <div className={cn("max-w-[30%] h-full border-r border-neutral-200 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700 duration-150 ease-in-out hover:transition-colors", !salaryButton && "border-l")}>
+              <div
+                className={cn(
+                  "h-full max-w-[30%] border-l border-border dark:border-border",
+                  !salaryButton && !iconButtons && "rounded-r-[24px]"
+                )}
+              >
                 {locationButton}
               </div>
             )}
-            {iconButtons && <div className="h-full px-3 flex items-center justify-end gap-1.5 rounded-r-[24px]">{iconButtons}</div>}
+            {salaryButton && (
+              <div
+                className={cn(
+                  "h-full max-w-[20%] border-l border-border dark:border-border",
+                  !iconButtons && "rounded-r-[24px]"
+                )}
+              >
+                {salaryButton}
+              </div>
+            )}
+            {iconButtons && (
+              <div className="flex h-full items-stretch justify-end rounded-r-[24px] border-l border-border dark:border-border">
+                {iconButtons}
+              </div>
+            )}
           </div>
         )}
         <DesktopDropdown
@@ -418,7 +471,16 @@ export default function Autocomplete({
           maxTotal={maxTotal}
         />
       </div>
-      <MobileOverlay displayOptions={displayOptions} highlightedIndex={highlightedIndex} isOpen={isOpen} onBack={handleBack} onChange={onChange} onOptionClick={handleOptionClick} placeholder={placeholder} value={value} />
+      <MobileOverlay
+        displayOptions={displayOptions}
+        highlightedIndex={highlightedIndex}
+        isOpen={isOpen}
+        onBack={handleBack}
+        onChange={onChange}
+        onOptionClick={handleOptionClick}
+        placeholder={placeholder}
+        value={value}
+      />
     </>
   );
 }

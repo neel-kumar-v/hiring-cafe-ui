@@ -17,7 +17,7 @@ export default function ApplyFormSelect() {
 
   return (
     <Select onValueChange={setApplyFormValue} value={applyFormValue}>
-      <SelectTrigger className="w-fit rounded bg-white px-3 py-1 text-neutral-900 text-sm transition-all duration-300 dark:bg-neutral-800 dark:text-white">
+      <SelectTrigger className="w-fit rounded bg-background px-3 py-1 text-foreground text-sm transition-all duration-300 dark:bg-card dark:text-foreground">
         <SelectValue placeholder="All apply forms" />
       </SelectTrigger>
       <SelectContent className={isDarkMode ? "dark" : ""}>

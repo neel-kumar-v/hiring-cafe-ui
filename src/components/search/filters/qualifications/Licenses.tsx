@@ -31,7 +31,7 @@ export default function Licenses() {
         />
       </LabelInputContainer>
       {loading ? (
-        <div className="text-sm text-gray-500">Loading licenses...</div>
+        <div className="text-sm text-muted-foreground">Loading licenses...</div>
       ) : (
         <KeywordsMultiSelect
           value={searchOptions.license_certification.keywords}

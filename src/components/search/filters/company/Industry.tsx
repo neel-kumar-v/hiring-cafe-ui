@@ -51,7 +51,7 @@ export default function Industry() {
         ))}
       </LabelInputContainer>
       {activitiesLoading ? (
-        <div className="text-sm text-gray-500">Loading activities...</div>
+        <div className="text-sm text-muted-foreground">Loading activities...</div>
       ) : (
         <KeywordsMultiSelect
           value={searchOptions.industry.activities}
@@ -63,7 +63,7 @@ export default function Industry() {
         />
       )}
       {industriesLoading ? (
-        <div className="text-sm text-gray-500">Loading industries...</div>
+        <div className="text-sm text-muted-foreground">Loading industries...</div>
       ) : (
         <KeywordsMultiSelect
           value={searchOptions.industry.industry}

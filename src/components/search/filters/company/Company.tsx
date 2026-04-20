@@ -13,7 +13,7 @@ export default function Company() {
   return (
     <FilterContainer categoryId="company" title="Company Keywords">
       {loading ? (
-        <div className="text-sm text-gray-500">Loading companies...</div>
+        <div className="text-sm text-muted-foreground">Loading companies...</div>
       ) : (
         <KeywordsMultiSelect 
           value={searchOptions.company} 
