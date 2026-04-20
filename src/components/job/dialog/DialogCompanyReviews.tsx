@@ -25,11 +25,11 @@ const ratingLabels = {
 };
 
 const ratingColors = {
-  1: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  2: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  3: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  4: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  5: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  1: "border-transparent bg-destructive/10 text-destructive dark:bg-destructive/20",
+  2: "border-transparent bg-warning-soft text-warning-soft-foreground",
+  3: "border-transparent bg-secondary text-secondary-foreground",
+  4: "border-transparent bg-success-soft text-success-soft-foreground",
+  5: "border-transparent bg-info-soft text-info-soft-foreground",
 };
 
 const sampleReviews: Review[] = [

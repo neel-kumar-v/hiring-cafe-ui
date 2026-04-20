@@ -12,7 +12,7 @@ const JobBoardCardSkeleton = () => {
   }, []);
 
   return (
-    <Card className="h-full border bg-white shadow-sm dark:border-pink-700/20 dark:bg-neutral-800">
+    <Card className="h-full border bg-background shadow-sm dark:border-primary/20 dark:bg-card">
       <CardContent className="flex h-full flex-col p-4 py-3">
         <div className="mb-2 flex items-center justify-between">
           <Skeleton className="h-8 w-3/4" />

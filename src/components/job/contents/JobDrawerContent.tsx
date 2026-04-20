@@ -1,7 +1,6 @@
 import { DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { toCardCompanyData } from "@/lib/job-company";
-import type { Job } from "@/types/job";
+import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useQuery } from "convex/react";
 import { DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
@@ -12,6 +11,7 @@ import { api } from "../../../../convex/_generated/api";
 
 const JobDrawerContent = ({
   currentJob,
+  company,
   isBookmarked,
   isApplied,
   onBookmarkToggle,
@@ -19,7 +19,8 @@ const JobDrawerContent = ({
   open,
   onClose,
 }: {
-  currentJob: Job;
+  currentJob: JobDTO;
+  company: CompanyDTO | null;
   isBookmarked: boolean;
   isApplied: boolean;
   onBookmarkToggle: () => void;
@@ -27,11 +28,52 @@ const JobDrawerContent = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  const fullJob = useQuery(api.jobs.getRaw, open ? { externalId: currentJob.id } : "skip");
-  const job = (fullJob ?? currentJob) as Job;
+  const details = useQuery(api.jobs.getDetails, open ? { jobId: currentJob._id as any } : "skip") as unknown as JobDetailsResultDTO | null;
+  const job = details?.job ?? currentJob;
+  const detailsDoc = details?.details ?? null;
+  const companyDoc = details?.company ?? company;
 
-  const companyData = toCardCompanyData(job);
-  const processed = job.processed_job_data;
+  const companyData = {
+    name: companyDoc?.name ?? "",
+    website: companyDoc?.homepageUri ?? "",
+    image_url: companyDoc?.imageUrl ?? "",
+    tagline: companyDoc?.tagline ?? "",
+    subsidiaries: [],
+    parent_company: "",
+    linkedin_url: "",
+    industries: companyDoc?.industries ?? [],
+    activities: companyDoc?.activities ?? [],
+    is_non_profit: false,
+    is_public_company: false,
+    is_dissolved: false,
+    is_acquired: false,
+    num_employees: companyDoc?.numEmployees ?? 0,
+    year_founded: companyDoc?.yearFounded ?? 0,
+    headquarters_country: companyDoc?.hqCountry ?? "",
+    total_funding_amount: null,
+    total_funding_currency: null,
+    latest_investment_amount: null,
+    latest_investment_currency: null,
+    latest_investment_year: null,
+    latest_investment_series: null,
+    investors: [],
+    stock_exchange: null,
+    stock_symbol: null,
+    latest_revenue: null,
+    latest_revenue_currency: null,
+    latest_revenue_year: null,
+  };
+
+  const processed = {
+    workplace_cities: job.workplaceCities,
+    technical_tools: job.skills,
+    commitment: job.commitment,
+    workplace_type: job.workplaceType,
+    requirements_summary: job.requirementsSummary,
+    min_industry_and_role_yoe: job.minIcYoe ?? null,
+    min_management_and_leadership_yoe: job.minMgmtYoe ?? null,
+    role_activities: detailsDoc?.roleActivities ?? [],
+  };
 
   return (
     <Drawer onOpenChange={onClose} open={open}>
@@ -39,20 +81,20 @@ const JobDrawerContent = ({
         <VisuallyHidden>
           <DialogTitle>Job Details</DialogTitle>
         </VisuallyHidden>
-        <div className="sticky top-0 z-10 border-neutral-200 p-2 max-sm:border-b dark:border-neutral-700">
+        <div className="sticky top-0 z-10 border-border p-2 max-sm:border-b dark:border-border">
           <DialogActionButtons
             isApplied={isApplied}
             isBookmarked={isBookmarked}
             onApplyToggle={onApplyToggle}
             onBookmarkToggle={onBookmarkToggle}
-            applyUrl={job.apply_url}
+            applyUrl={job.applyUrl ?? ""}
             companyUrl={companyData.website}
           />
         </div>
         <div className="space-y-4 overflow-y-auto p-4">
           <DialogJobTitle
             companyName={companyData.name}
-            jobTitle={job.job_information.title}
+            jobTitle={job.title}
             workplaceCities={processed.workplace_cities ?? []}
             tools={processed.technical_tools ?? []}
           />
@@ -60,18 +102,18 @@ const JobDrawerContent = ({
           <DialogBadges
             commitments={processed.commitment ?? []}
             compensation={{
-              yearly_min_compensation: processed.yearly_min_compensation,
-              yearly_max_compensation: processed.yearly_max_compensation,
-              monthly_min_compensation: processed.monthly_min_compensation,
-              monthly_max_compensation: processed.monthly_max_compensation,
-              weekly_min_compensation: processed.weekly_min_compensation,
-              weekly_max_compensation: processed.weekly_max_compensation,
-              hourly_min_compensation: processed.hourly_min_compensation,
-              hourly_max_compensation: processed.hourly_max_compensation,
-              "bi-weekly_min_compensation": processed["bi-weekly_min_compensation"],
-              "bi-weekly_max_compensation": processed["bi-weekly_max_compensation"],
-              daily_min_compensation: processed.daily_min_compensation,
-              daily_max_compensation: processed.daily_max_compensation,
+              yearly_min_compensation: job.yearlyMinComp ?? null,
+              yearly_max_compensation: job.yearlyMaxComp ?? null,
+              monthly_min_compensation: job.monthlyMinComp ?? null,
+              monthly_max_compensation: job.monthlyMaxComp ?? null,
+              weekly_min_compensation: job.weeklyMinComp ?? null,
+              weekly_max_compensation: job.weeklyMaxComp ?? null,
+              hourly_min_compensation: job.hourlyMinComp ?? null,
+              hourly_max_compensation: job.hourlyMaxComp ?? null,
+              "bi-weekly_min_compensation": job.biWeeklyMinComp ?? null,
+              "bi-weekly_max_compensation": job.biWeeklyMaxComp ?? null,
+              daily_min_compensation: job.dailyMinComp ?? null,
+              daily_max_compensation: job.dailyMaxComp ?? null,
             }}
             workplaceCities={processed.workplace_cities ?? []}
             workType={processed.workplace_type ?? ""}
@@ -79,12 +121,12 @@ const JobDrawerContent = ({
           />
           <DialogResponsibilities roleActivities={processed.role_activities ?? []} />
           <DialogRequirements
-            requirementsSummary={processed.requirements_summary}
+            requirementsSummary={processed.requirements_summary ?? ""}
             minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
             minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
           />
           <DialogSkills technicalTools={processed.technical_tools ?? []} />
-          <DialogJobDescription description={job.job_information.description} />
+          <DialogJobDescription description={detailsDoc?.description ?? ""} />
         </div>
       </DrawerContent>
     </Drawer>

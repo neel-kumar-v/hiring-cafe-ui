@@ -2,10 +2,9 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
-import { getCompanyName } from "@/lib/job-company";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
-import type { Job, JobCollection } from "@/types/job";
+import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
 import CardContextMenuProvider from "./card/CardContextMenuProvider";
@@ -30,8 +29,8 @@ const JobDrawerContent = dynamic(() => import("./contents/JobDrawerContent"), {
 });
 
 interface JobCardProps {
-  jobCollection: JobCollection;
-  currentJob: Job;
+  jobCollection: { company: CompanyDTO | null; jobs: JobDTO[] };
+  currentJob: JobDTO;
   currentJobIndex: number;
   isTransitioning: boolean;
   isBookmarked: boolean;
@@ -61,17 +60,17 @@ const JobCard = memo(({
   const { prefetch, cancel } = useJobDetailsPrefetch({ delayMs: 200, maxInflight: 2 });
 
   const cardKey = useMemo(() => 
-    `${jobCollection.source_and_board_token}-${currentJobIndex}`, 
-    [jobCollection.source_and_board_token, currentJobIndex]
+    `${jobCollection.company?._id ?? "unknown"}-${currentJobIndex}`, 
+    [jobCollection.company?._id, currentJobIndex]
   );
 
   const onHoverStart = useCallback(() => {
-    prefetch(currentJob.id);
-  }, [prefetch, currentJob.id]);
+    prefetch(currentJob._id);
+  }, [prefetch, currentJob._id]);
 
   const onHoverEnd = useCallback(() => {
-    cancel(currentJob.id);
-  }, [cancel, currentJob.id]);
+    cancel(currentJob._id);
+  }, [cancel, currentJob._id]);
 
   return (
     <CardSwipeIndicator
@@ -80,7 +79,7 @@ const JobCard = memo(({
       totalJobs={jobCollection.jobs.length}
     >
       <Card
-        className="h-full cursor-pointer border bg-white shadow-sm transition-shadow duration-300 ease-in hover:shadow-lg dark:border-pink-700/20 dark:bg-neutral-800 dark:transition-colors dark:hover:border-pink-700/50 dark:hover:bg-neutral-700/50 group "
+        className="group h-full cursor-pointer border border-border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50"
         key={cardKey}
         onClick={onClick}
         onMouseEnter={onHoverStart}
@@ -90,18 +89,19 @@ const JobCard = memo(({
         <CardContent className="flex h-full flex-col p-4 py-3">
           <JobCardContent
             currentJob={currentJob}
+            company={jobCollection.company}
             isTransitioning={isTransitioning}
           />
           <div className="mt-auto grid grid-cols-3 items-center">
             <CardStats
-              appliedFromUsers={currentJob.job_information.appliedFromUsers}
+              appliedCount={currentJob.applies}
               isApplied={isApplied}
               isBookmarked={isBookmarked}
               isInterviewing={isInterviewing}
               onBookmarkToggle={onBookmarkToggle}
-              savedFromUsers={currentJob.job_information.savedFromUsers}
-              viewedByUsers={currentJob.job_information.viewedByUsers}
-              applyUrl={currentJob.apply_url}
+              savedCount={currentJob.saves}
+              viewedCount={currentJob.views}
+              applyUrl={currentJob.applyUrl ?? ""}
             />
             {jobCollection.jobs.length > 1 ? (
               <CardNavigation
@@ -114,9 +114,9 @@ const JobCard = memo(({
             ) : (
               <div className="col-span-1"></div>
             )}
-            {/* <CardSkillMatch technicalTools={currentJob.processed_job_data.technical_tools} /> */}
+            {/* <CardSkillMatch technicalTools={currentJob.skills} /> */}
             <ScrapeTime
-              postedAt={currentJob.processed_job_data.estimated_publish_date ?? ""}
+              postedAt={currentJob.estimatedPublishDate ?? ""}
               iconClassName="w-3 h-3"
               textClassName="text-xs"
             />
@@ -130,7 +130,7 @@ const JobCard = memo(({
 JobCard.displayName = "JobCard";
 
 interface JobBoardCardProps {
-  jobCollection: JobCollection;
+  jobCollection: { company: CompanyDTO | null; jobs: JobDTO[] };
 }
 
 const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
@@ -146,9 +146,8 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   );
 
   const stableKey = useMemo(() => {
-    const first = jobCollection.jobs[0];
-    return (first && getCompanyName(first)) || jobCollection.source_and_board_token;
-  }, [jobCollection.jobs, jobCollection.source_and_board_token]);
+    return jobCollection.company?.companyId ?? jobCollection.company?._id ?? "unknown-company";
+  }, [jobCollection.company]);
 
   const handleNextJob = useCallback(() => {
     if (isTransitioning) return;
@@ -179,45 +178,45 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
   }, [isTransitioning, jobCollection.jobs.length]);
 
   const isBookmarked = useMemo(() => 
-    user.saved.includes(currentJob.id) || 
-    user.applied.includes(currentJob.id) || 
-    user.interviewing.includes(currentJob.id),
-    [user.saved, user.applied, user.interviewing, currentJob.id]
+    user.saved.includes(currentJob.externalId) || 
+    user.applied.includes(currentJob.externalId) || 
+    user.interviewing.includes(currentJob.externalId),
+    [user.saved, user.applied, user.interviewing, currentJob.externalId]
   );
 
   const isApplied = useMemo(() => 
-    user.applied.includes(currentJob.id) || 
-    user.interviewing.includes(currentJob.id),
-    [user.applied, user.interviewing, currentJob.id]
+    user.applied.includes(currentJob.externalId) || 
+    user.interviewing.includes(currentJob.externalId),
+    [user.applied, user.interviewing, currentJob.externalId]
   );
 
   const isInterviewing = useMemo(() => 
-    user.interviewing.includes(currentJob.id),
-    [user.interviewing, currentJob.id]
+    user.interviewing.includes(currentJob.externalId),
+    [user.interviewing, currentJob.externalId]
   );
 
   const handleBookmarkToggle = useCallback(() => {
     if (isBookmarked) {
       // Remove from all bookmark-related states
-      if (user.saved.includes(currentJob.id)) removeJob(currentJob.id, "saved");
-      if (user.applied.includes(currentJob.id)) removeJob(currentJob.id, "applied");
-      if (user.interviewing.includes(currentJob.id)) removeJob(currentJob.id, "interviewing");
+      if (user.saved.includes(currentJob.externalId)) removeJob(currentJob.externalId, "saved");
+      if (user.applied.includes(currentJob.externalId)) removeJob(currentJob.externalId, "applied");
+      if (user.interviewing.includes(currentJob.externalId)) removeJob(currentJob.externalId, "interviewing");
     } else {
       // Add to saved (default bookmark state)
-      addJob(currentJob.id, "saved");
+      addJob(currentJob.externalId, "saved");
     }
-  }, [isBookmarked, user.saved, user.applied, user.interviewing, currentJob.id, removeJob, addJob]);
+  }, [isBookmarked, user.saved, user.applied, user.interviewing, currentJob.externalId, removeJob, addJob]);
 
   const handleApplyToggle = useCallback(() => {
     if (isApplied) {
       // Remove from all apply-related states
-      if (user.applied.includes(currentJob.id)) removeJob(currentJob.id, "applied");
-      if (user.interviewing.includes(currentJob.id)) removeJob(currentJob.id, "interviewing");
+      if (user.applied.includes(currentJob.externalId)) removeJob(currentJob.externalId, "applied");
+      if (user.interviewing.includes(currentJob.externalId)) removeJob(currentJob.externalId, "interviewing");
     } else {
       // Add to applied (default apply state)
-      addJob(currentJob.id, "applied");
+      addJob(currentJob.externalId, "applied");
     }
-  }, [isApplied, user.applied, user.interviewing, currentJob.id, removeJob, addJob]);
+  }, [isApplied, user.applied, user.interviewing, currentJob.externalId, removeJob, addJob]);
 
   const handleBookmarkClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -263,6 +262,7 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
         />
           <JobDrawerContent
             currentJob={currentJob}
+            company={jobCollection.company}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
             onApplyToggle={handleApplyToggle}
@@ -278,14 +278,16 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
     <div key={`desktop-${stableKey}`}>
       <CardContextMenuProvider
         currentJob={currentJob}
+        company={jobCollection.company}
         isApplied={isApplied}
         isBookmarked={isBookmarked}
         onApplyClick={handleApplyClick}
         onBookmarkClick={handleBookmarkClick}
-        applyUrl={currentJob.apply_url}
+        applyUrl={currentJob.applyUrl ?? ""}
       >
           <JobDialogContent
             currentJob={currentJob}
+            company={jobCollection.company}
             isApplied={isApplied}
             isBookmarked={isBookmarked}
             isInterviewing={isInterviewing}

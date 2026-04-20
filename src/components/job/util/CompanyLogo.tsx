@@ -1,5 +1,7 @@
 import {
   analyzeImageBackground,
+  companyFaviconUrl,
+  extractDomainFromCompanyWebsite,
   getCompanyAbbreviation,
   getImageBackgroundClass,
   renderCompanyAbbreviationGrid,
@@ -9,6 +11,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 interface CompanyLogoInnerProps {
   companyData: ProcessedCompanyData;
+  faviconSizePx: number;
   containerClassName: string;
   imageClassName: string;
   fallbackClassName: string;
@@ -16,11 +19,38 @@ interface CompanyLogoInnerProps {
 
 const CompanyLogoInner = memo(({
   companyData,
+  faviconSizePx,
   containerClassName,
   imageClassName,
   fallbackClassName,
 }: CompanyLogoInnerProps) => {
-  const [imageError, setImageError] = useState(false);
+  const faviconSrc = useMemo(() => {
+    const domain = extractDomainFromCompanyWebsite(companyData.website);
+    return domain ? companyFaviconUrl(domain, faviconSizePx) : null;
+  }, [companyData.website, faviconSizePx]);
+
+  const srcChain = useMemo(() => {
+    const chain: string[] = [];
+    if (faviconSrc) chain.push(faviconSrc);
+    if (companyData.image_url && companyData.image_url !== faviconSrc) {
+      chain.push(companyData.image_url);
+    }
+    return chain;
+  }, [faviconSrc, companyData.image_url]);
+
+  const [chainIndex, setChainIndex] = useState(0);
+
+  useEffect(() => {
+    setChainIndex(0);
+  }, [srcChain.join("|")]);
+
+  const activeSrc = chainIndex < srcChain.length ? srcChain[chainIndex] : undefined;
+  const showImage = activeSrc !== undefined;
+
+  const handleImageError = useCallback(() => {
+    setChainIndex((i) => i + 1);
+  }, []);
+
   const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
 
   const abbreviation = useMemo(() =>
@@ -33,19 +63,20 @@ const CompanyLogoInner = memo(({
     [abbreviation]
   );
 
-  const handleImageError = useCallback(() => {
-    setImageError(true);
-  }, []);
+  const imageUrlForAnalysis =
+    showImage && activeSrc === companyData.image_url ? companyData.image_url : null;
 
   useEffect(() => {
-    if (companyData.image_url && !imageError) {
-      analyzeImageBackground(companyData.image_url).then(setBackgroundType);
+    if (imageUrlForAnalysis) {
+      analyzeImageBackground(imageUrlForAnalysis).then(setBackgroundType);
+    } else {
+      setBackgroundType(null);
     }
-  }, [companyData.image_url, imageError]);
+  }, [imageUrlForAnalysis]);
 
   const backgroundClass = useMemo(() =>
-    getImageBackgroundClass(companyData.image_url, imageError, backgroundType),
-    [companyData.image_url, imageError, backgroundType]
+    getImageBackgroundClass(imageUrlForAnalysis, !showImage, backgroundType),
+    [imageUrlForAnalysis, showImage, backgroundType]
   );
 
   const finalContainerClasses = useMemo(() =>
@@ -55,12 +86,12 @@ const CompanyLogoInner = memo(({
 
   const logoContent = useMemo(() => (
     <>
-      {companyData.image_url && !imageError ? (
+      {showImage ? (
         <img
           alt={companyData.name}
           className={imageClassName}
           onError={handleImageError}
-          src={companyData.image_url}
+          src={activeSrc}
         />
       ) : (
         <span className={fallbackClassName}>
@@ -68,7 +99,7 @@ const CompanyLogoInner = memo(({
         </span>
       )}
     </>
-  ), [companyData.image_url, companyData.name, imageError, imageClassName, fallbackClassName, initialsContent, handleImageError]);
+  ), [showImage, companyData.name, imageClassName, fallbackClassName, initialsContent, handleImageError, activeSrc]);
 
   return (
     <div className={finalContainerClasses}>
@@ -141,18 +172,21 @@ const CompanyLogo = memo(({
   }, [size, variant]);
 
   const fallbackClasses = useMemo(() => {
-    const baseClasses = `font-semibold text-pink-600 dark:text-pink-300 ${textSizes[size]}`;
+    const baseClasses = `font-semibold text-primary dark:text-primary ${textSizes[size]}`;
 
     if (variant === "dialog") {
-      return `flex h-full w-full select-none items-center justify-center bg-pink-100 ${baseClasses} dark:bg-pink-800/15`;
+      return `flex h-full w-full select-none items-center justify-center bg-brand-soft ${baseClasses} dark:bg-brand-soft`;
     }
 
     return baseClasses;
   }, [size, variant]);
 
+  const faviconSizePx = { sm: 64, md: 128, lg: 128, xl: 128 }[size];
+
   return (
     <CompanyLogoInner
       companyData={companyData}
+      faviconSizePx={faviconSizePx}
       containerClassName={containerClasses}
       imageClassName={imageClasses}
       fallbackClassName={fallbackClasses}

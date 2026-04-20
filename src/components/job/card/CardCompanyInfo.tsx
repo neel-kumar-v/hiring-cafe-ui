@@ -29,7 +29,7 @@ const CardCompanyInfo = ({
             <>
               <UniversalTooltip content="Visit company site">
                 <a
-                  className="line-clamp-1 inline-flex w-fit items-center font-medium text-neutral-900 text-sm hover:underline dark:text-white"
+                  className="line-clamp-1 inline-flex w-fit items-center font-medium text-foreground text-sm hover:underline dark:text-foreground"
                   href={
                     companyData.website
                       ? companyData.website.startsWith("http")
@@ -49,7 +49,7 @@ const CardCompanyInfo = ({
                     aria-hidden="true"
                     className="-translate-x-3 -mr-3 group-hover:-mr-1 flex items-center opacity-0 transition-all duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100 pointer-coarse:-mr-1 pointer-coarse:translate-x-0 pointer-coarse:opacity-100 pointer-none:-mr-1 pointer-none:translate-x-0 pointer-none:opacity-100 pointer-fine:motion-reduce:-mr-1 pointer-fine:motion-reduce:translate-x-0 pointer-fine:motion-reduce:opacity-100"
                   >
-                    <Link2 className="-rotate-45 size-3 text-neutral-400 dark:text-neutral-300" />
+                    <Link2 className="-rotate-45 size-3 text-muted-foreground dark:text-foreground/80" />
                   </span>
                   <span className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-2 pointer-coarse:translate-x-2 pointer-none:translate-x-2 pointer-fine:motion-reduce:translate-x-2">
                     {formatCompanyName(companyData.name)}
@@ -60,26 +60,26 @@ const CardCompanyInfo = ({
                 content={`View all jobs from ${companyData.name}`}
               >
                 <div
-                  className="ml-2 z-10 inline-flex h-auto items-center gap-1 p-1 font-normal text-neutral-500 text-xs leading-none opacity-0 transition-all duration-200 hover:underline group-hover:ml-4 group-hover:opacity-100 pointer-coarse:ml-4 pointer-coarse:opacity-100 pointer-none:ml-4 pointer-none:opacity-100 pointer-fine:motion-reduce:ml-4 pointer-fine:motion-reduce:opacity-100 dark:text-pink-400 dark:hover:text-pink-300"
+                  className="ml-2 z-10 inline-flex h-auto items-center gap-1 p-1 font-normal text-muted-foreground text-xs leading-none opacity-0 transition-all duration-200 hover:underline group-hover:ml-4 group-hover:opacity-100 pointer-coarse:ml-4 pointer-coarse:opacity-100 pointer-none:ml-4 pointer-none:opacity-100 pointer-fine:motion-reduce:ml-4 pointer-fine:motion-reduce:opacity-100 dark:text-primary dark:hover:text-primary"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     // Handle view all jobs logic here
                   }}
                 >
-                  <ExternalLink className="size-3 text-neutral-400 dark:text-neutral-300" />
+                  <ExternalLink className="size-3 text-muted-foreground dark:text-foreground/80" />
                   View All
                 </div>
               </UniversalTooltip>
             </>
           ) : (
-            <span className="line-clamp-1 inline-flex w-fit items-center font-medium text-neutral-900 text-sm transition-all duration-200 dark:text-white">
+            <span className="line-clamp-1 inline-flex w-fit items-center font-medium text-foreground text-sm transition-all duration-200 dark:text-foreground">
               {formatCompanyName(companyData.name)}
             </span>
           )}
         </div>
 
-        <div className="line-clamp-2 cursor-text text-neutral-600 text-xs dark:text-neutral-400">
+        <div className="line-clamp-2 cursor-text text-muted-foreground text-xs dark:text-muted-foreground">
           {tagline}
         </div>
       </div>

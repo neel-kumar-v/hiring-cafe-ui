@@ -112,15 +112,15 @@ const CardSwipeIndicator = ({
           } ${swipeDirection === "left" ? "justify-start" : "justify-end"}`}
         >
           <div
-            className="flex items-center justify-center size-10 rounded-full bg-pink-400/10 backdrop-blur-sm border border-pink-400/20 transition-all duration-200"
+            className="flex items-center justify-center size-10 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/40/20 transition-all duration-200"
             style={{
               transform: `scale(${0.8 + swipeProgress * 0.2})`,
             }}
           >
             {swipeDirection === "left" ? (
-              <ChevronLeft className="size-6 text-pink-600 dark:text-pink-400 transition-transform duration-200" />
+              <ChevronLeft className="size-6 text-primary dark:text-primary transition-transform duration-200" />
             ) : (
-              <ChevronRight className="size-6 text-pink-600 dark:text-pink-400 transition-transform duration-200" />
+              <ChevronRight className="size-6 text-primary dark:text-primary transition-transform duration-200" />
             )}
           </div>
         </div>

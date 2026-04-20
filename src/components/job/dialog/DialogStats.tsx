@@ -5,31 +5,32 @@ import StatGroup from "../util/StatGroup";
 
 const DialogStats = ({
   publishDate,
-  viewedByUsers,
-  savedFromUsers,
-  appliedFromUsers,
+  viewedCount = 0,
+  savedCount = 0,
+  appliedCount = 0,
   isBookmarked,
   isApplied,
   isInterviewing = false,
   onBookmarkClick,
   applyUrl,
 }: {
-  publishDate: string;
-  viewedByUsers?: string[];
-  savedFromUsers?: string[];
-  appliedFromUsers?: string[];
+  publishDate?: string;
+  viewedCount?: number;
+  savedCount?: number;
+  appliedCount?: number;
   isBookmarked: boolean;
   isApplied: boolean;
   isInterviewing?: boolean;
   onBookmarkClick: (e: React.MouseEvent) => void;
   applyUrl: string;
 }) => {
+  if (!publishDate) return null;
   const timeSince = getTimeSince(publishDate);
   if (!timeSince) return null;
 
   return (
     <div className="absolute top-8 left-8 flex items-center gap-3">
-      <div className="flex items-center gap-1 text-neutral-500 text-sm dark:text-neutral-400">
+      <div className="flex items-center gap-1 text-muted-foreground text-sm dark:text-muted-foreground">
         <ScrapeTime
           iconClassName="size-4"
           postedAt={publishDate}
@@ -37,17 +38,17 @@ const DialogStats = ({
         />
       </div>
 
-      <div className="flex items-center space-x-3 text-neutral-400 text-sm dark:text-neutral-500">
+      <div className="flex items-center space-x-3 text-muted-foreground text-sm dark:text-muted-foreground">
         <StatGroup
-          appliedCount={appliedFromUsers?.length || 0}
+          appliedCount={appliedCount}
           handleBookmarkClick={onBookmarkClick}
           iconClassName="size-4"
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isInterviewing={isInterviewing}
-          savedCount={savedFromUsers?.length || 0}
+          savedCount={savedCount}
           textClassName="text-md"
-          viewedCount={(viewedByUsers?.length || 0) + 1}
+          viewedCount={viewedCount + 1}
           applyUrl={applyUrl}
         />
       </div>

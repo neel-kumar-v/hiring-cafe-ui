@@ -1,14 +1,13 @@
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getCompanyName } from "@/lib/job-company";
-import { normalizeJob } from "@/lib/jobs/normalizeJob";
 import { toConvexJobSearchFilters } from "@/lib/search/toConvexFilters";
-import type { Job, JobCollection } from "@/types/job";
+import type { CompanyDTO, JobCardResultDTO, JobDTO } from "@/types/convexJobs";
 import { usePaginatedQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
+import JobBoardCardSkeleton from "./job/JobBoardCardSkeleton";
 
 const JobBoardCard = dynamic(() => import("./job/JobBoardCard"), {
   ssr: false,
@@ -17,7 +16,19 @@ const JobBoardCard = dynamic(() => import("./job/JobBoardCard"), {
 // Keeping pages smaller avoids Convex "many bytes read" warnings when job payloads are large.
 const PAGE_LIMIT = 50;
 
-const JobBoard = () => {
+function formatRoundedNumber(value: number, round = 3) {
+  return (Math.round(value / 10 ** round) * 10 ** round).toLocaleString();
+}
+
+const JobBoard = ({
+  companyCount,
+  jobCount,
+  location,
+}: {
+  companyCount?: number;
+  jobCount?: number;
+  location?: string;
+}) => {
   const { boardSearchQuery } = useSearchUI();
   const { searchOptions } = useApp();
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -57,30 +68,18 @@ const JobBoard = () => {
   }, [columns]);
 
   const allJobCollections = useMemo(() => {
-    if (!accumulatedJobs.length) return [];
+    const items = accumulatedJobs as unknown as JobCardResultDTO[];
+    if (!items.length) return [];
 
-    const collectionsMap = new Map<string, JobCollection>();
-    const len = accumulatedJobs.length;
-
-    for (let i = 0; i < len; i++) {
-      const job = normalizeJob(accumulatedJobs[i]);
-      const companyName = getCompanyName(job) || "Unknown Company";
-
-      let collection = collectionsMap.get(companyName);
-      if (!collection) {
-        collection = {
-          source_and_board_token: job.source_and_board_token,
-          source: job.source,
-          board_token: job.board_token,
-          jobs: [],
-        };
-        collectionsMap.set(companyName, collection);
+    const collectionsMap = new Map<string, { company: CompanyDTO | null; jobs: JobDTO[] }>();
+    for (const item of items) {
+      const companyKey = item.company?.companyId ?? "unknown";
+      const existing = collectionsMap.get(companyKey);
+      if (existing) {
+        existing.jobs.push(item.job);
+      } else {
+        collectionsMap.set(companyKey, { company: item.company, jobs: [item.job] });
       }
-
-      collection.jobs.push({
-        ...job,
-        currentJobIndex: 0,
-      } as Job);
     }
 
     return Array.from(collectionsMap.values());
@@ -118,8 +117,30 @@ const JobBoard = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loadedCount, loadMoreItems]);
 
+  const gridClassName =
+    "grid min-h-screen scroll-mt-14 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5";
+
+  const skeletonCount = Math.max(initialCount, 8);
+
   if (status === "LoadingFirstPage") {
-    return <div className="col-span-full text-center py-16 text-text">Loading jobs...</div>;
+    return (
+      <div className="space-y-6">
+        {jobCount !== undefined || companyCount !== undefined || location ? (
+          <div className="text-sm text-muted-foreground">
+            {jobCount !== undefined ? <span>{formatRoundedNumber(jobCount, 3)} jobs</span> : null}
+            {jobCount !== undefined && companyCount !== undefined ? <span> - </span> : null}
+            {companyCount !== undefined ? <span>{formatRoundedNumber(companyCount, 3)} companies</span> : null}
+            {(jobCount !== undefined || companyCount !== undefined) && location ? <span> - </span> : null}
+            {location ? <span>{location}</span> : null}
+          </div>
+        ) : null}
+        <div className={gridClassName}>
+          {Array.from({ length: skeletonCount }).map((_, i) => (
+            <JobBoardCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (!accumulatedJobs.length) {
@@ -127,30 +148,49 @@ const JobBoard = () => {
     if (searched) {
       return (
         <div className="col-span-full text-center py-16 text-text">
-          No jobs match <span className="font-medium text-pink-600 dark:text-pink-400">&quot;{debouncedQuery.trim()}&quot;</span>
+          No jobs match <span className="font-medium text-primary dark:text-primary">&quot;{debouncedQuery.trim()}&quot;</span>
           Try different keywords or clear the search bar.
         </div>
       );
     }
     return (
       <div className="col-span-full text-center py-16 text-text">
-        No jobs found in Convex. Run the scraper, then import into Convex: <code className="text-sm">python scraper/import_json_to_convex.py</code>.
+        No jobs found in Convex. Run the scraper: <code className="text-sm">python scraper/scrape_to_convex.py</code>.
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="grid min-h-screen scroll-mt-14 grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5">
-      {displayedCollections.map((collection) => {
-        const companyName = getCompanyName(collection.jobs[0]) || collection.source_and_board_token;
-        return (
-          <Suspense key={companyName} fallback={<div className="text-center py-8 text-gray-500">Loading...</div>}>
-            <JobBoardCard jobCollection={collection} data-job-card="true" />
-          </Suspense>
-        );
-      })}
-      {(revealLoading || isLoading) && <div className="col-span-full text-center py-4 text-gray-500">Loading more jobs...</div>}
+    <>
+    {(jobCount !== undefined || companyCount !== undefined || location) ? (
+      <div className="text-sm text-muted-foreground my-2">
+        {jobCount !== undefined ? <span>{formatRoundedNumber(jobCount, 3)} jobs</span> : null}
+        {jobCount !== undefined && companyCount !== undefined ? <span> - </span> : null}
+        {companyCount !== undefined ? <span>{formatRoundedNumber(companyCount, 3)} companies</span> : null}
+        {(jobCount !== undefined || companyCount !== undefined) && location ? <span> - </span> : null}
+        {location ? <span>{location}</span> : null}
+      </div>
+    ) : null}
+    <div className="space-y-6">
+      <div ref={containerRef} className={gridClassName}>
+        {displayedCollections.map((collection) => {
+          const companyKey = collection.company?.companyId ?? "unknown";
+          return (
+            <Suspense key={companyKey} fallback={<JobBoardCardSkeleton />}>
+              <JobBoardCard jobCollection={collection} data-job-card="true" />
+            </Suspense>
+          );
+        })}
+        {(revealLoading || isLoading) && (
+          <>
+            {Array.from({ length: Math.min(columns * 2, 6) }).map((_, i) => (
+              <JobBoardCardSkeleton key={`more-${i}`} />
+            ))}
+          </>
+        )}
+      </div>
     </div>
+    </>
   );
 };
 

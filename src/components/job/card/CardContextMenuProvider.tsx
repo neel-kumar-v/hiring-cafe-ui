@@ -6,8 +6,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { formatCompanyWebsite } from "@/lib/company-info";
-import { toCardCompanyData } from "@/lib/job-company";
-import type { Job } from "@/types/job";
+import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import {
   Bookmark,
   CheckCheck,
@@ -22,6 +21,7 @@ import {
 const CardContextMenuProvider = ({
   children,
   currentJob,
+  company,
   isBookmarked,
   isApplied,
   onBookmarkClick,
@@ -29,14 +29,16 @@ const CardContextMenuProvider = ({
   applyUrl,
 }: {
   children: React.ReactNode;
-  currentJob: Job;
+  currentJob: JobDTO;
+  company: CompanyDTO | null;
   isBookmarked: boolean;
   isApplied: boolean;
   onBookmarkClick: (e: React.MouseEvent) => void;
   onApplyClick: (e: React.MouseEvent) => void;
   applyUrl: string;
 }) => {
-  const companyData = toCardCompanyData(currentJob);
+  const companyName = company?.name ?? "";
+  const companyWebsite = company?.homepageUri ?? "";
 
   return (
     <ContextMenu>
@@ -44,7 +46,7 @@ const CardContextMenuProvider = ({
       <ContextMenuContent className="min-w-64">
         <ContextMenuItem onClick={onBookmarkClick}>
           {isBookmarked ? (
-            <Bookmark className="mr-2 size-4 fill-current text-pink-500 dark:text-pink-400" />
+            <Bookmark className="mr-2 size-4 fill-current text-primary dark:text-primary" />
           ) : (
             <Bookmark className="mr-2 size-4" />
           )}
@@ -65,10 +67,10 @@ const CardContextMenuProvider = ({
         <ContextMenuSeparator />
         <ContextMenuItem>
           <ExternalLink className="mr-2 size-4" />
-          View all Jobs from {companyData.name}
+          View all Jobs from {companyName}
         </ContextMenuItem>
         <ContextMenuItem className="group">
-          <a href={formatCompanyWebsite(companyData.website)} target="_blank" rel="noopener noreferrer external" className="flex items-center gap-2 group-hover:underline">
+          <a href={formatCompanyWebsite(companyWebsite)} target="_blank" rel="noopener noreferrer external" className="flex items-center gap-2 group-hover:underline">
             <Link2 className="mr-2 size-4" />
             Go to Company Website
           </a>

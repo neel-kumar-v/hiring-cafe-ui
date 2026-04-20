@@ -3,16 +3,15 @@ import { useApp } from "@/contexts/AppContext";
 import { useMemo } from "react";
 import { Check } from "lucide-react";
 
-const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) => {
+const CardTechnicalTools = ({
+  technicalTools,
+  variant = "card",
+}: {
+  technicalTools: string[];
+  variant?: "card" | "dialog";
+}) => {
   const { user, addSkill, removeSkill } = useApp();
   const tools = technicalTools ?? [];
-  
-  const minHeight = 12;
-
-  const maxHeight = () => {
-    const combined = tools.join("  ");
-    return Math.max(12, Math.ceil(combined.length / 50 + 1) * 6);
-  };
 
   // Create skill matching logic - similar to CardSkillMatch but for individual skills
   const skillMatchInfo = useMemo(() => {
@@ -49,27 +48,43 @@ const CardTechnicalTools = ({ technicalTools }: { technicalTools: string[] }) =>
 
   if (!tools.length) return null;
 
+  const chipClass =
+    variant === "dialog"
+      ? "max-w-xs truncate rounded-lg px-3 py-1 text-sm transition-all duration-200 focus:outline-none"
+      : "max-w-xs truncate rounded-md px-1.5 py-0.5 text-xs transition-all duration-200  focus:outline-none";
+
+  const checkSize = variant === "dialog" ? 14 : 12;
+
+  const unmatchedClass =
+    variant === "dialog"
+      ? "cursor-pointer border border-primary/20 bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/80 dark:bg-brand-soft dark:text-primary"
+      : "cursor-pointer border border-primary/20 bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/80";
+
+  const chips = skillMatchInfo.map((skillInfo, skillIndex) => (
+    <button
+      className={`${chipClass} ${
+        skillInfo.isMatched
+          ? "flex cursor-pointer items-center gap-1 bg-primary text-primary-foreground shadow-sm"
+          : unmatchedClass
+      }`}
+      key={skillIndex}
+      style={{ whiteSpace: "nowrap" }}
+      title={skillInfo.isMatched ? `Remove ${skillInfo.original} from your skills` : `Add ${skillInfo.original} to your skills`}
+      onClick={(e) => handleSkillClick(e, skillInfo)}
+    >
+      {skillInfo.isMatched && <Check size={checkSize} />}
+      {formatTool(skillInfo.original)}
+    </button>
+  ));
+
+  if (variant === "dialog") {
+    return <div className="flex flex-wrap gap-2">{chips}</div>;
+  }
+
   return (
-    <div className="flex grow min-w-0 flex-wrap items-center gap-1">
-      <div
-        className={`flex pointer-fine:max-h-${minHeight}  pointer-fine:group-hover:max-h-${maxHeight} max-h-${minHeight} pointer-fine:motion-reduce:max-h-${minHeight} min-w-0 flex-wrap gap-1 overflow-hidden transition-all duration-700 ease-out`}
-      >
-        {skillMatchInfo.map((skillInfo, skillIndex) => (
-          <button
-            className={`max-w-xs truncate rounded-md px-1.5 py-0.5 text-xs transition-all duration-200  focus:outline-none ${
-              skillInfo.isMatched
-                ? "bg-pink-800 text-white shadow-sm cursor-pointer flex items-center gap-1"
-                : "bg-pink-100 text-black/65 dark:bg-pink-700/20 dark:text-pink-400 border border-pink-200 dark:border-pink-700/30 cursor-pointer hover:bg-pink-200 dark:hover:bg-pink-700/40"
-            }`}
-            key={skillIndex}
-            style={{ whiteSpace: "nowrap" }}
-            title={skillInfo.isMatched ? `Remove ${skillInfo.original} from your skills` : `Add ${skillInfo.original} to your skills`}
-            onClick={(e) => handleSkillClick(e, skillInfo)}
-          >
-            {skillInfo.isMatched && <Check size={12} />}
-            {formatTool(skillInfo.original)}
-          </button>
-        ))}
+    <div className="flex min-w-0 grow flex-wrap items-center gap-1 pt-0.5">
+      <div className="pointer-fine:max-h-28 pointer-fine:group-hover:max-h-48 pointer-fine:motion-reduce:max-h-40 flex min-w-0 flex-wrap gap-1 overflow-y-auto overflow-x-hidden transition-[max-height] duration-500 ease-out">
+        {chips}
       </div>
     </div>
   );

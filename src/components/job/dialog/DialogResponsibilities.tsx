@@ -9,10 +9,10 @@ const DialogResponsibilities = ({
 
   return (
     <div className="mb-6">
-      <h3 className="mb-3 font-medium text-neutral-900 text-lg dark:text-white">
+      <h3 className="mb-3 font-medium text-foreground text-lg dark:text-foreground">
         Responsibilities
       </h3>
-      <div className="text-neutral-700 leading-relaxed dark:text-neutral-300">
+      <div className="text-foreground/80 leading-relaxed dark:text-foreground/80">
         {getRoleActivities(roleActivities)}
       </div>
     </div>

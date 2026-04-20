@@ -25,12 +25,12 @@ export function useJobDetailsPrefetch(options?: Options) {
 
   const drain = useCallback(() => {
     while (inflightRef.current < maxInflight && queuedRef.current.length) {
-      const externalId = queuedRef.current.shift()!;
-      if (seenRef.current.has(externalId)) continue;
-      seenRef.current.add(externalId);
+      const jobId = queuedRef.current.shift()!;
+      if (seenRef.current.has(jobId)) continue;
+      seenRef.current.add(jobId);
       inflightRef.current += 1;
       void convex
-        .query(api.jobs.getRaw, { externalId })
+        .query(api.jobs.getDetails, { jobId: jobId as any })
         .catch(() => {
           // best-effort
         })
@@ -42,28 +42,28 @@ export function useJobDetailsPrefetch(options?: Options) {
   }, [convex, maxInflight]);
 
   const schedule = useCallback(
-    (externalId: string) => {
-      if (!externalId || seenRef.current.has(externalId)) return;
+    (jobId: string) => {
+      if (!jobId || seenRef.current.has(jobId)) return;
 
-      const existing = timerByIdRef.current.get(externalId);
+      const existing = timerByIdRef.current.get(jobId);
       if (existing) window.clearTimeout(existing);
 
       const t = window.setTimeout(() => {
-        timerByIdRef.current.delete(externalId);
-        queuedRef.current.push(externalId);
+        timerByIdRef.current.delete(jobId);
+        queuedRef.current.push(jobId);
         drain();
       }, delayMs);
 
-      timerByIdRef.current.set(externalId, t);
+      timerByIdRef.current.set(jobId, t);
     },
     [delayMs, drain]
   );
 
-  const cancel = useCallback((externalId: string) => {
-    const t = timerByIdRef.current.get(externalId);
+  const cancel = useCallback((jobId: string) => {
+    const t = timerByIdRef.current.get(jobId);
     if (t) {
       window.clearTimeout(t);
-      timerByIdRef.current.delete(externalId);
+      timerByIdRef.current.delete(jobId);
     }
   }, []);
 

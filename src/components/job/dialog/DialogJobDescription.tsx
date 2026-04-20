@@ -64,7 +64,7 @@ const DialogJobDescription = ({ description }: { description: string }) => {
         <Separator className="my-8" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Button
-            className="rounded-md border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+            className="rounded-md border border-border bg-background shadow-sm hover:bg-secondary/60 dark:border-border dark:bg-card dark:hover:bg-accent"
             onClick={handleCopyDescription}
             size="sm"
             variant="outline"
@@ -75,7 +75,7 @@ const DialogJobDescription = ({ description }: { description: string }) => {
         </div>
       </div>
       <div
-        className="prose prose-neutral dark:prose-invert max-w-none text-neutral-700 leading-relaxed dark:text-neutral-300"
+        className="prose prose-neutral dark:prose-invert max-w-none text-foreground/80 leading-relaxed dark:text-foreground/80"
         dangerouslySetInnerHTML={{ __html: formatJobDescription(description) }}
         id="job-description"
       />

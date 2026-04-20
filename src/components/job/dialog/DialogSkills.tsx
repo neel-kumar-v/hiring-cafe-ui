@@ -1,22 +1,13 @@
-import { formatTool } from "@/lib/job-info";
+import CardTechnicalTools from "../card/CardTechnicalTools";
 
 const DialogSkills = ({ technicalTools }: { technicalTools: string[] }) => {
   if (!technicalTools || technicalTools.length === 0) return null;
   return (
     <div className="mb-6">
-      <h3 className="mb-3 font-medium text-neutral-900 text-lg dark:text-white">
+      <h3 className="mb-3 font-medium text-foreground text-lg dark:text-foreground">
         Skills
       </h3>
-      <div className="flex flex-wrap gap-2">
-        {technicalTools.map((tool, index) => (
-          <span
-            className="rounded-lg bg-pink-100 px-3 py-1 text-black/65 text-sm dark:bg-pink-700/50 dark:text-pink-400"
-            key={index}
-          >
-            {formatTool(tool)}
-          </span>
-        ))}
-      </div>
+      <CardTechnicalTools technicalTools={technicalTools} variant="dialog" />
     </div>
   );
 };

@@ -64,7 +64,7 @@ const CardNavigation = ({
   return (
     <div className="flex cursor-pointer items-center justify-center space-x-1 px-2">
       <div
-        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-neutral-500 transition-all duration-200 ease-in-out hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-muted-foreground transition-all duration-200 ease-in-out hover:bg-secondary hover:text-foreground"
         data-nav="left"
         onClick={handleLeftClick}
       >
@@ -79,8 +79,8 @@ const CardNavigation = ({
           <div
             className={`h-1.5 w-1.5 cursor-pointer rounded-full transition-all duration-400 ease-out ${
               jobIndex === currentJobIndex
-                ? "bg-pink-500"
-                : "bg-neutral-300 dark:bg-neutral-600"
+                ? "bg-primary"
+                : "bg-border"
             }`}
             data-dot-index={jobIndex}
             key={jobIndex}
@@ -89,7 +89,7 @@ const CardNavigation = ({
       </div>
 
       <div
-        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-neutral-500 transition-all duration-200 ease-in-out hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-muted-foreground transition-all duration-200 ease-in-out hover:bg-secondary hover:text-foreground"
         data-nav="right"
         onClick={handleRightClick}
       >

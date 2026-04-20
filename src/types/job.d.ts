@@ -172,6 +172,8 @@ export interface ProcessedCompanyData {
 
 export interface Job {
 	id: string;
+	/** Convex `Id<"companies">` when present (merged from the job document, not only `raw`). */
+	companyId?: string;
 	board_token: string;
 	source: string;
 	apply_url: string;

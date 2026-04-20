@@ -25,7 +25,7 @@ const DialogBadges = ({
             <div className={`flex flex-row flex-wrap items-center ${compact ? "gap-1" : "gap-2"}`}>
               {getLocations(workplaceCities).map((loc, index) => (
                 <span
-                  className={`flex items-center ${compact ? "gap-1" : "gap-2"} bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}
+                  className={`flex items-center ${compact ? "gap-1" : "gap-2"} bg-secondary dark:bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80 dark:text-foreground/80`}
                   key={index}
                 >
                   <MapPin className={compact ? "w-3 h-3" : "size-4"} />
@@ -37,7 +37,7 @@ const DialogBadges = ({
             getLocations(workplaceCities).map((loc, index) => (
               <span
                 key={index}
-                className={`flex items-center ${compact ? "gap-1" : "gap-2"} bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}
+                className={`flex items-center ${compact ? "gap-1" : "gap-2"} bg-secondary dark:bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80 dark:text-foreground/80`}
               >
                 <MapPin className={compact ? "w-3 h-3" : "size-4"} />
                 {loc}
@@ -50,7 +50,7 @@ const DialogBadges = ({
             {commitments.map((commitment, index) => (
               <span
                 key={index}
-                className={`bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}
+                className={`bg-secondary dark:bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80 dark:text-foreground/80`}
               >
                 {commitment}
               </span>
@@ -60,29 +60,29 @@ const DialogBadges = ({
           commitments.map((commitment, index) => (
             <span
               key={index}
-              className={`bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}
+              className={`bg-secondary dark:bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80 dark:text-foreground/80`}
             >
               {commitment}
             </span>
           ))
         )}
         {isDesktop ? (
-          <div className={`bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}>
+          <div className={`bg-secondary dark:bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80 dark:text-foreground/80`}>
             {workType}
           </div>
         ) : (
-          <span className={`bg-neutral-100 dark:bg-neutral-700/50 rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-neutral-700 dark:text-neutral-300`}>
+          <span className={`bg-secondary dark:bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80 dark:text-foreground/80`}>
             {workType}
           </span>
         )}
         {getCompensation(compensation) ? (
           isDesktop ? (
-            <span className={`flex items-center ${compact ? "gap-1" : "gap-2"} rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} bg-pink-400/75 text-black dark:text-white`}>
+            <span className={`flex items-center ${compact ? "gap-1" : "gap-2"} rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} bg-primary/20 text-foreground dark:text-foreground`}>
               <DollarSign className={compact ? "w-3 h-3" : "size-4"} />
               {getCompensation(compensation)}
             </span>
           ) : (
-            <span className={`flex items-center ${compact ? "gap-1" : "gap-2"} rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} bg-pink-400/75 text-black dark:text-white`}>
+            <span className={`flex items-center ${compact ? "gap-1" : "gap-2"} rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} bg-primary/20 text-foreground dark:text-foreground`}>
               <DollarSign className={compact ? "w-3 h-3" : "size-4"} />
               {getCompensation(compensation)}
             </span>

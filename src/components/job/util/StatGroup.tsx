@@ -55,14 +55,14 @@ export const StatGroup = ({
             {isBookmarked ? (
               <Bookmark
                 className={cn(
-                  "inline fill-current text-pink-500 dark:text-pink-400",
+                  "inline fill-current text-primary dark:text-primary",
                   iconClassName
                 )}
               />
             ) : (
               <Bookmark
                 className={cn(
-                  "inline text-neutral-500 dark:text-neutral-400",
+                  "inline text-muted-foreground dark:text-muted-foreground",
                   iconClassName
                 )}
               />
@@ -90,14 +90,14 @@ export const StatGroup = ({
           {isApplied ? (
             <Send
               className={cn(
-                "inline fill-pink-500 text-pink-500 dark:fill-pink-400 dark:text-pink-400",
+                "inline fill-primary text-primary dark:fill-primary dark:text-primary",
                 iconClassName
               )}
             />
           ) : (
             <Send
               className={cn(
-                "inline text-neutral-500 dark:text-neutral-400",
+                "inline text-muted-foreground dark:text-muted-foreground",
                 iconClassName
               )}
             />
@@ -113,7 +113,7 @@ export const StatGroup = ({
           <span className="flex items-center space-x-1">
             <PhoneOutgoingIcon
               className={cn(
-                "inline fill-pink-500 text-pink-500 dark:fill-pink-400 dark:text-pink-400",
+                "inline fill-primary text-primary dark:fill-primary dark:text-primary",
                 iconClassName
               )}
             />

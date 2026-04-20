@@ -19,7 +19,7 @@ const DialogFooter = ({
   companyWebsite: string | null | undefined;
 }) => {
   return (
-    <div className="sticky right-0 bottom-0 left-0 border-neutral-200  bg-white  dark:border-neutral-700 dark:bg-neutral-800">
+    <div className="sticky right-0 bottom-0 left-0 border-border  bg-background  dark:border-border dark:bg-card">
       <DialogActionButtons
         isApplied={isApplied}
         isBookmarked={isBookmarked}
@@ -48,75 +48,63 @@ export const DialogActionButtons = ({
   companyUrl: string | null | undefined;
 }) => {
   return (
-    <div className="flex flex-col gap-3 sm:flex-col-reverse">
-      <div className="flex flex-wrap items-center justify-center gap-3 sm:px-4 md:pb-4 pt-4 md:pt-0">
+    <div className="flex flex-col gap-1.5 sm:flex-col-reverse">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 md:py-3 max-md:pb-4 border-t border-border">
         <Button className="flex items-center gap-2" onClick={onBookmarkToggle} size="sm" variant="outline">
           <Bookmark className={`size-4 ${isBookmarked ? "fill-current" : ""}`} />
           {isBookmarked ? "Saved" : "Save"}
         </Button>
 
-        <a
-          href={applyUrl}
-          target="_blank"
-          className="flex items-center gap-2 rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-pink-400 text-pink-700 hover:border-pink-400 hover:bg-pink-400 hover:text-black dark:border-pink-400 dark:text-pink-400 dark:hover:border-pink-800 dark:hover:bg-pink-800 dark:hover:text-white px-3 py-[5px]"
-          tabIndex={0}
-          role="button"
-        >
-          <Send className="size-4" />
-          Apply Now
-        </a>
+        <Button asChild size="sm" variant="outline">
+          <a href={applyUrl} rel="noopener noreferrer" target="_blank">
+            <Send className="size-4" />
+            Apply Now
+          </a>
+        </Button>
 
         <Button className="flex items-center gap-2" onClick={onApplyToggle} size="sm" variant="outline">
           <CheckCheck className={`size-4 ${isApplied ? "fill-current" : ""}`} />
           {isApplied ? "Applied" : "Mark Applied"}
         </Button>
 
-        <div className="mx-1 min-h-[2rem] w-px bg-border align-self-stretch" />
+        <div className="mx-1 min-h-8 w-px bg-border align-self-stretch" />
 
         <Button className="flex items-center gap-2" size="sm" variant="outline">
           <Share2 className="size-4" />
           Share
         </Button>
 
-        <a
-          href={formatCompanyWebsite(companyWebsite)}
-          target="_blank"
-          className="shrink-0 justify-center whitespace-nowrap text-sm outline-none transition-all disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 border shadow-xs hover:text-accent-foreground border-input bg-input/30 hover:bg-input/50 h-8 rounded-md px-3 has-[>svg]:px-2.5 flex items-center gap-2"
-          tabIndex={1}
-          role="button"
-        >
-          <Link2 className="size-4" />
-          Company Site
-        </a>
+        <Button asChild size="sm" variant="outline">
+          <a href={formatCompanyWebsite(companyWebsite)} rel="noopener noreferrer" tabIndex={1} target="_blank">
+            <Link2 className="size-4" />
+            Company Site
+          </a>
+        </Button>
 
         <Button className="flex items-center gap-2" size="sm" variant="outline">
           <ExternalLink className="size-4" />
           All Jobs
         </Button>
 
-        <div className="mx-1 min-h-[2rem] w-px bg-border align-self-stretch max-[520px]:hidden" />
+        <div className="mx-1 min-h-8 w-px bg-border align-self-stretch max-[520px]:hidden" />
 
-        <Button className="flex items-center gap-2 max-[520px]:hidden !text-destructive" size="sm" variant="outline">
-          <EyeOff className="size-4 !text-destructive" />
+        <Button className="flex items-center gap-2 max-[520px]:hidden text-destructive!" size="sm" variant="outline">
+          <EyeOff className="size-4 text-destructive!" />
           Hide
         </Button>
 
-        <Button className="flex items-center gap-2 max-[520px]:hidden !text-destructive" size="sm" variant="outline">
-          <MessageSquareWarning className="size-4 !text-destructive" />
+        <Button className="flex items-center gap-2 max-[520px]:hidden text-destructive!" size="sm" variant="outline">
+          <MessageSquareWarning className="size-4 text-destructive!" />
           Report
         </Button>
       </div>
 
-      <Button
-        className="w-full max-sm:bg-white/10 max-sm:dark:bg-white/10 sm:bg-transparent sm:hover:bg-transparent dark:sm:border-neutral-700 sm:border-neutral-200  sm:border-1 sm:border-x-0 sm:rounded-none text-black dark:text-white max-sm:hover:bg-pink-400 dark:max-sm:hover:bg-pink-400/75 transition-all duration-300 ease-in-out flex items-center justify-center sm:p-4 sm:py-6 p-2"
-        size="lg"
-        variant="default"
-      >
-        <span className="flex items-center justify-center gap-2 sm:hover:bg-pink-400 dark:sm:hover:bg-pink-400/75 p-2 rounded-md transition-all duration-300 ease-in-out">
+      {/* <Button className="flex items-center justify-center p-2 sm:p-4 sm:py-6" size="lg" variant="dialogHero">
+        <span className="flex items-center justify-center gap-2">
           <BookUser className="size-4" />
           Contact Recruiter
         </span>
-      </Button>
+      </Button> */}
     </div>
   );
 };
