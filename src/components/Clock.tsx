@@ -51,12 +51,12 @@ export function Clock() {
     <div className='flex-col items-center hidden sm:flex'>
       <div className='flex items-center gap-0.5 px-2 text-sm'>
         <SlidingNumber value={time.hours} padStart={true} />
-        <span className='text-zinc-500'>:</span>
+        <span className='text-muted-foreground'>:</span>
         <SlidingNumber value={time.minutes} padStart={true} />
-        <span className='text-zinc-500'>:</span>
+        <span className='text-muted-foreground'>:</span>
         <SlidingNumber value={time.seconds} padStart={true} />
       </div>
-      <div className='text-[8px] text-zinc-500'>refreshing in</div>
+      <div className='text-[8px] text-muted-foreground'>refreshing in</div>
     </div>
   );
 }

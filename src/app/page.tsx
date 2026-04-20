@@ -1,61 +1,66 @@
 "use client";
 
+import JobBoardCardSkeleton from "@/components/job/JobBoardCardSkeleton";
+import HomeCompactHeader from "@/components/search/HomeCompactHeader";
 import HomeSearchActions from "@/components/search/HomeSearchActions";
+import SearchBar from "@/components/search/SearchBar";
 import { useSearchUI } from "@/contexts/SearchContext";
-import { Suspense, lazy, useState } from "react";
+import { useQuery } from "convex/react";
+import { Suspense, lazy } from "react";
+import { api } from "../../convex/_generated/api";
 
 const JobBoard = lazy(() => import("@/components/JobBoard"));
-const ApplyFormSelect = lazy(() => import("@/components/search/legacy/ApplyFormSelect"));
-const DateRangePopover = lazy(() => import("@/components/search/legacy/DateRangePopover"));
-const SortPopover = lazy(() => import("@/components/search/legacy/SortPopover"));
+const LegacyFilters = lazy(() => import("@/components/search/legacy/Filters"));
 
 const LoadingFallback = () => (
-  // console.log("LoadingFallback"),
-  <div className="col-span-full text-center py-16 text-text">
-    Loading jobs...
+  <div className="grid min-h-[50vh] grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5">
+    {Array.from({ length: 10 }).map((_, i) => (
+      <JobBoardCardSkeleton key={i} />
+    ))}
   </div>
 );
 
 export default function Page() {
-  const { showLegacyFilters } = useSearchUI();
-  const [jobCount] = useState(2_057_770);
-  const [companyCount] = useState(72_936);
-  const [location] = useState("United States");
+  const { boardSearchQuery, setBoardSearchQuery, handleSearchIconClick } = useSearchUI();
+  const liveJobCount = useQuery(api.jobs.count, {});
+  const liveCompanyCount = useQuery(api.companies.count, {});
+  const jobCountFallback = 2_057_770;
+  const companyCountFallback = 72_936;
+  const location = "United States";
+  const jobCount = liveJobCount ?? jobCountFallback;
+  const companyCount = liveCompanyCount ?? companyCountFallback;
 
-  const formatNumber = (number: number, round = 3) => {
-    return (Math.round(number / 10 ** round) * 10 ** round).toLocaleString();
+  const handleSearch = (value: string) => {
+    setBoardSearchQuery(value);
   };
 
   return (
     <>
-      <HomeSearchActions />
-
-      <div className={showLegacyFilters ? "" : "hidden"}>
-        <div className="mx-auto max-w-full px-2 py-4 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-wrap items-center space-x-4">
-              <Suspense fallback={null}>
-                <SortPopover />
-              </Suspense>
-              <Suspense fallback={null}>
-                <DateRangePopover />
-              </Suspense>
-              <Suspense fallback={null}>
-                <ApplyFormSelect />
-              </Suspense>
-            </div>
-          </div>
-          <div className="mt-2 text-neutral-600 text-sm dark:text-neutral-400">
-            About {formatNumber(jobCount, 3)} jobs from{" "}
-            {formatNumber(companyCount, 3)} companies in {location}
-          </div>
+      <div className="border-b border-border bg-background md:hidden dark:border-border dark:bg-background">
+        <HomeCompactHeader />
+        <div className="px-4 pb-4">
+          <SearchBar
+            value={boardSearchQuery}
+            onSearch={handleSearch}
+            onIconClick={handleSearchIconClick}
+          />
         </div>
       </div>
 
+      <HomeSearchActions />
+
+      <Suspense fallback={null}>
+        <LegacyFilters />
+      </Suspense>
+
       <div className="h-full overflow-x-hidden">
-        <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
+        <div className="mx-auto max-w-full !pt-0 p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <Suspense fallback={<LoadingFallback />}>
-            <JobBoard />
+            <JobBoard
+              companyCount={companyCount}
+              jobCount={jobCount}
+              location={location}
+            />
           </Suspense>
         </div> 
       </div>

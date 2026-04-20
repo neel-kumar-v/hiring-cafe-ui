@@ -210,7 +210,7 @@ export const KanbanCardWithDragHandle = <T extends KanbanItemProps = KanbanItemP
               {...listeners}
               {...attributes}
             >
-              <GripVertical className="h-4 w-4 text-gray-400" />
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
             </div>
             <div 
               className="flex-1 min-w-0 cursor-pointer" 
@@ -233,7 +233,7 @@ export const KanbanCardWithDragHandle = <T extends KanbanItemProps = KanbanItemP
           >
             <div className="flex items-start gap-2">
               <div className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing self-center">
-                <GripVertical className="h-4 w-4 text-gray-400" />
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
                 {children ?? <p className="m-0 font-medium text-sm">{name}</p>}

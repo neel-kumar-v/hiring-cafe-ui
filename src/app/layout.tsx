@@ -10,7 +10,7 @@ import { Suspense, lazy } from "react";
 import "./globals.css";
 
 const Header = lazy(() => import("@/components/Header"));
-const SearchDialogWrapper = lazy(() => import("@/components/SearchDialog").then(module => ({ default: module.SearchDialogWrapper })));
+const SearchDialogWrapper = lazy(() => import("@/components/SearchDialog").then((module) => ({ default: module.SearchDialogWrapper })));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +26,6 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
 });
-
 
 export const metadata: Metadata = {
   title: "Hiring Cafe Clone",
@@ -96,16 +95,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased ${geistSans.variable} ${geistMono.variable} ${montserrat.variable}`}
-      >
+      <body className={`antialiased ${geistSans.variable} ${geistMono.variable} ${montserrat.variable}`}>
         <DarkModeProvider>
           <ConvexClientProvider>
             <Suspense fallback={null}>
               <AppProvider>
                 <SearchUIProvider>
                   <div className="min-h-screen transition-colors duration-300">
-                    <div className="min-h-screen bg-white dark:bg-neutral-900">
+                    <div className="min-h-screen bg-background">
                       <Suspense fallback={null}>
                         <Header />
                       </Suspense>
@@ -133,7 +130,7 @@ export default function RootLayout({
 //   if (typeof window !== 'undefined') {
 //     const monitor = PerformanceMonitor.getInstance();
 //     monitor.startMonitoring();
-    
+
 //     window.addEventListener('load', () => {
 //       setTimeout(() => {
 //         monitor.logSummary();

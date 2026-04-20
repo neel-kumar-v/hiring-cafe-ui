@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { cn } from "@/lib/utils"
 import { Location, LocationType } from '@/types/search'
-import { LoaderCircle, Locate, MapPinned, Plus, Search } from 'lucide-react'
+import { LoaderCircle, Locate, MapPinned, Search } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 type LocationSuggestion = {
@@ -384,12 +384,6 @@ export function MultiLocationPicker({
         </div>
       )} */}
 
-      {locations.length === 0 && (
-        <div className={appliedTheme.addButton}>
-          <Plus size={20} className="mx-auto mb-1" />
-          <p className="text-xs">Add a location to get started</p>
-        </div>
-      )}
     </div>
   );
 } 

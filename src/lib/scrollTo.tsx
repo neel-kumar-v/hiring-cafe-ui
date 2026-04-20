@@ -19,13 +19,13 @@ export function useScrollToSection(
         });
         // targetRef.current.classList.add(
         //   "ring-2",
-        //   "ring-pink-500",
+        //   "ring-primary",
         //   "ring-opacity-50"
         // );
         // setTimeout(() => {
         //   targetRef.current?.classList.remove(
         //     "ring-2",
-        //     "ring-pink-500",
+        //     "ring-primary",
         //     "ring-opacity-50"
         //   );
         // }, 2000);

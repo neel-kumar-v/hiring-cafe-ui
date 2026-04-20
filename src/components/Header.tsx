@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeIconSwap } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearchUI } from "@/contexts/SearchContext";
+import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import {
   BarChart3,
   Building,
@@ -18,16 +20,34 @@ import {
   Info,
   ListFilterPlus,
   Mail,
-  Moon,
-  Sun,
   User,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { Clock } from "./Clock";
 import SearchBar from "./search/SearchBar";
 import SearchFilters from "./search/SearchFilters";
+
+function HomeSearchFiltersRibbon({
+  open,
+  onIconClick,
+}: {
+  open: boolean;
+  onIconClick: (category: string) => void;
+}) {
+  const { contentRef, containerProps } = useCollapsibleHeight(open);
+  return (
+    <div {...containerProps}>
+      <div ref={contentRef}>
+        <div className="pb-4">
+          <SearchFilters onIconClick={onIconClick} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Header() {
   const pathname = usePathname();
@@ -46,12 +66,17 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-neutral-200 border-b bg-white dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="mx-auto max-w-full px-4 transition-[padding] duration-500 ease-in-out lg:px-8 xl:px-12">
+    <header
+      className={cn(
+        "sticky top-0 z-50 border-b border-border bg-background dark:border-border dark:bg-background",
+        pathname === "/" && "hidden md:block"
+      )}
+    >
+      <div className="mx-auto max-w-full px-4 transition-[padding] duration-500 ease-in-out lg:px-8 ">
         <div className="flex min-h-16 items-center justify-between gap-4 py-3">
           {/* Logo */}
           <div className="flex items-center space-x-0 lg:space-x-3">
-            <div className="w-fit rounded-full bg-pink-500 p-2 text-white">
+            <div className="w-fit rounded-full bg-primary p-2 text-white">
               <svg
                 aria-hidden="true"
                 className="h-5 w-5 flex-none"
@@ -70,7 +95,7 @@ export default function Header() {
               </svg>
             </div>
             <Link
-              className="hidden font-bold text-pink-500 text-xl lg:block"
+              className="hidden font-bold text-primary text-xl lg:block"
               href="/"
             >
               CloneCafe
@@ -88,16 +113,16 @@ export default function Header() {
 
 
           {/* Right Side */}
-          <div className="flex items-center sm:space-x-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Clock />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className="h-8 w-8 rounded-full bg-pink-500 p-2 hover:bg-pink-600 dark:bg-pink-500 dark:hover:bg-pink-600"
+                  className="size-8 rounded-full p-0"
                   size="sm"
-                  variant="ghost"
+                  variant="default"
                 >
-                  <User className="size-5 text-white" />
+                  <User className="size-5 text-primary-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -143,15 +168,10 @@ export default function Header() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={toggleDarkMode}>
-                  {isDarkMode ? (
-                    <Sun className="mr-2 size-4" />
-                  ) : (
-                    <Moon className="mr-2 size-4" />
-                  )}
-                  {isDarkMode ? "Light Mode" : "Dark Mode"}
+                <DropdownMenuItem onSelect={() => toggleDarkMode()}>
+                  <ThemeIconSwap isDarkMode={isDarkMode} className="mr-2" />
+                  {isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
                 </DropdownMenuItem>
-
                 <DropdownMenuItem onClick={() => setShowLegacyFilters(!showLegacyFilters)}>
                   <ListFilterPlus className="mr-2 size-4" />
                   {showLegacyFilters
@@ -163,10 +183,8 @@ export default function Header() {
           </div>
         </div>
 
-        {pathname === "/" && showFilterRibbon ? (
-          <div className="pb-4">
-            <SearchFilters onIconClick={handleSearchIconClick} />
-          </div>
+        {pathname === "/" ? (
+          <HomeSearchFiltersRibbon open={showFilterRibbon} onIconClick={handleSearchIconClick} />
         ) : null}
       </div>
     </header>

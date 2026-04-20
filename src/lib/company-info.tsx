@@ -26,6 +26,25 @@ export const formatCompanyWebsite = (website: string | null | undefined): string
   return website.startsWith("http") ? website : `https://${website}`;
 };
 
+/** Hostname for favicon services (e.g. `liebherr.com` from `https://www.liebherr.com/careers`). */
+export const extractDomainFromCompanyWebsite = (
+  website: string | null | undefined,
+): string | null => {
+  const raw = website?.trim();
+  if (!raw) return null;
+  try {
+    const normalized = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
+    const host = new URL(normalized).hostname.toLowerCase();
+    if (!host || host === "localhost") return null;
+    return host;
+  } catch {
+    return null;
+  }
+};
+
+export const companyFaviconUrl = (domain: string, sizePx: number): string =>
+  `https://s2.googleusercontent.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${sizePx}`;
+
 export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: boolean) => {
   if (companyName.length !== 4) return companyName;
   const letters = companyName.split("").map((letter) => letter.toUpperCase());
@@ -121,13 +140,13 @@ export const analyzeImageBackground = async (imageUrl: string): Promise<"light" 
 
 export const getImageBackgroundClass = (imageUrl: string | null, imageError: boolean, backgroundType: "light" | "dark" | null): string => {
   if (!imageUrl || imageError) {
-    return "bg-pink-100 dark:bg-pink-800/15";
+    return "bg-brand-soft dark:bg-brand-soft";
   }
 
   if (backgroundType === "light") {
-    return "dark:bg-neutral-800";
+    return "dark:bg-card";
   } else if (backgroundType === "dark") {
-    return "dark:bg-white";
+    return "dark:bg-background";
   }
 
   return "";

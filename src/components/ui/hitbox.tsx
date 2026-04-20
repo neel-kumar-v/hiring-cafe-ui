@@ -40,7 +40,7 @@ const hitboxVariants = cva(
         full: "after:rounded-full",
       },
       debug: {
-        true: "after:border after:border-red-500 after:border-dashed after:bg-red-500/20",
+        true: "after:border after:border-destructive after:border-dashed after:bg-destructive/20",
         false: "",
       },
     },

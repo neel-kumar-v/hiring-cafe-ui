@@ -50,7 +50,9 @@ function TooltipContent({
         side={side}
         align={align}
         className={cn(
-          blur ? "bg-transparent backdrop-blur-md fill-primary text-text border border-border/15" : "bg-neutral-900 text-white drop-shadow-xl ",
+          blur
+            ? "border border-border/60 bg-background/85 fill-background text-foreground shadow-lg backdrop-blur-md"
+            : "bg-popover text-popover-foreground drop-shadow-xl",
           "z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-sm text-balance pointer-fine:pointer-events-none h-fit",
           className
         )}
@@ -58,7 +60,7 @@ function TooltipContent({
       >
         {children}
         {arrow && (
-          <TooltipPrimitive.Arrow className="bg-transparent fill-primary dark:text-white text-black border-border/15 z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+          <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] fill-background" />
         )}
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>

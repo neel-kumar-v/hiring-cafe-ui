@@ -11,7 +11,7 @@ function Mention({
     <MentionPrimitive.Root
       data-slot="mention"
       className={cn(
-        "**:data-tag:rounded **:data-tag:bg-blue-200 **:data-tag:py-px **:data-tag:text-blue-950 dark:**:data-tag:bg-blue-800 dark:**:data-tag:text-blue-50",
+        "mention-input-stack **:data-tag:rounded **:data-tag:bg-brand-soft **:data-tag:py-px **:data-tag:text-brand-soft-foreground",
         className,
       )}
       {...props}
@@ -40,7 +40,8 @@ function MentionInput({
     <MentionPrimitive.Input
       data-slot="mention-input"
       className={cn(
-        "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        "flex w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
+        "text-transparent caret-foreground",
         className,
       )}
       {...props}
@@ -58,7 +59,7 @@ function MentionContent({
       <MentionPrimitive.Content
         data-slot="mention-content"
         className={cn(
-          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in",
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 min-w-32 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md dark:border-border data-[state=closed]:animate-out data-[state=open]:animate-in",
           className,
         )}
         {...props}
