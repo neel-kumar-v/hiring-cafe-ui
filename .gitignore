@@ -50,3 +50,5 @@ CLAUDE.md
 /convex/_generated
 /Search
 docs/search-reference-audit.md
+/scraper/__pycache__
+*.ndjson
