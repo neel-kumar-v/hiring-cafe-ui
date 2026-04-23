@@ -22,15 +22,15 @@ interface SearchOverlayContentProps {
 
 function SearchOverlayHeader({ onClose }: { onClose: () => void }) {
   return (
-    <div className="flex flex-shrink-0 items-center gap-3 border-b border-border p-4 dark:border-border">
+    <div className="flex flex-shrink-0 items-center gap-3 border-b border-border p-4">
       <button
         className="rounded-lg p-2 transition-colors hover:bg-secondary dark:hover:bg-accent"
         onClick={onClose}
       >
-        <X className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
+        <X className="h-5 w-5 text-muted-foreground" />
       </button>
       <div className="flex-1">
-        <h2 className="text-lg font-semibold text-foreground dark:text-foreground">
+        <h2 className="text-lg font-semibold text-foreground">
           Create your Job Search
         </h2>
       </div>
@@ -88,7 +88,7 @@ function SearchOverlayContentInner({
     <div className="flex h-full min-h-0 flex-col">
       <SearchOverlayHeader onClose={() => onOpenChange(false)} />
 
-      <div className="sticky top-0 z-10 border-b border-border bg-background p-4 pb-0 dark:border-border dark:bg-background/50">
+      <div className="sticky top-0 z-10 border-b border-border bg-background p-4 pb-0 dark:bg-background/50">
         <div className="scrollbar-none flex gap-1 overflow-x-auto">
           {categories.map((category) => (
             <Button

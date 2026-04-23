@@ -37,7 +37,7 @@ const DialogCompanyLogoCard = ({
           variant="dialog"
         />
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center">
-          <p className="line-clamp-5 break-words text-foreground/80 md:text-base md:leading-relaxed dark:text-foreground/80">
+          <p className="line-clamp-5 break-words text-foreground/80 md:text-base md:leading-relaxed">
             {removeHtmlTags(companyData.tagline || "") || (
               <span className="text-muted-foreground italic">
                 No description provided.
@@ -51,9 +51,9 @@ const DialogCompanyLogoCard = ({
           <DialogExtendedCompanyInfo companyData={companyData} />
         </div>
       )}
-      <div className="sm:mt-6 mt-9 mb-3 sm:mb-0 border-t pt-1.5 border-border dark:border-border w-full flex justify-center">
+      <div className="sm:mt-6 mt-9 mb-3 sm:mb-0 border-t pt-1.5 border-border w-full flex justify-center">
         <Button
-          className="rounded-md border border-border bg-background shadow-sm hover:bg-secondary/60 dark:border-border dark:bg-card dark:hover:bg-accent -my-6"
+          className="rounded-md border border-border bg-background shadow-sm hover:bg-secondary/60 dark:bg-card dark:hover:bg-accent -my-6"
           onClick={() => setShowExtended((v) => !v)}
           size="sm"
           variant="outline"

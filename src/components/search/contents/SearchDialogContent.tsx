@@ -128,7 +128,7 @@ function SearchDialogContentInner({
 
   return (
     <div className="flex h-full min-h-0">
-      <div className="flex w-[220px] flex-col rounded-l-md border-r border-neutral-200 bg-background dark:border-neutral-700 ">
+      <div className="flex w-[220px] flex-col rounded-l-md border-r border-border bg-card">
         <div className="p-2">
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -152,9 +152,9 @@ function SearchDialogContentInner({
                 <div key={category.name} className="mt-2 gap-y-1 first-of-type:mt-0">
                   <Button
                     className={cn(
-                      "h-auto w-full justify-start rounded-none p-2 text-left text-black transition-all duration-300 ease-in-out hover:bg-neutral-200 hover:transition-none dark:text-white dark:hover:bg-neutral-700",
+                      "h-auto w-full justify-start rounded-none p-2 text-left text-foreground transition-colors duration-300 ease-in-out hover:bg-muted hover:transition-none",
                       isSelected &&
-                        "bg-pink-400 hover:bg-pink-400 dark:bg-pink-700 dark:hover:bg-pink-700"
+                        "bg-primary text-primary-foreground hover:bg-primary/90"
                     )}
                     onClick={() => handleHeaderClickWithScroll(category.type)}
                     variant={isSelected ? "default" : "ghost"}
@@ -172,9 +172,9 @@ function SearchDialogContentInner({
                       <Button
                         key={item.id}
                         className={cn(
-                          "group h-auto w-full justify-start rounded-none border-l-2 border-neutral-200 px-2 py-1 text-left text-black/75 transition-all duration-300 ease-in-out hover:border-pink-500 hover:bg-neutral-200 hover:text-black hover:transition-none dark:border-neutral-700 dark:text-white/75 dark:hover:border-pink-800 dark:hover:bg-neutral-700 dark:hover:text-white",
+                          "group h-auto w-full justify-start rounded-none border-l-2 border-border px-2 py-1 text-left text-muted-foreground transition-all duration-300 ease-in-out hover:border-primary hover:bg-muted hover:text-foreground hover:transition-none",
                           isFocused &&
-                            "border-pink-500 bg-neutral-200 text-black dark:border-pink-800 dark:bg-neutral-700 dark:text-white"
+                            "border-primary bg-muted text-foreground"
                         )}
                         onClick={() => handleFilterClickWithScroll(item.id)}
                         variant="ghost"
@@ -183,7 +183,7 @@ function SearchDialogContentInner({
                           {item.name}
                           {isEdited ? (
                             <PencilIcon
-                              className="size-3 shrink-0 translate-y-px text-black/75 transition-all duration-300 ease-in-out group-hover:text-black group-hover:transition-none dark:text-white/75 dark:group-hover:text-white"
+                              className="size-3 shrink-0 translate-y-px text-muted-foreground transition-all duration-300 ease-in-out group-hover:text-foreground group-hover:transition-none"
                               aria-hidden
                             />
                           ) : null}

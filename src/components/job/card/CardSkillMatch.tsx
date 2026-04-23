@@ -1,6 +1,5 @@
 import { AnimatedCircularProgressBar } from "@/components/ui/animated-circular-progress-bar";
 import { useApp } from "@/contexts/AppContext";
-import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useMemo } from "react";
 import UniversalTooltip from "../../util/UniversalTooltip";
 
@@ -10,7 +9,6 @@ interface CardSkillMatchProps {
 
 const CardSkillMatch = ({ technicalTools }: CardSkillMatchProps) => {
   const { user } = useApp();
-  const { isDarkMode } = useDarkMode();
 
   const skillMatchData = useMemo(() => {
     if (!technicalTools || technicalTools.length === 0) {
@@ -49,10 +47,8 @@ const CardSkillMatch = ({ technicalTools }: CardSkillMatchProps) => {
     };
   }, [user.skills, technicalTools]);
 
-  const primaryColor = isDarkMode
-    ? "rgb(219 39 119 / 0.7)" // tailwind pink-500 at 70% opacity
-    : "rgb(244 114 182 / 0.7)"; // tailwind pink-400 at 70% opacity
-  const secondaryColor = isDarkMode ? "rgba(247, 247, 247, 0.10)" : "rgba(247, 247, 247, 0.80)";
+  const primaryColor = "color-mix(in srgb, var(--primary) 70%, transparent)";
+  const secondaryColor = "color-mix(in srgb, var(--muted) 80%, transparent)";
 
   if (!technicalTools || technicalTools.length === 0) {
     return (

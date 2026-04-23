@@ -68,7 +68,7 @@ export default function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 border-b border-border bg-background dark:border-border dark:bg-background",
+        "sticky top-0 z-50 border-b border-border bg-background",
         pathname === "/" && "hidden md:block"
       )}
     >
@@ -76,7 +76,7 @@ export default function Header() {
         <div className="flex min-h-16 items-center justify-between gap-4 py-3">
           {/* Logo */}
           <div className="flex items-center space-x-0 lg:space-x-3">
-            <div className="w-fit rounded-full bg-primary p-2 text-white">
+            <div className="w-fit rounded-full bg-primary p-2 text-primary-foreground">
               <svg
                 aria-hidden="true"
                 className="h-5 w-5 flex-none"

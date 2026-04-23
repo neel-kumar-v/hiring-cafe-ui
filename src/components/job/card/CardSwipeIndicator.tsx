@@ -118,9 +118,9 @@ const CardSwipeIndicator = ({
             }}
           >
             {swipeDirection === "left" ? (
-              <ChevronLeft className="size-6 text-primary dark:text-primary transition-transform duration-200" />
+              <ChevronLeft className="size-6 text-primary transition-transform duration-200" />
             ) : (
-              <ChevronRight className="size-6 text-primary dark:text-primary transition-transform duration-200" />
+              <ChevronRight className="size-6 text-primary transition-transform duration-200" />
             )}
           </div>
         </div>

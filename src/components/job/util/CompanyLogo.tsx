@@ -172,10 +172,10 @@ const CompanyLogo = memo(({
   }, [size, variant]);
 
   const fallbackClasses = useMemo(() => {
-    const baseClasses = `font-semibold text-primary dark:text-primary ${textSizes[size]}`;
+    const baseClasses = `font-semibold text-primary ${textSizes[size]}`;
 
     if (variant === "dialog") {
-      return `flex h-full w-full select-none items-center justify-center bg-brand-soft ${baseClasses} dark:bg-brand-soft`;
+      return `flex h-full w-full select-none items-center justify-center bg-brand-soft ${baseClasses}`;
     }
 
     return baseClasses;

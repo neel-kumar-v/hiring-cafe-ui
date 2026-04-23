@@ -58,12 +58,12 @@ export default function SavedSearches() {
   };
 
   return (
-    <div className="bg-background dark:bg-card rounded-lg border border-border dark:border-border p-6">
-      <h2 className="text-xl font-semibold text-foreground dark:text-foreground mb-4">
+    <div className="rounded-lg border border-border bg-card p-6">
+      <h2 className="mb-4 text-xl font-semibold text-foreground">
         Saved Searches
       </h2>
       {!convexUser ? (
-        <p className="text-muted-foreground dark:text-muted-foreground italic">
+        <p className="text-muted-foreground italic">
           Sign in{email ? "" : " with an email"} to see saved searches.
         </p>
       ) : (savedSearches ?? []).length > 0 ? (
@@ -71,7 +71,7 @@ export default function SavedSearches() {
           {(savedSearches ?? []).map((search) => (
             <div
               key={String(search._id)}
-              className="border border-border dark:border-border rounded-lg p-4"
+              className="rounded-lg border border-border p-4"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -79,37 +79,37 @@ export default function SavedSearches() {
                     <input
                       type="text"
                       value={editingName}
-                      ref={el => {
+                      ref={(el) => {
                         inputRefs.current[String(search._id)] = el;
                         return;
                       }}
-                      onChange={e => setEditingName(e.target.value)}
-                      onKeyDown={e => handleKeyDown(e, search._id)}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, search._id)}
                       onBlur={() => handleEditSave(search._id)}
-                      className="bg-transparent border-none outline-none text-lg font-semibold text-foreground dark:text-foreground"
+                      className="border-none bg-transparent text-lg font-semibold text-foreground outline-none"
                     />
-                                     ) : (
-                     <div className="group flex items-center">
-                       <h3 
-                         className="text-lg font-semibold text-foreground dark:text-foreground cursor-pointer hover:underline transition-colors"
-                         onClick={() => handleEditStart(search._id, search.name)}
-                       >
-                         {search.name}
-                       </h3>
-                       <button
-                         onClick={() => handleEditStart(search._id, search.name)}
-                         className="-ml-3 opacity-0 transition-all duration-300 ease-out group-hover:ml-2 group-hover:opacity-100 p-1 hover:bg-accent dark:hover:bg-accent rounded"
-                       >
-                         <Edit className="size-4 text-muted-foreground dark:text-muted-foreground" />
-                       </button>
-                     </div>
-                   )}
-                  <span className="text-sm text-muted-foreground dark:text-muted-foreground flex items-center gap-1 p-2 bg-background/15 rounded-md font-normal">
-                    <CalendarIcon className="size-4"/> {new Date(search.updatedAt).toLocaleDateString()}
+                  ) : (
+                    <div className="group flex items-center">
+                      <h3
+                        className="cursor-pointer text-lg font-semibold text-foreground transition-colors hover:underline"
+                        onClick={() => handleEditStart(search._id, search.name)}
+                      >
+                        {search.name}
+                      </h3>
+                      <button
+                        onClick={() => handleEditStart(search._id, search.name)}
+                        className="-ml-3 rounded p-1 opacity-0 transition-all duration-300 ease-out hover:bg-accent group-hover:ml-2 group-hover:opacity-100"
+                      >
+                        <Edit className="size-4 text-muted-foreground" />
+                      </button>
+                    </div>
+                  )}
+                  <span className="flex items-center gap-1 rounded-md bg-muted p-2 text-sm font-normal text-muted-foreground">
+                    <CalendarIcon className="size-4" /> {new Date(search.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
                 <button
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer hover:bg-accent dark:hover:bg-accent"
+                  className="inline-flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all hover:bg-accent"
                   onClick={() => {
                     setSearchOptions(search.searchState as SearchState);
                     router.push("/");
@@ -129,7 +129,7 @@ export default function SavedSearches() {
           ))}
         </div>
       ) : (
-        <p className="text-muted-foreground dark:text-muted-foreground italic">
+        <p className="text-muted-foreground italic">
           No saved searches yet.
         </p>
       )}

@@ -15,7 +15,7 @@ export default function HomeCompactHeader({ className }: HomeCompactHeaderProps)
       <div className="mx-auto flex max-w-full items-center justify-between px-4 py-3">
         <Hitbox size="default" radius="full">
           <Link href="/" aria-label="CloneCafe home" className="inline-flex min-w-0 items-center gap-2 rounded-full text-primary">
-            <div className="w-fit rounded-full bg-primary p-2 text-white">
+            <div className="w-fit rounded-full bg-primary p-2 text-primary-foreground">
               <svg
                 aria-hidden="true"
                 className="h-5 w-5 flex-none"

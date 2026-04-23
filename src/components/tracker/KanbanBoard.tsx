@@ -239,12 +239,12 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => downloadApplicationLinks(column.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-muted dark:hover:bg-muted rounded"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-muted rounded"
                   title="Copy list of application links"
                 >
-                  <Copy className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+                  <Copy className="h-4 w-4 text-muted-foreground" />
                 </button>
-                <span className="text-xs text-muted-foreground bg-muted dark:bg-muted px-2 py-1 rounded-full">{column.count}</span>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{column.count}</span>
               </div>
             </KanbanHeader>
             <KanbanCards id={column.id} key={column.id} className="flex-1">

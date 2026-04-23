@@ -253,7 +253,7 @@ const DRAWER_META: Record<
 
 function getTriggerClassName(active = false, className?: string) {
   return cn(
-    "group inline-flex items-center gap-1 py-0.5 text-left text-sm font-semibold leading-none transition-colors",
+    "group inline-flex items-center gap-1 py-0.5 text-left text-sm font-semibold leading-none transition-colors bg-background",
     active ? "text-primary" : "text-foreground hover:text-primary",
     className
   );
@@ -308,7 +308,7 @@ function DesktopMenuFrame({
         align="start"
         className="w-[18rem] rounded-xl border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
       >
-        <DropdownMenuLabel className="px-2.5 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground dark:text-muted-foreground">
+        <DropdownMenuLabel className="px-2.5 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {menuLabel}
         </DropdownMenuLabel>
         {children}
@@ -556,10 +556,10 @@ export default function Filters() {
     <div {...containerProps}>
       <div
         ref={contentRef}
-        className="border-b border-border bg-background/95 backdrop-blur"
+        className="bg-background/95 backdrop-blur"
         aria-hidden={!showLegacyFilters}
       >
-          <div className="mx-auto max-w-full px-4 py-3 lg:px-8 xl:px-12">
+          <div className="mx-auto max-w-full px-4 py-3 lg:px-8">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               {useDesktopMenus ? (
                 <>

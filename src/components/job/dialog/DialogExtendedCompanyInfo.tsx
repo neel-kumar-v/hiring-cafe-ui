@@ -12,7 +12,7 @@ function InfoListItem({ icon: Icon, header, value, wrap = false }: { icon: IconT
   return (
     <li className={`flex items-center gap-2${wrap ? " flex-wrap" : ""}`}>
       <UniversalTooltip content={header?.toString() || ""} side="left">
-        <Icon className="size-6 text-primary dark:text-primary stroke-[1.5px]" />
+        <Icon className="size-6 text-primary stroke-[1.5px]" />
       </UniversalTooltip>
       {value}
     </li>
@@ -66,7 +66,7 @@ function CompanyInfoContent({ companyData }: { companyData: ProcessedCompanyData
           icon={Linkedin}
           header="LinkedIn"
           value={
-            <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="underline text-primary dark:text-primary">
+            <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="underline text-primary">
               {linkedinUrlWithoutProtocol}
             </a>
           }
@@ -79,7 +79,7 @@ function CompanyInfoContent({ companyData }: { companyData: ProcessedCompanyData
 export default function DialogExtendedCompanyInfo({ companyData }: { companyData: ProcessedCompanyData }) {
   return (
     <Tabs defaultValue="company-info" className="w-full mt-4">
-      <TabsList className="grid w-full grid-cols-2 bg-black/10 dark:bg-background/10">
+      <TabsList className="grid w-full grid-cols-2 bg-muted/60">
         <TabsTrigger value="company-info">Company Info</TabsTrigger>
         <TabsTrigger value="reviews">Reviews</TabsTrigger>
       </TabsList>

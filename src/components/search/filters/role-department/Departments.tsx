@@ -72,7 +72,7 @@ const departmentSections: DepartmentSection[] = [
 const allDepartments: Department[] = departmentSections.flatMap((section) => section.items);
 const sectionValues = departmentSections.map((section) => section.title.toLowerCase().replace(/\s+/g, "-"));
 const sectionCheckboxClassName =
-  "accent-primary size-4 group-hover:scale-125 transition-all duration-300 ease-out data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary not-data-[state=checked]:dark:bg-muted";
+  "accent-primary size-4 group-hover:scale-125 transition-all duration-300 ease-out data-[state=checked]:bg-primary not-data-[state=checked]:bg-muted";
 
 function getSectionValue(title: string) {
   return title.toLowerCase().replace(/\s+/g, "-");
@@ -149,7 +149,7 @@ function FilterSection({ title, items, handleCheckboxChange, setDepartmentsForSe
       collapsible
       value={open ? itemValue : ""}
       onValueChange={(nextValue) => onOpenChange(nextValue === itemValue)}
-      className="w-full last-of-type:border-b-0 border-b border-b-neutral-200 hover:border-b-neutral-300 dark:border-b-neutral-700 dark:hover:border-b-neutral-600 transition-all duration-700 ease-in-out"
+      className="w-full border-b border-border transition-all duration-700 ease-in-out hover:border-border/80 last-of-type:border-b-0"
     >
       <AccordionItem value={itemValue}>
         <AccordionPrimitive.Header className="flex w-full items-start gap-2">

@@ -39,9 +39,9 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
   };
 
   return (
-    <div className="bg-background dark:bg-card rounded-lg border border-border dark:border-border p-6">
+    <div className="rounded-lg border border-border bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-foreground dark:text-foreground">
+        <h2 className="text-xl font-semibold text-foreground">
           Skills
         </h2>
         <Button
@@ -60,7 +60,7 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
             {user.skills.map((skill) => (
               <span
                 key={skill}
-                className="flex items-center gap-1 rounded-md bg-brand-soft px-3 py-1 text-brand-soft-foreground text-base dark:bg-brand-soft dark:text-primary"
+                className="flex items-center gap-1 rounded-md bg-brand-soft px-3 py-1 text-base text-brand-soft-foreground"
                 style={{ whiteSpace: "nowrap" }}
               >
                 {skill}
@@ -98,7 +98,7 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
             user.skills.map((skill) => (
               <span
                 key={skill}
-                className="rounded-md bg-brand-soft px-3 py-1 text-brand-soft-foreground text-base dark:bg-brand-soft dark:text-primary"
+                className="rounded-md bg-brand-soft px-3 py-1 text-base text-brand-soft-foreground"
                 style={{ whiteSpace: "nowrap" }}
                 title={skill}
               >
@@ -106,7 +106,7 @@ export default function SkillsSection({ user, onUserUpdate }: SkillsSectionProps
               </span>
             ))
           ) : (
-            <p className="text-muted-foreground dark:text-muted-foreground italic">
+            <p className="text-muted-foreground italic">
               No skills added yet. Click edit to add your skills.
             </p>
           )}

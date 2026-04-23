@@ -53,16 +53,16 @@ export const StatGroup = ({
             onClick={handleBookmarkClick}
           >
             {isBookmarked ? (
-              <Bookmark
-                className={cn(
-                  "inline fill-current text-primary dark:text-primary",
+                <Bookmark
+                  className={cn(
+                  "inline fill-current text-primary",
                   iconClassName
                 )}
               />
             ) : (
-              <Bookmark
-                className={cn(
-                  "inline text-muted-foreground dark:text-muted-foreground",
+                <Bookmark
+                  className={cn(
+                  "inline text-muted-foreground",
                   iconClassName
                 )}
               />
@@ -88,19 +88,19 @@ export const StatGroup = ({
           rel="noopener noreferrer external"
         >
           {isApplied ? (
-            <Send
-              className={cn(
-                "inline fill-primary text-primary dark:fill-primary dark:text-primary",
-                iconClassName
-              )}
-            />
+              <Send
+                className={cn(
+                  "inline fill-primary text-primary",
+                  iconClassName
+                )}
+              />
           ) : (
-            <Send
-              className={cn(
-                "inline text-muted-foreground dark:text-muted-foreground",
-                iconClassName
-              )}
-            />
+              <Send
+                className={cn(
+                  "inline text-muted-foreground",
+                  iconClassName
+                )}
+              />
           )}
           <span className={textClassName}>{appliedCount}</span>
         </a>
@@ -113,7 +113,7 @@ export const StatGroup = ({
           <span className="flex items-center space-x-1">
             <PhoneOutgoingIcon
               className={cn(
-                "inline fill-primary text-primary dark:fill-primary dark:text-primary",
+                "inline fill-primary text-primary",
                 iconClassName
               )}
             />

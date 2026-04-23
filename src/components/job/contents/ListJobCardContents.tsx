@@ -78,13 +78,13 @@ const ListJobCardContents = memo(({
         />
         
         <div className="min-w-0 flex-1">
-          <h3 className="font-medium text-sm text-foreground dark:text-foreground line-clamp-1 mb-1">
+          <h3 className="font-medium text-sm text-foreground line-clamp-1 mb-1">
             {getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? [])}
           </h3>
-          <p className="text-xs text-muted-foreground dark:text-muted-foreground mb-1">
+          <p className="text-xs text-muted-foreground mb-1">
             {company?.name ?? ""}
           </p>
-          <p className="text-xs text-muted-foreground dark:text-muted-foreground line-clamp-1">
+          <p className="text-xs text-muted-foreground line-clamp-1">
             {locations}
           </p>
         </div>

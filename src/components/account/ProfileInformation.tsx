@@ -6,24 +6,24 @@ interface ProfileInformationProps {
 
 export default function ProfileInformation({ user }: ProfileInformationProps) {
   return (
-    <div className="bg-background dark:bg-card rounded-lg border border-border dark:border-border p-6">
-      <h2 className="text-xl font-semibold text-foreground dark:text-foreground mb-4">
+    <div className="rounded-lg border border-border bg-card p-6">
+      <h2 className="mb-4 text-xl font-semibold text-foreground">
         Profile Information
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="text-sm font-medium text-foreground/80 dark:text-foreground/80 mb-2 block">
+          <label className="mb-2 block text-sm font-medium text-foreground/80">
             Name
           </label>
-          <p className="text-foreground dark:text-foreground font-medium">
+          <p className="font-medium text-foreground">
             {user.name}
           </p>
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground/80 dark:text-foreground/80 mb-2 block">
+          <label className="mb-2 block text-sm font-medium text-foreground/80">
             Email
           </label>
-          <p className="text-foreground dark:text-foreground font-medium">
+          <p className="font-medium text-foreground">
             {user.email}
           </p>
         </div>

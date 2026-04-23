@@ -56,7 +56,7 @@ export default function HomeSearchActions() {
 
   return (
     <div>
-      <div className="mx-auto flex max-w-full flex-col gap-3 px-4 py-4 transition-[padding] duration-500 ease-in-out lg:px-8 xl:px-12 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto flex max-w-full flex-col gap-3 px-4 py-4 transition-[padding] duration-500 ease-in-out lg:px-8 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium text-foreground/80">
             Saved searches:

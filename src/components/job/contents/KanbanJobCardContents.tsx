@@ -63,13 +63,13 @@ const KanbanJobCardContents = memo(({ job, company, className, }: KanbanJobCardP
       />
       
       <div className="min-w-0 flex-1">
-        <h3 className="font-medium text-sm text-foreground dark:text-foreground line-clamp-2 mb-1 select-none">
+        <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-1 select-none">
           {getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? [])}
         </h3>
-        <p className="text-xs text-muted-foreground dark:text-muted-foreground mb-1 select-none">
+        <p className="text-xs text-muted-foreground mb-1 select-none">
           {company?.name ?? ""}
         </p>
-        <p className="text-xs text-muted-foreground dark:text-muted-foreground line-clamp-1 select-none ">
+        <p className="text-xs text-muted-foreground line-clamp-1 select-none ">
           {locations}
         </p>
       </div>

@@ -70,8 +70,8 @@ export default function JobTitles() {
         rel="noopener noreferrer"
         className="flex flex-row items-center gap-1 mb-2 mt-[-12px]"
       >
-        <span className="font-medium text-sm text-pink-500 dark:text-pink-400 hover:underline">How does boolean search work?</span>
-        <ArrowUpRight className="size-4 text-pink-500 dark:text-pink-400 cursor-pointer translate-y-px" />
+        <span className="text-sm font-medium text-primary hover:underline">How does boolean search work?</span>
+        <ArrowUpRight className="size-4 translate-y-px cursor-pointer text-primary" />
       </Link>
       <div className="flex flex-col gap-6">
         {FIELDS.map(({ key, label, facetType, examples }) => (

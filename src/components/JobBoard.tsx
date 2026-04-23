@@ -148,7 +148,7 @@ const JobBoard = ({
     if (searched) {
       return (
         <div className="col-span-full text-center py-16 text-text">
-          No jobs match <span className="font-medium text-primary dark:text-primary">&quot;{debouncedQuery.trim()}&quot;</span>
+          No jobs match <span className="font-medium text-primary">&quot;{debouncedQuery.trim()}&quot;</span>
           Try different keywords or clear the search bar.
         </div>
       );

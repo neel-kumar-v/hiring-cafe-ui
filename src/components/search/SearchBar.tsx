@@ -248,24 +248,24 @@ function FilterButton({
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {Icon && (
             <Icon
-              className={`size-4 flex-none text-muted-foreground dark:text-muted-foreground ${
+              className={`size-4 flex-none text-muted-foreground ${
                 header === "" ? "hidden md:block" : ""
               }`}
             />
           )}
           <div className="flex min-w-0 flex-col truncate text-left text-xs translate-y-px">
-            <span className="truncate font-bold text-foreground transition-[transform,opacity] duration-200 ease-in-out dark:text-foreground">
+            <span className="truncate font-bold text-foreground transition-[transform,opacity] duration-200 ease-in-out">
               {header}
             </span>
             {subtitle && (
-              <span className="truncate text-[14px] font-medium text-muted-foreground dark:text-muted-foreground">
+              <span className="truncate text-[14px] font-medium text-muted-foreground">
                 {subtitle}
               </span>
             )}
           </div>
         </div>
         {showChevron && (
-          <ChevronDown className="size-4 flex-none text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary dark:group-hover:text-primary" />
+          <ChevronDown className="size-4 flex-none text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary" />
         )}
       </button>
     </Hitbox>
@@ -289,7 +289,7 @@ function LocationButton({
       header={
         <>
           {locationDisplay.location}
-          <span className="ml-2 text-[12px] font-medium text-muted-foreground dark:text-muted-foreground max-xs:hidden md:hidden lg:inline">
+          <span className="ml-2 text-[12px] font-medium text-muted-foreground max-xs:hidden md:hidden lg:inline">
             {locationDisplay.workplaces}
           </span>
         </>
@@ -378,7 +378,7 @@ function SalaryButton({
     ) : (
       <>
         {mainLabel}
-        <span className="text-[12px] font-medium text-muted-foreground dark:text-muted-foreground"> / {calcFrequency}</span>
+        <span className="text-[12px] font-medium text-muted-foreground"> / {calcFrequency}</span>
       </>
     );
 

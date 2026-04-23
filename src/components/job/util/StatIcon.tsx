@@ -20,7 +20,7 @@ const StatIcon = ({
       <span className="flex items-center space-x-1">
         <Icon
           className={cn(
-            "inline text-muted-foreground dark:text-muted-foreground",
+            "inline text-muted-foreground",
             iconClassName
           )}
         />

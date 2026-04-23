@@ -110,7 +110,7 @@ export default function TrackerPage() {
       <div className="min-h-[calc(100vh-4.5rem)] bg-background">
         <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <div className="text-center py-16">
-            <h1 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">Loading...</h1>
+            <h1 className="mb-4 text-3xl font-bold text-foreground">Loading...</h1>
           </div>
         </div>
       </div>
@@ -121,9 +121,9 @@ export default function TrackerPage() {
     <div className="min-h-[calc(100vh-4.5rem)] bg-background">
       <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out lg:p-8">
         <div className="mb-3">
-          <h1 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
+          <h1 className="mb-4 text-3xl font-bold text-foreground">
             Job Tracker
-            <p className="text-muted-foreground dark:text-muted-foreground text-sm font-normal">
+            <p className="text-sm font-normal text-muted-foreground">
               Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
             </p>
           </h1>

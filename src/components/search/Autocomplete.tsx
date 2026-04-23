@@ -48,7 +48,7 @@ function AutocompleteOption({
       ? "bg-brand-soft text-brand-soft-foreground"
       : isMobile
         ? "text-foreground hover:bg-accent"
-        : "text-foreground hover:bg-secondary dark:hover:bg-accent/25";
+        : "text-foreground hover:bg-secondary";
 
   return (
     <div
@@ -70,8 +70,8 @@ function NoResults({ isMobile = false }: { isMobile?: boolean }) {
   const iconSize = isMobile ? "w-12 h-12" : "w-8 h-8";
   const textSize = isMobile ? "text-lg" : "text-base";
   const containerClasses = isMobile
-    ? "flex h-full flex-col items-center justify-center py-8 text-muted-foreground dark:text-muted-foreground"
-    : "flex flex-1 flex-col items-center justify-center py-8 text-muted-foreground dark:text-muted-foreground";
+    ? "flex h-full flex-col items-center justify-center py-8 text-muted-foreground"
+    : "flex flex-1 flex-col items-center justify-center py-8 text-muted-foreground";
 
   return (
     <div className={containerClasses}>
@@ -110,7 +110,7 @@ function DesktopDropdown({
 
   return (
     <div
-      className="absolute z-50 hidden max-h-[361px] w-full overflow-hidden rounded-b-[24px] border border-t-0 border-border bg-background shadow-lg md:flex dark:border-border dark:bg-card"
+      className="absolute z-50 hidden max-h-[361px] w-full overflow-hidden rounded-b-[24px] border border-t-0 border-border bg-card shadow-lg md:flex"
       data-dropdown="autocomplete"
       onClick={handleDropdownClick}
       onMouseDown={handleDropdownClick}
@@ -150,21 +150,21 @@ function MobileHeader({
   onBack: () => void;
 }) {
   return (
-    <div className="flex flex-shrink-0 items-center gap-3 border-b border-border p-4 dark:border-border">
+    <div className="flex flex-shrink-0 items-center gap-3 border-b border-border p-4">
       <Hitbox size="sm" radius="full">
         <button
           aria-label="Close search"
-          className="rounded-lg p-2 transition-colors hover:bg-secondary dark:hover:bg-accent"
+          className="rounded-lg p-2 transition-colors hover:bg-secondary"
           onClick={onBack}
           type="button"
         >
-          <X className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
+          <X className="h-5 w-5 text-muted-foreground" />
         </button>
       </Hitbox>
       <div className="relative flex-1">
         <input
           autoFocus
-          className="w-full rounded-[24px] border border-border bg-secondary/60 px-3 py-2 pl-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-border dark:bg-card dark:text-foreground"
+          className="w-full rounded-[24px] border border-border bg-secondary/60 px-3 py-2 pl-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-card"
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           type="text"
@@ -232,7 +232,7 @@ function MobileOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-background md:hidden dark:bg-background"
+      className="fixed inset-0 z-50 flex flex-col bg-background md:hidden"
       onClick={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
     >
@@ -358,19 +358,19 @@ export default function Autocomplete({
       : "rounded-[24px]";
 
   const containerClasses = hasRightControls
-    ? `flex h-11 w-full items-center border border-border bg-background dark:border-border dark:bg-card ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
+    ? `flex h-11 w-full items-center border border-border bg-card ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
     : `flex h-11 w-full items-center ${isOpen ? "rounded-t-[24px]" : ""}`;
 
-  const inputBorderClasses = hasRightControls ? "border-0" : "border border-border dark:border-border";
+  const inputBorderClasses = hasRightControls ? "border-0" : "border border-border";
 
   return (
     <>
       <div className="group relative w-full" ref={containerRef}>
         {isMobile ? (
-          <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-sm dark:border-border dark:bg-card">
+          <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <div className="relative flex h-11 items-center">
               <input
-                className={`h-full w-full bg-background px-3 pl-10 text-[15px] text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:bg-card dark:text-foreground ${className}`}
+                className={`h-full w-full bg-card px-3 pl-10 text-[15px] text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 ${className}`}
                 onBlur={handleInputBlur}
                 onChange={(e) => onChange(e.target.value)}
                 onFocus={handleInputFocus}
@@ -396,9 +396,9 @@ export default function Autocomplete({
               {iconButtons && <div className="flex h-full items-stretch justify-center">{iconButtons}</div>}
             </div>
             {(salaryButton || locationButton) && (
-              <div className="flex w-full border-t border-border dark:border-border">
+              <div className="flex w-full border-t border-border">
                 {salaryButton && (
-                  <div className={cn("basis-1/4 flex-shrink-0", locationButton && "border-r border-border dark:border-border")}>
+                  <div className={cn("basis-1/4 flex-shrink-0", locationButton && "border-r border-border")}>
                     {salaryButton}
                   </div>
                 )}
@@ -410,7 +410,7 @@ export default function Autocomplete({
           <div className={containerClasses}>
             <div className="relative h-full flex-1">
               <input
-                className={`h-full w-full bg-transparent pl-10 pr-3 text-[15px] text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 dark:text-foreground ${inputBorderClasses} ${inputRoundedClasses} ${className}`}
+                className={`h-full w-full bg-transparent pl-10 pr-3 text-[15px] text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0 ${inputBorderClasses} ${inputRoundedClasses} ${className}`}
                 onBlur={handleInputBlur}
                 onChange={(e) => onChange(e.target.value)}
                 onFocus={handleInputFocus}
@@ -437,7 +437,7 @@ export default function Autocomplete({
             {locationButton && (
               <div
                 className={cn(
-                  "h-full max-w-[30%] border-l border-border dark:border-border",
+                  "h-full max-w-[30%] border-l border-border",
                   !salaryButton && !iconButtons && "rounded-r-[24px]"
                 )}
               >
@@ -447,7 +447,7 @@ export default function Autocomplete({
             {salaryButton && (
               <div
                 className={cn(
-                  "h-full max-w-[20%] border-l border-border dark:border-border",
+                  "h-full max-w-[20%] border-l border-border",
                   !iconButtons && "rounded-r-[24px]"
                 )}
               >
@@ -455,7 +455,7 @@ export default function Autocomplete({
               </div>
             )}
             {iconButtons && (
-              <div className="flex h-full items-stretch justify-end rounded-r-[24px] border-l border-border dark:border-border">
+              <div className="flex h-full items-stretch justify-end rounded-r-[24px] border-l border-border">
                 {iconButtons}
               </div>
             )}

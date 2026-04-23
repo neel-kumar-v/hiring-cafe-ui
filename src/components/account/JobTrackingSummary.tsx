@@ -8,9 +8,9 @@ interface JobTrackingSummaryProps {
 
 export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
   return (
-    <div className="bg-background dark:bg-card rounded-lg border border-border dark:border-border p-6 relative">
+    <div className="relative rounded-lg border border-border bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-foreground dark:text-foreground">
+        <h2 className="text-xl font-semibold text-foreground">
           Job Tracking Summary
         </h2>
         <Link
@@ -23,42 +23,42 @@ export default function JobTrackingSummary({ user }: JobTrackingSummaryProps) {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-foreground">
             {user.saved.length}
           </div>
-          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Saved
           </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-foreground">
             {user.applied.length}
           </div>
-          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Applied
           </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-foreground">
             {user.interviewing.length}
           </div>
-          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Interviewing
           </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-foreground">
             {user.rejected.length}
           </div>
-          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Rejected
           </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-foreground">
             {user.hidden.length}
           </div>
-          <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Hidden
           </div>
         </div>
