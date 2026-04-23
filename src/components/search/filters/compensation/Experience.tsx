@@ -1,13 +1,18 @@
 import { useApp } from "@/contexts/AppContext";
 import { ExperienceLevel, Role, Select } from "@/types/search";
+import { Input } from "@/components/ui/input";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
-import RangeSlider from "../util/RangeSlider";
 
 export default function Experience() {
   const { searchOptions, updateSearchOptions } = useApp();
+  const [icMin, setIcMin] = useState("");
+  const [icMax, setIcMax] = useState("");
+  const [pmMin, setPmMin] = useState("");
+  const [pmMax, setPmMax] = useState("");
 
   const handleSeniorityCheckboxChange = (type: ExperienceLevel) => {
     const currentExperience = searchOptions.experience;
@@ -68,27 +73,69 @@ export default function Experience() {
     });
   };
 
-  const handleIndividualContributorRangeChange = (values: [number, number]) => {
-    const currentExperience = searchOptions.experience;
-    const range = { min: values[0], max: values[1] };
-    updateSearchOptions({
-      experience: {
-        ...currentExperience,
-        individualContributor: range
-      }
-    });
+  useEffect(() => {
+    const ic = searchOptions.experience.individualContributor;
+    const pm = searchOptions.experience.peopleManager;
+    setIcMin(ic?.min ? String(ic.min) : "");
+    setIcMax(ic?.max ? String(ic.max) : "");
+    setPmMin(pm?.min ? String(pm.min) : "");
+    setPmMax(pm?.max ? String(pm.max) : "");
+  }, [
+    searchOptions.experience.individualContributor?.max,
+    searchOptions.experience.individualContributor?.min,
+    searchOptions.experience.peopleManager?.max,
+    searchOptions.experience.peopleManager?.min,
+  ]);
+
+  const toNumberOrZero = (value: string) => {
+    if (!value) return 0;
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const handlePeopleManagerRangeChange = (values: [number, number]) => {
-    const currentExperience = searchOptions.experience;
-    const range = { min: values[0], max: values[1] };
+  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+  const commitIndividualContributor = useCallback(() => {
+    const rawMin = toNumberOrZero(icMin);
+    const rawMax = toNumberOrZero(icMax);
+    const min = clamp(rawMin, 0, 20);
+    const max = clamp(rawMax, 0, 20);
+
+    const next =
+      icMin === "" && icMax === ""
+        ? null
+        : min > 0 && max > 0 && min > max
+          ? { min: max, max: min }
+          : { min, max: icMax === "" ? 20 : max };
+
     updateSearchOptions({
       experience: {
-        ...currentExperience,
-        peopleManager: range
-      }
+        ...searchOptions.experience,
+        individualContributor: next,
+      },
     });
-  };
+  }, [icMax, icMin, searchOptions.experience, updateSearchOptions]);
+
+  const commitPeopleManager = useCallback(() => {
+    const rawMin = toNumberOrZero(pmMin);
+    const rawMax = toNumberOrZero(pmMax);
+    const min = clamp(rawMin, 0, 20);
+    const max = clamp(rawMax, 0, 20);
+
+    const next =
+      pmMin === "" && pmMax === ""
+        ? null
+        : min > 0 && max > 0 && min > max
+          ? { min: max, max: min }
+          : { min, max: pmMax === "" ? 20 : max };
+
+    updateSearchOptions({
+      experience: {
+        ...searchOptions.experience,
+        peopleManager: next,
+      },
+    });
+  }, [pmMax, pmMin, searchOptions.experience, updateSearchOptions]);
 
   const isIndividualContributorSelected = Array.isArray(searchOptions.experience.role) 
     ? searchOptions.experience.role.includes("Individual Contributor")
@@ -100,17 +147,6 @@ export default function Experience() {
 
   const shouldShowIndividualContributorRange = isIndividualContributorSelected;
   const shouldShowPeopleManagerRange = isPeopleManagerSelected;
-
-  // Convert Range to [number, number] for RangeSlider
-  const individualContributorValue: [number, number] | undefined = 
-    searchOptions.experience.individualContributor 
-      ? [searchOptions.experience.individualContributor.min, searchOptions.experience.individualContributor.max]
-      : undefined;
-
-  const peopleManagerValue: [number, number] | undefined = 
-    searchOptions.experience.peopleManager 
-      ? [searchOptions.experience.peopleManager.min, searchOptions.experience.peopleManager.max]
-      : undefined;
 
   return (
     <FilterContainer categoryId="experience" title="Experience">
@@ -152,27 +188,63 @@ export default function Experience() {
       
       {shouldShowIndividualContributorRange && (
         <LabelInputContainer title="Individual Contributor Experience (Years)" midColCount={1} lgColCount={1}>
-          <RangeSlider
-            min={0}
-            max={20}
-            step={1}
-            value={individualContributorValue}
-            onValueChange={handleIndividualContributorRangeChange}
-            money={false}
-          />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-foreground">Min</label>
+              <Input
+                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                inputMode="numeric"
+                placeholder="No min"
+                type="text"
+                value={icMin}
+                onChange={(e) => setIcMin(e.target.value.replace(/[^0-9]/g, ""))}
+                onBlur={commitIndividualContributor}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-foreground">Max</label>
+              <Input
+                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                inputMode="numeric"
+                placeholder="No max"
+                type="text"
+                value={icMax}
+                onChange={(e) => setIcMax(e.target.value.replace(/[^0-9]/g, ""))}
+                onBlur={commitIndividualContributor}
+              />
+            </div>
+          </div>
         </LabelInputContainer>
       )}
       
       {shouldShowPeopleManagerRange && (
         <LabelInputContainer title="People Manager Experience (Years)" midColCount={1} lgColCount={1}>
-          <RangeSlider
-            min={0}
-            max={20}
-            step={1}
-            value={peopleManagerValue}
-            onValueChange={handlePeopleManagerRangeChange}
-            money={false}
-          />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-foreground">Min</label>
+              <Input
+                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                inputMode="numeric"
+                placeholder="No min"
+                type="text"
+                value={pmMin}
+                onChange={(e) => setPmMin(e.target.value.replace(/[^0-9]/g, ""))}
+                onBlur={commitPeopleManager}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-foreground">Max</label>
+              <Input
+                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                inputMode="numeric"
+                placeholder="No max"
+                type="text"
+                value={pmMax}
+                onChange={(e) => setPmMax(e.target.value.replace(/[^0-9]/g, ""))}
+                onBlur={commitPeopleManager}
+              />
+            </div>
+          </div>
         </LabelInputContainer>
       )}
     </FilterContainer>

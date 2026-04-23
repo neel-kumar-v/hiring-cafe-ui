@@ -1,19 +1,82 @@
 import { useApp } from "@/contexts/AppContext";
 import { getCurrentYear } from "@/lib/search/company";
 import { CurrentStage, Keywords, Select } from "@/types/search";
-import { useCallback, useMemo } from "react";
+import { Input } from "@/components/ui/input";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
-import RangeSlider from "../util/RangeSlider";
 import { useSearchData } from "@/hooks/useSearchData";
+
+type MinMaxInputProps = {
+  title: string;
+  minLabel?: string;
+  maxLabel?: string;
+  minValue: string;
+  maxValue: string;
+  minPlaceholder: string;
+  maxPlaceholder: string;
+  onChangeMinValue: (next: string) => void;
+  onChangeMaxValue: (next: string) => void;
+  onBlurCommit: () => void;
+};
+
+function MinMaxInputs({
+  title,
+  minLabel = "Min",
+  maxLabel = "Max",
+  minValue,
+  maxValue,
+  minPlaceholder,
+  maxPlaceholder,
+  onChangeMinValue,
+  onChangeMaxValue,
+  onBlurCommit,
+}: MinMaxInputProps) {
+  return (
+    <div>
+      <div className="mb-1 text-xs font-medium">{title}</div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-foreground">{minLabel}</label>
+          <Input
+            className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+            inputMode="numeric"
+            placeholder={minPlaceholder}
+            type="text"
+            value={minValue}
+            onChange={(e) => onChangeMinValue(e.target.value.replace(/[^0-9]/g, ""))}
+            onBlur={onBlurCommit}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-foreground">{maxLabel}</label>
+          <Input
+            className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+            inputMode="numeric"
+            placeholder={maxPlaceholder}
+            type="text"
+            value={maxValue}
+            onChange={(e) => onChangeMaxValue(e.target.value.replace(/[^0-9]/g, ""))}
+            onBlur={onBlurCommit}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Stage() {
   const { searchOptions, updateSearchOptions } = useApp();
 
   const stagesOptions: CurrentStage[] = ["Public", "Private"];
+  const currentYear = getCurrentYear();
+  const [latestRoundMin, setLatestRoundMin] = useState("");
+  const [latestRoundMax, setLatestRoundMax] = useState("");
+  const [latestRoundAmountMin, setLatestRoundAmountMin] = useState("");
+  const [latestRoundAmountMax, setLatestRoundAmountMax] = useState("");
 
   const isCurrentStageSelected = (currentStage: CurrentStage): boolean => {
     if (searchOptions.stage_funding.current === "All") return true;
@@ -63,23 +126,62 @@ export default function Stage() {
     });
   }, [searchOptions.stage_funding, updateSearchOptions]);
 
-  const handleLatestRoundChange = useCallback(([min, max]: [number, number]) => {
-    updateSearchOptions({
-      stage_funding: {
-        ...searchOptions.stage_funding,
-        latest_round: { min, max }
-      }
-    });
-  }, [searchOptions.stage_funding, updateSearchOptions]);
+  useEffect(() => {
+    const { latest_round, latest_round_amount } = searchOptions.stage_funding;
+    setLatestRoundMin(latest_round.min > 0 ? String(latest_round.min) : "");
+    setLatestRoundMax(latest_round.max > 0 ? String(latest_round.max) : "");
+    setLatestRoundAmountMin(latest_round_amount.min > 0 ? String(latest_round_amount.min) : "");
+    setLatestRoundAmountMax(latest_round_amount.max > 0 ? String(latest_round_amount.max) : "");
+  }, [
+    searchOptions.stage_funding.latest_round.max,
+    searchOptions.stage_funding.latest_round.min,
+    searchOptions.stage_funding.latest_round_amount.max,
+    searchOptions.stage_funding.latest_round_amount.min,
+  ]);
 
-  const handleLatestRoundAmountChange = useCallback(([min, max]: [number, number]) => {
+  const toNumberOrZero = (value: string) => {
+    if (!value) return 0;
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+  const commitLatestRound = useCallback(() => {
+    const rawMin = toNumberOrZero(latestRoundMin);
+    const rawMax = toNumberOrZero(latestRoundMax);
+
+    const normalizedMin = rawMin === 0 ? 0 : clamp(rawMin, 1800, currentYear);
+    const normalizedMax = rawMax === 0 ? 0 : clamp(rawMax, 1800, currentYear);
+
+    const min = normalizedMin;
+    const max = normalizedMax;
+
     updateSearchOptions({
       stage_funding: {
         ...searchOptions.stage_funding,
-        latest_round_amount: { min, max }
-      }
+        latest_round: min > 0 && max > 0 && min > max ? { min: max, max: min } : { min, max },
+      },
     });
-  }, [searchOptions.stage_funding, updateSearchOptions]);
+  }, [currentYear, latestRoundMax, latestRoundMin, searchOptions.stage_funding, updateSearchOptions]);
+
+  const commitLatestRoundAmount = useCallback(() => {
+    const rawMin = toNumberOrZero(latestRoundAmountMin);
+    const rawMax = toNumberOrZero(latestRoundAmountMax);
+
+    const normalizedMin = rawMin === 0 ? 0 : clamp(rawMin, 0, 500000000);
+    const normalizedMax = rawMax === 0 ? 0 : clamp(rawMax, 0, 500000000);
+
+    const min = normalizedMin;
+    const max = normalizedMax;
+
+    updateSearchOptions({
+      stage_funding: {
+        ...searchOptions.stage_funding,
+        latest_round_amount: min > 0 && max > 0 && min > max ? { min: max, max: min } : { min, max },
+      },
+    });
+  }, [latestRoundAmountMax, latestRoundAmountMin, searchOptions.stage_funding, updateSearchOptions]);
 
   const roundTypesKeywords = useMemo(() => searchOptions.stage_funding.latest_round_type, [searchOptions.stage_funding.latest_round_type]);
   const investorsKeywords = useMemo(() => searchOptions.stage_funding.investors, [searchOptions.stage_funding.investors]);
@@ -123,26 +225,27 @@ export default function Stage() {
         />
       )}
       <div>
-        <div className="mb-1 text-xs font-medium">Latest Round Year Range</div>
-        <RangeSlider
-          min={1800}
-          max={getCurrentYear()}
-          step={1}
-          money={false}
-          value={[searchOptions.stage_funding.latest_round.min === 0 ? 1800 : searchOptions.stage_funding.latest_round.min, searchOptions.stage_funding.latest_round.max === 0 ? getCurrentYear() : searchOptions.stage_funding.latest_round.max]}
-          onValueChange={handleLatestRoundChange}
+        <MinMaxInputs
+          title="Latest Round Year Range"
+          minValue={latestRoundMin}
+          maxValue={latestRoundMax}
+          minPlaceholder="No min"
+          maxPlaceholder="No max"
+          onChangeMinValue={setLatestRoundMin}
+          onChangeMaxValue={setLatestRoundMax}
+          onBlurCommit={commitLatestRound}
         />
       </div>
       <div>
-        <div className="mb-1 text-xs font-medium">Latest Round Amount</div>
-        <RangeSlider
-          min={0}
-          max={500000000}
-          step={100000}
-          currency="$"
-          money={true}
-          value={[searchOptions.stage_funding.latest_round_amount.min === 0 ? 0 : searchOptions.stage_funding.latest_round_amount.min, searchOptions.stage_funding.latest_round_amount.max === 0 ? 500000000 : searchOptions.stage_funding.latest_round_amount.max]}
-          onValueChange={handleLatestRoundAmountChange}
+        <MinMaxInputs
+          title="Latest Round Amount"
+          minValue={latestRoundAmountMin}
+          maxValue={latestRoundAmountMax}
+          minPlaceholder="No min"
+          maxPlaceholder="No max"
+          onChangeMinValue={setLatestRoundAmountMin}
+          onChangeMaxValue={setLatestRoundAmountMax}
+          onBlurCommit={commitLatestRoundAmount}
         />
       </div>
     </FilterContainer>
