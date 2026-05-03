@@ -2,6 +2,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCleanJobTitle } from "@/lib/job-info";
+import { decodeLocationForDisplay } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import { memo } from "react";
 import CompanyLogo from "../util/CompanyLogo";
@@ -25,13 +26,14 @@ const ListJobCardContents = memo(({
   const states = job.workplaceStates ?? [];
   const countries = job.workplaceCountries ?? [];
 
-  const locations = cities.length > 0
-    ? cities.join(", ")
-    : states.length > 0
-    ? states.join(", ")
-    : countries.length > 0
-    ? countries.join(", ")
-    : "Remote";
+  const locations =
+    cities.length > 0
+      ? cities.map(decodeLocationForDisplay).join(", ")
+      : states.length > 0
+      ? states.map(decodeLocationForDisplay).join(", ")
+      : countries.length > 0
+      ? countries.map(decodeLocationForDisplay).join(", ")
+      : "Remote";
 
   const handleStageChange = (stageId: string) => {
     if (onMoveJob && stageId !== currentStage) {

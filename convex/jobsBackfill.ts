@@ -76,69 +76,6 @@ export const jobCardsBackfillStatus = query({
 	},
 });
 
-export const getSchedulerHealth = query({
-	args: {},
-	handler: async (ctx) => {
-		const scheduled = await ctx.db.system.query("_scheduled_functions").take(2000);
-		let pendingCount = 0;
-		let pendingJobsBackfillCount = 0;
-		let oldestPending: {
-			id: string;
-			name: string;
-			scheduledTime: number;
-			createdAt: number;
-		} | null = null;
-
-		for (const row of scheduled) {
-			if (row.state?.kind !== "pending") continue;
-			pendingCount += 1;
-			if (row.name.includes("jobsBackfill")) pendingJobsBackfillCount += 1;
-			if (!oldestPending || row.scheduledTime < oldestPending.scheduledTime) {
-				oldestPending = {
-					id: String(row._id),
-					name: row.name,
-					scheduledTime: row.scheduledTime,
-					createdAt: row._creationTime,
-				};
-			}
-		}
-
-		return {
-			sampleSize: scheduled.length,
-			pendingCount,
-			pendingJobsBackfillCount,
-			oldestPending,
-		};
-	},
-});
-
-export const compareJobsVsJobCards = query({
-	args: { sampleSize: v.optional(v.number()) },
-	handler: async (ctx, { sampleSize }) => {
-		const take = Math.max(1, Math.min(sampleSize ?? 200, 1000));
-		const jobsCounter = await getCounter(ctx, "jobs");
-		const cardsCounter = await getCounter(ctx, JOBCARDS_BACKFILL_DONE_COUNTER);
-		const sampleJobs = await ctx.db.query("jobs").order("desc").take(take);
-
-		const missingExternalIds: string[] = [];
-		for (const job of sampleJobs) {
-			const card = await ctx.db
-				.query("jobCards")
-				.withIndex("by_externalId", (q) => q.eq("externalId", job.externalId))
-				.unique();
-			if (!card) missingExternalIds.push(job.externalId);
-		}
-
-		return {
-			jobsCountHint: jobsCounter ?? null,
-			jobCardsBackfilledHint: cardsCounter ?? null,
-			sampleChecked: sampleJobs.length,
-			missingCount: missingExternalIds.length,
-			missingExternalIds: missingExternalIds.slice(0, 50),
-		};
-	},
-});
-
 export const runJobCardsBackfillBatchNow = mutation({
 	args: {
 		cursor: v.union(v.string(), v.null()),

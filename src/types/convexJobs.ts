@@ -19,6 +19,8 @@ export interface CompanyDTO {
 
 export interface JobDTO {
   _id: ConvexId;
+  /** Present when search rows come from `jobCards`; points at canonical `jobs` doc id. */
+  jobId?: ConvexId;
   externalId: string;
   title: string;
   applyUrl?: string;

@@ -5,10 +5,12 @@ import { Hitbox } from "@/components/ui/hitbox";
 import { useApp } from "@/contexts/AppContext";
 import { defaultSearchOptions, useSearchUI } from "@/contexts/SearchContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getEditedTags } from "@/lib/edited-filters";
 import { cn } from "@/lib/utils";
 import { api } from "../../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { ChevronUp, Plus, RotateCcw } from "lucide-react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 export default function HomeSearchActions() {
@@ -24,6 +26,10 @@ export default function HomeSearchActions() {
     showFilterRibbon,
     setShowFilterRibbon,
   } = useSearchUI();
+
+  const hasEditedFilters = useMemo(() => {
+    return getEditedTags(searchOptions).size > 0;
+  }, [searchOptions]);
 
   const handleSaveSearch = async () => {
     if (!convexUser) {
@@ -61,25 +67,33 @@ export default function HomeSearchActions() {
           <span className="text-sm font-medium text-foreground/80">
             Saved searches:
           </span>
-          <Hitbox size="sm" radius="lg">
-            <Button
-              className="h-9 px-4 text-sm"
-              onClick={handleSaveSearch}
-              variant="dashed"
-            >
-              <Plus className="size-4" />
-              Save Current Search
-            </Button>
-          </Hitbox>
+          {hasEditedFilters ? (
+            <Hitbox size="sm" radius="lg">
+              <Button
+                className="h-9 px-4 text-sm"
+                onClick={handleSaveSearch}
+                variant="dashed"
+              >
+                <Plus className="size-4" />
+                Save Current Search
+              </Button>
+            </Hitbox>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-          <Hitbox size="sm" radius="lg">
-            <Button className="h-9 px-4 text-sm" onClick={handleClearFilters} variant="destructive">
-              <RotateCcw className="size-4" />
-              Clear filters
-            </Button>
-          </Hitbox>
+          {hasEditedFilters ? (
+            <Hitbox size="sm" radius="lg">
+              <Button
+                className="h-9 px-4 text-sm"
+                onClick={handleClearFilters}
+                variant="destructive"
+              >
+                <RotateCcw className="size-4" />
+                Clear filters
+              </Button>
+            </Hitbox>
+          ) : null}
           <div className="hidden md:block">
             <Hitbox size="sm" radius="lg">
               <Button

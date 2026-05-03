@@ -1,0 +1,14 @@
+﻿{
+    "companies":  {
+                      "updatedAt":  "2026-04-23T03:40:00.0652406-05:00",
+                      "done":  true,
+                      "total":  21845,
+                      "nextStart":  22000
+                  },
+    "industries":  {
+                       "updatedAt":  "2026-04-23T03:48:00.1782688-05:00",
+                       "done":  false,
+                       "total":  10860,
+                       "nextStart":  10600
+                   }
+}

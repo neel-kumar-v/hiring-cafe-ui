@@ -617,11 +617,18 @@ export const search = query({
 });
 
 export const getDetails = query({
-	args: { jobId: v.id("jobs") },
+	args: { jobId: v.union(v.id("jobs"), v.id("jobCards")) },
 	handler: async (ctx, { jobId }) => {
-		const job = await ctx.db.get(jobId);
+		const sourceDoc = await ctx.db.get(jobId);
+		if (!sourceDoc) return null;
+
+		const resolvedJobId = "jobId" in sourceDoc ? sourceDoc.jobId : sourceDoc._id;
+		const job = await ctx.db.get(resolvedJobId);
 		if (!job) return null;
-		const details = await ctx.db.query("jobDetails").withIndex("by_jobId", (q) => q.eq("jobId", jobId)).unique();
+
+		// Most reliable lookup is the direct pointer on jobs; fallback keeps older rows readable.
+		const details = (await ctx.db.get(job.detailsId)) ??
+			(await ctx.db.query("jobDetails").withIndex("by_jobId", (q) => q.eq("jobId", job._id)).unique());
 		const company = await ctx.db.get(job.companyId);
 		return { job, details, company };
 	},

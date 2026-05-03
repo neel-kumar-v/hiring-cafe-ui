@@ -18,6 +18,7 @@ export default defineSchema({
 		/** Canonical domain when known (e.g. rogersandhollands.com). */
 		canonicalDomain: v.optional(v.string()),
 		name: v.string(),
+		nameLower: v.optional(v.string()),
 
 		homepageUri: v.optional(v.string()),
 		imageUrl: v.optional(v.string()),
@@ -37,7 +38,8 @@ export default defineSchema({
 		updatedAt: v.number(),
 	})
 		.index("by_companyId", ["companyId"])
-		.index("by_canonicalDomain", ["canonicalDomain"]),
+		.index("by_canonicalDomain", ["canonicalDomain"])
+		.index("by_nameLower", ["nameLower"]),
 
 	jobs: defineTable({
 		/** Stable identifier from scraped dataset (must be unique). */
@@ -170,6 +172,101 @@ export default defineSchema({
 			],
 		}),
 
+	jobCards: defineTable({
+		/** Mirrors jobs.externalId for idempotent upserts and lookup. */
+		externalId: v.string(),
+		/** Link back to source jobs document so detail lookups stay unchanged. */
+		jobId: v.id("jobs"),
+		detailsId: v.id("jobDetails"),
+
+		title: v.string(),
+		applyUrl: v.optional(v.string()),
+		companyId: v.id("companies"),
+		/** Stable slug/domain identifier used in routes and filter mapping. */
+		companySlug: v.string(),
+
+		searchText: v.string(),
+
+		workplaceType: v.optional(v.string()),
+		commitment: v.array(v.string()),
+		workplaceCities: v.array(v.string()),
+		workplaceStates: v.array(v.string()),
+		workplaceCountries: v.array(v.string()),
+		workplaceContinents: v.array(v.string()),
+		geoloc: v.array(v.object({ lat: v.number(), lon: v.number() })),
+
+		minIcYoe: v.optional(v.number()),
+		minMgmtYoe: v.optional(v.number()),
+		requirementsSummary: v.optional(v.string()),
+		skills: v.array(v.string()),
+		estimatedPublishDate: v.optional(v.string()),
+		estimatedPublishDateMillis: v.optional(v.number()),
+		/** Primary numeric key used for "recent" sorting. */
+		sortPublishMillis: v.number(),
+
+		views: v.number(),
+		saves: v.number(),
+		applies: v.number(),
+
+		department: v.optional(v.string()),
+		listedCompensationCurrency: v.optional(v.string()),
+		listedCompensationFrequency: v.optional(v.string()),
+		isCompensationTransparent: v.optional(v.boolean()),
+		hourlyMinComp: v.optional(v.number()),
+		hourlyMaxComp: v.optional(v.number()),
+		dailyMinComp: v.optional(v.number()),
+		dailyMaxComp: v.optional(v.number()),
+		weeklyMinComp: v.optional(v.number()),
+		weeklyMaxComp: v.optional(v.number()),
+		biWeeklyMinComp: v.optional(v.number()),
+		biWeeklyMaxComp: v.optional(v.number()),
+		monthlyMinComp: v.optional(v.number()),
+		monthlyMaxComp: v.optional(v.number()),
+		yearlyMinComp: v.optional(v.number()),
+		yearlyMaxComp: v.optional(v.number()),
+
+		companyProfit: v.optional(v.string()),
+		companyStage: v.optional(v.string()),
+		companyFoundedYear: v.optional(v.number()),
+		companyNumEmployees: v.optional(v.number()),
+
+		companyName: v.string(),
+		companyImageUrl: v.optional(v.string()),
+		companyTagline: v.optional(v.string()),
+		companyHomepageUri: v.optional(v.string()),
+		companyIndustries: v.array(v.string()),
+		companyActivities: v.array(v.string()),
+		companyHqCountry: v.optional(v.string()),
+
+		createdAt: v.number(),
+		updatedAt: v.number(),
+	})
+		.index("by_externalId", ["externalId"])
+		.index("by_jobId", ["jobId"])
+		.index("by_recent", ["sortPublishMillis"])
+		.index("by_companyId_and_recent", ["companyId", "sortPublishMillis"])
+		.index("by_workplaceType_and_recent", ["workplaceType", "sortPublishMillis"])
+		.index("by_department_and_recent", ["department", "sortPublishMillis"])
+		.index("by_currency_and_frequency_and_recent", [
+			"listedCompensationCurrency",
+			"listedCompensationFrequency",
+			"sortPublishMillis",
+		])
+		.index("by_companyProfit_and_recent", ["companyProfit", "sortPublishMillis"])
+		.index("by_companyStage_and_recent", ["companyStage", "sortPublishMillis"])
+		.searchIndex("search_searchText", {
+			searchField: "searchText",
+			filterFields: [
+				"companyId",
+				"workplaceType",
+				"department",
+				"listedCompensationCurrency",
+				"listedCompensationFrequency",
+				"companyProfit",
+				"companyStage",
+			],
+		}),
+
 	jobDetails: defineTable({
 		jobId: v.optional(v.id("jobs")),
 		description: v.string(),
@@ -200,6 +297,72 @@ export default defineSchema({
 			searchField: "value",
 			filterFields: ["type"],
 		}),
+
+	// --- Autocomplete option tables (seeded from `src/data/*.json`) ---
+	autocompleteCompanies: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteIndustries: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteCompanyActivities: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteCurrencies: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteLanguages: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteLicenses: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteInvestors: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteRoundTypes: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteJobTitles: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteTechnologies: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteBachelorsFields: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	// Currently unused in UI, but split for completeness.
+	autocompleteAssociateFields: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteMasterFields: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteDoctorateFields: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteCompanyHqCountries: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
+
+	autocompleteScrapeStates: defineTable({ value: v.string() })
+		.index("by_value", ["value"])
+		.searchIndex("search_value", { searchField: "value" }),
 
 	/** Denormalized counters (e.g. total jobs) so queries avoid full table scans. */
 	counters: defineTable({

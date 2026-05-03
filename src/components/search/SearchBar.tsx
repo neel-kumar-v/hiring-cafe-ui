@@ -25,6 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { AddressComponent, Location as SearchLocation, SearchState } from "@/types/search";
 import { cn } from "@/lib/utils";
+import jobTitlesJson from "@/data/job_titles.json";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -40,6 +41,16 @@ type LocationComponent = SearchLocation["address"]["components"][number];
 function findAddressComponent(components: LocationComponent[] | undefined, type: string) {
   return components?.find((component) => component.types.includes(type as AddressComponent["types"][number]));
 }
+
+const POPULAR_JOB_SEARCHES: string[] = (() => {
+  const raw = (jobTitlesJson as { suggestions?: unknown })?.suggestions;
+  const list = Array.isArray(raw) ? raw : [];
+  const normalized = list
+    .map((x) => (typeof x === "string" ? x.trim() : ""))
+    .filter(Boolean)
+    .map((t) => t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)));
+  return Array.from(new Set(normalized)).slice(0, 20);
+})();
 
 const getLocationLabel = (location: SearchLocation) => {
   if (!location) {
@@ -425,7 +436,7 @@ export default function SearchBar({
     const id = window.setTimeout(() => {
       const q = inputValue.trim();
       if (!q) {
-        setJobTitles([]);
+        setJobTitles(POPULAR_JOB_SEARCHES);
         return;
       }
 
@@ -436,9 +447,9 @@ export default function SearchBar({
           setJobTitles((titles ?? []).map((t) => t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))));
         })
         .catch(() => {
-          if (!cancelled) setJobTitles([]);
+          if (!cancelled) setJobTitles(POPULAR_JOB_SEARCHES);
         });
-    }, 180);
+    }, 200);
 
     return () => {
       cancelled = true;

@@ -1,4 +1,5 @@
 import { CompensationRange } from "@/types/job";
+import { decodeLocationForDisplay } from "@/lib/utils";
 
 const removeCompanyName = (title: string, company: string): string => {
   if (!company) return title;
@@ -315,11 +316,12 @@ const countryAbbreviations: { [key: string]: string } = {
 };
 
 export const getLocation = (location: string) => {
-  const splitLocation = location.split(",");
+  const cleaned = decodeLocationForDisplay(location);
+  const splitLocation = cleaned.split(",");
   if (splitLocation.length > 2) {
     return splitLocation[0] + ", " + formatState(splitLocation[1]);
   }
-  return location;
+  return cleaned;
 };
 
 export const getLocations = (workplaceCities: string[]) => {

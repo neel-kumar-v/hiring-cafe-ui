@@ -8,10 +8,12 @@ export function useSearchData(type: string, uppercase: boolean = false) {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
     
     async function fetchOptions() {
       try {
-        const res = await fetch(`/api/search?type=${type}&limit=1000`);
+        const res = await fetch(`/api/search?type=${type}&limit=1000`, { signal: controller.signal });
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         
@@ -26,15 +28,22 @@ export function useSearchData(type: string, uppercase: boolean = false) {
             setOptions(strings.map(s => ({ label: s, value: s })));
         }
       } catch (err) {
-        console.error(`Error fetching search data for ${type}:`, err);
+        if ((err as Error).name !== "AbortError") {
+          console.error(`Error fetching search data for ${type}:`, err);
+        }
       } finally {
         if (mounted) setLoading(false);
       }
     }
     
-    fetchOptions();
+    void fetchOptions();
+    }, 200);
 
-    return () => { mounted = false; };
+    return () => { 
+      mounted = false; 
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
   }, [type, uppercase]);
 
   return { options, rawStrings, loading };

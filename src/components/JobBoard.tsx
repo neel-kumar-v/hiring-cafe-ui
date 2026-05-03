@@ -103,27 +103,11 @@ const JobBoard = ({
     setVisibleRowCount(columns * 4);
   }, [columns]);
 
-  const accumulatedRows = useMemo(() => {
-    return accumulatedJobs as unknown as JobCardResultDTO[];
+  const allJobCollections = useMemo(() => {
+    const items = accumulatedJobs as unknown as JobCardResultDTO[];
+    if (!items.length) return [];
+    return items.map((item) => ({ company: item.company, jobs: [item.job] as JobDTO[] }));
   }, [accumulatedJobs]);
-
-  const displayedCollections = useMemo(() => {
-    const visibleRows = accumulatedRows.slice(0, visibleRowCount);
-    if (!visibleRows.length) return [];
-
-    const collectionsMap = new Map<string, { company: CompanyDTO | null; jobs: JobDTO[] }>();
-    for (const item of visibleRows) {
-      const companyKey = item.company?.companyId ?? "unknown";
-      const existing = collectionsMap.get(companyKey);
-      if (existing) {
-        existing.jobs.push(item.job);
-      } else {
-        collectionsMap.set(companyKey, { company: item.company, jobs: [item.job] });
-      }
-    }
-
-    return Array.from(collectionsMap.values());
-  }, [accumulatedRows, visibleRowCount]);
 
   const requestMoreForNavigation = useCallback(() => {
     if (revealLoading || isLoading) return;

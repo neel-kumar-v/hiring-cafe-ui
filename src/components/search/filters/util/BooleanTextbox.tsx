@@ -138,7 +138,7 @@ export function BooleanTextbox({
       } finally {
         setIsLoading(false);
       }
-    }, 150);
+    }, 200);
 
     return () => {
       controller.abort();

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
+import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -55,12 +56,12 @@ const JobCard = memo(({
   );
 
   const onHoverStart = useCallback(() => {
-    prefetch(currentJob._id);
-  }, [prefetch, currentJob._id]);
+    prefetch(getDetailsLookupId(currentJob));
+  }, [prefetch, currentJob]);
 
   const onHoverEnd = useCallback(() => {
-    cancel(currentJob._id);
-  }, [cancel, currentJob._id]);
+    cancel(getDetailsLookupId(currentJob));
+  }, [cancel, currentJob]);
 
   return (
     <CardSwipeIndicator

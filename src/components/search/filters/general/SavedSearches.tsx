@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/contexts/AppContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getEditedTags } from "@/lib/edited-filters";
 import type { CategoryId, SearchState } from "@/types/search";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { Calendar, Edit, Eye, Plus, Search } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AllFilter } from "../util/AllFilter";
 import FilterContainer from "../util/FilterContainer";
@@ -28,6 +29,10 @@ export default function SavedSearches() {
   const [editingId, setEditingId] = useState<Id<"savedSearches"> | null>(null);
   const [editingName, setEditingName] = useState("");
   const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
+
+  const hasEditedFilters = useMemo(() => {
+    return getEditedTags(searchOptions).size > 0;
+  }, [searchOptions]);
 
   const handleEditStart = (id: Id<"savedSearches">, name: string) => {
     setEditingId(id);
@@ -85,9 +90,11 @@ export default function SavedSearches() {
       categoryId="saved"
       title="Saved Searches"
       actions={
-        <Button size="sm" variant="outline" onClick={handleSaveSearch}>
-          <Plus className="size-4" /> Save Current Search
-        </Button>
+        hasEditedFilters ? (
+          <Button size="sm" variant="outline" onClick={handleSaveSearch}>
+            <Plus className="size-4" /> Save Current Search
+          </Button>
+        ) : null
       }
     >
       {!convexUser ? (

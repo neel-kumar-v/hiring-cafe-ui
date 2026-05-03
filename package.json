@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "concurrently -k -n next,convex -c blue,orange \"pnpm run dev:next\" \"pnpm run dev:convex\"",
+    "dev": "concurrently -k -n next,convex -c \"blue,red\" \"pnpm run dev:next\" \"pnpm run dev:convex\"",
     "dev:next": "next dev --turbopack",
     "dev:convex": "convex dev",
     "build": "next build",
@@ -64,10 +64,5 @@
     "tw-animate-css": "^1.3.4",
     "typescript": "^5",
     "ultracite": "5.0.29"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "convex@1.35.1": "patches/convex@1.35.1.patch"
-    }
   }
 }

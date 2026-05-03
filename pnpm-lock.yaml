@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  convex@1.35.1:
-    hash: 22b3736e40f98d6ca964ea8e5d18f907566a126768a4c2b621dfe3ad7f510a57
-    path: patches/convex@1.35.1.patch
-
 importers:
 
   .:
@@ -68,8 +63,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       convex:
-        specifier: ^1.35.1
-        version: 1.35.1(patch_hash=22b3736e40f98d6ca964ea8e5d18f907566a126768a4c2b621dfe3ad7f510a57)(react@19.2.5)
+        specifier: ^1.36.0
+        version: 1.36.1(react@19.2.5)
       lucide-react:
         specifier: ^0.515.0
         version: 0.515.0(react@19.2.5)
@@ -2290,14 +2285,14 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  convex@1.35.1:
-    resolution: {integrity: sha512-g23KrTjBiXqRHzWIN0PVFagKjrmFxWUaOSiBsAWPTpXX2rXl0L1F4PR0YpAcMJEzMgfZR9AGymJvLTM+KA6lsQ==}
+  convex@1.36.1:
+    resolution: {integrity: sha512-NVnwNqU+h8jyPuS0Itvj4MPH9c2yF+tA/RNoSDpCqiLhmYD4+kZxm0dDkVM0QDzz66wem9NqheBb9YQGsHwzBQ==}
     engines: {node: '>=18.0.0', npm: '>=7.0.0'}
     hasBin: true
     peerDependencies:
       '@auth0/auth0-react': ^2.0.1
       '@clerk/clerk-react': ^4.12.8 || ^5.0.0
-      '@clerk/react': ^6.0.0
+      '@clerk/react': ^6.4.3
       react: ^18.0.0 || ^19.0.0-0 || ^19.0.0
     peerDependenciesMeta:
       '@auth0/auth0-react':
@@ -5652,7 +5647,7 @@ snapshots:
       tree-kill: 1.2.2
       yargs: 17.7.2
 
-  convex@1.35.1(patch_hash=22b3736e40f98d6ca964ea8e5d18f907566a126768a4c2b621dfe3ad7f510a57)(react@19.2.5):
+  convex@1.36.1(react@19.2.5):
     dependencies:
       esbuild: 0.27.0
       prettier: 3.8.2
