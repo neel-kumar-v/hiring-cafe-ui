@@ -18,16 +18,6 @@ const JobCardContent = dynamic(() => import("./contents/JobCardContent"), {
   ssr: false
 });
 
-const JobDialogContent = dynamic(() => import("./contents/JobDialogContent"), {
-  loading: () => null,
-  ssr: false
-});
-
-const JobDrawerContent = dynamic(() => import("./contents/JobDrawerContent"), {
-  loading: () => null,
-  ssr: false
-});
-
 interface JobCardProps {
   jobCollection: { company: CompanyDTO | null; jobs: JobDTO[] };
   currentJob: JobDTO;
@@ -131,51 +121,56 @@ JobCard.displayName = "JobCard";
 
 interface JobBoardCardProps {
   jobCollection: { company: CompanyDTO | null; jobs: JobDTO[] };
+  collectionIndex: number;
+  currentJobIndex: number;
+  onJobIndexChange: (collectionIndex: number, nextJobIndex: number) => void;
+  onOpenJob: (collectionIndex: number, jobIndex: number) => void;
 }
 
-const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
-  const [currentJobIndex, setCurrentJobIndex] = useState(0);
+const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, onJobIndexChange, onOpenJob }: JobBoardCardProps) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const { isDesktop } = useResponsiveBreakpoint();
   const { addJob, removeJob, user } = useApp();
-    
-  const currentJob = useMemo(() => 
-    jobCollection.jobs[currentJobIndex], 
-    [jobCollection.jobs, currentJobIndex]
-  );
+
+  const safeIndex = useMemo(() => {
+    if (!jobCollection.jobs.length) return 0;
+    return Math.max(0, Math.min(currentJobIndex, jobCollection.jobs.length - 1));
+  }, [currentJobIndex, jobCollection.jobs.length]);
+
+  const currentJob = useMemo(() => jobCollection.jobs[safeIndex], [jobCollection.jobs, safeIndex]);
 
   const stableKey = useMemo(() => {
     return jobCollection.company?.companyId ?? jobCollection.company?._id ?? "unknown-company";
   }, [jobCollection.company]);
 
+  const setIndex = useCallback(
+    (nextIndex: number) => {
+      onJobIndexChange(collectionIndex, nextIndex);
+    },
+    [collectionIndex, onJobIndexChange]
+  );
+
   const handleNextJob = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentJobIndex(
-        (prevIndex) => (prevIndex + 1) % jobCollection.jobs.length
-      );
+      setIndex((safeIndex + 1) % jobCollection.jobs.length);
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
     }, 300);
-  }, [isTransitioning, jobCollection.jobs.length]);
+  }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
 
   const handlePreviousJob = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentJobIndex(
-        (prevIndex) =>
-          (prevIndex - 1 + jobCollection.jobs.length) %
-          jobCollection.jobs.length
-      );
+      setIndex((safeIndex - 1 + jobCollection.jobs.length) % jobCollection.jobs.length);
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
     }, 300);
-  }, [isTransitioning, jobCollection.jobs.length]);
+  }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
 
   const isBookmarked = useMemo(() => 
     user.saved.includes(currentJob.externalId) || 
@@ -230,86 +225,48 @@ const JobBoardCard = memo(({ jobCollection }: JobBoardCardProps) => {
     handleApplyToggle();
   }, [handleApplyToggle]);
 
-  const handleDrawerClose = useCallback(() => {
-    setDrawerOpen(false);
-  }, []);
-
-  const handleDrawerOpen = useCallback(() => {
-    setDrawerOpen(true);
-  }, []);
-
-
   const handleJobIndexChange = useCallback((index: number) => {
-    setCurrentJobIndex(index);
-  }, []);
+    setIndex(index);
+  }, [setIndex]);
 
-  if (!isDesktop) {
-    return (
-      <div key={`mobile-${stableKey}`}>
-        <JobCard
-          currentJob={currentJob}
-          currentJobIndex={currentJobIndex}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          isInterviewing={isInterviewing}
-          isTransitioning={isTransitioning}
-          jobCollection={jobCollection}
-          onBookmarkToggle={handleBookmarkToggle}
-          onClick={handleDrawerOpen}
-          onJobSelect={handleJobIndexChange}
-          onNext={handleNextJob}
-          onPrevious={handlePreviousJob}
-        />
-          <JobDrawerContent
-            currentJob={currentJob}
-            company={jobCollection.company}
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
-            onApplyToggle={handleApplyToggle}
-            onBookmarkToggle={handleBookmarkToggle}
-            onClose={handleDrawerClose}
-            open={drawerOpen}
-          />
-      </div>
-    );
-  }
+  const handleOpenJob = useCallback(() => {
+    onOpenJob(collectionIndex, safeIndex);
+  }, [collectionIndex, onOpenJob, safeIndex]);
+
+  const card = (
+    <JobCard
+      currentJob={currentJob}
+      currentJobIndex={safeIndex}
+      isApplied={isApplied}
+      isBookmarked={isBookmarked}
+      isInterviewing={isInterviewing}
+      isTransitioning={isTransitioning}
+      jobCollection={jobCollection}
+      onBookmarkToggle={handleBookmarkClick}
+      onClick={handleOpenJob}
+      onJobSelect={handleJobIndexChange}
+      onNext={handleNextJob}
+      onPrevious={handlePreviousJob}
+    />
+  );
 
   return (
-    <div key={`desktop-${stableKey}`}>
-      <CardContextMenuProvider
-        currentJob={currentJob}
-        company={jobCollection.company}
-        isApplied={isApplied}
-        isBookmarked={isBookmarked}
-        onApplyClick={handleApplyClick}
-        onBookmarkClick={handleBookmarkClick}
-        applyUrl={currentJob.applyUrl ?? ""}
-      >
-          <JobDialogContent
-            currentJob={currentJob}
-            company={jobCollection.company}
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
-            isInterviewing={isInterviewing}
-            onApplyToggle={handleApplyToggle}
-            onBookmarkToggle={handleBookmarkToggle}
-          >
-            <JobCard
-              currentJob={currentJob}
-              currentJobIndex={currentJobIndex}
-              isApplied={isApplied}
-              isBookmarked={isBookmarked}
-              isInterviewing={isInterviewing}
-              isTransitioning={isTransitioning}
-              jobCollection={jobCollection}
-              onBookmarkToggle={handleBookmarkClick}
-              onClick={handleDrawerOpen}
-              onJobSelect={handleJobIndexChange}
-              onNext={handleNextJob}
-              onPrevious={handlePreviousJob}
-            />
-          </JobDialogContent>
-      </CardContextMenuProvider>
+    <div key={`${isDesktop ? "desktop" : "mobile"}-${stableKey}`}>
+      {isDesktop ? (
+        <CardContextMenuProvider
+          currentJob={currentJob}
+          company={jobCollection.company}
+          isApplied={isApplied}
+          isBookmarked={isBookmarked}
+          onApplyClick={handleApplyClick}
+          onBookmarkClick={handleBookmarkClick}
+          applyUrl={currentJob.applyUrl ?? ""}
+        >
+          {card}
+        </CardContextMenuProvider>
+      ) : (
+        card
+      )}
     </div>
   );
 });

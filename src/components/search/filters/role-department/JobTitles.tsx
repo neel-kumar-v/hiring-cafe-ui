@@ -68,7 +68,7 @@ export default function JobTitles() {
         href="https://en.wikipedia.org/wiki/Full-text_search#Boolean_queries"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex flex-row items-center gap-1 mb-2 mt-[-12px]"
+        className="flex flex-row items-center gap-1 mb-2 -mt-3"
       >
         <span className="text-sm font-medium text-primary hover:underline">How does boolean search work?</span>
         <ArrowUpRight className="size-4 translate-y-px cursor-pointer text-primary" />
@@ -93,7 +93,7 @@ export default function JobTitles() {
                     },
                   })
                 }
-                placeholder={`Enter boolean search for ${label.toLowerCase()}`}
+                placeholder={``}
                 facet_type={facetType}
                 examples={examples}
               />

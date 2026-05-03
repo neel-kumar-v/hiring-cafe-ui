@@ -128,7 +128,7 @@ function SearchDialogContentInner({
 
   return (
     <div className="flex h-full min-h-0">
-      <div className="flex w-[220px] flex-col rounded-l-md border-r border-border bg-card">
+      <div className="flex w-[220px] flex-col rounded-l-md border-r border-border bg-background">
         <div className="p-2">
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -154,7 +154,7 @@ function SearchDialogContentInner({
                     className={cn(
                       "h-auto w-full justify-start rounded-none p-2 text-left text-foreground transition-colors duration-300 ease-in-out hover:bg-muted hover:transition-none",
                       isSelected &&
-                        "bg-primary text-primary-foreground hover:bg-primary/90"
+                        "bg-primary hover:bg-primary/90"
                     )}
                     onClick={() => handleHeaderClickWithScroll(category.type)}
                     variant={isSelected ? "default" : "ghost"}

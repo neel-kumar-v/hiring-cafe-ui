@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export function useMediaQuery(query: string): boolean {
 	const [matches, setMatches] = useState(false);
-	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const memoizedQuery = useMemo(() => query, [query]);
 
@@ -19,11 +19,13 @@ export function useMediaQuery(query: string): boolean {
 	}, []);
 
 	useEffect(() => {
+		if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+			return;
+		}
+
 		const media = window.matchMedia(memoizedQuery);
 		
-		if (media.matches !== matches) {
-			setMatches(media.matches);
-		}
+		setMatches(media.matches);
 
 		const listener = (event: MediaQueryListEvent) => {
 			updateMatches(event.target as MediaQueryList);
@@ -36,7 +38,7 @@ export function useMediaQuery(query: string): boolean {
 				clearTimeout(timeoutRef.current);
 			}
 		};
-	}, [memoizedQuery, matches, updateMatches]);
+	}, [memoizedQuery, updateMatches]);
 
 	return matches;
 }
@@ -44,8 +46,7 @@ export function useMediaQuery(query: string): boolean {
 export function useResponsiveBreakpoint() {
 	const [isDesktop, setIsDesktop] = useState(false);
 	const [isStable, setIsStable] = useState(true);
-	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-	const mediaQuery = useMemo(() => window.matchMedia("(min-width: 768px)"), []);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const updateBreakpoint = useCallback((matches: boolean) => {
 		if (timeoutRef.current) {
@@ -61,6 +62,11 @@ export function useResponsiveBreakpoint() {
 	}, []);
 
 	useEffect(() => {
+		if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+			return;
+		}
+
+		const mediaQuery = window.matchMedia("(min-width: 768px)");
 		setIsDesktop(mediaQuery.matches);
 
 		const listener = (event: MediaQueryListEvent) => {
@@ -74,7 +80,7 @@ export function useResponsiveBreakpoint() {
 				clearTimeout(timeoutRef.current);
 			}
 		};
-	}, [mediaQuery, updateBreakpoint]);
+	}, [updateBreakpoint]);
 
 	return { isDesktop, isStable };
 }

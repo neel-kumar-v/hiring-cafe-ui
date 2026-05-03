@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { decodeSearchExpression, parseSearchExpression } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import type { SearchExpression } from "@/types/search";
-import { Undo2 } from "lucide-react";
+import { Undo2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 
@@ -30,6 +30,18 @@ function normalizeExpressionText(value: string) {
 
 function emptyExpression(): SearchExpression<string> {
   return "" as SearchExpression<string>;
+}
+
+function toMentionInsertValue(opt: string) {
+  const trimmed = opt.trim();
+  if (!trimmed) return trimmed;
+  // If the suggestion contains whitespace, quote it so the boolean parser
+  // treats it as a single phrase instead of splitting into AND-ed tokens.
+  if (/\s/.test(trimmed)) {
+    const escaped = trimmed.replaceAll('"', '\\"');
+    return `"${escaped}"`;
+  }
+  return trimmed;
 }
 
 export function BooleanTextbox({
@@ -177,6 +189,14 @@ export function BooleanTextbox({
     setUndoPayload(null);
   };
 
+  const clear = () => {
+    flushSync(() => {
+      setText("");
+      onChange(emptyExpression());
+    });
+    setUndoPayload(null);
+  };
+
   const exampleEntries = examples ? Object.entries(examples) : [];
 
   return (
@@ -195,7 +215,7 @@ export function BooleanTextbox({
             className="**:data-tag:bg-transparent **:data-tag:text-inherit **:data-tag:rounded-none **:data-tag:p-0"
           >
             <MentionInput
-              className={cn("h-11 w-full", undoPayload && "pr-10")}
+              className={cn("h-11 w-full bg-card", undoPayload && "pr-10")}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onBlur={() => window.setTimeout(commit, 150)}
@@ -209,7 +229,7 @@ export function BooleanTextbox({
                   </MentionItem>
                 ) : null}
                 {displayedOptions.map((opt) => (
-                  <MentionItem key={opt} value={opt}>
+                  <MentionItem key={opt} value={toMentionInsertValue(opt)}>
                     {opt}
                   </MentionItem>
                 ))}
@@ -218,7 +238,7 @@ export function BooleanTextbox({
           </Mention>
         ) : (
           <Textarea
-            className={cn("w-full min-h-16", undoPayload && "pr-10")}
+            className={cn("w-full min-h-16 bg-card", undoPayload && "pr-10")}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onBlur={() => window.setTimeout(commit, 150)}
@@ -237,6 +257,18 @@ export function BooleanTextbox({
             aria-label="Undo example replace"
           >
             <Undo2 className="size-3.5" />
+          </Button>
+        ) : text.trim() ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute bottom-1.5 right-1.5 z-20 h-7 w-7 text-muted-foreground opacity-70 hover:bg-muted/60 hover:opacity-100"
+            onClick={clear}
+            title="Clear"
+            aria-label="Clear input"
+          >
+            <X className="size-3.5" />
           </Button>
         ) : null}
       </div>

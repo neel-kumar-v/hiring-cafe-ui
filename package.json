@@ -13,7 +13,8 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
-    "import-jobs-convex": "python scraper/scrape_to_convex.py"
+    "import-jobs-convex": "python scraper/scrape_to_convex.py",
+    "bench:convex-search": "npx tsx scripts/bench-convex-search.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",

@@ -20,6 +20,10 @@ export type CompanyIngest = {
 	activities: string[];
 };
 
+function normalizeLower(value: string): string {
+	return value.trim().toLowerCase();
+}
+
 async function getCompaniesCounterRow(ctx: any): Promise<Doc<"counters"> | null> {
 	return await ctx.db
 		.query("counters")
@@ -52,6 +56,7 @@ export async function upsertCompanyFromIngest(
 		companyId: input.companyId,
 		canonicalDomain: input.canonicalDomain,
 		name: input.name,
+		nameLower: normalizeLower(input.name),
 		homepageUri: input.homepageUri,
 		imageUrl: input.imageUrl,
 		tagline: input.tagline,

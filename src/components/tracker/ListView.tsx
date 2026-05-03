@@ -3,9 +3,11 @@
 import { Card } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
+import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
+import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import type { JobCardResultDTO } from "@/types/convexJobs";
 import dynamic from "next/dynamic";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ListJobCardContents } from "../job/contents";
 
 const JobDialogContent = dynamic(() => import("../job/contents/JobDialogContent"), {
@@ -17,6 +19,9 @@ const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"
   loading: () => null,
   ssr: false,
 });
+
+const NAV_FADE_OUT_MS = 300;
+const NAV_SETTLE_MS = 50;
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 
@@ -36,139 +41,210 @@ const ListViewJobCard = ({
   row: JobCardResultDTO;
   currentStage: JobCategory;
   onMoveJob?: (jobId: string, fromStatus: JobCategory, toStatus: JobCategory) => void;
-  onJobClick: (row: JobCardResultDTO) => void;
+  onJobClick: () => void;
 }) => {
-  const { isDesktop } = useResponsiveBreakpoint();
-  const { user } = useApp();
-  const job = row.job;
-
-  const isBookmarked = user.saved.includes(job.externalId) || user.applied.includes(job.externalId) || user.interviewing.includes(job.externalId);
-  const isApplied = user.applied.includes(job.externalId) || user.interviewing.includes(job.externalId);
-  const isInterviewing = user.interviewing.includes(job.externalId);
-
-  const handleBookmarkToggle = useCallback(() => {
-    if (isBookmarked) {
-      // Remove from all bookmark-related states
-      if (user.saved.includes(job.externalId)) onMoveJob?.(job.externalId, "saved", "hidden");
-      if (user.applied.includes(job.externalId)) onMoveJob?.(job.externalId, "applied", "hidden");
-      if (user.interviewing.includes(job.externalId)) onMoveJob?.(job.externalId, "interviewing", "hidden");
-    } else {
-      onMoveJob?.(job.externalId, currentStage, "saved");
-    }
-  }, [isBookmarked, user.saved, user.applied, user.interviewing, job.externalId, onMoveJob, currentStage]);
-
-  const handleApplyToggle = useCallback(() => {
-    if (isApplied) {
-      if (user.applied.includes(job.externalId)) onMoveJob?.(job.externalId, "applied", "saved");
-      if (user.interviewing.includes(job.externalId)) onMoveJob?.(job.externalId, "interviewing", "saved");
-    } else {
-      onMoveJob?.(job.externalId, currentStage, "applied");
-    }
-  }, [isApplied, user.applied, user.interviewing, job.externalId, onMoveJob, currentStage]);
-
   return (
-    <Card className="p-4 mb-3 border border-input hover:border-input/75 transition-all duration-300 ease-in-out shadow-none cursor-pointer">
-      {isDesktop ? (
-        <JobDialogContent
-          currentJob={job}
-          company={row.company}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          isInterviewing={isInterviewing}
-          onApplyToggle={handleApplyToggle}
-          onBookmarkToggle={handleBookmarkToggle}
-        >
-          <div onClick={() => onJobClick(row)}>
-            <ListJobCardContents job={job} company={row.company} currentStage={currentStage} onMoveJob={onMoveJob} />
-          </div>
-        </JobDialogContent>
-      ) : (
-        <div onClick={() => onJobClick(row)}>
-          <ListJobCardContents job={job} company={row.company} currentStage={currentStage} onMoveJob={onMoveJob} />
-        </div>
-      )}
+    <Card className="mb-3 cursor-pointer border border-input p-4 shadow-none transition-all duration-300 ease-in-out hover:border-input/75" onClick={onJobClick}>
+      <ListJobCardContents job={row.job} company={row.company} currentStage={currentStage} onMoveJob={onMoveJob} />
     </Card>
   );
 };
 
 const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: ListViewProps) => {
   const { isDesktop } = useResponsiveBreakpoint();
-  const [selectedJob, setSelectedJob] = useState<JobCardResultDTO | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useApp();
+  const { prefetch } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 2 });
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionInFlightRef = useRef(false);
 
-  const filteredJobs = jobs.filter(({ job }) => {
-    const status = getJobStatus(job.externalId);
-    return visibleCategories?.[status] ?? true;
-  });
+  const filteredJobs = useMemo(
+    () =>
+      jobs.filter(({ job }) => {
+        const status = getJobStatus(job.externalId);
+        return visibleCategories?.[status] ?? true;
+      }),
+    [getJobStatus, jobs, visibleCategories]
+  );
+
+  useEffect(() => {
+    if (!filteredJobs.length) {
+      setSelectedIndex(null);
+      setDialogOpen(false);
+      setDrawerOpen(false);
+      return;
+    }
+    if (selectedIndex === null) return;
+    if (selectedIndex >= filteredJobs.length) {
+      setSelectedIndex(filteredJobs.length - 1);
+    }
+  }, [filteredJobs, selectedIndex]);
+
+  useEffect(() => {
+    if (isDesktop) {
+      setDrawerOpen(false);
+      return;
+    }
+    setDialogOpen(false);
+  }, [isDesktop]);
+
+  const selectedRow = selectedIndex === null ? null : filteredJobs[selectedIndex] ?? null;
+
+  const runNavigationTransition = useCallback(
+    async (navigate: () => void) => {
+      if (transitionInFlightRef.current) return;
+      transitionInFlightRef.current = true;
+      setIsTransitioning(true);
+      try {
+        await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
+        navigate();
+        await new Promise((resolve) => window.setTimeout(resolve, NAV_SETTLE_MS));
+      } finally {
+        transitionInFlightRef.current = false;
+        setIsTransitioning(false);
+      }
+    },
+    []
+  );
+
+  const navigateToIndex = useCallback(
+    (nextIndex: number) => {
+      if (!filteredJobs.length) return;
+      const wrappedIndex = (nextIndex + filteredJobs.length) % filteredJobs.length;
+      setSelectedIndex(wrappedIndex);
+    },
+    [filteredJobs.length]
+  );
 
   const handleJobClick = useCallback(
-    (row: JobCardResultDTO) => {
-      setSelectedJob(row);
-      if (!isDesktop) {
-        setDrawerOpen(true);
-      }
+    (index: number) => {
+      setSelectedIndex(index);
+      if (isDesktop) setDialogOpen(true);
+      else setDrawerOpen(true);
     },
     [isDesktop]
   );
 
-  const handleDrawerClose = useCallback(() => {
-    setDrawerOpen(false);
-    setSelectedJob(null);
-  }, []);
+  const handlePrevious = useCallback(async () => {
+    if (!filteredJobs.length || selectedIndex === null) return;
+    await runNavigationTransition(() => navigateToIndex(selectedIndex - 1));
+  }, [filteredJobs.length, navigateToIndex, runNavigationTransition, selectedIndex]);
+
+  const handleNext = useCallback(async () => {
+    if (!filteredJobs.length || selectedIndex === null) return;
+    await runNavigationTransition(() => navigateToIndex(selectedIndex + 1));
+  }, [filteredJobs.length, navigateToIndex, runNavigationTransition, selectedIndex]);
+
+  const handlePreviousHover = useCallback(() => {
+    if (!filteredJobs.length || selectedIndex === null) return;
+    const previousIndex = (selectedIndex - 1 + filteredJobs.length) % filteredJobs.length;
+    prefetch(getDetailsLookupId(filteredJobs[previousIndex].job));
+  }, [filteredJobs, prefetch, selectedIndex]);
+
+  const handleNextHover = useCallback(() => {
+    if (!filteredJobs.length || selectedIndex === null) return;
+    const nextIndex = (selectedIndex + 1) % filteredJobs.length;
+    prefetch(getDetailsLookupId(filteredJobs[nextIndex].job));
+  }, [filteredJobs, prefetch, selectedIndex]);
 
   const isBookmarked = useMemo(
-    () => (selectedJob ? user.saved.includes(selectedJob.job.externalId) || user.applied.includes(selectedJob.job.externalId) || user.interviewing.includes(selectedJob.job.externalId) : false),
-    [user.saved, user.applied, user.interviewing, selectedJob]
+    () =>
+      selectedRow
+        ? user.saved.includes(selectedRow.job.externalId) ||
+          user.applied.includes(selectedRow.job.externalId) ||
+          user.interviewing.includes(selectedRow.job.externalId)
+        : false,
+    [selectedRow, user.applied, user.interviewing, user.saved]
   );
 
   const isApplied = useMemo(
-    () => (selectedJob ? user.applied.includes(selectedJob.job.externalId) || user.interviewing.includes(selectedJob.job.externalId) : false),
-    [user.applied, user.interviewing, selectedJob]
+    () => (selectedRow ? user.applied.includes(selectedRow.job.externalId) || user.interviewing.includes(selectedRow.job.externalId) : false),
+    [selectedRow, user.applied, user.interviewing]
   );
 
-  const handleBookmarkToggle = useCallback(() => {
-    if (!selectedJob) return;
+  const isInterviewing = useMemo(() => (selectedRow ? user.interviewing.includes(selectedRow.job.externalId) : false), [selectedRow, user.interviewing]);
 
+  const handleBookmarkToggle = useCallback(() => {
+    if (!selectedRow) return;
+    const jobId = selectedRow.job.externalId;
     if (isBookmarked) {
-      // Remove from all bookmark-related states
-      if (user.saved.includes(selectedJob.job.externalId)) onMoveJob?.(selectedJob.job.externalId, "saved", "hidden");
-      if (user.applied.includes(selectedJob.job.externalId)) onMoveJob?.(selectedJob.job.externalId, "applied", "hidden");
-      if (user.interviewing.includes(selectedJob.job.externalId)) onMoveJob?.(selectedJob.job.externalId, "interviewing", "hidden");
-    } else {
-      onMoveJob?.(selectedJob.job.externalId, getJobStatus(selectedJob.job.externalId), "saved");
+      if (user.saved.includes(jobId)) onMoveJob?.(jobId, "saved", "hidden");
+      if (user.applied.includes(jobId)) onMoveJob?.(jobId, "applied", "hidden");
+      if (user.interviewing.includes(jobId)) onMoveJob?.(jobId, "interviewing", "hidden");
+      return;
     }
-  }, [isBookmarked, user.saved, user.applied, user.interviewing, selectedJob, onMoveJob, getJobStatus]);
+    onMoveJob?.(jobId, getJobStatus(jobId), "saved");
+  }, [getJobStatus, isBookmarked, onMoveJob, selectedRow, user.applied, user.interviewing, user.saved]);
 
   const handleApplyToggle = useCallback(() => {
-    if (!selectedJob) return;
-
+    if (!selectedRow) return;
+    const jobId = selectedRow.job.externalId;
     if (isApplied) {
-      if (user.applied.includes(selectedJob.job.externalId)) onMoveJob?.(selectedJob.job.externalId, "applied", "saved");
-      if (user.interviewing.includes(selectedJob.job.externalId)) onMoveJob?.(selectedJob.job.externalId, "interviewing", "saved");
-    } else {
-      onMoveJob?.(selectedJob.job.externalId, getJobStatus(selectedJob.job.externalId), "applied");
+      if (user.applied.includes(jobId)) onMoveJob?.(jobId, "applied", "saved");
+      if (user.interviewing.includes(jobId)) onMoveJob?.(jobId, "interviewing", "saved");
+      return;
     }
-  }, [isApplied, user.applied, user.interviewing, selectedJob, onMoveJob, getJobStatus]);
+    onMoveJob?.(jobId, getJobStatus(jobId), "applied");
+  }, [getJobStatus, isApplied, onMoveJob, selectedRow, user.applied, user.interviewing]);
 
   return (
     <div className="h-full overflow-y-auto">
-      {filteredJobs.map((row) => (
-        <ListViewJobCard key={row.job.externalId} row={row} currentStage={getJobStatus(row.job.externalId)} onMoveJob={onMoveJob} onJobClick={handleJobClick} />
+      {filteredJobs.map((row, index) => (
+        <ListViewJobCard
+          key={row.job.externalId}
+          row={row}
+          currentStage={getJobStatus(row.job.externalId)}
+          onJobClick={() => handleJobClick(index)}
+          onMoveJob={onMoveJob}
+        />
       ))}
 
-      {selectedJob && !isDesktop && (
-        <JobDrawerContent
-          currentJob={selectedJob.job}
-          company={selectedJob.company}
+      {isDesktop && selectedRow ? (
+        <JobDialogContent
+          company={selectedRow.company}
+          currentJob={selectedRow.job}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
+          isInterviewing={isInterviewing}
+          isTransitioning={isTransitioning}
           onApplyToggle={handleApplyToggle}
           onBookmarkToggle={handleBookmarkToggle}
-          onClose={handleDrawerClose}
+          onOpenChange={setDialogOpen}
+          open={dialogOpen}
+          outsideNavigation={{
+            onPrevious: handlePrevious,
+            onNext: handleNext,
+            onPreviousHover: handlePreviousHover,
+            onNextHover: handleNextHover,
+            canGoPrevious: filteredJobs.length > 1,
+            canGoNext: filteredJobs.length > 1,
+            previousAriaLabel: "Previous list job",
+            nextAriaLabel: "Next list job",
+          }}
+        />
+      ) : null}
+
+      {!isDesktop && selectedRow ? (
+        <JobDrawerContent
+          company={selectedRow.company}
+          currentJob={selectedRow.job}
+          isApplied={isApplied}
+          isBookmarked={isBookmarked}
+          isTransitioning={isTransitioning}
+          navigation={{
+            onPrevious: handlePrevious,
+            onNext: handleNext,
+            canGoPrevious: filteredJobs.length > 1,
+            canGoNext: filteredJobs.length > 1,
+          }}
+          onApplyToggle={handleApplyToggle}
+          onBookmarkToggle={handleBookmarkToggle}
+          onClose={() => setDrawerOpen(false)}
           open={drawerOpen}
         />
-      )}
+      ) : null}
     </div>
   );
 });

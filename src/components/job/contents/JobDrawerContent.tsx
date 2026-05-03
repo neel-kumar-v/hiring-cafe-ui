@@ -1,13 +1,24 @@
 import { DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useQuery } from "convex/react";
+import type { TouchEvent } from "react";
+import { useCallback, useState } from "react";
 import { DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 import { DialogActionButtons } from "../dialog/DialogFooter";
 import DialogResponsibilities from "../dialog/DialogResponsibilities";
 import { api } from "../../../../convex/_generated/api";
+
+export interface JobDrawerNavigationProps {
+  onPrevious: () => void | Promise<void>;
+  onNext: () => void | Promise<void>;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
+}
 
 const JobDrawerContent = ({
   currentJob,
@@ -18,6 +29,8 @@ const JobDrawerContent = ({
   onApplyToggle,
   open,
   onClose,
+  navigation,
+  isTransitioning = false,
 }: {
   currentJob: JobDTO;
   company: CompanyDTO | null;
@@ -27,8 +40,58 @@ const JobDrawerContent = ({
   onApplyToggle: () => void;
   open: boolean;
   onClose: () => void;
+  navigation?: JobDrawerNavigationProps;
+  isTransitioning?: boolean;
 }) => {
-  const details = useQuery(api.jobs.getDetails, open ? { jobId: currentJob._id as any } : "skip") as unknown as JobDetailsResultDTO | null;
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [hasHorizontalSwipe, setHasHorizontalSwipe] = useState(false);
+
+  const handleTouchStart = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setHasHorizontalSwipe(false);
+  }, []);
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent<HTMLDivElement>) => {
+      if (!touchStart || !navigation) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStart.x;
+      const deltaY = touch.clientY - touchStart.y;
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 20) {
+        setHasHorizontalSwipe(true);
+      }
+    },
+    [navigation, touchStart]
+  );
+
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent<HTMLDivElement>) => {
+      if (!touchStart || !navigation) return;
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStart.x;
+      const deltaY = touch.clientY - touchStart.y;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        if (deltaX < 0 && navigation.canGoNext !== false) {
+          void navigation.onNext();
+        }
+        if (deltaX > 0 && navigation.canGoPrevious !== false) {
+          void navigation.onPrevious();
+        }
+      }
+
+      setTouchStart(null);
+      if (hasHorizontalSwipe) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      setHasHorizontalSwipe(false);
+    },
+    [hasHorizontalSwipe, navigation, touchStart]
+  );
+
+  const details = useQuery(api.jobs.getDetails, open ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as JobDetailsResultDTO | null;
   const job = details?.job ?? currentJob;
   const detailsDoc = details?.details ?? null;
   const companyDoc = details?.company ?? company;
@@ -76,7 +139,12 @@ const JobDrawerContent = ({
   };
 
   return (
-    <Drawer onOpenChange={onClose} open={open}>
+    <Drawer
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+      open={open}
+    >
       <DrawerContent className="w-full max-w-full rounded-t-xl">
         <VisuallyHidden>
           <DialogTitle>Job Details</DialogTitle>
@@ -91,7 +159,12 @@ const JobDrawerContent = ({
             companyUrl={companyData.website}
           />
         </div>
-        <div className="space-y-4 overflow-y-auto p-4">
+        <div
+          className={cn("space-y-4 overflow-y-auto p-4 transition-opacity duration-300 ease-in-out", isTransitioning ? "opacity-0" : "opacity-100")}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
+          onTouchStart={handleTouchStart}
+        >
           <DialogJobTitle
             companyName={companyData.name}
             jobTitle={job.title}

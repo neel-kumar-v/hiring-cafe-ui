@@ -1,13 +1,27 @@
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useQuery } from "convex/react";
-import { X } from "lucide-react";
-import React from "react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import React, { useCallback } from "react";
 import { api } from "../../../../convex/_generated/api";
+import type { DialogFooterNavigationProps } from "../dialog/DialogFooter";
 import { DialogBadges, DialogFooter, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills, DialogStats } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 import DialogResponsibilities from "../dialog/DialogResponsibilities";
+
+export interface JobDialogOutsideNavigationProps {
+  onPrevious: () => void | Promise<void>;
+  onNext: () => void | Promise<void>;
+  onPreviousHover?: () => void;
+  onNextHover?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
+  previousAriaLabel?: string;
+  nextAriaLabel?: string;
+}
 
 interface JobDialogContentProps {
   currentJob: JobDTO;
@@ -17,13 +31,46 @@ interface JobDialogContentProps {
   isInterviewing: boolean;
   onBookmarkToggle: () => void;
   onApplyToggle: () => void;
-  children: React.ReactNode; // This will be the trigger element
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+  isTransitioning?: boolean;
+  footerNavigation?: DialogFooterNavigationProps;
+  outsideNavigation?: JobDialogOutsideNavigationProps;
 }
 
-const JobDialogContent = ({ currentJob, company, isBookmarked, isApplied, isInterviewing, onBookmarkToggle, onApplyToggle, children, scrollContainerRef }: JobDialogContentProps) => {
-  const [open, setOpen] = React.useState(false);
-  const details = useQuery(api.jobs.getDetails, open ? { jobId: currentJob._id as any } : "skip") as unknown as JobDetailsResultDTO | null;
+const JobDialogContent = ({
+  currentJob,
+  company,
+  isBookmarked,
+  isApplied,
+  isInterviewing,
+  onBookmarkToggle,
+  onApplyToggle,
+  children,
+  open,
+  onOpenChange,
+  scrollContainerRef,
+  isTransitioning = false,
+  footerNavigation,
+  outsideNavigation,
+}: JobDialogContentProps) => {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const isControlled = typeof open === "boolean";
+  const dialogOpen = isControlled ? open : internalOpen;
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(nextOpen);
+      }
+      onOpenChange?.(nextOpen);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  const details = useQuery(api.jobs.getDetails, dialogOpen ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as JobDetailsResultDTO | null;
   const job = details?.job ?? currentJob;
   const detailsDoc = details?.details ?? null;
   const companyDoc = details?.company ?? company;
@@ -94,60 +141,63 @@ const JobDialogContent = ({ currentJob, company, isBookmarked, isApplied, isInte
 
   const dialogContent = (
     <div className="relative p-8 pt-16">
-      <DialogStats
-        appliedCount={job.applies}
-        isApplied={isApplied}
-        isBookmarked={isBookmarked}
-        isInterviewing={isInterviewing}
-        onBookmarkClick={handleBookmarkClick}
-        publishDate={processed.estimated_publish_date}
-        savedCount={job.saves}
-        viewedCount={job.views}
-        applyUrl={job.applyUrl ?? ""}
-      />
+      <div className={cn("transition-opacity duration-300 ease-in-out", isTransitioning ? "opacity-0" : "opacity-100")}>
+        <DialogStats
+          appliedCount={job.applies}
+          isApplied={isApplied}
+          isBookmarked={isBookmarked}
+          isInterviewing={isInterviewing}
+          onBookmarkClick={handleBookmarkClick}
+          publishDate={processed.estimated_publish_date}
+          savedCount={job.saves}
+          viewedCount={job.views}
+          applyUrl={job.applyUrl ?? ""}
+        />
 
-      <DialogJobTitle
-        companyName={companyData.name}
-        jobTitle={job.title}
-        workplaceCities={processed.workplace_cities ?? []}
-        tools={processed.technical_tools ?? []}
-      />
+        <DialogJobTitle
+          companyName={companyData.name}
+          jobTitle={job.title}
+          workplaceCities={processed.workplace_cities ?? []}
+          tools={processed.technical_tools ?? []}
+        />
 
-      <DialogBadges
-        commitments={processed.commitment ?? []}
-        compensation={compensation}
-        workplaceCities={processed.workplace_cities ?? []}
-        workType={processed.workplace_type ?? ""}
-      />
+        <DialogBadges
+          commitments={processed.commitment ?? []}
+          compensation={compensation}
+          workplaceCities={processed.workplace_cities ?? []}
+          workType={processed.workplace_type ?? ""}
+        />
 
-      <DialogCompanyLogoCard companyData={companyData} />
+        <DialogCompanyLogoCard companyData={companyData} />
 
-      <DialogResponsibilities roleActivities={processed.role_activities ?? []} />
+        <DialogResponsibilities roleActivities={processed.role_activities ?? []} />
 
-      <DialogRequirements
-        requirementsSummary={processed.requirements_summary ?? ""}
-        minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
-        minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
-      />
+        <DialogRequirements
+          requirementsSummary={processed.requirements_summary ?? ""}
+          minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
+          minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
+        />
 
-      <DialogSkills technicalTools={processed.technical_tools ?? []} />
+        <DialogSkills technicalTools={processed.technical_tools ?? []} />
 
-      <DialogJobDescription description={detailsDoc?.description ?? ""} />
+        <DialogJobDescription description={detailsDoc?.description ?? ""} />
 
-      <DialogFooter
-        isApplied={isApplied}
-        isBookmarked={isBookmarked}
-        onApplyToggle={onApplyToggle}
-        onBookmarkToggle={onBookmarkToggle}
-        applyUrl={job.applyUrl ?? ""}
-        companyWebsite={companyData.website}
-      />
+        <DialogFooter
+          isApplied={isApplied}
+          isBookmarked={isBookmarked}
+          onApplyToggle={onApplyToggle}
+          onBookmarkToggle={onBookmarkToggle}
+          applyUrl={job.applyUrl ?? ""}
+          companyWebsite={companyData.website}
+          navigation={footerNavigation}
+        />
+      </div>
     </div>
   );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog onOpenChange={handleOpenChange} open={dialogOpen}>
+      {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
       <DialogContent showCloseButton={false} className="h-[90vh] w-[900px]  min-w-[60vw] max-w-[90vw] border border-border/60 bg-background p-0 dark:border-border dark:bg-card">
         <VisuallyHidden>
           <DialogTitle>Job Details</DialogTitle>
@@ -156,6 +206,36 @@ const JobDialogContent = ({ currentJob, company, isBookmarked, isApplied, isInte
           <X className="size-4" />
           <span className="sr-only">Close</span>
         </DialogClose>
+        {outsideNavigation ? (
+          <>
+            <button
+              aria-label={outsideNavigation.previousAriaLabel ?? "Previous job group"}
+              className={cn(
+                "absolute top-1/2 -left-16 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-border/70 bg-background/95 text-foreground shadow-lg backdrop-blur-sm transition-colors hover:bg-accent md:flex",
+                outsideNavigation.canGoPrevious === false && "cursor-not-allowed opacity-40 hover:bg-background/95"
+              )}
+              disabled={outsideNavigation.canGoPrevious === false}
+              onClick={() => void outsideNavigation.onPrevious()}
+              onMouseEnter={outsideNavigation.onPreviousHover}
+              type="button"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              aria-label={outsideNavigation.nextAriaLabel ?? "Next job group"}
+              className={cn(
+                "absolute top-1/2 -right-16 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-border/70 bg-background/95 text-foreground shadow-lg backdrop-blur-sm transition-colors hover:bg-accent md:flex",
+                outsideNavigation.canGoNext === false && "cursor-not-allowed opacity-40 hover:bg-background/95"
+              )}
+              disabled={outsideNavigation.canGoNext === false}
+              onClick={() => void outsideNavigation.onNext()}
+              onMouseEnter={outsideNavigation.onNextHover}
+              type="button"
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          </>
+        ) : null}
         <div className="h-full overflow-y-auto" ref={scrollContainerRef}>
           {dialogContent}
         </div>
