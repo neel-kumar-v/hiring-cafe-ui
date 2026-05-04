@@ -1,14 +1,110 @@
-﻿{
-    "companies":  {
-                      "updatedAt":  "2026-04-23T03:40:00.0652406-05:00",
-                      "done":  true,
-                      "total":  21845,
-                      "nextStart":  22000
-                  },
-    "industries":  {
-                       "updatedAt":  "2026-04-23T03:48:00.1782688-05:00",
-                       "done":  false,
-                       "total":  10860,
-                       "nextStart":  10600
-                   }
+{
+  "companies": {
+    "updatedAt": "2026-04-23T03:40:00.0652406-05:00",
+    "done": true,
+    "total": 21845,
+    "nextStart": 22000
+  },
+  "industries": {
+    "total": 10860,
+    "updatedAt": "2026-05-03T14:59:00.7378293-05:00",
+    "nextStart": 11000,
+    "done": true
+  },
+  "company_activities": {
+    "total": 36607,
+    "updatedAt": "2026-05-03T15:12:38.5242662-05:00",
+    "nextStart": 36800,
+    "done": true
+  },
+  "currencies": {
+    "total": 247,
+    "updatedAt": "2026-05-03T15:12:48.2316405-05:00",
+    "nextStart": 400,
+    "done": true
+  },
+  "languages": {
+    "total": 772,
+    "updatedAt": "2026-05-03T15:13:07.8388843-05:00",
+    "nextStart": 800,
+    "done": true
+  },
+  "licenses": {
+    "total": 43852,
+    "updatedAt": "2026-05-03T16:01:15.6779515-05:00",
+    "nextStart": 44000,
+    "done": true
+  },
+  "investors": {
+    "total": 36379,
+    "updatedAt": "2026-05-03T16:16:34.7831143-05:00",
+    "nextStart": 36400,
+    "done": true
+  },
+  "round_types": {
+    "total": 24,
+    "updatedAt": "2026-05-03T16:16:49.4742065-05:00",
+    "nextStart": 200,
+    "done": true
+  },
+  "job_title": {
+    "total": 40146,
+    "updatedAt": "2026-05-03T16:41:39.1714018-05:00",
+    "nextStart": 40200,
+    "done": true
+  },
+  "technology_keywords": {
+    "total": 61272,
+    "updatedAt": "2026-05-03T17:21:56.3299645-05:00",
+    "nextStart": 61350,
+    "done": true
+  },
+  "description_keywords": {
+    "total": 61272,
+    "updatedAt": "2026-05-03T17:42:30.3635535-05:00",
+    "nextStart": 61400,
+    "done": true
+  },
+  "requirements_keywords": {
+    "total": 61272,
+    "done": true,
+    "updatedAt": "2026-05-04T14:11:51.9382719-05:00",
+    "nextStart": 61400
+  },
+  "bachelors_degree_titles": {
+    "total": 25070,
+    "done": true,
+    "updatedAt": "2026-05-04T14:21:08.9421723-05:00",
+    "nextStart": 25200
+  },
+  "associate_fields": {
+    "total": 11392,
+    "done": true,
+    "updatedAt": "2026-05-04T14:24:56.0759148-05:00",
+    "nextStart": 11400
+  },
+  "bachelor_fields": {
+    "total": 25070,
+    "done": true,
+    "updatedAt": "2026-05-04T14:33:16.6090335-05:00",
+    "nextStart": 25200
+  },
+  "master_fields": {
+    "total": 16235,
+    "done": true,
+    "updatedAt": "2026-05-04T14:38:46.6073180-05:00",
+    "nextStart": 16400
+  },
+  "doctorate_fields": {
+    "total": 6014,
+    "done": true,
+    "updatedAt": "2026-05-04T14:40:47.7798853-05:00",
+    "nextStart": 6200
+  },
+  "company_hq_country": {
+    "total": 204,
+    "done": true,
+    "updatedAt": "2026-05-04T14:40:55.4426208-05:00",
+    "nextStart": 400
+  }
 }

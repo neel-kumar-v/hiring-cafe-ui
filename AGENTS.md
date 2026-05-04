@@ -30,6 +30,8 @@ Path alias: `@/*` → `src/*`.
 
 Do **not** run `pnpm run dev` unless the user asks (redundant for agents).
 
+Do **not** delete local convex state unless explicitly asked.
+
 ## Agent notes
 
 - Prefer `pnpm run typecheck` in a loop while editing; avoid `build` for that.

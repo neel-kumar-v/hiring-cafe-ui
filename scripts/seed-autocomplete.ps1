@@ -12,13 +12,15 @@ param(
     "round_types",
     "job_title",
     "technology_keywords",
+    "description_keywords",
+    "requirements_keywords",
     "bachelors_degree_titles",
     "associate_fields",
     "bachelor_fields",
     "master_fields",
     "doctorate_fields",
-    "company_hq_country",
-    "scrape_state"
+    "company_hq_country"
+    # "scrape_state"
   )
 )
 
@@ -54,22 +56,70 @@ function Invoke-SeedBatch {
     [Parameter(Mandatory = $true)][int]$Count
   )
 
-  # Convex CLI expects a JSON-ish argument string. In Windows PowerShell, passing
-  # literal quotes can get tricky, so we pass a JSON string with escaped quotes.
-  # Example: {\"type\":\"currencies\",\"start\":0,\"count\":10}
-  $payload = '{{\"type\":\"{0}\",\"start\":{1},\"count\":{2}}}' -f $Type, $Start, $Count
+  # Build a real JSON object argument for Convex CLI (no manual escaping).
+  $payload = @{
+    type = $Type
+    start = $Start
+    count = $Count
+  } | ConvertTo-Json -Compress
 
-  # Use the call operator so JSON stays a single argument on Windows PowerShell.
-  $raw = & npx -y convex run --push "convex/autocompleteSeed:seedBatch" $payload
-
+  # Capture output and surface CLI errors directly.
+  $raw = & npx -y convex run --push "convex/autocompleteSeed:seedBatch" $payload 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    throw ("convex run failed for type='{0}' start={1} count={2}: {3}" -f $Type, $Start, $Count, ($raw -join [Environment]::NewLine))
+  }
   if (-not $raw) {
     throw "No output from convex run. Ensure Convex is configured and reachable."
   }
 
+  $text = ($raw -join [Environment]::NewLine)
+  # Strip ANSI color sequences and odd control chars from spinner output.
+  $text = [Regex]::Replace($text, "\x1B\[[0-9;]*[A-Za-z]", "")
+  $text = [Regex]::Replace($text, "[\u0000-\u0008\u000B\u000C\u000E-\u001F]", "")
+
+  $firstBrace = $text.IndexOf("{")
+  $lastBrace = $text.LastIndexOf("}")
+  if ($firstBrace -ge 0 -and $lastBrace -gt $firstBrace) {
+    $jsonCandidate = $text.Substring($firstBrace, $lastBrace - $firstBrace + 1)
+    try {
+      return $jsonCandidate | ConvertFrom-Json
+    } catch {
+      # Fall through to key-value parsing below.
+    }
+  }
+
+  # Fallback parser: handles both JSON (`"key": value`) and object-literal (`key: value`) output.
+  $patterns = @{
+    done      = '(?im)"?done"?\s*:\s*(true|false)'
+    inserted  = '(?im)"?inserted"?\s*:\s*(\d+)'
+    nextStart = '(?im)"?nextStart"?\s*:\s*(\d+)'
+    processed = '(?im)"?processed"?\s*:\s*(\d+)'
+    start     = '(?im)"?start"?\s*:\s*(\d+)'
+    total     = '(?im)"?total"?\s*:\s*(\d+)'
+    type      = '(?im)"?type"?\s*:\s*["'']?([A-Za-z0-9_]+)["'']?'
+  }
+
+  $parsed = [ordered]@{}
+  foreach ($k in $patterns.Keys) {
+    $m = [Regex]::Match($text, $patterns[$k])
+    if (-not $m.Success) {
+      throw "Failed to parse Convex result field '$k' from output: $text"
+    }
+    $parsed[$k] = $m.Groups[1].Value
+  }
+
   try {
-    return $raw | ConvertFrom-Json
+    return [pscustomobject]@{
+      done = [bool]::Parse($parsed.done)
+      inserted = [int]$parsed.inserted
+      nextStart = [int]$parsed.nextStart
+      processed = [int]$parsed.processed
+      start = [int]$parsed.start
+      total = [int]$parsed.total
+      type = [string]$parsed.type
+    }
   } catch {
-    throw "Failed to parse JSON from convex run output: $raw"
+    throw "Failed to parse Convex seed output: $text"
   }
 }
 
@@ -100,12 +150,60 @@ foreach ($t0 in $Types) {
     $start = [int]$prev.nextStart
   }
 
+  $adaptiveBatchSize = $BatchSize
+  $successesAtReducedSize = 0
   while ($true) {
-    $result = Invoke-SeedBatch -Type $t -Start $start -Count $BatchSize
+    $result = $null
+    $attemptBatchSize = $adaptiveBatchSize
+    $hitTimeoutThisRound = $false
+    while ($true) {
+      try {
+        $result = Invoke-SeedBatch -Type $t -Start $start -Count $attemptBatchSize
+        break
+      } catch {
+        $msg = $_.Exception.Message
+        $isTimeout =
+          $msg -match "SystemTimeoutError" -or
+          $msg -match "request timed out" -or
+          $msg -match "execution timed out" -or
+          $msg -match "timed out"
+
+        if (-not $isTimeout -or $attemptBatchSize -le 1) {
+          throw
+        }
+
+        $hitTimeoutThisRound = $true
+        $successesAtReducedSize = 0
+        $nextAttemptBatchSize = [Math]::Max(1, [int][Math]::Floor($attemptBatchSize / 2))
+        if ($nextAttemptBatchSize -ge $attemptBatchSize) {
+          $nextAttemptBatchSize = $attemptBatchSize - 1
+        }
+        Write-Host ("Timeout at start={0} with count={1}; retrying with count={2}" -f $start, $attemptBatchSize, $nextAttemptBatchSize) -ForegroundColor Yellow
+        $attemptBatchSize = $nextAttemptBatchSize
+      }
+    }
+
+    # Keep using the smaller size for this type once we hit a timeout.
+    $adaptiveBatchSize = $attemptBatchSize
+    if ($adaptiveBatchSize -lt $BatchSize) {
+      if (-not $hitTimeoutThisRound) {
+        $successesAtReducedSize++
+        if ($successesAtReducedSize -ge 5) {
+          $nextAdaptive = [Math]::Min($BatchSize, $adaptiveBatchSize * 2)
+          if ($nextAdaptive -gt $adaptiveBatchSize) {
+            Write-Host ("Stable for 5 batches at count={0}; trying count={1}" -f $adaptiveBatchSize, $nextAdaptive) -ForegroundColor DarkYellow
+            $adaptiveBatchSize = $nextAdaptive
+          }
+          $successesAtReducedSize = 0
+        }
+      }
+    } else {
+      $successesAtReducedSize = 0
+    }
 
     $inserted = if ($null -ne $result.inserted) { [int]$result.inserted } else { 0 }
     $processed = if ($null -ne $result.processed) { [int]$result.processed } else { 0 }
-    $nextStart = if ($null -ne $result.nextStart) { [int]$result.nextStart } else { ($start + $BatchSize) }
+    $nextStart = if ($null -ne $result.nextStart) { [int]$result.nextStart } else { ($start + $adaptiveBatchSize) }
     $total = if ($null -ne $result.total) { [int]$result.total } else { 0 }
     $done = if ($null -ne $result.done) { [bool]$result.done } else { $false }
 
