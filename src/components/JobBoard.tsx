@@ -38,7 +38,7 @@ function formatRoundedNumber(value: number, round = 3) {
 }
 
 function getCollectionKey(collection: JobCollection, index: number) {
-  return collection.company?.companyId ?? collection.company?._id ?? `unknown-${index}`;
+  return collection.company?.companyId ?? collection.company?._id ?? collection.jobs[0]?.companyId ?? `unknown-${index}`;
 }
 
 const JobBoard = ({
@@ -103,11 +103,27 @@ const JobBoard = ({
     setVisibleRowCount(columns * 4);
   }, [columns]);
 
-  const allJobCollections = useMemo(() => {
-    const items = accumulatedJobs as unknown as JobCardResultDTO[];
-    if (!items.length) return [];
-    return items.map((item) => ({ company: item.company, jobs: [item.job] as JobDTO[] }));
+  const accumulatedRows = useMemo(() => {
+    return accumulatedJobs as unknown as JobCardResultDTO[];
   }, [accumulatedJobs]);
+
+  const displayedCollections = useMemo(() => {
+    const visibleRows = accumulatedRows.slice(0, visibleRowCount);
+    if (!visibleRows.length) return [];
+
+    const collectionsMap = new Map<string, JobCollection>();
+    for (const item of visibleRows) {
+      const companyKey = item.company?.companyId ?? item.company?._id ?? item.job.companyId ?? item.job.externalId;
+      const existing = collectionsMap.get(companyKey);
+      if (existing) {
+        existing.jobs.push(item.job);
+      } else {
+        collectionsMap.set(companyKey, { company: item.company, jobs: [item.job] });
+      }
+    }
+
+    return Array.from(collectionsMap.values());
+  }, [accumulatedRows, visibleRowCount]);
 
   const requestMoreForNavigation = useCallback(() => {
     if (revealLoading || isLoading) return;

@@ -622,15 +622,32 @@ export const getDetails = query({
 		const sourceDoc = await ctx.db.get(jobId);
 		if (!sourceDoc) return null;
 
-		const resolvedJobId = "jobId" in sourceDoc ? sourceDoc.jobId : sourceDoc._id;
-		const job = await ctx.db.get(resolvedJobId);
-		if (!job) return null;
+		const isCardSource = "jobId" in sourceDoc;
+		const sourceJobId = isCardSource ? sourceDoc.jobId : sourceDoc._id;
+		let job = await ctx.db.get(sourceJobId);
 
-		// Most reliable lookup is the direct pointer on jobs; fallback keeps older rows readable.
-		const details = (await ctx.db.get(job.detailsId)) ??
-			(await ctx.db.query("jobDetails").withIndex("by_jobId", (q) => q.eq("jobId", job._id)).unique());
-		const company = await ctx.db.get(job.companyId);
-		return { job, details, company };
+		// Backward compatibility for stale card pointers after history rewrites/import drift.
+		if (!job && "externalId" in sourceDoc) {
+			job = await ctx.db.query("jobs").withIndex("by_externalId", (q) => q.eq("externalId", sourceDoc.externalId)).unique();
+		}
+
+		let details = null;
+		if (job?.detailsId) {
+			details = await ctx.db.get(job.detailsId);
+		}
+		if (!details && "detailsId" in sourceDoc && sourceDoc.detailsId) {
+			details = await ctx.db.get(sourceDoc.detailsId);
+		}
+		if (!details && job?._id) {
+			details = await ctx.db.query("jobDetails").withIndex("by_jobId", (q) => q.eq("jobId", job._id)).unique();
+		}
+		if (!details && isCardSource) {
+			details = await ctx.db.query("jobDetails").withIndex("by_jobId", (q) => q.eq("jobId", sourceDoc.jobId)).unique();
+		}
+
+		const resolvedJob = job ?? sourceDoc;
+		const company = await ctx.db.get(resolvedJob.companyId);
+		return { job: resolvedJob, details, company };
 	},
 });
 
