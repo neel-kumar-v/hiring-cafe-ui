@@ -10,25 +10,24 @@ interface JobCardContentProps {
   isTransitioning: boolean;
 }
 
-const JobCardContent = memo(({
-  currentJob,
-  company,
-  isTransitioning,
-}: JobCardContentProps) => {
-  const compensation = useMemo(() => ({
-    yearly_min_compensation: currentJob.yearlyMinComp ?? null,
-    yearly_max_compensation: currentJob.yearlyMaxComp ?? null,
-    monthly_min_compensation: currentJob.monthlyMinComp ?? null,
-    monthly_max_compensation: currentJob.monthlyMaxComp ?? null,
-    weekly_min_compensation: currentJob.weeklyMinComp ?? null,
-    weekly_max_compensation: currentJob.weeklyMaxComp ?? null,
-    hourly_min_compensation: currentJob.hourlyMinComp ?? null,
-    hourly_max_compensation: currentJob.hourlyMaxComp ?? null,
-    "bi-weekly_min_compensation": currentJob.biWeeklyMinComp ?? null,
-    "bi-weekly_max_compensation": currentJob.biWeeklyMaxComp ?? null,
-    daily_min_compensation: currentJob.dailyMinComp ?? null,
-    daily_max_compensation: currentJob.dailyMaxComp ?? null,
-  }), [currentJob]);
+const JobCardContent = memo(({ currentJob, company, isTransitioning }: JobCardContentProps) => {
+  const compensation = useMemo(
+    () => ({
+      yearly_min_compensation: currentJob.yearlyMinComp ?? null,
+      yearly_max_compensation: currentJob.yearlyMaxComp ?? null,
+      monthly_min_compensation: currentJob.monthlyMinComp ?? null,
+      monthly_max_compensation: currentJob.monthlyMaxComp ?? null,
+      weekly_min_compensation: currentJob.weeklyMinComp ?? null,
+      weekly_max_compensation: currentJob.weeklyMaxComp ?? null,
+      hourly_min_compensation: currentJob.hourlyMinComp ?? null,
+      hourly_max_compensation: currentJob.hourlyMaxComp ?? null,
+      "bi-weekly_min_compensation": currentJob.biWeeklyMinComp ?? null,
+      "bi-weekly_max_compensation": currentJob.biWeeklyMaxComp ?? null,
+      daily_min_compensation: currentJob.dailyMinComp ?? null,
+      daily_max_compensation: currentJob.dailyMaxComp ?? null,
+    }),
+    [currentJob]
+  );
 
   const requirementsSummary = useMemo(() => currentJob.requirementsSummary ?? "", [currentJob.requirementsSummary]);
 
@@ -38,10 +37,7 @@ const JobCardContent = memo(({
 
   const minManagementAndLeadershipYoe = useMemo(() => currentJob.minMgmtYoe ?? null, [currentJob.minMgmtYoe]);
 
-  const companySubtitle = useMemo(
-    () => (company?.tagline?.trim() || company?.description?.trim() || ""),
-    [company?.tagline, company?.description],
-  );
+  const companySubtitle = useMemo(() => company?.tagline?.trim() || company?.description?.trim() || "", [company?.tagline, company?.description]);
 
   const workplaceLocations = useMemo(() => {
     const cities = currentJob.workplaceCities ?? [];
@@ -57,11 +53,7 @@ const JobCardContent = memo(({
 
   return (
     <div className="flex h-full flex-col">
-      <div
-        className={`transition-opacity duration-300 ease-in-out ${
-          isTransitioning ? "opacity-0" : "opacity-100"
-        }`}
-      >
+      <div className={`transition-opacity duration-300 ease-in-out ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
         <CardHeader
           tools={technicalTools}
           commitments={commitments}
@@ -71,41 +63,43 @@ const JobCardContent = memo(({
           workplaceCities={workplaceLocations}
           workType={workType}
         />
+      </div>
 
-        <CardCompanyInfo
-          companyData={{
-            name: company?.name ?? "",
-            website: company?.homepageUri ?? "",
-            image_url: company?.imageUrl ?? "",
-            tagline: company?.tagline ?? "",
-            subsidiaries: [],
-            parent_company: "",
-            linkedin_url: "",
-            industries: company?.industries ?? [],
-            activities: company?.activities ?? [],
-            is_non_profit: false,
-            is_public_company: false,
-            is_dissolved: false,
-            is_acquired: false,
-            num_employees: company?.numEmployees ?? 0,
-            year_founded: company?.yearFounded ?? 0,
-            headquarters_country: company?.hqCountry ?? "",
-            total_funding_amount: null,
-            total_funding_currency: null,
-            latest_investment_amount: null,
-            latest_investment_currency: null,
-            latest_investment_year: null,
-            latest_investment_series: null,
-            investors: [],
-            stock_exchange: null,
-            stock_symbol: null,
-            latest_revenue: null,
-            latest_revenue_currency: null,
-            latest_revenue_year: null,
-          }}
-          tagline={companySubtitle}
-        />
+      <CardCompanyInfo
+        companyData={{
+          name: company?.name ?? "",
+          website: company?.homepageUri ?? "",
+          image_url: company?.imageUrl ?? "",
+          tagline: company?.tagline ?? "",
+          subsidiaries: [],
+          parent_company: "",
+          linkedin_url: "",
+          industries: company?.industries ?? [],
+          activities: company?.activities ?? [],
+          is_non_profit: false,
+          is_public_company: false,
+          is_dissolved: false,
+          is_acquired: false,
+          num_employees: company?.numEmployees ?? 0,
+          year_founded: company?.yearFounded ?? 0,
+          headquarters_country: company?.hqCountry ?? "",
+          total_funding_amount: null,
+          total_funding_currency: null,
+          latest_investment_amount: null,
+          latest_investment_currency: null,
+          latest_investment_year: null,
+          latest_investment_series: null,
+          investors: [],
+          stock_exchange: null,
+          stock_symbol: null,
+          latest_revenue: null,
+          latest_revenue_currency: null,
+          latest_revenue_year: null,
+        }}
+        tagline={companySubtitle}
+      />
 
+      <div className={`transition-opacity duration-300 ease-in-out ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
         <CardJobDescription
           requirementsSummary={requirementsSummary}
           technicalTools={technicalTools}

@@ -102,7 +102,7 @@ export default function RootLayout({
               <AppProvider>
                 <SearchUIProvider>
                   <div className="min-h-screen transition-colors duration-300">
-                    <div className="min-h-screen bg-background">
+                    <div className="min-h-screen bg-background-body">
                       <Suspense fallback={null}>
                         <Header />
                       </Suspense>

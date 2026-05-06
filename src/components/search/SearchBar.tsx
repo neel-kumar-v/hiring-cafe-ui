@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Building2,
-  CalendarClock,
-  ChevronDown,
-  DollarSign,
-  IdCard,
-  type LucideIcon,
-  MapPin,
-  School,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Building2, CalendarClock, ChevronDown, DollarSign, IdCard, type LucideIcon, MapPin, School, SlidersHorizontal } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type React from "react";
@@ -138,23 +128,11 @@ interface IconButtonProps {
   buttonClassName?: string;
 }
 
-function IconButton({
-  icon: Icon,
-  label,
-  className,
-  onClick,
-  dataIconType,
-  buttonClassName,
-  clickable = true,
-}: IconButtonProps) {
+function IconButton({ icon: Icon, label, className, onClick, dataIconType, buttonClassName, clickable = true }: IconButtonProps) {
   const visibilityClass = clickable ? "" : "hidden";
 
   return (
-    <Hitbox
-      size="sm"
-      position="vertical"
-      className={cn(visibilityClass, "h-full shrink-0", className)}
-    >
+    <Hitbox size="sm" position="vertical" className={cn(visibilityClass, "h-full shrink-0", className)}>
       <button
         type="button"
         className={cn("group/icon inline-flex h-full items-center justify-center text-muted-foreground", buttonClassName)}
@@ -177,15 +155,7 @@ interface IconButtonsProps {
 
 function IconButtons({ variant, inputFocused, handleIconClick }: IconButtonsProps) {
   if (variant === "general") {
-    return (
-      <IconButton
-        icon={SlidersHorizontal}
-        label="General Filters"
-        onClick={() => handleIconClick("filters")}
-        dataIconType="filters"
-        buttonClassName="w-9"
-      />
-    );
+    return <IconButton icon={SlidersHorizontal} label="General Filters" onClick={() => handleIconClick("filters")} dataIconType="filters" buttonClassName="w-9" />;
   }
 
   return (
@@ -214,20 +184,8 @@ function IconButtons({ variant, inputFocused, handleIconClick }: IconButtonsProp
         dataIconType="availability"
         clickable={!inputFocused}
       />
-      <IconButton
-        className="hidden xs:block"
-        icon={Building2}
-        label="Company"
-        onClick={() => handleIconClick("company")}
-        dataIconType="company"
-        clickable={!inputFocused}
-      />
-      <IconButton
-        icon={SlidersHorizontal}
-        label="General Filters"
-        onClick={() => handleIconClick("filters")}
-        dataIconType="filters"
-      />
+      <IconButton className="hidden xs:block" icon={Building2} label="Company" onClick={() => handleIconClick("company")} dataIconType="company" clickable={!inputFocused} />
+      <IconButton icon={SlidersHorizontal} label="General Filters" onClick={() => handleIconClick("filters")} dataIconType="filters" />
     </div>
   );
 }
@@ -241,43 +199,18 @@ interface FilterButtonProps {
   showChevron?: boolean;
 }
 
-function FilterButton({
-  icon: Icon,
-  header,
-  subtitle,
-  onClick,
-  className = "",
-  showChevron = false,
-}: FilterButtonProps) {
+function FilterButton({ icon: Icon, header, subtitle, onClick, className = "", showChevron = false }: FilterButtonProps) {
   return (
     <Hitbox size="sm" radius="lg" className={cn("h-full w-full", className)}>
-      <button
-        onClick={onClick}
-        className="group/filter flex h-full w-full items-center justify-between gap-2 px-3 py-2"
-        type="button"
-      >
+      <button onClick={onClick} className="group/filter flex h-full w-full items-center justify-between gap-2 px-3 py-2" type="button">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {Icon && (
-            <Icon
-              className={`size-4 flex-none text-muted-foreground ${
-                header === "" ? "hidden md:block" : ""
-              }`}
-            />
-          )}
+          {Icon && <Icon className={`size-4 flex-none text-muted-foreground ${header === "" ? "hidden md:block" : ""}`} />}
           <div className="flex min-w-0 flex-col truncate text-left text-xs translate-y-px">
-            <span className="truncate font-bold text-foreground transition-[transform,opacity] duration-200 ease-in-out">
-              {header}
-            </span>
-            {subtitle && (
-              <span className="truncate text-[14px] font-medium text-muted-foreground">
-                {subtitle}
-              </span>
-            )}
+            <span className="truncate font-bold text-foreground transition-[transform,opacity] duration-200 ease-in-out">{header}</span>
+            {subtitle && <span className="truncate text-[14px] font-medium text-muted-foreground">{subtitle}</span>}
           </div>
         </div>
-        {showChevron && (
-          <ChevronDown className="size-4 flex-none text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary" />
-        )}
+        {showChevron && <ChevronDown className="size-4 flex-none text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary" />}
       </button>
     </Hitbox>
   );
@@ -300,9 +233,7 @@ function LocationButton({
       header={
         <>
           {locationDisplay.location}
-          <span className="ml-2 text-[12px] font-medium text-muted-foreground max-xs:hidden md:hidden lg:inline">
-            {locationDisplay.workplaces}
-          </span>
+          <span className="ml-2 text-[12px] font-medium text-muted-foreground max-xs:hidden md:hidden lg:inline">{locationDisplay.workplaces}</span>
         </>
       }
       onClick={() => handleIconClick("location")}
@@ -380,7 +311,15 @@ function SalaryButton({
     if (!displayMin && !displayMax) mainLabel = "Any";
     else if (displayMin && !displayMax) mainLabel = formatAmount(displayMin);
     else if (!displayMin && displayMax) mainLabel = `Up to ${formatAmount(displayMax)}`;
-    else if (displayMin && displayMax) mainLabel = `${formatAmount(displayMin)}-${formatAmount(displayMax, false)}`;
+    else if (displayMin && displayMax) {
+      const minStr = formatAmount(displayMin);
+      const maxStr = formatAmount(displayMax, false);
+      if (formatAmount(displayMin, false) === maxStr) {
+        mainLabel = minStr;
+      } else {
+        mainLabel = `${minStr}-${maxStr}`;
+      }
+    }
   }
 
   const header =
@@ -393,23 +332,10 @@ function SalaryButton({
       </>
     );
 
-  return (
-    <FilterButton
-      icon={DollarSign}
-      header={header}
-      onClick={() => handleIconClick("salary")}
-      className="min-w-[max(80px, fit-content)] lg:min-w-[200px]"
-    />
-  );
+  return <FilterButton icon={DollarSign} header={header} onClick={() => handleIconClick("salary")} className="min-w-[max(80px, fit-content)] lg:min-w-[200px]" />;
 }
 
-export default function SearchBar({
-  placeholder = "Search",
-  className = "",
-  onSearch,
-  onIconClick,
-  value: controlledValue,
-}: SearchBarProps) {
+export default function SearchBar({ placeholder = "Search", className = "", onSearch, onIconClick, value: controlledValue }: SearchBarProps) {
   const pathname = usePathname();
   const { searchOptions: currentSearchState } = useApp();
   const { handleSearchIconClick } = useSearchUI();
@@ -490,21 +416,9 @@ export default function SearchBar({
     <IconButtons variant="general" inputFocused={inputFocused} handleIconClick={handleIconClick} />
   ) : null;
 
-  const locationButton = showLocation ? (
-    <LocationButton
-      handleIconClick={handleIconClick}
-      locationDisplay={locationDisplay}
-      showFilterControls={showFilterControls}
-    />
-  ) : null;
+  const locationButton = showLocation ? <LocationButton handleIconClick={handleIconClick} locationDisplay={locationDisplay} showFilterControls={showFilterControls} /> : null;
 
-  const salaryButton = showSalary ? (
-    <SalaryButton
-      currentSearchState={currentSearchState}
-      handleIconClick={handleIconClick}
-      showFilterControls={showFilterControls}
-    />
-  ) : null;
+  const salaryButton = showSalary ? <SalaryButton currentSearchState={currentSearchState} handleIconClick={handleIconClick} showFilterControls={showFilterControls} /> : null;
 
   return (
     <div className="relative flex-1 sm:px-4">

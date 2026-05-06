@@ -42,7 +42,7 @@ type KanbanColumn = {
 const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
   const { isDesktop } = useResponsiveBreakpoint();
-  const { prefetch } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 2 });
+  const { prefetch, prefetchNow } = useJobDetailsPrefetch({ delayMs: 140, maxInflight: 2, maxSeen: 600 });
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -137,7 +137,8 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
 
   const handleJobSelect = useCallback(
     (jobId: string) => {
-      if (!jobMap.has(jobId)) return;
+      const row = jobMap.get(jobId);
+      if (!row) return;
       setSelectedJobId(jobId);
       if (isDesktop) setDialogOpen(true);
       else setDrawerOpen(true);
@@ -145,8 +146,8 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     [isDesktop, jobMap]
   );
 
-  const selectedRow = selectedJobId ? jobMap.get(selectedJobId) ?? null : null;
-  const selectedColumnId = selectedJobId ? kanbanData.find((item) => item.id === selectedJobId)?.column ?? null : null;
+  const selectedRow = selectedJobId ? (jobMap.get(selectedJobId) ?? null) : null;
+  const selectedColumnId = selectedJobId ? (kanbanData.find((item) => item.id === selectedJobId)?.column ?? null) : null;
 
   const jobsByColumn = useMemo(() => {
     const grouped = new Map<string, JobCardResultDTO[]>();
@@ -172,65 +173,56 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     return [...columnOrder.slice(selectedColumnIndex), ...columnOrder.slice(0, selectedColumnIndex)];
   }, [columnOrder, selectedColumnId]);
 
-  const navigationSequence = useMemo(
-    () => rotatedColumnOrder.flatMap((columnId) => jobsByColumn.get(columnId) ?? []),
-    [jobsByColumn, rotatedColumnOrder]
-  );
+  const navigationSequence = useMemo(() => rotatedColumnOrder.flatMap((columnId) => jobsByColumn.get(columnId) ?? []), [jobsByColumn, rotatedColumnOrder]);
 
   const selectedSequenceIndex = useMemo(
     () => (selectedJobId ? navigationSequence.findIndex((row) => row.job.externalId === selectedJobId) : -1),
     [navigationSequence, selectedJobId]
   );
 
-  const runNavigationTransition = useCallback(
-    async (navigate: () => void) => {
-      if (transitionInFlightRef.current) return;
-      transitionInFlightRef.current = true;
-      setIsTransitioning(true);
-      try {
-        await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
-        navigate();
-        await new Promise((resolve) => window.setTimeout(resolve, NAV_SETTLE_MS));
-      } finally {
-        transitionInFlightRef.current = false;
-        setIsTransitioning(false);
-      }
-    },
-    []
-  );
+  const prefetchNeighborsForSelected = useCallback(() => {
+    if (!navigationSequence.length || selectedSequenceIndex === -1) return;
+    if (navigationSequence.length < 2) return;
+    const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
+    const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
+    prefetch(getDetailsLookupId(navigationSequence[previousIndex].job));
+    if (nextIndex !== previousIndex) prefetch(getDetailsLookupId(navigationSequence[nextIndex].job));
+  }, [navigationSequence, prefetch, selectedSequenceIndex]);
+
+  const runNavigationTransition = useCallback(async (navigate: () => void) => {
+    if (transitionInFlightRef.current) return;
+    transitionInFlightRef.current = true;
+    setIsTransitioning(true);
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
+      navigate();
+      await new Promise((resolve) => window.setTimeout(resolve, NAV_SETTLE_MS));
+    } finally {
+      transitionInFlightRef.current = false;
+      setIsTransitioning(false);
+    }
+  }, []);
 
   const handlePrevious = useCallback(async () => {
     if (!navigationSequence.length || selectedSequenceIndex === -1) return;
     const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
     const target = navigationSequence[previousIndex];
+    prefetchNow(getDetailsLookupId(target.job));
     await runNavigationTransition(() => setSelectedJobId(target.job.externalId));
-  }, [navigationSequence, runNavigationTransition, selectedSequenceIndex]);
+  }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
 
   const handleNext = useCallback(async () => {
     if (!navigationSequence.length || selectedSequenceIndex === -1) return;
     const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
     const target = navigationSequence[nextIndex];
+    prefetchNow(getDetailsLookupId(target.job));
     await runNavigationTransition(() => setSelectedJobId(target.job.externalId));
-  }, [navigationSequence, runNavigationTransition, selectedSequenceIndex]);
-
-  const handlePreviousHover = useCallback(() => {
-    if (!navigationSequence.length || selectedSequenceIndex === -1) return;
-    const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
-    prefetch(getDetailsLookupId(navigationSequence[previousIndex].job));
-  }, [navigationSequence, prefetch, selectedSequenceIndex]);
-
-  const handleNextHover = useCallback(() => {
-    if (!navigationSequence.length || selectedSequenceIndex === -1) return;
-    const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
-    prefetch(getDetailsLookupId(navigationSequence[nextIndex].job));
-  }, [navigationSequence, prefetch, selectedSequenceIndex]);
+  }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
 
   const isBookmarked = useMemo(
     () =>
       selectedRow
-        ? user.saved.includes(selectedRow.job.externalId) ||
-          user.applied.includes(selectedRow.job.externalId) ||
-          user.interviewing.includes(selectedRow.job.externalId)
+        ? user.saved.includes(selectedRow.job.externalId) || user.applied.includes(selectedRow.job.externalId) || user.interviewing.includes(selectedRow.job.externalId)
         : false,
     [selectedRow, user.applied, user.interviewing, user.saved]
   );
@@ -338,6 +330,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
         <JobDialogContent
           company={selectedRow.company}
           currentJob={selectedRow.job}
+          onDetailsResolved={prefetchNeighborsForSelected}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isInterviewing={isInterviewing}
@@ -349,8 +342,6 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
           outsideNavigation={{
             onPrevious: handlePrevious,
             onNext: handleNext,
-            onPreviousHover: handlePreviousHover,
-            onNextHover: handleNextHover,
             canGoPrevious: navigationSequence.length > 1,
             canGoNext: navigationSequence.length > 1,
             previousAriaLabel: "Previous kanban job",
@@ -363,6 +354,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
         <JobDrawerContent
           company={selectedRow.company}
           currentJob={selectedRow.job}
+          onDetailsResolved={prefetchNeighborsForSelected}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isTransitioning={isTransitioning}

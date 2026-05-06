@@ -6,8 +6,8 @@ import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useQuery } from "convex/react";
 import type { TouchEvent } from "react";
-import { useCallback, useState } from "react";
-import { DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {  DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 import { DialogActionButtons } from "../dialog/DialogFooter";
 import DialogResponsibilities from "../dialog/DialogResponsibilities";
@@ -27,6 +27,7 @@ const JobDrawerContent = ({
   isApplied,
   onBookmarkToggle,
   onApplyToggle,
+  onDetailsResolved,
   open,
   onClose,
   navigation,
@@ -38,6 +39,7 @@ const JobDrawerContent = ({
   isApplied: boolean;
   onBookmarkToggle: () => void;
   onApplyToggle: () => void;
+  onDetailsResolved?: (jobId: string) => void;
   open: boolean;
   onClose: () => void;
   navigation?: JobDrawerNavigationProps;
@@ -45,6 +47,9 @@ const JobDrawerContent = ({
 }) => {
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [hasHorizontalSwipe, setHasHorizontalSwipe] = useState(false);
+  const perfEnabled = process.env.NODE_ENV !== "production";
+  const openedAtRef = useRef<number | null>(null);
+  const detailsResolvedForRef = useRef<string | null>(null);
 
   const handleTouchStart = useCallback((e: TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
@@ -91,7 +96,11 @@ const JobDrawerContent = ({
     [hasHorizontalSwipe, navigation, touchStart]
   );
 
-  const details = useQuery(api.jobs.getDetails, open ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as JobDetailsResultDTO | null;
+  const details = useQuery(api.jobs.getDetailsLite, open ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as
+    | JobDetailsResultDTO
+    | null
+    | undefined;
+  const isDetailsLoading = open && details === undefined;
   const job = details?.job ?? currentJob;
   const detailsDoc = details?.details ?? null;
   const companyDoc = details?.company ?? company;
@@ -137,6 +146,48 @@ const JobDrawerContent = ({
     min_management_and_leadership_yoe: job.minMgmtYoe ?? null,
     role_activities: detailsDoc?.roleActivities ?? [],
   };
+
+  const lookupId = useMemo(() => getDetailsLookupId(currentJob), [currentJob]);
+
+  useEffect(() => {
+    if (!open) {
+      detailsResolvedForRef.current = null;
+      return;
+    }
+    if (lookupId && detailsResolvedForRef.current !== lookupId) {
+      detailsResolvedForRef.current = null;
+    }
+  }, [lookupId, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (details === undefined) return;
+    if (!lookupId) return;
+    if (detailsResolvedForRef.current === lookupId) return;
+    detailsResolvedForRef.current = lookupId;
+    onDetailsResolved?.(lookupId);
+  }, [details, lookupId, onDetailsResolved, open]);
+
+  useEffect(() => {
+    if (!perfEnabled) return;
+    if (!open) {
+      openedAtRef.current = null;
+      return;
+    }
+    openedAtRef.current = performance.now();
+  }, [open, perfEnabled, lookupId]);
+
+  useEffect(() => {
+    if (!perfEnabled) return;
+    if (!open) return;
+    if (details === undefined) return;
+    if (!openedAtRef.current) return;
+    const elapsed = performance.now() - openedAtRef.current;
+    if (elapsed > 120) {
+      // eslint-disable-next-line no-console
+      console.log(`[perf] getDetailsLite drawer ${elapsed.toFixed(1)}ms jobId=${lookupId}`);
+    }
+  }, [details, lookupId, open, perfEnabled]);
 
   return (
     <Drawer
@@ -199,7 +250,7 @@ const JobDrawerContent = ({
             minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
           />
           <DialogSkills technicalTools={processed.technical_tools ?? []} />
-          <DialogJobDescription description={detailsDoc?.description ?? ""} />
+          <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} />
         </div>
       </DrawerContent>
     </Drawer>

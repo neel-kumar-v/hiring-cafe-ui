@@ -36,14 +36,10 @@ export default function Page() {
 
   return (
     <>
-      <div className="border-b border-border bg-background md:hidden dark:border-border dark:bg-background">
+      <div className="border-b border-border bg-background-header md:hidden dark:border-border dark:bg-background">
         <HomeCompactHeader />
         <div className="px-4 pb-4">
-          <SearchBar
-            value={boardSearchQuery}
-            onSearch={handleSearch}
-            onIconClick={handleSearchIconClick}
-          />
+          <SearchBar value={boardSearchQuery} onSearch={handleSearch} onIconClick={handleSearchIconClick} />
         </div>
       </div>
 
@@ -56,13 +52,9 @@ export default function Page() {
       <div className="h-full overflow-x-hidden">
         <div className="mx-auto max-w-full !pt-0 p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <Suspense fallback={<LoadingFallback />}>
-            <JobBoard
-              companyCount={companyCount}
-              jobCount={jobCount}
-              location={location}
-            />
+            <JobBoard companyCount={companyCount} jobCount={jobCount} location={location} />
           </Suspense>
-        </div> 
+        </div>
       </div>
     </>
   );

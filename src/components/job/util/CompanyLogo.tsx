@@ -1,11 +1,4 @@
-import {
-  analyzeImageBackground,
-  companyFaviconUrl,
-  extractDomainFromCompanyWebsite,
-  getCompanyAbbreviation,
-  getImageBackgroundClass,
-  renderCompanyAbbreviationGrid,
-} from "@/lib/company-info";
+import { analyzeImageBackground, companyFaviconUrl, extractDomainFromCompanyWebsite, getCompanyAbbreviation, renderCompanyAbbreviationGrid } from "@/lib/company-info";
 import type { ProcessedCompanyData } from "@/types/job";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -17,13 +10,7 @@ interface CompanyLogoInnerProps {
   fallbackClassName: string;
 }
 
-const CompanyLogoInner = memo(({
-  companyData,
-  faviconSizePx,
-  containerClassName,
-  imageClassName,
-  fallbackClassName,
-}: CompanyLogoInnerProps) => {
+const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName }: CompanyLogoInnerProps) => {
   const faviconSrc = useMemo(() => {
     const domain = extractDomainFromCompanyWebsite(companyData.website);
     return domain ? companyFaviconUrl(domain, faviconSizePx) : null;
@@ -53,18 +40,11 @@ const CompanyLogoInner = memo(({
 
   const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
 
-  const abbreviation = useMemo(() =>
-    getCompanyAbbreviation(companyData.name || ""),
-    [companyData.name]
-  );
+  const abbreviation = useMemo(() => getCompanyAbbreviation(companyData.name || ""), [companyData.name]);
 
-  const initialsContent = useMemo(() =>
-    renderCompanyAbbreviationGrid(abbreviation, false),
-    [abbreviation]
-  );
+  const initialsContent = useMemo(() => renderCompanyAbbreviationGrid(abbreviation, false), [abbreviation]);
 
-  const imageUrlForAnalysis =
-    showImage && activeSrc === companyData.image_url ? companyData.image_url : null;
+  const imageUrlForAnalysis = showImage && activeSrc === companyData.image_url ? companyData.image_url : null;
 
   useEffect(() => {
     if (imageUrlForAnalysis) {
@@ -74,38 +54,29 @@ const CompanyLogoInner = memo(({
     }
   }, [imageUrlForAnalysis]);
 
-  const backgroundClass = useMemo(() =>
-    getImageBackgroundClass(imageUrlForAnalysis, !showImage, backgroundType),
-    [imageUrlForAnalysis, showImage, backgroundType]
+  const backgroundClass = useMemo(() => {
+    if (!showImage) return "bg-brand-soft/50";
+    if (backgroundType === "light") return "dark:bg-card";
+    if (backgroundType === "dark") return "dark:bg-background";
+    return "";
+  }, [showImage, backgroundType]);
+
+  const finalContainerClasses = useMemo(() => `${containerClassName} ${backgroundClass}`, [containerClassName, backgroundClass]);
+
+  const logoContent = useMemo(
+    () => (
+      <>
+        {showImage ? (
+          <img alt={companyData.name} className={imageClassName} onError={handleImageError} src={activeSrc} />
+        ) : (
+          <span className={fallbackClassName}>{initialsContent}</span>
+        )}
+      </>
+    ),
+    [showImage, companyData.name, imageClassName, fallbackClassName, initialsContent, handleImageError, activeSrc]
   );
 
-  const finalContainerClasses = useMemo(() =>
-    `${containerClassName} ${backgroundClass}`,
-    [containerClassName, backgroundClass]
-  );
-
-  const logoContent = useMemo(() => (
-    <>
-      {showImage ? (
-        <img
-          alt={companyData.name}
-          className={imageClassName}
-          onError={handleImageError}
-          src={activeSrc}
-        />
-      ) : (
-        <span className={fallbackClassName}>
-          {initialsContent}
-        </span>
-      )}
-    </>
-  ), [showImage, companyData.name, imageClassName, fallbackClassName, initialsContent, handleImageError, activeSrc]);
-
-  return (
-    <div className={finalContainerClasses}>
-      {logoContent}
-    </div>
-  );
+  return <div className={finalContainerClasses}>{logoContent}</div>;
 });
 
 CompanyLogoInner.displayName = "CompanyLogoInner";
@@ -117,12 +88,7 @@ interface CompanyLogoProps {
   className?: string;
 }
 
-const CompanyLogo = memo(({
-  companyData,
-  size = "md",
-  variant = "default",
-  className = "",
-}: CompanyLogoProps) => {
+const CompanyLogo = memo(({ companyData, size = "md", variant = "default", className = "" }: CompanyLogoProps) => {
   const sizeClasses = {
     sm: "h-12",
     md: "h-14",
@@ -175,7 +141,7 @@ const CompanyLogo = memo(({
     const baseClasses = `font-semibold text-primary ${textSizes[size]}`;
 
     if (variant === "dialog") {
-      return `flex h-full w-full select-none items-center justify-center bg-brand-soft ${baseClasses}`;
+      return `flex h-full w-full select-none items-center justify-center ${baseClasses}`;
     }
 
     return baseClasses;

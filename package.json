@@ -15,9 +15,14 @@
     "format": "prettier --write .",
     "import-jobs-convex": "python scraper/scrape_to_convex.py",
     "bench:convex-search": "npx tsx scripts/bench-convex-search.ts"
+    ,
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:perf": "playwright test -c playwright.config.ts --grep @perf"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
+    "@convex-dev/migrations": "^0.3.4",
     "@diceui/mention": "^0.8.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
@@ -59,10 +64,12 @@
     "concurrently": "^9.2.1",
     "eslint": "^9.30.1",
     "eslint-config-next": "^15.3.4",
+    "playwright": "^1.59.1",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.10",
     "tw-animate-css": "^1.3.4",
     "typescript": "^5",
-    "ultracite": "5.0.29"
+    "ultracite": "5.0.29",
+    "@playwright/test": "^1.59.1"
   }
 }

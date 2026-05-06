@@ -1,9 +1,10 @@
 import type { JobDTO } from "@/types/convexJobs";
 
 /**
- * Board rows can come from `jobs` or `jobCards`.
- * `jobCards` rows carry `jobId` pointing to canonical `jobs` doc.
+ * Always use the row's own id when fetching details.
+ * For `jobCards`, this preserves fallback behavior in `jobs.getDetails`
+ * when the canonical `jobs` document is stale or missing.
  */
 export function getDetailsLookupId(job: JobDTO): string {
-  return job.jobId ?? job._id;
+  return job._id;
 }

@@ -107,7 +107,7 @@ export default function TrackerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-4.5rem)] bg-background">
+      <div className="min-h-[calc(100vh-4.5rem)] bg-background-body">
         <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <div className="text-center py-16">
             <h1 className="mb-4 text-3xl font-bold text-foreground">Loading...</h1>
@@ -118,7 +118,7 @@ export default function TrackerPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-background">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-background-body">
       <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out lg:p-8">
         <div className="mb-3">
           <h1 className="mb-4 text-3xl font-bold text-foreground">

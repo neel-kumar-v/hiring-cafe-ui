@@ -3,28 +3,14 @@
 import { useEffect, useState } from "react";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchData } from "@/hooks/useSearchData";
 import type { SalaryUnit } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
 
-const frequencyOptions: SalaryUnit[] = [
-  "Any",
-  "Hourly",
-  "Daily",
-  "Weekly",
-  "Bi-Weekly",
-  "Monthly",
-  "Yearly",
-];
+const frequencyOptions: SalaryUnit[] = ["Any", "Hourly", "Daily", "Weekly", "Bi-Weekly", "Monthly", "Yearly"];
 
 type MoneyInputProps = {
   label: string;
@@ -47,21 +33,12 @@ function getCurrencySymbol(currencyCode: string) {
   }
 }
 
-function MoneyInput({
-  label,
-  currencySymbol,
-  value,
-  placeholder,
-  onChangeValue,
-  onBlurCommit,
-}: MoneyInputProps) {
+function MoneyInput({ label, currencySymbol, value, placeholder, onChangeValue, onBlurCommit }: MoneyInputProps) {
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-foreground">{label}</label>
       <div className="relative">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-          {currencySymbol}
-        </span>
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">{currencySymbol}</span>
         <Input
           className="w-full pl-8 text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
           inputMode="numeric"
@@ -89,16 +66,13 @@ export default function Salary() {
   const [advMaxHigh, setAdvMaxHigh] = useState("");
 
   useEffect(() => {
-    const hasAdvancedValues =
-      salary.min_range.max > 0 ||
-      salary.max_range.min !== salary.max_range.max ||
-      salary.min_range.min !== salary.min_range.max;
+    const hasAdvancedValues = salary.min_range.min !== salary.min_range.max || salary.max_range.min !== 0 || salary.max_range.max !== 0;
 
     setAdvanced(hasAdvancedValues);
   }, [salary.max_range.max, salary.max_range.min, salary.min_range.max, salary.min_range.min]);
 
   useEffect(() => {
-    setSimpleAmount(salary.max_range.max > 0 ? String(salary.max_range.max) : "");
+    setSimpleAmount(salary.min_range.min > 0 ? String(salary.min_range.min) : "");
     setAdvMinLow(salary.min_range.min > 0 ? String(salary.min_range.min) : "");
     setAdvMinHigh(salary.min_range.max > 0 ? String(salary.min_range.max) : "");
     setAdvMaxLow(salary.max_range.min > 0 ? String(salary.max_range.min) : "");
@@ -117,9 +91,7 @@ export default function Salary() {
 
   return (
     <FilterContainer categoryId="salary" title="Salary Range">
-      <p className="-mt-2 mb-2 text-xs text-muted-foreground">
-        Enter salary amounts directly. Leave fields blank to remove that bound.
-      </p>
+      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Enter salary amounts directly. Leave fields blank to remove that bound.</p>
 
       <div className="grid grid-cols-1 gap-4">
         <LabelCheckbox
@@ -142,12 +114,12 @@ export default function Salary() {
             setAdvanced(nextAdvanced);
 
             if (!nextAdvanced) {
-              const nextAmount = toNumberOrZero(advMaxHigh || advMaxLow || advMinLow || simpleAmount);
+              const nextAmount = toNumberOrZero(advMinLow || advMinHigh || advMaxHigh || simpleAmount);
               updateSearchOptions({
                 salary: {
                   ...salary,
-                  min_range: { min: 0, max: 0 },
-                  max_range: { min: nextAmount, max: nextAmount },
+                  min_range: { min: nextAmount, max: nextAmount },
+                  max_range: { min: 0, max: 0 },
                 },
               });
             }
@@ -159,9 +131,7 @@ export default function Salary() {
         <div className="flex-1">
           <label className="mb-2 block text-xs font-medium text-foreground">Currency</label>
           {currenciesLoading ? (
-            <div className="h-9 w-full rounded-md border border-border bg-accent px-3 py-2 text-sm text-muted-foreground">
-              Loading...
-            </div>
+            <div className="h-9 w-full rounded-md border border-border bg-accent px-3 py-2 text-sm text-muted-foreground">Loading...</div>
           ) : (
             <Combobox
               items={currencyItems}
@@ -189,6 +159,7 @@ export default function Salary() {
                 salary: {
                   ...salary,
                   unit: value,
+                  listedUnit: value,
                 },
               })
             }
@@ -220,8 +191,8 @@ export default function Salary() {
               updateSearchOptions({
                 salary: {
                   ...salary,
-                  min_range: { min: 0, max: 0 },
-                  max_range: { min: amount, max: amount },
+                  min_range: { min: amount, max: amount },
+                  max_range: { min: 0, max: 0 },
                 },
               });
             }}

@@ -5,7 +5,7 @@ import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useQuery } from "convex/react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { api } from "../../../../convex/_generated/api";
 import type { DialogFooterNavigationProps } from "../dialog/DialogFooter";
 import { DialogBadges, DialogFooter, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills, DialogStats } from "../dialog";
@@ -31,6 +31,7 @@ interface JobDialogContentProps {
   isInterviewing: boolean;
   onBookmarkToggle: () => void;
   onApplyToggle: () => void;
+  onDetailsResolved?: (jobId: string) => void;
   children?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -48,6 +49,7 @@ const JobDialogContent = ({
   isInterviewing,
   onBookmarkToggle,
   onApplyToggle,
+  onDetailsResolved,
   children,
   open,
   onOpenChange,
@@ -59,6 +61,9 @@ const JobDialogContent = ({
   const [internalOpen, setInternalOpen] = React.useState(false);
   const isControlled = typeof open === "boolean";
   const dialogOpen = isControlled ? open : internalOpen;
+  const perfEnabled = process.env.NODE_ENV !== "production";
+  const openedAtRef = useRef<number | null>(null);
+  const detailsResolvedForRef = useRef<string | null>(null);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -70,7 +75,11 @@ const JobDialogContent = ({
     [isControlled, onOpenChange]
   );
 
-  const details = useQuery(api.jobs.getDetails, dialogOpen ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as JobDetailsResultDTO | null;
+  const details = useQuery(api.jobs.getDetailsLite, dialogOpen ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as
+    | JobDetailsResultDTO
+    | null
+    | undefined;
+  const isDetailsLoading = dialogOpen && details === undefined;
   const job = details?.job ?? currentJob;
   const detailsDoc = details?.details ?? null;
   const companyDoc = details?.company ?? company;
@@ -133,6 +142,49 @@ const JobDialogContent = ({
     latest_revenue_year: null,
   };
 
+  const lookupId = useMemo(() => getDetailsLookupId(currentJob), [currentJob]);
+
+  useEffect(() => {
+    if (!dialogOpen) {
+      detailsResolvedForRef.current = null;
+      return;
+    }
+    if (lookupId && detailsResolvedForRef.current !== lookupId) {
+      // New selection while dialog is open: allow callback once it resolves.
+      detailsResolvedForRef.current = null;
+    }
+  }, [dialogOpen, lookupId]);
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+    if (details === undefined) return;
+    if (!lookupId) return;
+    if (detailsResolvedForRef.current === lookupId) return;
+    detailsResolvedForRef.current = lookupId;
+    onDetailsResolved?.(lookupId);
+  }, [details, dialogOpen, lookupId, onDetailsResolved]);
+
+  useEffect(() => {
+    if (!perfEnabled) return;
+    if (!dialogOpen) {
+      openedAtRef.current = null;
+      return;
+    }
+    openedAtRef.current = performance.now();
+  }, [dialogOpen, perfEnabled, lookupId]);
+
+  useEffect(() => {
+    if (!perfEnabled) return;
+    if (!dialogOpen) return;
+    if (details === undefined) return;
+    if (!openedAtRef.current) return;
+    const elapsed = performance.now() - openedAtRef.current;
+    if (elapsed > 120) {
+      // eslint-disable-next-line no-console
+      console.log(`[perf] getDetailsLite dialog ${elapsed.toFixed(1)}ms jobId=${lookupId}`);
+    }
+  }, [details, dialogOpen, lookupId, perfEnabled]);
+
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -154,12 +206,7 @@ const JobDialogContent = ({
           applyUrl={job.applyUrl ?? ""}
         />
 
-        <DialogJobTitle
-          companyName={companyData.name}
-          jobTitle={job.title}
-          workplaceCities={processed.workplace_cities ?? []}
-          tools={processed.technical_tools ?? []}
-        />
+        <DialogJobTitle companyName={companyData.name} jobTitle={job.title} workplaceCities={processed.workplace_cities ?? []} tools={processed.technical_tools ?? []} />
 
         <DialogBadges
           commitments={processed.commitment ?? []}
@@ -167,9 +214,11 @@ const JobDialogContent = ({
           workplaceCities={processed.workplace_cities ?? []}
           workType={processed.workplace_type ?? ""}
         />
+      </div>
 
-        <DialogCompanyLogoCard companyData={companyData} />
+      <DialogCompanyLogoCard companyData={companyData} />
 
+      <div className={cn("transition-opacity duration-300 ease-in-out", isTransitioning ? "opacity-0" : "opacity-100")}>
         <DialogResponsibilities roleActivities={processed.role_activities ?? []} />
 
         <DialogRequirements
@@ -180,18 +229,18 @@ const JobDialogContent = ({
 
         <DialogSkills technicalTools={processed.technical_tools ?? []} />
 
-        <DialogJobDescription description={detailsDoc?.description ?? ""} />
-
-        <DialogFooter
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          onApplyToggle={onApplyToggle}
-          onBookmarkToggle={onBookmarkToggle}
-          applyUrl={job.applyUrl ?? ""}
-          companyWebsite={companyData.website}
-          navigation={footerNavigation}
-        />
+        <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} />
       </div>
+
+      <DialogFooter
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        onApplyToggle={onApplyToggle}
+        onBookmarkToggle={onBookmarkToggle}
+        applyUrl={job.applyUrl ?? ""}
+        companyWebsite={companyData.website}
+        navigation={footerNavigation}
+      />
     </div>
   );
 

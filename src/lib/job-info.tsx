@@ -5,7 +5,7 @@ const removeCompanyName = (title: string, company: string): string => {
   if (!company) return title;
   let cleanedTitle = title;
   const companyWords = company.split(/\s+/).filter(Boolean);
-  companyWords.forEach(word => {
+  companyWords.forEach((word) => {
     const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
     cleanedTitle = cleanedTitle.replace(regex, "");
   });
@@ -16,10 +16,7 @@ const removeParentheses = (title: string): string => {
   return title.replace(/\s*\([^)]*\)/g, "").trim();
 };
 
-const removeLocationAndPrepositions = (
-  title: string,
-  location: string
-): string => {
+const removeLocationAndPrepositions = (title: string, location: string): string => {
   let cleanedTitle = title;
   if (!location) return cleanedTitle;
   const locationParts = location
@@ -33,24 +30,17 @@ const removeLocationAndPrepositions = (
     if (idx === 1) {
       const abbr = formatState(part);
       if (abbr !== part) patterns.push(abbr);
-      const full = Object.keys(stateAbbreviations).find(
-        (key) => stateAbbreviations[key] === part
-      );
+      const full = Object.keys(stateAbbreviations).find((key) => stateAbbreviations[key] === part);
       if (full) patterns.push(full);
     }
     if (idx === 2) {
       const abbr = countryAbbreviations[part] || part;
       if (abbr !== part) patterns.push(abbr);
-      const full = Object.keys(countryAbbreviations).find(
-        (key) => countryAbbreviations[key] === part
-      );
+      const full = Object.keys(countryAbbreviations).find((key) => countryAbbreviations[key] === part);
       if (full) patterns.push(full);
     }
     patterns.forEach((pat) => {
-      cleanedTitle = cleanedTitle.replace(
-        new RegExp(`\\b${pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi"),
-        ""
-      );
+      cleanedTitle = cleanedTitle.replace(new RegExp(`\\b${pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi"), "");
     });
   });
   cleanedTitle = cleanedTitle.replace(/\s+at+.*$/i, "").trim();
@@ -85,7 +75,7 @@ const GENERIC_TITLES = [
   "contracting",
   "contracted",
   "contracted",
-  "copy of"
+  "copy of",
 ];
 
 const removeGenericTitles = (title: string): string => {
@@ -93,10 +83,7 @@ const removeGenericTitles = (title: string): string => {
   if (GENERIC_TITLES.includes(trimmed)) {
     return "";
   }
-  const genericPattern = new RegExp(
-    `(?:^|[-|,:\\s])\\s*(${GENERIC_TITLES.join("|")})\\s*(?:$|[-|,:\\s])`,
-    "gi"
-  );
+  const genericPattern = new RegExp(`(?:^|[-|,:\\s])\\s*(${GENERIC_TITLES.join("|")})\\s*(?:$|[-|,:\\s])`, "gi");
   return title
     .replace(genericPattern, " ")
     .replace(/\s{2,}/g, " ")
@@ -104,12 +91,7 @@ const removeGenericTitles = (title: string): string => {
 };
 
 const removeShiftTimings = (title: string): string => {
-  return title
-    .replace(
-      /\b\d{1,2}:\d{2}\s?(?:am|pm)?\s*-\s*\d{1,2}:\d{2}\s?(?:am|pm)?\b/gi,
-      ""
-    )
-    .trim();
+  return title.replace(/\b\d{1,2}:\d{2}\s?(?:am|pm)?\s*-\s*\d{1,2}:\d{2}\s?(?:am|pm)?\b/gi, "").trim();
 };
 
 const removeTrailingPunctuation = (title: string): string => {
@@ -119,10 +101,7 @@ const removeTrailingPunctuation = (title: string): string => {
 const removeTools = (title: string, tools: string[]): string => {
   let cleanedTitle = title;
   tools.forEach((tool) => {
-    const regex = new RegExp(
-      `\\b${tool.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b[\s,;:/-]*`,
-      "gi"
-    );
+    const regex = new RegExp(`\\b${tool.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b[\s,;:/-]*`, "gi");
     cleanedTitle = cleanedTitle.replace(regex, "");
   });
   cleanedTitle = cleanedTitle.replace(/\b(or|and)\b[,\s;:/-]*/gi, "");
@@ -130,16 +109,13 @@ const removeTools = (title: string, tools: string[]): string => {
 };
 
 const removeIds = (title: string): string => {
-  return title.replace(/\b\d{3,}\b/g, "").replace(/\s{2,}/g, " ").trim();
+  return title
+    .replace(/\b\d{3,}\b/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 };
 
-
-export const getCleanJobTitle = (
-  jobTitle: string,
-  companyName: string,
-  location: string,
-  tools?: string[]
-): string => {
+export const getCleanJobTitle = (jobTitle: string, companyName: string, location: string, tools?: string[]): string => {
   const rawTitle = jobTitle || "";
   const company = companyName || "";
   let title = rawTitle;
@@ -176,63 +152,38 @@ export const getCompensation = (compensation: CompensationRange) => {
     const isHourly = unit === "hr";
 
     if (minNum != null && maxNum != null) {
-      if (minNum === maxNum)
-        return `${formatValue(minNum, isHourly)}${displayUnit}`;
+      if (minNum === maxNum) return `${formatValue(minNum, isHourly)}${displayUnit}`;
       if (minNum >= 1000 && maxNum >= 1000) {
         const minRounded = Math.round(minNum / 1000);
         const maxRounded = Math.round(maxNum / 1000);
-        return `${minRounded}K-${maxRounded}K${displayUnit}`;
+        if (minRounded === maxRounded) {
+          return `${minRounded}k${displayUnit}`;
+        }
+        return `${minRounded}k-${maxRounded}k${displayUnit}`;
       }
-      return `${formatValue(minNum, isHourly)}-${formatValue(
-        maxNum,
-        isHourly
-      )}${displayUnit}`;
+      return `${formatValue(minNum, isHourly)}-${formatValue(maxNum, isHourly)}${displayUnit}`;
     }
     if (minNum != null) return `${formatValue(minNum, isHourly)}${displayUnit}`;
     if (maxNum != null) return `${formatValue(maxNum, isHourly)}${displayUnit}`;
     return null;
   };
 
-  const yearly = format(
-    compensation.yearly_min_compensation,
-    compensation.yearly_max_compensation,
-    "yr"
-  );
+  const yearly = format(compensation.yearly_min_compensation, compensation.yearly_max_compensation, "yr");
   if (yearly) return yearly;
 
-  const monthly = format(
-    compensation.monthly_min_compensation,
-    compensation.monthly_max_compensation,
-    "mo"
-  );
+  const monthly = format(compensation.monthly_min_compensation, compensation.monthly_max_compensation, "mo");
   if (monthly) return monthly;
 
-  const biweekly = format(
-    compensation["bi-weekly_min_compensation"],
-    compensation["bi-weekly_max_compensation"],
-    "bi-wk"
-  );
+  const biweekly = format(compensation["bi-weekly_min_compensation"], compensation["bi-weekly_max_compensation"], "bi-wk");
   if (biweekly) return biweekly;
 
-  const weekly = format(
-    compensation.weekly_min_compensation,
-    compensation.weekly_max_compensation,
-    "wk"
-  );
+  const weekly = format(compensation.weekly_min_compensation, compensation.weekly_max_compensation, "wk");
   if (weekly) return weekly;
 
-  const daily = format(
-    compensation.daily_min_compensation,
-    compensation.daily_max_compensation,
-    "day"
-  );
+  const daily = format(compensation.daily_min_compensation, compensation.daily_max_compensation, "day");
   if (daily) return daily;
 
-  const hourly = format(
-    compensation.hourly_min_compensation,
-    compensation.hourly_max_compensation,
-    "hr"
-  );
+  const hourly = format(compensation.hourly_min_compensation, compensation.hourly_max_compensation, "hr");
   if (hourly) return hourly;
 
   return null;
@@ -294,11 +245,7 @@ const stateAbbreviations: { [key: string]: string } = {
 
 export const formatState = (state: string) => {
   const cleanState = state.trim();
-  const found = Object.entries(stateAbbreviations).find(
-    ([full, abbr]) =>
-      full.toLowerCase() === cleanState.toLowerCase() ||
-      abbr.toLowerCase() === cleanState.toLowerCase()
-  );
+  const found = Object.entries(stateAbbreviations).find(([full, abbr]) => full.toLowerCase() === cleanState.toLowerCase() || abbr.toLowerCase() === cleanState.toLowerCase());
   if (found) {
     return found[1];
   }
@@ -325,9 +272,7 @@ export const getLocation = (location: string) => {
 };
 
 export const getLocations = (workplaceCities: string[]) => {
-  return workplaceCities
-    .filter((city) => city && city.length > 0)
-    .map((city) => getLocation(city));
+  return workplaceCities.filter((city) => city && city.length > 0).map((city) => getLocation(city));
 };
 
 export function getTimeSince(dateString: string): {
@@ -535,31 +480,29 @@ export const formatJobDescription = (description: string): string => {
     .trim();
 
   // Consolidated style removal: remove color, font-size, font-family, line-height properties and related HTML attributes
-  formatted = formatted.replace(
-    /style\s*=\s*(['"])(.*?)\1/gi,
-    (match, quote, styleContent) => {
-      // Remove specified CSS properties from the style attribute
-      const cleaned = styleContent
-        .split(";")
-        .map((rule: string) => rule.trim())
-        .filter((rule: string) => {
-          // Remove if rule starts with any of the specified properties
-          return !/^(color|background|background-color|background-image|background-gradient|border-color|border-top-color|border-right-color|border-bottom-color|border-left-color|fill|stroke|font-size|font-family|line-height)\s*:/i.test(
-            rule
-          );
-        })
-        .join("; ");
-      // If nothing left, remove the style attribute entirely
-      if (!cleaned.trim()) return "";
-      return `style=${quote}${cleaned}${quote}`;
-    }
-  );
+  formatted = formatted.replace(/style\s*=\s*(['"])(.*?)\1/gi, (match, quote, styleContent) => {
+    // Remove specified CSS properties from the style attribute
+    const cleaned = styleContent
+      .split(";")
+      .map((rule: string) => rule.trim())
+      .filter((rule: string) => {
+        // Remove if rule starts with any of the specified properties
+        return !/^(color|background|background-color|background-image|background-gradient|border-color|border-top-color|border-right-color|border-bottom-color|border-left-color|fill|stroke|font-size|font-family|line-height)\s*:/i.test(
+          rule
+        );
+      })
+      .join("; ");
+    // If nothing left, remove the style attribute entirely
+    if (!cleaned.trim()) return "";
+    return `style=${quote}${cleaned}${quote}`;
+  });
 
   // Remove color-related HTML attributes (e.g., color="red", bgcolor="blue")
-  formatted = formatted.replace(
-    /\s*(color|bgcolor|bordercolor|fill|stroke)\s*=\s*(['"])[^'"]*\2/gi,
-    ""
-  );
+  formatted = formatted.replace(/\s*(color|bgcolor|bordercolor|fill|stroke)\s*=\s*(['"])[^'"]*\2/gi, "");
+
+  // Remove inline JS handlers and javascript: URLs from source HTML.
+  formatted = formatted.replace(/\s(on\w+)\s*=\s*(['"]).*?\2/gi, "");
+  formatted = formatted.replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[^'"]*\2/gi, "");
 
   return formatted;
 };
@@ -572,27 +515,15 @@ export const formatTool = (tool: string) => {
     .join(" ");
 };
 
-export const getExperienceInfo = (
-  minIndustryAndRoleYoe: number | null | undefined,
-  minManagementAndLeadershipYoe: number | null | undefined
-) => {
-  const hasIndustry =
-    minIndustryAndRoleYoe !== null && minIndustryAndRoleYoe !== undefined;
-  const hasLeadership =
-    minManagementAndLeadershipYoe !== null &&
-    minManagementAndLeadershipYoe !== undefined;
+export const getExperienceInfo = (minIndustryAndRoleYoe: number | null | undefined, minManagementAndLeadershipYoe: number | null | undefined) => {
+  const hasIndustry = minIndustryAndRoleYoe !== null && minIndustryAndRoleYoe !== undefined;
+  const hasLeadership = minManagementAndLeadershipYoe !== null && minManagementAndLeadershipYoe !== undefined;
 
   const industryBadge = hasIndustry ? `${minIndustryAndRoleYoe}+ YOE` : null;
-  const leadershipBadge = hasLeadership
-    ? `${minManagementAndLeadershipYoe}+ MGMT`
-    : null;
+  const leadershipBadge = hasLeadership ? `${minManagementAndLeadershipYoe}+ MGMT` : null;
 
-  const industryTooltip = hasIndustry
-    ? `This job requires ${minIndustryAndRoleYoe}+ years of experience`
-    : null;
-  const leadershipTooltip = hasLeadership
-    ? `This job requires ${minManagementAndLeadershipYoe}+ years of leadership/management experience`
-    : null;
+  const industryTooltip = hasIndustry ? `This job requires ${minIndustryAndRoleYoe}+ years of experience` : null;
+  const leadershipTooltip = hasLeadership ? `This job requires ${minManagementAndLeadershipYoe}+ years of leadership/management experience` : null;
 
   return {
     industryBadge,

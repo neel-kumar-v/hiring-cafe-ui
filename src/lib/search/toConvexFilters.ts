@@ -72,9 +72,8 @@ export function toConvexJobSearchFilters(state: SearchState): ConvexJobSearchFil
 	const commitment = asArray(state.commitment).filter(Boolean);
 
 	const currencyRaw = state.salary?.currency;
-	const currencies = currencyRaw && currencyRaw !== "Any" ? [currencyRaw] : [];
-
 	const listedUnitRaw = state.salary?.listedUnit;
+	const currencies = listedUnitRaw && listedUnitRaw !== "Any" && currencyRaw && currencyRaw !== "Any" ? [currencyRaw] : [];
 	const frequencies = listedUnitRaw && listedUnitRaw !== "Any" ? [listedUnitRaw] : [];
 
 	const postedAfterMillis = toMillisFromDateRange(state);

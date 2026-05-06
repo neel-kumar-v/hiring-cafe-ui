@@ -27,9 +27,7 @@ export const formatCompanyWebsite = (website: string | null | undefined): string
 };
 
 /** Hostname for favicon services (e.g. `liebherr.com` from `https://www.liebherr.com/careers`). */
-export const extractDomainFromCompanyWebsite = (
-  website: string | null | undefined,
-): string | null => {
+export const extractDomainFromCompanyWebsite = (website: string | null | undefined): string | null => {
   const raw = website?.trim();
   if (!raw) return null;
   try {
@@ -42,8 +40,7 @@ export const extractDomainFromCompanyWebsite = (
   }
 };
 
-export const companyFaviconUrl = (domain: string, sizePx: number): string =>
-  `https://s2.googleusercontent.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${sizePx}`;
+export const companyFaviconUrl = (domain: string, sizePx: number): string => `https://s2.googleusercontent.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${sizePx}`;
 
 export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: boolean) => {
   if (companyName.length !== 4) return companyName;
@@ -136,18 +133,4 @@ export const analyzeImageBackground = async (imageUrl: string): Promise<"light" 
     console.warn("Failed to cache image analysis promise:", error);
     return promise;
   }
-};
-
-export const getImageBackgroundClass = (imageUrl: string | null, imageError: boolean, backgroundType: "light" | "dark" | null): string => {
-  if (!imageUrl || imageError) {
-    return "bg-brand-soft dark:bg-brand-soft";
-  }
-
-  if (backgroundType === "light") {
-    return "dark:bg-card";
-  } else if (backgroundType === "dark") {
-    return "dark:bg-background";
-  }
-
-  return "";
 };

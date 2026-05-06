@@ -44,7 +44,10 @@ const ListViewJobCard = ({
   onJobClick: () => void;
 }) => {
   return (
-    <Card className="mb-3 cursor-pointer border border-input p-4 shadow-none transition-all duration-300 ease-in-out hover:border-input/75" onClick={onJobClick}>
+    <Card
+      className="mb-3 cursor-pointer border border-input p-4 shadow-none transition-all duration-300 ease-in-out hover:border-input/75"
+      onClick={onJobClick}
+    >
       <ListJobCardContents job={row.job} company={row.company} currentStage={currentStage} onMoveJob={onMoveJob} />
     </Card>
   );
@@ -53,7 +56,7 @@ const ListViewJobCard = ({
 const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: ListViewProps) => {
   const { isDesktop } = useResponsiveBreakpoint();
   const { user } = useApp();
-  const { prefetch } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 2 });
+  const { prefetch, prefetchNow } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 2 });
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -90,24 +93,30 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
     setDialogOpen(false);
   }, [isDesktop]);
 
-  const selectedRow = selectedIndex === null ? null : filteredJobs[selectedIndex] ?? null;
+  const selectedRow = selectedIndex === null ? null : (filteredJobs[selectedIndex] ?? null);
 
-  const runNavigationTransition = useCallback(
-    async (navigate: () => void) => {
-      if (transitionInFlightRef.current) return;
-      transitionInFlightRef.current = true;
-      setIsTransitioning(true);
-      try {
-        await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
-        navigate();
-        await new Promise((resolve) => window.setTimeout(resolve, NAV_SETTLE_MS));
-      } finally {
-        transitionInFlightRef.current = false;
-        setIsTransitioning(false);
-      }
-    },
-    []
-  );
+  const prefetchNeighborsForSelected = useCallback(() => {
+    if (selectedIndex === null) return;
+    if (filteredJobs.length < 2) return;
+    const previousIndex = (selectedIndex - 1 + filteredJobs.length) % filteredJobs.length;
+    const nextIndex = (selectedIndex + 1) % filteredJobs.length;
+    prefetch(getDetailsLookupId(filteredJobs[previousIndex].job));
+    if (nextIndex !== previousIndex) prefetch(getDetailsLookupId(filteredJobs[nextIndex].job));
+  }, [filteredJobs, prefetch, selectedIndex]);
+
+  const runNavigationTransition = useCallback(async (navigate: () => void) => {
+    if (transitionInFlightRef.current) return;
+    transitionInFlightRef.current = true;
+    setIsTransitioning(true);
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
+      navigate();
+      await new Promise((resolve) => window.setTimeout(resolve, NAV_SETTLE_MS));
+    } finally {
+      transitionInFlightRef.current = false;
+      setIsTransitioning(false);
+    }
+  }, []);
 
   const navigateToIndex = useCallback(
     (nextIndex: number) => {
@@ -129,32 +138,22 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
 
   const handlePrevious = useCallback(async () => {
     if (!filteredJobs.length || selectedIndex === null) return;
+    const previousIndex = (selectedIndex - 1 + filteredJobs.length) % filteredJobs.length;
+    prefetchNow(getDetailsLookupId(filteredJobs[previousIndex].job));
     await runNavigationTransition(() => navigateToIndex(selectedIndex - 1));
-  }, [filteredJobs.length, navigateToIndex, runNavigationTransition, selectedIndex]);
+  }, [filteredJobs, navigateToIndex, prefetchNow, runNavigationTransition, selectedIndex]);
 
   const handleNext = useCallback(async () => {
     if (!filteredJobs.length || selectedIndex === null) return;
-    await runNavigationTransition(() => navigateToIndex(selectedIndex + 1));
-  }, [filteredJobs.length, navigateToIndex, runNavigationTransition, selectedIndex]);
-
-  const handlePreviousHover = useCallback(() => {
-    if (!filteredJobs.length || selectedIndex === null) return;
-    const previousIndex = (selectedIndex - 1 + filteredJobs.length) % filteredJobs.length;
-    prefetch(getDetailsLookupId(filteredJobs[previousIndex].job));
-  }, [filteredJobs, prefetch, selectedIndex]);
-
-  const handleNextHover = useCallback(() => {
-    if (!filteredJobs.length || selectedIndex === null) return;
     const nextIndex = (selectedIndex + 1) % filteredJobs.length;
-    prefetch(getDetailsLookupId(filteredJobs[nextIndex].job));
-  }, [filteredJobs, prefetch, selectedIndex]);
+    prefetchNow(getDetailsLookupId(filteredJobs[nextIndex].job));
+    await runNavigationTransition(() => navigateToIndex(selectedIndex + 1));
+  }, [filteredJobs, navigateToIndex, prefetchNow, runNavigationTransition, selectedIndex]);
 
   const isBookmarked = useMemo(
     () =>
       selectedRow
-        ? user.saved.includes(selectedRow.job.externalId) ||
-          user.applied.includes(selectedRow.job.externalId) ||
-          user.interviewing.includes(selectedRow.job.externalId)
+        ? user.saved.includes(selectedRow.job.externalId) || user.applied.includes(selectedRow.job.externalId) || user.interviewing.includes(selectedRow.job.externalId)
         : false,
     [selectedRow, user.applied, user.interviewing, user.saved]
   );
@@ -205,6 +204,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
         <JobDialogContent
           company={selectedRow.company}
           currentJob={selectedRow.job}
+          onDetailsResolved={prefetchNeighborsForSelected}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isInterviewing={isInterviewing}
@@ -216,8 +216,8 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
           outsideNavigation={{
             onPrevious: handlePrevious,
             onNext: handleNext,
-            onPreviousHover: handlePreviousHover,
-            onNextHover: handleNextHover,
+            onPreviousHover: undefined,
+            onNextHover: undefined,
             canGoPrevious: filteredJobs.length > 1,
             canGoNext: filteredJobs.length > 1,
             previousAriaLabel: "Previous list job",
@@ -230,6 +230,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
         <JobDrawerContent
           company={selectedRow.company}
           currentJob={selectedRow.job}
+          onDetailsResolved={prefetchNeighborsForSelected}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isTransitioning={isTransitioning}

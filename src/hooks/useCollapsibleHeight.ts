@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -18,9 +19,16 @@ const DURATION_MS = 300;
 export function useCollapsibleHeight(open: boolean) {
   const contentRef = useRef<HTMLDivElement>(null);
   const prevOpen = useRef<boolean | undefined>(undefined);
-  const [height, setHeight] = useState<number | "auto">(() => (open ? "auto" : 0));
+  const [hasMounted, setHasMounted] = useState(false);
+  const [height, setHeight] = useState<number | "auto">(0);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useLayoutEffect(() => {
+    if (!hasMounted) return;
+
     const node = contentRef.current;
     if (!node) return;
 
@@ -56,7 +64,7 @@ export function useCollapsibleHeight(open: boolean) {
     setHeight(target);
     const id = requestAnimationFrame(() => setHeight(0));
     return () => cancelAnimationFrame(id);
-  }, [open]);
+  }, [hasMounted, open]);
 
   const onTransitionEnd = useCallback(
     (event: TransitionEvent<HTMLDivElement>) => {

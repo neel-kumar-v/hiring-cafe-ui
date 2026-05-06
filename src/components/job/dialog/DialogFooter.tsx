@@ -10,6 +10,7 @@ export interface DialogFooterNavigationProps {
   onPrevious: () => void | Promise<void>;
   onNext: () => void | Promise<void>;
   onJobSelect: (index: number) => void | Promise<void>;
+  onJobHover?: (index: number) => void;
   onPreviousHover?: () => void;
   onNextHover?: () => void;
   canGoPrevious?: boolean;
@@ -22,6 +23,7 @@ const DialogFooterNavigation = ({
   onPrevious,
   onNext,
   onJobSelect,
+  onJobHover,
   onPreviousHover,
   onNextHover,
   canGoPrevious = true,
@@ -29,7 +31,7 @@ const DialogFooterNavigation = ({
 }: DialogFooterNavigationProps) => {
   return (
     <div className="absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-      <div className="flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-1 shadow-sm dark:bg-card">
+      <div className="flex items-center gap-1 rounded-md border border-border bg-background px-1.5 py-1 shadow-sm dark:bg-card">
         <button
           aria-label="Previous job"
           className={cn(
@@ -48,12 +50,10 @@ const DialogFooterNavigation = ({
           {Array.from({ length: totalJobs }).map((_, jobIndex) => (
             <button
               aria-label={`Go to job ${jobIndex + 1}`}
-              className={cn(
-                "size-1.5 rounded-full transition-colors",
-                jobIndex === currentJobIndex ? "bg-primary" : "bg-border hover:bg-muted-foreground/60"
-              )}
+              className={cn("size-1.5 rounded-full transition-colors", jobIndex === currentJobIndex ? "bg-primary" : "bg-border hover:bg-muted-foreground/60")}
               key={jobIndex}
               onClick={() => void onJobSelect(jobIndex)}
+              onMouseEnter={() => onJobHover?.(jobIndex)}
               type="button"
             />
           ))}
@@ -96,9 +96,7 @@ const DialogFooter = ({
 }) => {
   return (
     <div className="sticky right-0 bottom-0 left-0 bg-background dark:bg-card">
-      <div className="relative border-t border-border dark:border-border">
-        {navigation ? <DialogFooterNavigation {...navigation} /> : null}
-      </div>
+      <div className="relative border-t border-border dark:border-border">{navigation ? <DialogFooterNavigation {...navigation} /> : null}</div>
       <DialogActionButtons
         isApplied={isApplied}
         isBookmarked={isBookmarked}
@@ -107,6 +105,7 @@ const DialogFooter = ({
         applyUrl={applyUrl}
         companyUrl={companyWebsite}
         showTopBorder={false}
+        hasNavigation={Boolean(navigation)}
       />
     </div>
   );
@@ -120,6 +119,7 @@ export const DialogActionButtons = ({
   applyUrl,
   companyUrl: companyWebsite,
   showTopBorder = true,
+  hasNavigation = false,
 }: {
   onBookmarkToggle: () => void;
   isBookmarked: boolean;
@@ -128,10 +128,11 @@ export const DialogActionButtons = ({
   applyUrl: string;
   companyUrl: string | null | undefined;
   showTopBorder?: boolean;
+  hasNavigation?: boolean;
 }) => {
   return (
     <div className="flex flex-col gap-1.5 sm:flex-col-reverse">
-      <div className={cn("flex flex-wrap items-center justify-center gap-1.5 py-2 md:py-3", showTopBorder && "border-t border-border")}>
+      <div className={cn("flex flex-wrap items-center justify-center gap-1.5 py-2 md:py-3", showTopBorder && "border-t border-border", hasNavigation && "pt-6 md:pt-6")}>
         <Button className="flex items-center gap-2" onClick={onBookmarkToggle} size="sm" variant="outline">
           <Bookmark className={`size-4 ${isBookmarked ? "fill-current" : ""}`} />
           {isBookmarked ? "Saved" : "Save"}

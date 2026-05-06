@@ -7,6 +7,10 @@ type Options = {
   delayMs?: number;
   /** Maximum number of concurrent prefetches. */
   maxInflight?: number;
+  /** Max unique jobs to remember as already-prefetched. */
+  maxSeen?: number;
+  /** If true, allow prefetching an id again after errors. */
+  retryOnError?: boolean;
 };
 
 /**
@@ -17,21 +21,49 @@ export function useJobDetailsPrefetch(options?: Options) {
   const convex = useConvex();
   const delayMs = options?.delayMs ?? 180;
   const maxInflight = options?.maxInflight ?? 2;
+  const maxSeen = options?.maxSeen ?? 300;
+  const retryOnError = options?.retryOnError ?? false;
 
   const timerByIdRef = useRef(new Map<string, number>());
   const inflightRef = useRef(0);
   const queuedRef = useRef<string[]>([]);
-  const seenRef = useRef(new Set<string>());
+  // LRU-ish: keep a bounded set of ids we've already prefetched recently.
+  const seenSetRef = useRef(new Set<string>());
+  const seenQueueRef = useRef<string[]>([]);
+  const seenFailedRef = useRef(new Set<string>());
+
+  const enqueue = useCallback((jobId: string) => {
+    if (!jobId) return;
+    if (seenSetRef.current.has(jobId)) return;
+    if (!retryOnError && seenFailedRef.current.has(jobId)) return;
+    if (!queuedRef.current.includes(jobId)) {
+      queuedRef.current.push(jobId);
+    }
+  }, [retryOnError]);
+
+  const markSeen = useCallback(
+    (jobId: string) => {
+      if (seenSetRef.current.has(jobId)) return;
+      seenSetRef.current.add(jobId);
+      seenQueueRef.current.push(jobId);
+      if (seenQueueRef.current.length > maxSeen) {
+        const evicted = seenQueueRef.current.shift();
+        if (evicted) seenSetRef.current.delete(evicted);
+      }
+    },
+    [maxSeen]
+  );
 
   const drain = useCallback(() => {
     while (inflightRef.current < maxInflight && queuedRef.current.length) {
       const jobId = queuedRef.current.shift()!;
-      if (seenRef.current.has(jobId)) continue;
-      seenRef.current.add(jobId);
+      if (seenSetRef.current.has(jobId)) continue;
+      markSeen(jobId);
       inflightRef.current += 1;
       void convex
-        .query(api.jobs.getDetails, { jobId: jobId as any })
+        .query(api.jobs.getDetailsLite, { jobId: jobId as any })
         .catch(() => {
+          seenFailedRef.current.add(jobId);
           // best-effort
         })
         .finally(() => {
@@ -39,24 +71,38 @@ export function useJobDetailsPrefetch(options?: Options) {
           drain();
         });
     }
-  }, [convex, maxInflight]);
+  }, [convex, markSeen, maxInflight, seenSetRef]);
 
   const schedule = useCallback(
     (jobId: string) => {
-      if (!jobId || seenRef.current.has(jobId)) return;
+      if (!jobId || seenSetRef.current.has(jobId)) return;
 
       const existing = timerByIdRef.current.get(jobId);
       if (existing) window.clearTimeout(existing);
 
       const t = window.setTimeout(() => {
         timerByIdRef.current.delete(jobId);
-        queuedRef.current.push(jobId);
+        enqueue(jobId);
         drain();
       }, delayMs);
 
       timerByIdRef.current.set(jobId, t);
     },
-    [delayMs, drain]
+    [delayMs, drain, enqueue]
+  );
+
+  const scheduleNow = useCallback(
+    (jobId: string) => {
+      if (!jobId || seenSetRef.current.has(jobId)) return;
+      const existing = timerByIdRef.current.get(jobId);
+      if (existing) {
+        window.clearTimeout(existing);
+        timerByIdRef.current.delete(jobId);
+      }
+      enqueue(jobId);
+      drain();
+    },
+    [drain, enqueue]
   );
 
   const cancel = useCallback((jobId: string) => {
@@ -78,10 +124,10 @@ export function useJobDetailsPrefetch(options?: Options) {
   return useMemo(
     () => ({
       prefetch: schedule,
+      prefetchNow: scheduleNow,
       cancel,
       cancelAll,
     }),
-    [schedule, cancel, cancelAll]
+    [schedule, scheduleNow, cancel, cancelAll]
   );
 }
-

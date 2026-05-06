@@ -7,19 +7,23 @@ const CardNavigation = ({
   onPrevious,
   onNext,
   onJobSelect,
+  onPreviousHover,
+  onNextHover,
+  onJobHover,
 }: {
   currentJobIndex: number;
   totalJobs: number;
   onPrevious: () => void;
   onNext: () => void;
   onJobSelect: (index: number) => void;
+  onPreviousHover?: () => void;
+  onNextHover?: () => void;
+  onJobHover?: (index: number) => void;
 }) => {
   const handleGeneralClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     const container = e.currentTarget;
-    const dots = Array.from(
-      container.querySelectorAll("[data-dot-index]")
-    ) as HTMLElement[];
+    const dots = Array.from(container.querySelectorAll("[data-dot-index]")) as HTMLElement[];
     const clickX = e.clientX;
     const clickY = e.clientY;
 
@@ -38,10 +42,7 @@ const CardNavigation = ({
     const closest = targets.reduce(
       (min, target) => {
         const rect = target.el.getBoundingClientRect();
-        const dist = Math.hypot(
-          rect.left + rect.width / 2 - clickX,
-          rect.top + rect.height / 2 - clickY
-        );
+        const dist = Math.hypot(rect.left + rect.width / 2 - clickX, rect.top + rect.height / 2 - clickY);
         return dist < min.dist ? { target, dist } : min;
       },
       { target: null as Target | null, dist: Number.POSITIVE_INFINITY }
@@ -67,23 +68,18 @@ const CardNavigation = ({
         className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-muted-foreground transition-all duration-200 ease-in-out hover:bg-secondary hover:text-foreground"
         data-nav="left"
         onClick={handleLeftClick}
+        onMouseEnter={onPreviousHover}
       >
         <ChevronLeft className="size-3" />
       </div>
 
-      <div
-        className="flex h-6 items-center space-x-1"
-        onClick={handleGeneralClick}
-      >
+      <div className="flex h-6 items-center space-x-1" onClick={handleGeneralClick}>
         {Array.from({ length: totalJobs }).map((_, jobIndex) => (
           <div
-            className={`h-1.5 w-1.5 cursor-pointer rounded-full transition-all duration-400 ease-out ${
-              jobIndex === currentJobIndex
-                ? "bg-primary"
-                : "bg-border"
-            }`}
+            className={`h-1.5 w-1.5 cursor-pointer rounded-full transition-all duration-400 ease-out ${jobIndex === currentJobIndex ? "bg-primary" : "bg-border"}`}
             data-dot-index={jobIndex}
             key={jobIndex}
+            onMouseEnter={() => onJobHover?.(jobIndex)}
           />
         ))}
       </div>
@@ -92,6 +88,7 @@ const CardNavigation = ({
         className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full p-0 text-muted-foreground transition-all duration-200 ease-in-out hover:bg-secondary hover:text-foreground"
         data-nav="right"
         onClick={handleRightClick}
+        onMouseEnter={onNextHover}
       >
         <ChevronRight className="size-3" />
       </div>

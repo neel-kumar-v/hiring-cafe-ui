@@ -1,16 +1,7 @@
-import { useEffect, useState } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 
 const JobBoardCardSkeleton = () => {
-  const [randomTagCount, setRandomTagCount] = useState(2); // Default fallback
-  const [randomJobLines, setRandomJobLines] = useState(1); // Default fallback
-
-  useEffect(() => {
-    setRandomTagCount(Math.floor(Math.random() * 4) + 1);
-    setRandomJobLines(Math.floor(Math.random() * 3));
-  }, []);
-
   return (
     <Card className="h-full border bg-background shadow-sm dark:border-primary/20 dark:bg-card">
       <CardContent className="flex h-full flex-col p-4 py-3">
@@ -19,7 +10,7 @@ const JobBoardCardSkeleton = () => {
           <Skeleton className="-translate-y-2 h-4 w-1/12" />
         </div>
         <div className="mb-2 flex items-center gap-2">
-          {Array.from({ length: randomTagCount }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <Skeleton
               className={`h-4 w-1/6 [animation-delay:${index * 100}ms]`}
               key={index}
@@ -35,7 +26,7 @@ const JobBoardCardSkeleton = () => {
           </div>
         </div>
         <div className="flex-1">
-          {Array.from({ length: randomJobLines }).map((_, index) => (
+          {Array.from({ length: 2 }).map((_, index) => (
             <Skeleton className="mb-2 h-4 w-4/5" key={index} />
           ))}
           <div className="mb-3 flex flex-wrap gap-1">

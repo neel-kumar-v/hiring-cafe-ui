@@ -14,7 +14,13 @@ export function useSearchData(type: string, uppercase: boolean = false) {
     async function fetchOptions() {
       try {
         const res = await fetch(`/api/search?type=${type}&limit=1000`, { signal: controller.signal });
-        if (!res.ok) throw new Error('Failed to fetch');
+        if (!res.ok) {
+          if (mounted) {
+            setRawStrings([]);
+            setOptions([]);
+          }
+          return;
+        }
         const data = await res.json();
         
         if (mounted && data.suggestions) {
@@ -29,7 +35,10 @@ export function useSearchData(type: string, uppercase: boolean = false) {
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          console.error(`Error fetching search data for ${type}:`, err);
+          if (mounted) {
+            setRawStrings([]);
+            setOptions([]);
+          }
         }
       } finally {
         if (mounted) setLoading(false);
