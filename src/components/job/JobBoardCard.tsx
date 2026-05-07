@@ -1,6 +1,13 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialContent,
+  SpeedDialItem,
+  SpeedDialTrigger,
+} from "@/components/ui/speed-dial";
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
@@ -14,6 +21,9 @@ import CardNavigation from "./card/CardNavigation";
 import CardStats from "./card/CardStats";
 import CardSwipeIndicator from "./card/CardSwipeIndicator";
 import ScrapeTime from "./util/ScrapeTime";
+import { toast } from "sonner";
+import UniversalTooltip from "@/components/util/UniversalTooltip";
+import { CheckCheck, EyeOff, MessageSquareWarning, MoreVertical, Share2 } from "lucide-react";
 
 const JobCardContent = dynamic(() => import("./contents/JobCardContent"), {
   loading: () => null,
@@ -29,6 +39,10 @@ interface JobCardProps {
   isApplied: boolean;
   isInterviewing: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
+  onApplyToggle: (e: React.MouseEvent) => void;
+  onShare: (e: React.MouseEvent) => void;
+  onHide: (e: React.MouseEvent) => void;
+  onReport: (e: React.MouseEvent) => void;
   onPrevious: () => void;
   onNext: () => void;
   onJobSelect: (index: number) => void;
@@ -45,6 +59,10 @@ const JobCard = memo(
     isApplied,
     isInterviewing,
     onBookmarkToggle,
+    onApplyToggle,
+    onShare,
+    onHide,
+    onReport,
     onPrevious,
     onNext,
     onJobSelect,
@@ -81,11 +99,69 @@ const JobCard = memo(
     return (
       <CardSwipeIndicator onNext={onNext} onPrevious={onPrevious} totalJobs={jobCollection.jobs.length}>
         <Card
-          className="group h-full cursor-pointer border border-border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50"
+          className="group relative h-full cursor-pointer border border-border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50"
           key={cardKey}
           onClick={handleCardClick}
           data-job-card="true"
         >
+          <div className="absolute top-2 right-2 z-20">
+            <SpeedDial activationMode="hover" radius={36} rotationOffset={-135} side="circular">
+              <SpeedDialTrigger
+                aria-label="Job actions"
+                className="size-9 rounded-md bg-transparent shadow-none hover:bg-transparent active:bg-transparent"
+                onClick={(e) => e.stopPropagation()}
+                variant="ghost"
+              >
+                <MoreVertical className="size-4" />
+              </SpeedDialTrigger>
+              <SpeedDialContent className="z-30" forceMount={false}>
+                <SpeedDialItem>
+                  <UniversalTooltip content={isApplied ? "Unmark applied" : "Mark applied"} side="top" removeOnMobile={true}>
+                    <SpeedDialAction
+                      aria-label={isApplied ? "Unmark applied" : "Mark applied"}
+                      className="!bg-background shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:!bg-muted/70 active:translate-y-0 active:scale-[0.97]"
+                      onClick={onApplyToggle}
+                    >
+                      <CheckCheck className="size-4" />
+                    </SpeedDialAction>
+                  </UniversalTooltip>
+                </SpeedDialItem>
+                <SpeedDialItem>
+                  <UniversalTooltip content="Share" side="top" removeOnMobile={true}>
+                    <SpeedDialAction
+                      aria-label="Share job"
+                      className="!bg-background shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:!bg-muted/70 active:translate-y-0 active:scale-[0.97]"
+                      onClick={onShare}
+                    >
+                      <Share2 className="size-4" />
+                    </SpeedDialAction>
+                  </UniversalTooltip>
+                </SpeedDialItem>
+                <SpeedDialItem>
+                  <UniversalTooltip content="Report" side="bottom" removeOnMobile={true}>
+                    <SpeedDialAction
+                      aria-label="Report job"
+                      className="border-destructive/30 !bg-background shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:!bg-destructive/10 active:translate-y-0 active:scale-[0.97]"
+                      onClick={onReport}
+                    >
+                      <MessageSquareWarning className="size-4 text-destructive!" />
+                    </SpeedDialAction>
+                  </UniversalTooltip>
+                </SpeedDialItem>
+                <SpeedDialItem>
+                  <UniversalTooltip content="Hide" side="bottom" removeOnMobile={true}>
+                    <SpeedDialAction
+                      aria-label="Hide job"
+                      className="border-destructive/30 !bg-background shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:!bg-destructive/10 active:translate-y-0 active:scale-[0.97]"
+                      onClick={onHide}
+                    >
+                      <EyeOff className="size-4 text-destructive!" />
+                    </SpeedDialAction>
+                  </UniversalTooltip>
+                </SpeedDialItem>
+              </SpeedDialContent>
+            </SpeedDial>
+          </div>
           <CardContent className="flex h-full flex-col p-4 py-3">
             <JobCardContent currentJob={currentJob} company={jobCollection.company} isTransitioning={isTransitioning} />
             <div className="mt-auto grid grid-cols-3 items-center">
@@ -212,7 +288,6 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
 
   const handleBookmarkClick = useCallback(
     (e: React.MouseEvent) => {
-      e.preventDefault();
       e.stopPropagation();
       handleBookmarkToggle();
     },
@@ -221,11 +296,70 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
 
   const handleApplyClick = useCallback(
     (e: React.MouseEvent) => {
-      e.preventDefault();
       e.stopPropagation();
       handleApplyToggle();
     },
     [handleApplyToggle]
+  );
+
+  const handleShareClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const url = currentJob.applyUrl ?? "";
+      if (!url) {
+        toast.error("No application link available to share.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Application link copied to clipboard.");
+      } catch {
+        toast.error("Unable to copy link right now.");
+      }
+    },
+    [currentJob.applyUrl]
+  );
+
+  const handleHideClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const jobId = currentJob.externalId;
+
+      if (user.hidden.includes(jobId)) {
+        toast.info("Job is already hidden.");
+        return;
+      }
+
+      if (user.saved.includes(jobId)) removeJob(jobId, "saved");
+      if (user.applied.includes(jobId)) removeJob(jobId, "applied");
+      if (user.interviewing.includes(jobId)) removeJob(jobId, "interviewing");
+      if (user.rejected.includes(jobId)) removeJob(jobId, "rejected");
+
+      addJob(jobId, "hidden");
+      toast.success("Job hidden.");
+    },
+    [addJob, currentJob.externalId, removeJob, user.applied, user.hidden, user.interviewing, user.rejected, user.saved]
+  );
+
+  const handleReportClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const reportPayload = [
+        `Job: ${currentJob.title}`,
+        `External ID: ${currentJob.externalId}`,
+        `Apply URL: ${currentJob.applyUrl ?? "(none)"}`,
+        "",
+        "Report: (describe the issue here)",
+      ].join("\n");
+
+      try {
+        await navigator.clipboard.writeText(reportPayload);
+        toast.success("Report template copied to clipboard.");
+      } catch {
+        toast.error("Unable to copy report template right now.");
+      }
+    },
+    [currentJob.applyUrl, currentJob.externalId, currentJob.title]
   );
 
   const handleJobIndexChange = useCallback(
@@ -249,6 +383,10 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
       isTransitioning={isTransitioning}
       jobCollection={jobCollection}
       onBookmarkToggle={handleBookmarkClick}
+      onApplyToggle={handleApplyClick}
+      onShare={handleShareClick}
+      onHide={handleHideClick}
+      onReport={handleReportClick}
       onClick={handleOpenJob}
       onJobSelect={handleJobIndexChange}
       onNext={handleNextJob}
@@ -266,6 +404,9 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
           isBookmarked={isBookmarked}
           onApplyClick={handleApplyClick}
           onBookmarkClick={handleBookmarkClick}
+          onShareClick={handleShareClick}
+          onHideClick={handleHideClick}
+          onReportClick={handleReportClick}
           applyUrl={currentJob.applyUrl ?? ""}
         >
           {card}

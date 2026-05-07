@@ -1,7 +1,7 @@
 import { getTimeSince } from "@/lib/job-info";
 import type React from "react";
 import ScrapeTime from "../util/ScrapeTime";
-import StatGroup from "../util/StatGroup";
+import DialogStatGroup from "../util/DialogStatGroup";
 
 const DialogStats = ({
   publishDate,
@@ -42,7 +42,7 @@ const DialogStats = ({
       </div>
 
       <div className="flex items-center space-x-3 text-muted-foreground text-sm dark:text-muted-foreground">
-        <StatGroup
+        <DialogStatGroup
           appliedCount={appliedCount}
           handleBookmarkClick={onBookmarkClick}
           iconClassName="size-4"

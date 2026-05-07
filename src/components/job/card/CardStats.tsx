@@ -1,5 +1,5 @@
 import type React from "react";
-import { StatGroup } from "../util/StatGroup";
+import CardStatGroup from "../util/CardStatGroup";
 
 const CardStats = ({
   viewedCount = 0,
@@ -33,10 +33,14 @@ const CardStats = ({
     e.stopPropagation();
   };
 
+  const handleApplyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <div onClick={handleGeneralClick}>
-      <div className="flex w-fit items-center space-x-3 pr-4 text-muted-foreground text-md dark:text-muted-foreground">
-        <StatGroup
+      <div className="flex w-fit items-center gap-2 pr-4 text-muted-foreground text-md dark:text-muted-foreground">
+        <CardStatGroup
           appliedCount={appliedTotal}
           handleBookmarkClick={handleBookmarkClick}
           isApplied={isApplied}
@@ -46,6 +50,7 @@ const CardStats = ({
           viewedCount={viewedTotal}
           iconClassName="size-3"
           applyUrl={applyUrl}
+          onApplyClick={handleApplyClick}
         />
       </div>
     </div>

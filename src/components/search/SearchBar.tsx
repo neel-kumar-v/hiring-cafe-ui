@@ -132,7 +132,7 @@ function IconButton({ icon: Icon, label, className, onClick, dataIconType, butto
   const visibilityClass = clickable ? "" : "hidden";
 
   return (
-    <Hitbox size="sm" position="vertical" className={cn(visibilityClass, "h-full shrink-0", className)}>
+    <Hitbox size="12px" position="all" radius="full" className={cn(visibilityClass, "h-full shrink-0", className)}>
       <button
         type="button"
         className={cn("group/icon inline-flex h-full items-center justify-center text-muted-foreground", buttonClassName)}
@@ -159,7 +159,7 @@ function IconButtons({ variant, inputFocused, handleIconClick }: IconButtonsProp
   }
 
   return (
-    <div className="flex flex-row gap-2 px-2">
+    <div className="flex flex-row gap-2 px-3">
       <IconButton
         className="hidden xs:block"
         icon={IdCard}

@@ -26,6 +26,9 @@ const CardContextMenuProvider = ({
   isApplied,
   onBookmarkClick,
   onApplyClick,
+  onShareClick,
+  onHideClick,
+  onReportClick,
   applyUrl,
 }: {
   children: React.ReactNode;
@@ -35,6 +38,9 @@ const CardContextMenuProvider = ({
   isApplied: boolean;
   onBookmarkClick: (e: React.MouseEvent) => void;
   onApplyClick: (e: React.MouseEvent) => void;
+  onShareClick: (e: React.MouseEvent) => void;
+  onHideClick: (e: React.MouseEvent) => void;
+  onReportClick: (e: React.MouseEvent) => void;
   applyUrl: string;
 }) => {
   const companyName = company?.name ?? "";
@@ -75,16 +81,16 @@ const CardContextMenuProvider = ({
             Go to Company Website
           </a>
         </ContextMenuItem>
-        <ContextMenuItem>
+        <ContextMenuItem onClick={onShareClick}>
           <Share2 className="mr-2 size-4" />
           Share Job
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem className="!text-destructive">
+        <ContextMenuItem className="!text-destructive" onClick={onHideClick}>
           <EyeOff className="mr-2 size-4 !text-destructive" />
           Hide Job
         </ContextMenuItem>
-        <ContextMenuItem className="!text-destructive">
+        <ContextMenuItem className="!text-destructive" onClick={onReportClick}>
           <MessageSquareWarning className="mr-2 size-4 !text-destructive" />
           Report Job
         </ContextMenuItem>

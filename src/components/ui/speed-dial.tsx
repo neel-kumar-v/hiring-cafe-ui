@@ -27,7 +27,7 @@ const DEFAULT_ITEM_DELAY = 50;
 const DEFAULT_HOVER_CLOSE_DELAY = 100;
 const DEFAULT_ANIMATION_DURATION = 200;
 
-type Side = "top" | "right" | "bottom" | "left";
+type Side = "top" | "right" | "bottom" | "left" | "circular";
 type ActivationMode = "click" | "hover";
 
 interface DivProps extends React.ComponentProps<"div"> {
@@ -59,6 +59,8 @@ function getTransformOrigin(side: Side): string {
       return "right center";
     case "right":
       return "left center";
+    case "circular":
+      return "center center";
   }
 }
 
@@ -119,6 +121,8 @@ interface SpeedDialContextValue {
   isPointerInsideReactTreeRef: React.RefObject<boolean>;
   hoverCloseTimerRef: React.RefObject<number | null>;
   side: Side;
+  radius: number;
+  rotationOffset: number;
   activationMode: ActivationMode;
   delay: number;
   disabled: boolean;
@@ -141,6 +145,8 @@ interface SpeedDialProps extends DivProps {
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   side?: Side;
+  radius?: number;
+  rotationOffset?: number;
   activationMode?: ActivationMode;
   delay?: number;
   disabled?: boolean;
@@ -153,6 +159,8 @@ function SpeedDial(props: SpeedDialProps) {
     onOpenChange,
     onPointerDownCapture: onPointerDownCaptureProp,
     side = "top",
+    radius = 100,
+    rotationOffset = 0,
     activationMode = "click",
     delay = 250,
     asChild,
@@ -271,6 +279,8 @@ function SpeedDial(props: SpeedDialProps) {
       isPointerInsideReactTreeRef,
       hoverCloseTimerRef,
       side,
+      radius,
+      rotationOffset,
       activationMode,
       delay,
       disabled,
@@ -281,6 +291,8 @@ function SpeedDial(props: SpeedDialProps) {
       onNodeUnregister,
       contentId,
       side,
+      radius,
+      rotationOffset,
       activationMode,
       delay,
       disabled,
@@ -454,6 +466,8 @@ function SpeedDialTrigger(props: React.ComponentProps<typeof Button>) {
 interface SpeedDialItemImplContextValue {
   delay: number;
   open: boolean;
+  x: number;
+  y: number;
 }
 
 const SpeedDialItemImplContext =
@@ -466,17 +480,21 @@ function useSpeedDialItemImplContext() {
 interface SpeedDialItemImplProps {
   delay: number;
   open: boolean;
+  x?: number;
+  y?: number;
   children: React.ReactNode;
 }
 
 const SpeedDialItemImpl = React.memo(function SpeedDialItemImpl({
   delay,
   open,
+  x = 0,
+  y = 0,
   children,
 }: SpeedDialItemImplProps) {
   const contextValue = React.useMemo<SpeedDialItemImplContextValue>(
-    () => ({ delay, open }),
-    [delay, open],
+    () => ({ delay, open, x, y }),
+    [delay, open, x, y],
   );
 
   return (
@@ -495,6 +513,7 @@ const speedDialContentVariants = cva(
         bottom: "flex-col items-end",
         left: "flex-row-reverse items-center",
         right: "flex-row items-center",
+        circular: "block",
       },
     },
     defaultVariants: {
@@ -536,6 +555,8 @@ function SpeedDialContent(props: SpeedDialContentProps) {
   const {
     contentId,
     side,
+    radius,
+    rotationOffset,
     getNodes,
     rootRef,
     triggerRef,
@@ -554,8 +575,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
     onInteractOutside,
   });
 
-  const orientation =
-    side === "top" || side === "bottom" ? "vertical" : "horizontal";
+  const orientation = side === "circular" ? undefined : side === "top" || side === "bottom" ? "vertical" : "horizontal";
 
   const transformOrigin = React.useMemo(() => getTransformOrigin(side), [side]);
 
@@ -643,6 +663,14 @@ function SpeedDialContent(props: SpeedDialContentProps) {
         newPosition.left = `calc(100% + ${offset}px)`;
         newPosition.top = "0";
         break;
+      case "circular": {
+        if (!triggerRef.current || !rootRef.current) break;
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const rootRect = rootRef.current.getBoundingClientRect();
+        newPosition.left = `${triggerRect.left - rootRect.left + triggerRect.width / 2}px`;
+        newPosition.top = `${triggerRect.top - rootRect.top + triggerRect.height / 2}px`;
+        break;
+      }
     }
 
     setPosition((prev) => {
@@ -652,7 +680,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
       });
       return hasChanged ? newPosition : prev;
     });
-  }, [triggerRef, open, side, offset]);
+  }, [triggerRef, rootRef, open, side, offset]);
 
   useIsomorphicLayoutEffect(() => {
     if (!open) return;
@@ -823,11 +851,22 @@ function SpeedDialContent(props: SpeedDialContentProps) {
             ? index * DEFAULT_ITEM_DELAY
             : (totalChildren - index - 1) * DEFAULT_ITEM_DELAY;
 
+          let x = 0;
+          let y = 0;
+          if (side === "circular" && totalChildren > 0) {
+            const angleDeg = rotationOffset + index * (360 / totalChildren);
+            const angleRad = (angleDeg * Math.PI) / 180;
+            x = radius * Math.cos(angleRad);
+            y = radius * Math.sin(angleRad);
+          }
+
           return (
             <SpeedDialItemImpl
               key={child.key ?? index}
               delay={delay}
               open={renderState.animating}
+              x={x}
+              y={y}
             >
               {child}
             </SpeedDialItemImpl>
@@ -847,6 +886,7 @@ const speedDialItemVariants = cva(
         bottom: "justify-end",
         left: "flex-row-reverse justify-start",
         right: "justify-start",
+        circular: "absolute left-0 top-0",
       },
     },
     compoundVariants: [
@@ -896,6 +936,8 @@ function SpeedDialItem(props: DivProps) {
   const itemImplContext = useSpeedDialItemImplContext();
   const delay = itemImplContext?.delay ?? 0;
   const open = itemImplContext?.open ?? false;
+  const x = itemImplContext?.x ?? 0;
+  const y = itemImplContext?.y ?? 0;
 
   const actionId = React.useId();
   const labelId = React.useId();
@@ -906,12 +948,25 @@ function SpeedDialItem(props: DivProps) {
   );
 
   const itemStyle = React.useMemo<React.CSSProperties>(
-    () => ({
-      "--speed-dial-animation-duration": `${DEFAULT_ANIMATION_DURATION}ms`,
-      "--speed-dial-delay": `${delay}ms`,
-      ...style,
-    }),
-    [delay, style],
+    () => {
+      const baseStyle = {
+        "--speed-dial-animation-duration": `${DEFAULT_ANIMATION_DURATION}ms`,
+        "--speed-dial-delay": `${delay}ms`,
+      } as React.CSSProperties & Record<string, string>;
+
+      if (side === "circular") {
+        return {
+          ...baseStyle,
+          transform: open
+            ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+            : "translate(-50%, -50%)",
+          ...style,
+        };
+      }
+
+      return { ...baseStyle, ...style };
+    },
+    [delay, style, open, x, y, side],
   );
 
   const ItemPrimitive = asChild ? SlotPrimitive.Slot : "div";
@@ -942,6 +997,7 @@ function SpeedDialAction(props: SpeedDialActionProps) {
   const {
     onSelect,
     onClick: onClickProp,
+    variant = "outline",
     className,
     disabled,
     id,
@@ -1010,13 +1066,13 @@ function SpeedDialAction(props: SpeedDialActionProps) {
       id={actionId}
       aria-labelledby={labelId}
       data-slot="speed-dial-action"
-      variant="outline"
+      variant={variant}
       size="icon"
       disabled={disabled}
       ref={composedRefs}
       {...actionProps}
       className={cn(
-        "size-11 shrink-0 rounded-full bg-accent shadow-md",
+        "size-11 shrink-0 rounded-full bg-background",
         className,
       )}
       onClick={onClick}
