@@ -7,6 +7,7 @@ import { useApp } from "../contexts/AppContext";
 import { useSearchUI } from "../contexts/SearchContext";
 import { useJobDetailsPrefetch } from "../hooks/useJobDetailsPrefetch";
 import { useMediaQuery, useResponsiveBreakpoint } from "../hooks/useMediaQuery";
+import { JOB_FADE_DURATION_MS } from "../lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "../lib/jobs/getDetailsLookupId";
 import { toConvexJobSearchFilters } from "../lib/search/toConvexFilters";
 import JobBoardCardSkeleton from "./job/JobBoardCardSkeleton";
@@ -28,7 +29,7 @@ const JobDrawerContent = dynamic(() => import("./job/contents/JobDrawerContent")
 // Keeping pages smaller avoids Convex "many bytes read" warnings when job payloads are large.
 const PAGE_LIMIT = 24;
 const JOBS_PER_CARD = 10;
-const NAV_FADE_OUT_MS = 300;
+const NAV_FADE_OUT_MS = JOB_FADE_DURATION_MS;
 const NAV_SETTLE_MS = 50;
 const PREFILL_VIEWPORT_MARGIN_PX = 480;
 

@@ -1,7 +1,7 @@
 import { DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
-import { cn } from "@/lib/utils";
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
 import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useQuery } from "convex/react";
@@ -210,47 +210,46 @@ const JobDrawerContent = ({
             companyUrl={companyData.website}
           />
         </div>
-        <div
-          className={cn("space-y-4 overflow-y-auto p-4 transition-opacity duration-300 ease-in-out", isTransitioning ? "opacity-0" : "opacity-100")}
-          onTouchEnd={handleTouchEnd}
-          onTouchMove={handleTouchMove}
-          onTouchStart={handleTouchStart}
-        >
+        <div className="space-y-4 overflow-y-auto p-4" onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove} onTouchStart={handleTouchStart}>
           <DialogJobTitle
             companyName={companyData.name}
+            isTransitioning={isTransitioning}
             jobTitle={job.title}
-            workplaceCities={processed.workplace_cities ?? []}
             tools={processed.technical_tools ?? []}
+            workplaceCities={processed.workplace_cities ?? []}
           />
           <DialogCompanyLogoCard companyData={companyData} />
-          <DialogBadges
-            commitments={processed.commitment ?? []}
-            compensation={{
-              yearly_min_compensation: job.yearlyMinComp ?? null,
-              yearly_max_compensation: job.yearlyMaxComp ?? null,
-              monthly_min_compensation: job.monthlyMinComp ?? null,
-              monthly_max_compensation: job.monthlyMaxComp ?? null,
-              weekly_min_compensation: job.weeklyMinComp ?? null,
-              weekly_max_compensation: job.weeklyMaxComp ?? null,
-              hourly_min_compensation: job.hourlyMinComp ?? null,
-              hourly_max_compensation: job.hourlyMaxComp ?? null,
-              "bi-weekly_min_compensation": job.biWeeklyMinComp ?? null,
-              "bi-weekly_max_compensation": job.biWeeklyMaxComp ?? null,
-              daily_min_compensation: job.dailyMinComp ?? null,
-              daily_max_compensation: job.dailyMaxComp ?? null,
-            }}
-            workplaceCities={processed.workplace_cities ?? []}
-            workType={processed.workplace_type ?? ""}
-            compact={true}
-          />
-          <DialogResponsibilities roleActivities={processed.role_activities ?? []} />
+          <div className={jobFadeClass(isTransitioning)}>
+            <DialogBadges
+              commitments={processed.commitment ?? []}
+              compensation={{
+                yearly_min_compensation: job.yearlyMinComp ?? null,
+                yearly_max_compensation: job.yearlyMaxComp ?? null,
+                monthly_min_compensation: job.monthlyMinComp ?? null,
+                monthly_max_compensation: job.monthlyMaxComp ?? null,
+                weekly_min_compensation: job.weeklyMinComp ?? null,
+                weekly_max_compensation: job.weeklyMaxComp ?? null,
+                hourly_min_compensation: job.hourlyMinComp ?? null,
+                hourly_max_compensation: job.hourlyMaxComp ?? null,
+                "bi-weekly_min_compensation": job.biWeeklyMinComp ?? null,
+                "bi-weekly_max_compensation": job.biWeeklyMaxComp ?? null,
+                daily_min_compensation: job.dailyMinComp ?? null,
+                daily_max_compensation: job.dailyMaxComp ?? null,
+              }}
+              workplaceCities={processed.workplace_cities ?? []}
+              workType={processed.workplace_type ?? ""}
+              compact={true}
+            />
+          </div>
+          <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
           <DialogRequirements
-            requirementsSummary={processed.requirements_summary ?? ""}
+            isTransitioning={isTransitioning}
             minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
             minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
+            requirementsSummary={processed.requirements_summary ?? ""}
           />
-          <DialogSkills technicalTools={processed.technical_tools ?? []} />
-          <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} />
+          <DialogSkills isTransitioning={isTransitioning} technicalTools={processed.technical_tools ?? []} />
+          <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} isTransitioning={isTransitioning} />
         </div>
       </DrawerContent>
     </Drawer>

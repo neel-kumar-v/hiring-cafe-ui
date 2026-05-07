@@ -13,6 +13,7 @@ const DialogStats = ({
   isInterviewing = false,
   onBookmarkClick,
   applyUrl,
+  isTransitioning = false,
 }: {
   publishDate?: string;
   viewedCount?: number;
@@ -23,6 +24,7 @@ const DialogStats = ({
   isInterviewing?: boolean;
   onBookmarkClick: (e: React.MouseEvent) => void;
   applyUrl: string;
+  isTransitioning?: boolean;
 }) => {
   if (!publishDate) return null;
   const timeSince = getTimeSince(publishDate);
@@ -33,6 +35,7 @@ const DialogStats = ({
       <div className="flex items-center gap-1 text-muted-foreground text-sm dark:text-muted-foreground">
         <ScrapeTime
           iconClassName="size-4"
+          isTransitioning={isTransitioning}
           postedAt={publishDate}
           textClassName="text-md"
         />
@@ -46,6 +49,7 @@ const DialogStats = ({
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isInterviewing={isInterviewing}
+          isTransitioning={isTransitioning}
           savedCount={savedCount}
           textClassName="text-md"
           viewedCount={viewedCount + 1}

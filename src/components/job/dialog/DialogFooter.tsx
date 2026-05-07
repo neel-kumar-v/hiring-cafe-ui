@@ -96,7 +96,7 @@ const DialogFooter = ({
 }) => {
   return (
     <div className="sticky right-0 bottom-0 left-0 bg-background dark:bg-card">
-      <div className="relative border-t border-border dark:border-border">{navigation ? <DialogFooterNavigation {...navigation} /> : null}</div>
+      <div className="relative md:border-t md:border-border dark:border-border">{navigation ? <DialogFooterNavigation {...navigation} /> : null}</div>
       <DialogActionButtons
         isApplied={isApplied}
         isBookmarked={isBookmarked}
@@ -132,7 +132,7 @@ export const DialogActionButtons = ({
 }) => {
   return (
     <div className="flex flex-col gap-1.5 sm:flex-col-reverse">
-      <div className={cn("flex flex-wrap items-center justify-center gap-1.5 py-2 md:py-3", showTopBorder && "border-t border-border", hasNavigation && "pt-6 md:pt-6")}>
+      <div className={cn("flex flex-wrap items-center justify-center gap-1.5 py-2 md:py-3", showTopBorder && "md:border-t md:border-border", hasNavigation && "pt-6 md:pt-6")}>
         <Button className="flex items-center gap-2" onClick={onBookmarkToggle} size="sm" variant="outline">
           <Bookmark className={`size-4 ${isBookmarked ? "fill-current" : ""}`} />
           {isBookmarked ? "Saved" : "Save"}
@@ -150,7 +150,7 @@ export const DialogActionButtons = ({
           {isApplied ? "Applied" : "Mark Applied"}
         </Button>
 
-        <div className="mx-1 min-h-8 w-px bg-border align-self-stretch" />
+        <div className="mx-1 min-h-8 w-px hidden md:block bg-border align-self-stretch" />
 
         <Button className="flex items-center gap-2" size="sm" variant="outline">
           <Share2 className="size-4" />
@@ -169,7 +169,7 @@ export const DialogActionButtons = ({
           All Jobs
         </Button>
 
-        <div className="mx-1 min-h-8 w-px bg-border align-self-stretch max-[520px]:hidden" />
+        <div className="mx-1 min-h-8 w-px hidden md:block bg-border align-self-stretch max-[520px]:hidden" />
 
         <Button className="flex items-center gap-2 max-[520px]:hidden text-destructive!" size="sm" variant="outline">
           <EyeOff className="size-4 text-destructive!" />

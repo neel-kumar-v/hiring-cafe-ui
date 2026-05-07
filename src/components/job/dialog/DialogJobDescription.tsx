@@ -2,11 +2,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatJobDescription } from "@/lib/job-info";
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
 import { Copy } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-const DialogJobDescription = ({ description, isLoading = false }: { description: string; isLoading?: boolean }) => {
+const DialogJobDescription = ({
+  description,
+  isLoading = false,
+  isTransitioning = false,
+}: {
+  description: string;
+  isLoading?: boolean;
+  isTransitioning?: boolean;
+}) => {
   const deferredDescription = useDeferredValue(description);
   const [isFormatting, setIsFormatting] = useState(false);
 
@@ -35,7 +44,9 @@ const DialogJobDescription = ({ description, isLoading = false }: { description:
     return (
       <div className="mb-2 md:mb-4">
         <Separator className="my-8" />
-        <DescriptionSkeleton />
+        <div className={jobFadeClass(isTransitioning)}>
+          <DescriptionSkeleton />
+        </div>
       </div>
     );
   }
@@ -109,17 +120,19 @@ const DialogJobDescription = ({ description, isLoading = false }: { description:
           </Button>
         </div>
       </div>
-      {isFormatting ? (
-        <div className="mt-6">
-          <DescriptionSkeleton />
-        </div>
-      ) : (
-        <div
-          className="prose prose-neutral dark:prose-invert max-w-none text-foreground/80 leading-relaxed dark:text-foreground/80"
-          dangerouslySetInnerHTML={{ __html: formattedDescription }}
-          id="job-description"
-        />
-      )}
+      <div className={jobFadeClass(isTransitioning)}>
+        {isFormatting ? (
+          <div className="mt-6">
+            <DescriptionSkeleton />
+          </div>
+        ) : (
+          <div
+            className="prose prose-neutral dark:prose-invert max-w-none text-foreground/80 leading-relaxed dark:text-foreground/80"
+            dangerouslySetInnerHTML={{ __html: formattedDescription }}
+            id="job-description"
+          />
+        )}
+      </div>
     </div>
   );
 };

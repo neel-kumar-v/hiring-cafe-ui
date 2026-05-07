@@ -1,4 +1,5 @@
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
@@ -193,21 +194,30 @@ const JobDialogContent = ({
 
   const dialogContent = (
     <div className="relative p-8 pt-16">
-      <div className={cn("transition-opacity duration-300 ease-in-out", isTransitioning ? "opacity-0" : "opacity-100")}>
-        <DialogStats
-          appliedCount={job.applies}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          isInterviewing={isInterviewing}
-          onBookmarkClick={handleBookmarkClick}
-          publishDate={processed.estimated_publish_date}
-          savedCount={job.saves}
-          viewedCount={job.views}
-          applyUrl={job.applyUrl ?? ""}
+      <DialogStats
+        appliedCount={job.applies}
+        applyUrl={job.applyUrl ?? ""}
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        isInterviewing={isInterviewing}
+        isTransitioning={isTransitioning}
+        onBookmarkClick={handleBookmarkClick}
+        publishDate={processed.estimated_publish_date}
+        savedCount={job.saves}
+        viewedCount={job.views}
+      />
+
+      <div className="-mx-8 sticky top-0 z-20 bg-background px-8 dark:bg-card">
+        <DialogJobTitle
+          companyName={companyData.name}
+          isTransitioning={isTransitioning}
+          jobTitle={job.title}
+          tools={processed.technical_tools ?? []}
+          workplaceCities={processed.workplace_cities ?? []}
         />
+      </div>
 
-        <DialogJobTitle companyName={companyData.name} jobTitle={job.title} workplaceCities={processed.workplace_cities ?? []} tools={processed.technical_tools ?? []} />
-
+      <div className={jobFadeClass(isTransitioning)}>
         <DialogBadges
           commitments={processed.commitment ?? []}
           compensation={compensation}
@@ -218,19 +228,18 @@ const JobDialogContent = ({
 
       <DialogCompanyLogoCard companyData={companyData} />
 
-      <div className={cn("transition-opacity duration-300 ease-in-out", isTransitioning ? "opacity-0" : "opacity-100")}>
-        <DialogResponsibilities roleActivities={processed.role_activities ?? []} />
+      <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
 
-        <DialogRequirements
-          requirementsSummary={processed.requirements_summary ?? ""}
-          minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
-          minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
-        />
+      <DialogRequirements
+        isTransitioning={isTransitioning}
+        minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
+        minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
+        requirementsSummary={processed.requirements_summary ?? ""}
+      />
 
-        <DialogSkills technicalTools={processed.technical_tools ?? []} />
+      <DialogSkills isTransitioning={isTransitioning} technicalTools={processed.technical_tools ?? []} />
 
-        <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} />
-      </div>
+      <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} isTransitioning={isTransitioning} />
 
       <DialogFooter
         isApplied={isApplied}
@@ -251,7 +260,7 @@ const JobDialogContent = ({
         <VisuallyHidden>
           <DialogTitle>Job Details</DialogTitle>
         </VisuallyHidden>
-        <DialogClose className="absolute top-4 right-4 z-10 rounded-full opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <DialogClose className="absolute top-4 right-4 z-30 rounded-full opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="size-4" />
           <span className="sr-only">Close</span>
         </DialogClose>

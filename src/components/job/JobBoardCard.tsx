@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
+import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import dynamic from "next/dynamic";
@@ -160,7 +161,7 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
-    }, 300);
+    }, JOB_FADE_DURATION_MS);
   }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
 
   const handlePreviousJob = useCallback(() => {
@@ -171,7 +172,7 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
-    }, 300);
+    }, JOB_FADE_DURATION_MS);
   }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
 
   const isBookmarked = useMemo(

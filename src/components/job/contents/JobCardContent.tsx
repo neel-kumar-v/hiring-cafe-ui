@@ -1,3 +1,4 @@
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import { memo, useMemo } from "react";
 import CardCompanyInfo from "../card/CardCompanyInfo";
@@ -53,7 +54,7 @@ const JobCardContent = memo(({ currentJob, company, isTransitioning }: JobCardCo
 
   return (
     <div className="flex h-full flex-col">
-      <div className={`transition-opacity duration-300 ease-in-out ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
+      <div className={jobFadeClass(isTransitioning)}>
         <CardHeader
           tools={technicalTools}
           commitments={commitments}
@@ -99,7 +100,7 @@ const JobCardContent = memo(({ currentJob, company, isTransitioning }: JobCardCo
         tagline={companySubtitle}
       />
 
-      <div className={`transition-opacity duration-300 ease-in-out ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
+      <div className={jobFadeClass(isTransitioning)}>
         <CardJobDescription
           requirementsSummary={requirementsSummary}
           technicalTools={technicalTools}

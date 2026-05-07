@@ -1,4 +1,6 @@
 import { getTimeSince } from "@/lib/job-info";
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
+import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import UniversalTooltip from "../../util/UniversalTooltip";
 
@@ -6,10 +8,12 @@ const ScrapeTime = ({
   postedAt,
   iconClassName = "w-3 h-3",
   textClassName = "text-xs",
+  isTransitioning = false,
 }: {
   postedAt: string;
   iconClassName?: string;
   textClassName?: string;
+  isTransitioning?: boolean;
 }) => {
   const { abbreviated, full } = getTimeSince(postedAt);
   return (
@@ -19,11 +23,7 @@ const ScrapeTime = ({
           <Clock
             className={`text-muted-foreground ${iconClassName}`}
           />
-          <span
-            className={` text-muted-foreground ${textClassName}`}
-          >
-            {abbreviated}
-          </span>
+          <span className={cn("text-muted-foreground", textClassName, jobFadeClass(isTransitioning))}>{abbreviated}</span>
         </div>
       </UniversalTooltip>
     </span>

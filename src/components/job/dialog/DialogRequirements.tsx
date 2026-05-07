@@ -1,15 +1,19 @@
 import UniversalTooltip from "@/components/util/UniversalTooltip";
 import { getExperienceInfo } from "@/lib/job-info";
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
+import { cn } from "@/lib/utils";
 import { FileChartColumnIncreasing, FileUser } from "lucide-react";
 
 const DialogRequirements = ({
   requirementsSummary,
   minIndustryAndRoleYoe,
   minManagementAndLeadershipYoe,
+  isTransitioning = false,
 }: {
   requirementsSummary: string;
   minIndustryAndRoleYoe?: number | null;
   minManagementAndLeadershipYoe?: number | null;
+  isTransitioning?: boolean;
 }) => {
   if (!requirementsSummary) return null;
 
@@ -55,7 +59,7 @@ const DialogRequirements = ({
       <h3 className="mb-3 font-medium text-foreground text-lg dark:text-foreground">
         Requirements
       </h3>
-      <div className="text-foreground/80 leading-relaxed dark:text-foreground/80">
+      <div className={cn("text-foreground/80 leading-relaxed dark:text-foreground/80", jobFadeClass(isTransitioning))}>
         {experienceInfo.hasAny && renderBadges()}
         {requirementsSummary}
       </div>

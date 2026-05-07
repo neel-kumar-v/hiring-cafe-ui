@@ -5,6 +5,7 @@ import { KanbanBoard as KanbanBoardUI, KanbanCardWithDragHandle, KanbanCards, Ka
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
+import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import type { JobStatus } from "@/types/app";
 import type { JobCardResultDTO } from "@/types/convexJobs";
@@ -22,7 +23,7 @@ const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"
   ssr: false,
 });
 
-const NAV_FADE_OUT_MS = 300;
+const NAV_FADE_OUT_MS = JOB_FADE_DURATION_MS;
 const NAV_SETTLE_MS = 50;
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";

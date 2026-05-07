@@ -1,10 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UniversalTooltip from "@/components/util/UniversalTooltip";
 import type { ProcessedCompanyData } from "@/types/job";
 import { BadgeDollarSign, Building2, Calendar, DollarSign, Globe, Landmark, Linkedin, Users } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
-import DialogCompanyReviews from "./DialogCompanyReviews";
 
 type IconType = ComponentType<{ className?: string }>;
 
@@ -78,17 +76,8 @@ function CompanyInfoContent({ companyData }: { companyData: ProcessedCompanyData
 
 export default function DialogExtendedCompanyInfo({ companyData }: { companyData: ProcessedCompanyData }) {
   return (
-    <Tabs defaultValue="company-info" className="w-full mt-4">
-      <TabsList className="grid w-full grid-cols-2 bg-muted/60">
-        <TabsTrigger value="company-info">Company Info</TabsTrigger>
-        <TabsTrigger value="reviews">Reviews</TabsTrigger>
-      </TabsList>
-      <TabsContent value="company-info" className="">
-        <CompanyInfoContent companyData={companyData} />
-      </TabsContent>
-      <TabsContent value="reviews" className="">
-        <DialogCompanyReviews />
-      </TabsContent>
-    </Tabs>
+    <div className="w-full mt-4">
+      <CompanyInfoContent companyData={companyData} />
+    </div>
   );
 }

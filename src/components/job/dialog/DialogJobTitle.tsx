@@ -1,16 +1,19 @@
 import { formatCompanyName } from "@/lib/company-info";
 import { getCleanJobTitle } from "@/lib/job-info";
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
 
 const DialogJobTitle = ({
   jobTitle,
   companyName,
   workplaceCities,
   tools,
+  isTransitioning = false,
 }: {
   jobTitle: string;
   companyName: string;
   workplaceCities: string[];
   tools: string[];
+  isTransitioning?: boolean;
 }) => {
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
   const cleanTitle = getCleanJobTitle(
@@ -25,7 +28,8 @@ const DialogJobTitle = ({
   return (
     <div className={className}>
       <span>
-        {cleanTitle}&nbsp;<span>@ {formatCompanyName(companyName)}</span>
+        <span className={jobFadeClass(isTransitioning)}>{cleanTitle}</span>
+        &nbsp;<span>@ {formatCompanyName(companyName)}</span>
       </span>
     </div>
   );

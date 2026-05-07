@@ -1,3 +1,4 @@
+import { jobFadeClass } from "@/lib/jobs/fadeTransition";
 import { cn } from "@/lib/utils";
 import { Bookmark, Eye, PhoneOutgoingIcon, Send } from "lucide-react";
 import UniversalTooltip from "../../util/UniversalTooltip";
@@ -14,6 +15,7 @@ export const StatGroup = ({
   applyUrl,
   iconClassName = "w-3 h-3",
   textClassName = "text-sm",
+  isTransitioning = false,
 }: {
   viewedCount: number;
   savedCount: number;
@@ -25,6 +27,7 @@ export const StatGroup = ({
   applyUrl: string;
   iconClassName?: string;
   textClassName?: string;
+  isTransitioning?: boolean;
 }) => {
   return (
     <>
@@ -37,6 +40,7 @@ export const StatGroup = ({
             : `Viewed by ${viewedCount} users`
           }
         iconClassName={iconClassName}
+        isTransitioning={isTransitioning}
         textClassName={textClassName}
       />
       {savedCount > 0 && (
@@ -67,7 +71,7 @@ export const StatGroup = ({
                 )}
               />
             )}
-            <span className={textClassName}>{savedCount}</span>
+            <span className={cn(textClassName, jobFadeClass(isTransitioning))}>{savedCount}</span>
           </span>
         </UniversalTooltip>
       )}
@@ -102,7 +106,7 @@ export const StatGroup = ({
                 )}
               />
           )}
-          <span className={textClassName}>{appliedCount}</span>
+          <span className={cn(textClassName, jobFadeClass(isTransitioning))}>{appliedCount}</span>
         </a>
       </UniversalTooltip>
       {isInterviewing && (
@@ -117,7 +121,7 @@ export const StatGroup = ({
                 iconClassName
               )}
             />
-            <span className={textClassName}>1</span>
+            <span className={cn(textClassName, jobFadeClass(isTransitioning))}>1</span>
           </span>
         </UniversalTooltip>
       )}
