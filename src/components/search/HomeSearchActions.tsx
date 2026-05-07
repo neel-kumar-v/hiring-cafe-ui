@@ -17,6 +17,7 @@ export default function HomeSearchActions() {
   const { user: convexUser } = useCurrentUser();
   const createSavedSearch = useMutation(api.savedSearches.create);
   const {
+    user,
     searchOptions,
     setSearchOptions,
     setCurrentSavedSearchId,
@@ -30,6 +31,9 @@ export default function HomeSearchActions() {
   const hasEditedFilters = useMemo(() => {
     return getEditedTags(searchOptions).size > 0;
   }, [searchOptions]);
+
+  const hasSavedSearches = user.savedSearches.length > 0;
+  const shouldShowSavedSearchArea = hasSavedSearches || hasEditedFilters;
 
   const handleSaveSearch = async () => {
     if (!convexUser) {
@@ -59,6 +63,12 @@ export default function HomeSearchActions() {
   const handleRibbonToggle = () => {
     setShowFilterRibbon(!showFilterRibbon);
   };
+
+  if (!shouldShowSavedSearchArea) {
+    // In this "truly empty" state, the ribbon toggle is rendered in the
+    // quick-filters bar (30 days / Relevance / ...) to save vertical headroom.
+    return null;
+  }
 
   return (
     <div>

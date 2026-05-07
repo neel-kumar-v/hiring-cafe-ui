@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Hitbox } from "@/components/ui/hitbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -16,11 +17,12 @@ import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { getEditedTags } from "@/lib/edited-filters";
 import { cn } from "@/lib/utils";
 import type { ApplyForm, Exclusion, SortOptions, TimeUnits } from "@/types/search";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type QuickFilterKey = "date" | "sort" | "apply" | "exclusion";
 
@@ -388,12 +390,19 @@ function getExclusionLabel(exclusions: Exclusion[]) {
 }
 
 export default function Filters() {
-  const { searchOptions, updateSearchOptions } = useApp();
-  const { showLegacyFilters } = useSearchUI();
+  const { user, searchOptions, updateSearchOptions } = useApp();
+  const { showLegacyFilters, showFilterRibbon, setShowFilterRibbon } = useSearchUI();
   const { contentRef, containerProps } = useCollapsibleHeight(showLegacyFilters);
   const useDesktopMenus = useMediaQuery("(min-width: 769px)");
   const [desktopFilter, setDesktopFilter] = useState<QuickFilterKey | null>(null);
   const [mobileFilter, setMobileFilter] = useState<QuickFilterKey | null>(null);
+
+  const hasEditedFilters = useMemo(() => {
+    return getEditedTags(searchOptions).size > 0;
+  }, [searchOptions]);
+
+  const hasSavedSearches = user.savedSearches.length > 0;
+  const isTrulyEmptySavedSearchArea = !hasSavedSearches && !hasEditedFilters;
 
   const currentSortValue = getSortValue(searchOptions.sort);
   const currentDateValue = getDateValue(searchOptions.date_range.magnitude, searchOptions.date_range.unit);
@@ -595,6 +604,21 @@ export default function Filters() {
                 <QuickFilterTrigger active={searchOptions.exclusion.length > 0} label={getExclusionLabel(searchOptions.exclusion)} onClick={() => setMobileFilter("exclusion")} />
               </>
             )}
+
+            {isTrulyEmptySavedSearchArea ? (
+              <div className="hidden md:block md:ml-auto">
+                <Hitbox size="sm" radius="lg">
+                  <Button
+                    className="h-9 rounded-lg px-4 text-sm"
+                    onClick={() => setShowFilterRibbon(!showFilterRibbon)}
+                    variant="outline"
+                  >
+                    <ChevronUp className={cn("size-4 transition-transform", !showFilterRibbon && "rotate-180")} />
+                    {showFilterRibbon ? "Collapse filter ribbon" : "Expand filter ribbon"}
+                  </Button>
+                </Hitbox>
+              </div>
+            ) : null}
           </div>
         </div>
 
