@@ -2,17 +2,23 @@
 
 import KanbanJobCardContents from "@/components/job/contents/KanbanJobCardContents";
 import { KanbanBoard as KanbanBoardUI, KanbanCardWithDragHandle, KanbanCards, KanbanHeader, KanbanProvider } from "@/components/ui/kanban";
+import { ActionBar, ActionBarGroup, ActionBarItem, ActionBarSelection, ActionBarSeparator } from "@/components/ui/action-bar";
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { buildSharePayload, selectRangeIds } from "@/lib/jobs/selection";
 import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
 import type { JobStatus } from "@/types/app";
 import type { JobCardResultDTO } from "@/types/convexJobs";
-import { Copy } from "lucide-react";
+import { api } from "../../../convex/_generated/api";
+import { useMutation } from "convex/react";
+import { CheckCheck, Copy, EyeOff, MoveHorizontal, Share2, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getAuthEmail } from "@/lib/local-auth";
+import { toast } from "sonner";
 
 const JobDialogContent = dynamic(() => import("../job/contents/JobDialogContent"), {
   loading: () => null,
@@ -33,6 +39,8 @@ interface KanbanBoardProps {
   jobs: JobCardResultDTO[];
   className?: string;
   visibleCategories?: Record<JobCategory, boolean>;
+  selectionMode?: boolean;
+  onSelectionModeChange?: (enabled: boolean) => void;
 }
 
 type KanbanColumn = {
@@ -41,8 +49,9 @@ type KanbanColumn = {
   count: number;
 };
 
-const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardProps) => {
+const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = false, onSelectionModeChange }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
+  const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
   const { isDesktop } = useResponsiveBreakpoint();
   const { prefetch, prefetchNow } = useJobDetailsPrefetch({ delayMs: 140, maxInflight: 2, maxSeen: 600 });
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -50,6 +59,8 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [fadeCompanyChromeNav, setFadeCompanyChromeNav] = useState(false);
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [anchorId, setAnchorId] = useState<string | null>(null);
   const transitionInFlightRef = useRef(false);
 
   const kanbanData = useMemo(() => {
@@ -97,6 +108,17 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
 
     return allColumns;
   }, [kanbanData, visibleCategories]);
+  const columnOrder = useMemo(() => columns.map((column) => column.id), [columns]);
+  const orderedItems = useMemo(() => {
+    const byColumn = new Map<string, { id: string }[]>();
+    for (const columnId of columnOrder) byColumn.set(columnId, []);
+    for (const item of kanbanData) {
+      if (!byColumn.has(item.column)) continue;
+      byColumn.get(item.column)!.push({ id: item.id });
+    }
+    return columnOrder.flatMap((columnId) => byColumn.get(columnId) ?? []);
+  }, [columnOrder, kanbanData]);
+  const selectedRows = useMemo(() => Array.from(selectedJobIds).map((id) => jobMap.get(id)).filter(Boolean) as JobCardResultDTO[], [jobMap, selectedJobIds]);
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -138,15 +160,54 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     [getCurrentStatus, moveJob]
   );
 
+  const clearSelectionMode = useCallback(() => {
+    onSelectionModeChange?.(false);
+    setSelectedJobIds(new Set());
+    setAnchorId(null);
+  }, [onSelectionModeChange]);
+
   const handleJobSelect = useCallback(
-    (jobId: string) => {
+    (jobId: string, e: React.MouseEvent) => {
+      const isModifier = e.shiftKey || e.ctrlKey || e.metaKey;
+      if (isModifier && !selectionMode) {
+        onSelectionModeChange?.(true);
+        setSelectedJobIds(new Set([jobId]));
+        setAnchorId(jobId);
+        return;
+      }
+      if (selectionMode) {
+        if (e.shiftKey) {
+          const anchor = anchorId ?? jobId;
+          const rangeIds = selectRangeIds(orderedItems, anchor, jobId);
+          setSelectedJobIds((prev) => {
+            const next = new Set(prev);
+            for (const id of rangeIds) next.add(id);
+            return next;
+          });
+          if (!anchorId) setAnchorId(jobId);
+          return;
+        }
+        if (e.ctrlKey || e.metaKey) {
+          setSelectedJobIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(jobId)) next.delete(jobId);
+            else next.add(jobId);
+            return next;
+          });
+          if (!anchorId) setAnchorId(jobId);
+          return;
+        }
+        setSelectedJobIds((prev) => new Set(prev).add(jobId));
+        if (!anchorId) setAnchorId(jobId);
+        return;
+      }
       const row = jobMap.get(jobId);
       if (!row) return;
       setSelectedJobId(jobId);
       if (isDesktop) setDialogOpen(true);
       else setDrawerOpen(true);
     },
-    [isDesktop, jobMap]
+    [anchorId, isDesktop, jobMap, onSelectionModeChange, orderedItems, selectionMode]
   );
 
   const selectedRow = selectedJobId ? (jobMap.get(selectedJobId) ?? null) : null;
@@ -165,8 +226,6 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     }
     return grouped;
   }, [columns, jobMap, kanbanData]);
-
-  const columnOrder = useMemo(() => columns.map((column) => column.id), [columns]);
 
   const rotatedColumnOrder = useMemo(() => {
     if (!columnOrder.length) return [];
@@ -270,6 +329,91 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     moveJob(jobId, currentStatus as JobStatus, "applied");
   }, [getCurrentStatus, isApplied, moveJob, selectedRow, user.applied, user.interviewing]);
 
+  const moveSelectedToColumn = useCallback(
+    (targetColumn: string) => {
+      for (const jobId of selectedJobIds) {
+        const currentStatus = getCurrentStatus(jobId);
+        if (currentStatus !== targetColumn) moveJob(jobId, currentStatus as JobStatus, targetColumn as JobStatus);
+      }
+    },
+    [getCurrentStatus, moveJob, selectedJobIds]
+  );
+
+  const handleMoveLeft = useCallback(() => {
+    for (const jobId of selectedJobIds) {
+      const current = getCurrentStatus(jobId);
+      const idx = columnOrder.indexOf(current);
+      if (idx > 0) moveJob(jobId, current as JobStatus, columnOrder[idx - 1] as JobStatus);
+    }
+  }, [columnOrder, getCurrentStatus, moveJob, selectedJobIds]);
+
+  const handleMoveRight = useCallback(() => {
+    for (const jobId of selectedJobIds) {
+      const current = getCurrentStatus(jobId);
+      const idx = columnOrder.indexOf(current);
+      if (idx !== -1 && idx < columnOrder.length - 1) moveJob(jobId, current as JobStatus, columnOrder[idx + 1] as JobStatus);
+    }
+  }, [columnOrder, getCurrentStatus, moveJob, selectedJobIds]);
+
+  const handleBulkSave = useCallback(() => {
+    for (const row of selectedRows) {
+      const current = getCurrentStatus(row.job.externalId);
+      if (current !== "saved") moveJob(row.job.externalId, current as JobStatus, "saved");
+    }
+    toast.success(`Saved ${selectedRows.length} job${selectedRows.length === 1 ? "" : "s"}.`);
+  }, [getCurrentStatus, moveJob, selectedRows]);
+
+  const handleBulkApply = useCallback(() => {
+    for (const row of selectedRows) {
+      const current = getCurrentStatus(row.job.externalId);
+      if (current !== "applied") moveJob(row.job.externalId, current as JobStatus, "applied");
+    }
+    toast.success(`Marked ${selectedRows.length} job${selectedRows.length === 1 ? "" : "s"} as applied.`);
+  }, [getCurrentStatus, moveJob, selectedRows]);
+
+  const handleBulkShare = useCallback(async () => {
+    const payload = buildSharePayload(
+      selectedRows.flatMap((row) => {
+        const jobUrl = `${window.location.origin}/tracker?job=${encodeURIComponent(row.job.externalId)}`;
+        return [jobUrl, row.job.applyUrl ?? null];
+      })
+    );
+    if (!payload) {
+      toast.error("No links available to share.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(payload);
+      toast.success("Copied selected job links.");
+    } catch {
+      toast.error("Unable to copy links right now.");
+    }
+  }, [selectedRows]);
+
+  const handleBulkHide = useCallback(async () => {
+    const externalIds = selectedRows.map((row) => row.job.externalId);
+    if (!externalIds.length) return;
+    const res = await hideForCurrentUser({ externalIds, viewerEmail: getAuthEmail() ?? undefined });
+    if (!res.ok) {
+      toast.error("Please sign in to hide jobs.");
+      return;
+    }
+    for (const row of selectedRows) {
+      const current = getCurrentStatus(row.job.externalId);
+      if (current !== "hidden") moveJob(row.job.externalId, current as JobStatus, "hidden");
+    }
+    toast.success(`Hidden ${externalIds.length} job${externalIds.length === 1 ? "" : "s"}.`);
+    clearSelectionMode();
+  }, [clearSelectionMode, getCurrentStatus, hideForCurrentUser, moveJob, selectedRows]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && selectionMode) clearSelectionMode();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clearSelectionMode, selectionMode]);
+
   const downloadApplicationLinks = useCallback(
     (columnId: string) => {
       const columnJobs = kanbanData
@@ -297,7 +441,22 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
 
   return (
     <div className={`h-full w-full ${className}`}>
-      <KanbanProvider columns={columns} data={kanbanData} onDataChange={handleDataChange} className="h-full">
+      <KanbanProvider
+        columns={columns}
+        data={kanbanData}
+        onDataChange={handleDataChange}
+        className="h-full"
+        onDragEnd={(event) => {
+          const activeId = String(event.active.id);
+          const over = event.over;
+          if (!over || !selectionMode || !selectedJobIds.has(activeId)) return;
+          const overId = String(over.id);
+          const overItem = kanbanData.find((item) => item.id === overId);
+          const targetColumn = overItem?.column ?? (columnOrder.includes(overId) ? overId : null);
+          if (!targetColumn) return;
+          moveSelectedToColumn(targetColumn);
+        }}
+      >
         {(column) => (
           <KanbanBoardUI key={column.id} id={column.id} className="h-full">
             <KanbanHeader className="group flex items-center justify-between">
@@ -324,8 +483,8 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
                     id={item.id}
                     name={item.name}
                     column={item.column}
-                    className="mb-2 transition-shadow duration-200 hover:shadow-md"
-                    onJobClick={() => handleJobSelect(row.job.externalId)}
+                    className={`mb-2 transition-shadow duration-200 hover:shadow-md ${selectedJobIds.has(row.job.externalId) ? "ring-2 ring-primary/40" : ""}`}
+                    onJobClick={(e) => handleJobSelect(row.job.externalId, e)}
                     dragHandleOnly={true}
                   >
                     <KanbanJobCardContents job={row.job} company={row.company} />
@@ -336,6 +495,60 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
           </KanbanBoardUI>
         )}
       </KanbanProvider>
+
+      <ActionBar open={selectionMode} onOpenChange={(open) => (!open ? clearSelectionMode() : onSelectionModeChange?.(open))}>
+        <ActionBarSelection>
+          Selection mode
+          <ActionBarSeparator />
+          {selectedJobIds.size} selected
+        </ActionBarSelection>
+        <ActionBarGroup>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkSave}>
+            Save
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkApply}>
+            <CheckCheck className="size-4" />
+            Mark Applied
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkShare}>
+            <Share2 className="size-4" />
+            Share
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkHide}>
+            <EyeOff className="size-4" />
+            Hide
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleMoveLeft}>
+            <MoveHorizontal className="size-4" />
+            Move left
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleMoveRight}>
+            <MoveHorizontal className="size-4" />
+            Move right
+          </ActionBarItem>
+          <select
+            className="h-8 rounded border bg-background px-2 text-sm"
+            onChange={(e) => {
+              if (!e.target.value) return;
+              moveSelectedToColumn(e.target.value);
+            }}
+            value=""
+          >
+            <option value="" disabled>
+              Move to...
+            </option>
+            {columns.map((column) => (
+              <option key={column.id} value={column.id}>
+                {column.name}
+              </option>
+            ))}
+          </select>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={clearSelectionMode}>
+            <X className="size-4" />
+            Exit
+          </ActionBarItem>
+        </ActionBarGroup>
+      </ActionBar>
 
       {isDesktop && selectedRow ? (
         <JobDialogContent

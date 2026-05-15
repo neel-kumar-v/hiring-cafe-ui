@@ -120,6 +120,8 @@ interface SearchUIContextType {
   /** Header search text; drives the home job board query. */
   boardSearchQuery: string;
   setBoardSearchQuery: (value: string) => void;
+  jobBoardSelectionMode: boolean;
+  setJobBoardSelectionMode: (enabled: boolean) => void;
 }
 
 const SearchUIContext = createContext<SearchUIContextType | undefined>(undefined);
@@ -130,6 +132,7 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
   const [showFilterRibbon, setShowFilterRibbon] = useState(true);
   const [showLegacyFilters, setShowLegacyFilters] = useState(true);
   const [boardSearchQuery, setBoardSearchQuery] = useState("");
+  const [jobBoardSelectionMode, setJobBoardSelectionMode] = useState(false);
 
   const handleSearchIconClick = (category: string) => {
     setSearchDialogFrom(category);
@@ -150,6 +153,8 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
         handleSearchIconClick,
         boardSearchQuery,
         setBoardSearchQuery,
+        jobBoardSelectionMode,
+        setJobBoardSelectionMode,
       }}
     >
       {children}

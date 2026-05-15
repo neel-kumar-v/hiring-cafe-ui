@@ -576,9 +576,10 @@ export const search = query({
     q: v.optional(v.string()),
     filters: v.optional(searchFiltersValidator),
     sort: v.optional(searchSortValidator),
+    viewerEmail: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, { q, filters, sort, paginationOpts }) => {
+  handler: async (ctx, { q, filters, sort, viewerEmail, paginationOpts }) => {
     const startedAt = Date.now();
     const queryText = (q ?? "").trim().toLowerCase();
     const normalizedFilters: ConvexJobSearchFilters = filters ?? {};
@@ -586,6 +587,14 @@ export const search = query({
       by: queryText ? "relevance" : "recent",
       order: "desc",
     };
+    const normalizedViewerEmail = (viewerEmail ?? "").trim().toLowerCase();
+    const viewerUser = normalizedViewerEmail
+      ? await ctx.db
+          .query("users")
+          .withIndex("by_email", (q2) => q2.eq("email", normalizedViewerEmail))
+          .unique()
+      : null;
+    const viewerUserId = viewerUser?._id ?? null;
 
     const workplaceTypes = normalizeStringList(normalizedFilters.workplaceTypes);
     const departments = normalizeStringList(normalizedFilters.departments);
@@ -626,6 +635,9 @@ export const search = query({
 
     const applyPostFilters = (rows: any[]) => {
       let filteredRows = rows;
+      if (viewerUserId) {
+        filteredRows = filteredRows.filter((row: any) => !(row.hidden ?? []).includes(viewerUserId));
+      }
       if (companyDocIds.size >= 1) {
         filteredRows = filteredRows.filter((row: any) => companyDocIds.has(String(row.companyId)));
       }
@@ -992,8 +1004,31 @@ export const count = query({
 });
 
 export const byExternalIds = query({
-  args: { ids: v.array(v.string()) },
-  handler: async (ctx, { ids }) => {
+  args: { ids: v.array(v.string()), viewerEmail: v.optional(v.string()) },
+  handler: async (ctx, { ids, viewerEmail }) => {
+    const normalizedViewerEmail = (viewerEmail ?? "").trim().toLowerCase();
+    const viewerUser = normalizedViewerEmail
+      ? await ctx.db
+          .query("users")
+          .withIndex("by_email", (q) => q.eq("email", normalizedViewerEmail))
+          .unique()
+      : null;
+    const viewerUserId = viewerUser?._id ?? null;
+    const hiddenExternalIds = new Set<string>();
+    if (viewerUserId) {
+      const cards = await Promise.all(
+        ids.map((externalId) =>
+          ctx.db
+            .query("jobCards")
+            .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+            .unique()
+        )
+      );
+      for (const card of cards) {
+        if (!card) continue;
+        if ((card.hidden ?? []).includes(viewerUserId)) hiddenExternalIds.add(card.externalId);
+      }
+    }
     const docs = await Promise.all(
       ids.map((externalId) =>
         ctx.db
@@ -1002,11 +1037,45 @@ export const byExternalIds = query({
           .unique()
       )
     );
-    const jobs = docs.filter((d): d is NonNullable<typeof d> => d !== null);
+    const jobs = docs
+      .filter((d): d is NonNullable<typeof d> => d !== null)
+      .filter((job) => !hiddenExternalIds.has(job.externalId));
     const uniqCompanies = Array.from(new Set(jobs.map((j) => String(j.companyId))));
     const companyDocs = await Promise.all(uniqCompanies.map((id) => ctx.db.get(id as any)));
     const byId = new Map<string, any>();
     for (const c of companyDocs) if (c) byId.set(String(c._id), c);
     return jobs.map((job: any) => ({ job, company: byId.get(String(job.companyId)) ?? null }));
+  },
+});
+
+export const hideForCurrentUser = mutation({
+  args: { externalIds: v.array(v.string()), viewerEmail: v.optional(v.string()) },
+  handler: async (ctx, { externalIds, viewerEmail }) => {
+    const normalizedViewerEmail = (viewerEmail ?? "").trim().toLowerCase();
+    if (!normalizedViewerEmail) {
+      return { ok: false as const, reason: "SIGN_IN_REQUIRED" as const, updated: 0 };
+    }
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalizedViewerEmail))
+      .unique();
+    if (!user) {
+      return { ok: false as const, reason: "SIGN_IN_REQUIRED" as const, updated: 0 };
+    }
+
+    let updated = 0;
+    const uniqueExternalIds = Array.from(new Set(externalIds));
+    for (const externalId of uniqueExternalIds) {
+      const card = await ctx.db
+        .query("jobCards")
+        .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+        .unique();
+      if (!card) continue;
+      const hidden = card.hidden ?? [];
+      if (hidden.includes(user._id)) continue;
+      await ctx.db.patch(card._id, { hidden: [...hidden, user._id], updatedAt: Date.now() });
+      updated += 1;
+    }
+    return { ok: true as const, updated };
   },
 });

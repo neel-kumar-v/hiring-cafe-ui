@@ -46,7 +46,9 @@ interface JobCardProps {
   onPrevious: () => void;
   onNext: () => void;
   onJobSelect: (index: number) => void;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
+  isSelected?: boolean;
+  selectionMode?: boolean;
 }
 
 const JobCard = memo(
@@ -67,14 +69,19 @@ const JobCard = memo(
     onNext,
     onJobSelect,
     onClick,
+    isSelected = false,
+    selectionMode = false,
   }: JobCardProps) => {
     const { prefetchNow } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 4, maxSeen: 600 });
 
     const cardKey = useMemo(() => `${jobCollection.company?._id ?? "unknown"}-${currentJobIndex}`, [jobCollection.company?._id, currentJobIndex]);
 
-    const handleCardClick = useCallback(() => {
-      onClick();
-    }, [onClick]);
+    const handleCardClick = useCallback(
+      (e: React.MouseEvent) => {
+        onClick(e);
+      },
+      [onClick]
+    );
 
     const handlePreviousClick = useCallback(() => {
       if (jobCollection.jobs.length < 2) {
@@ -99,7 +106,7 @@ const JobCard = memo(
     return (
       <CardSwipeIndicator onNext={onNext} onPrevious={onPrevious} totalJobs={jobCollection.jobs.length}>
         <Card
-          className="group relative h-full cursor-pointer border border-border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50"
+          className={`group relative h-full cursor-pointer border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50 ${isSelected ? "border-primary ring-2 ring-primary/30" : "border-border"} ${selectionMode ? "select-none" : ""}`}
           key={cardKey}
           onClick={handleCardClick}
           data-job-card="true"
@@ -204,9 +211,12 @@ interface JobBoardCardProps {
   currentJobIndex: number;
   onJobIndexChange: (collectionIndex: number, nextJobIndex: number) => void;
   onOpenJob: (collectionIndex: number, jobIndex: number) => void;
+  onCardClick?: (e: React.MouseEvent, jobExternalId: string) => void;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
 }
 
-const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, onJobIndexChange, onOpenJob }: JobBoardCardProps) => {
+const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, onJobIndexChange, onOpenJob, onCardClick, isSelectionMode = false, isSelected = false }: JobBoardCardProps) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { isDesktop } = useResponsiveBreakpoint();
   const { addJob, removeJob, user } = useApp();
@@ -369,9 +379,13 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
     [setIndex]
   );
 
-  const handleOpenJob = useCallback(() => {
+  const handleOpenJob = useCallback((e: React.MouseEvent) => {
+    if (onCardClick) {
+      onCardClick(e, currentJob.externalId);
+      return;
+    }
     onOpenJob(collectionIndex, safeIndex);
-  }, [collectionIndex, onOpenJob, safeIndex]);
+  }, [collectionIndex, currentJob.externalId, onCardClick, onOpenJob, safeIndex]);
 
   const card = (
     <JobCard
@@ -391,6 +405,8 @@ const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, on
       onJobSelect={handleJobIndexChange}
       onNext={handleNextJob}
       onPrevious={handlePreviousJob}
+      isSelected={isSelected}
+      selectionMode={isSelectionMode}
     />
   );
 

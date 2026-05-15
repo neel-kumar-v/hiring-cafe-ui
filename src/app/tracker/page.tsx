@@ -8,6 +8,7 @@ import { useConvex } from "convex/react";
 import { BookmarkIcon, EyeOffIcon, PhoneOutgoingIcon, SendIcon, XIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
+import { getAuthEmail } from "@/lib/local-auth";
 
 type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 type ViewMode = "board" | "list";
@@ -26,6 +27,7 @@ export default function TrackerPage() {
     rejected: true,
     hidden: true,
   });
+  const [kanbanSelectionMode, setKanbanSelectionMode] = useState(false);
 
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
@@ -38,7 +40,6 @@ export default function TrackerPage() {
 
   useEffect(() => {
     const loadJobs = async () => {
-      setLoading(true);
       try {
         if (trackedJobIds.length === 0) {
           setJobs([]);
@@ -49,7 +50,7 @@ export default function TrackerPage() {
         const merged: JobCardResultDTO[] = [];
         for (let i = 0; i < trackedJobIds.length; i += chunkSize) {
           const slice = trackedJobIds.slice(i, i + chunkSize);
-          const data = await convex.query(api.jobs.byExternalIds, { ids: slice });
+          const data = await convex.query(api.jobs.byExternalIds, { ids: slice, viewerEmail: getAuthEmail() ?? undefined });
           for (const row of (data ?? []) as unknown as JobCardResultDTO[]) merged.push(row);
         }
         setJobs(merged);
@@ -121,12 +122,25 @@ export default function TrackerPage() {
     <div className="min-h-[calc(100vh-4.5rem)] bg-background-body">
       <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out lg:p-8">
         <div className="mb-3">
-          <h1 className="mb-4 text-3xl font-bold text-foreground">
-            Job Tracker
-            <p className="text-sm font-normal text-muted-foreground">
-              Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
-            </p>
-          </h1>
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <h1 className="text-3xl font-bold text-foreground">
+              Job Tracker
+              <p className="text-sm font-normal text-muted-foreground">
+                Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
+              </p>
+            </h1>
+            {isLargeScreen && (
+              <div className="flex items-center gap-2 lg:pt-1">
+                <button
+                  className={`h-9 rounded-md border px-3 text-sm ${kanbanSelectionMode ? "bg-primary text-primary-foreground" : "bg-background"}`}
+                  onClick={() => setKanbanSelectionMode((prev) => !prev)}
+                >
+                  Select jobs
+                </button>
+                <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+              </div>
+            )}
+          </div>
 
           <div className="space-y-4 flex lg:flex-row flex-col gap-2">
             <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
@@ -139,17 +153,12 @@ export default function TrackerPage() {
               <CategoryToggle category="hidden" isActive={visibleCategories.hidden} onToggle={handleCategoryToggle} icon={<EyeOffIcon className="size-4" />} />
             </div>
 
-            {isLargeScreen && (
-              <div className="ml-auto">
-                <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-              </div>
-            )}
           </div>
         </div>
 
         <div className="h-[calc(100vh-250px)]">
           {getEffectiveViewMode() === "board" ? (
-            <KanbanBoard jobs={filteredJobs} visibleCategories={visibleCategories} />
+            <KanbanBoard jobs={filteredJobs} visibleCategories={visibleCategories} selectionMode={kanbanSelectionMode} onSelectionModeChange={setKanbanSelectionMode} />
           ) : (
             <ListView jobs={filteredJobs} visibleCategories={visibleCategories} getJobStatus={getJobStatus} onMoveJob={handleMoveJob} />
           )}

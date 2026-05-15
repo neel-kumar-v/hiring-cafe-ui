@@ -26,6 +26,8 @@ export default function HomeSearchActions() {
   const {
     showFilterRibbon,
     setShowFilterRibbon,
+    jobBoardSelectionMode,
+    setJobBoardSelectionMode,
   } = useSearchUI();
 
   const hasEditedFilters = useMemo(() => {
@@ -113,6 +115,17 @@ export default function HomeSearchActions() {
               >
                 <ChevronUp className={cn("size-4 transition-transform", !showFilterRibbon && "rotate-180")} />
                 {showFilterRibbon ? "Collapse filter ribbon" : "Expand filter ribbon"}
+              </Button>
+            </Hitbox>
+          </div>
+          <div className="hidden md:block">
+            <Hitbox size="sm" radius="lg">
+              <Button
+                className="h-9 rounded-lg px-4 text-sm"
+                onClick={() => setJobBoardSelectionMode(!jobBoardSelectionMode)}
+                variant={jobBoardSelectionMode ? "default" : "outline"}
+              >
+                Select jobs
               </Button>
             </Hitbox>
           </div>

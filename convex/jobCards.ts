@@ -69,6 +69,7 @@ export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">, 
     views: toNumberOrZero(job.views),
     saves: toNumberOrZero(job.saves),
     applies: toNumberOrZero(job.applies),
+    hidden: [],
 
     department: job.department,
     listedCompensationCurrency: job.listedCompensationCurrency,

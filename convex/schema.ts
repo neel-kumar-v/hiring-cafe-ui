@@ -212,6 +212,7 @@ export default defineSchema({
     views: v.number(),
     saves: v.number(),
     applies: v.number(),
+    hidden: v.array(v.id("users")),
 
     department: v.optional(v.string()),
     listedCompensationCurrency: v.optional(v.string()),

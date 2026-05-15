@@ -1,8 +1,13 @@
 import type { JobCardResultDTO } from "@/types/convexJobs";
-import { usePaginatedQuery } from "convex/react";
+import { useMutation, usePaginatedQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActionBar, ActionBarGroup, ActionBarItem, ActionBarSelection, ActionBarSeparator } from "@/components/ui/action-bar";
+import { buildSharePayload, selectRangeIds } from "@/lib/jobs/selection";
+import { CheckCheck, EyeOff, Share2, X } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
+import { getAuthEmail } from "../lib/local-auth";
 import { useApp } from "../contexts/AppContext";
 import { useSearchUI } from "../contexts/SearchContext";
 import { useJobDetailsPrefetch } from "../hooks/useJobDetailsPrefetch";
@@ -41,9 +46,10 @@ const JobDrawerContent = dynamic(() => import("./job/contents/JobDrawerContent")
 });
 
 const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number; jobCount?: number; location?: string }) => {
-  const { boardSearchQuery } = useSearchUI();
+  const { boardSearchQuery, jobBoardSelectionMode, setJobBoardSelectionMode } = useSearchUI();
   const { searchOptions } = useApp();
   const { user, addJob, removeJob } = useApp();
+  const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
   const { isDesktop } = useResponsiveBreakpoint();
   const { prefetch, prefetchNow } = useJobDetailsPrefetch({ delayMs: 140, maxInflight: 3, maxSeen: 600 });
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -75,6 +81,8 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   const [fadeCompanyChromeDialog, setFadeCompanyChromeDialog] = useState(false);
   const [pendingGroupAdvance, setPendingGroupAdvance] = useState(false);
   const [pendingJobAdvance, setPendingJobAdvance] = useState(false);
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null);
   const transitionInFlightRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +95,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     isLoading,
   } = usePaginatedQuery(
     api.jobs.search,
-    { q: debouncedQuery || undefined, filters: convexFilters, sort: { by: debouncedQuery ? "relevance" : "recent", order: "desc" } },
+    { q: debouncedQuery || undefined, filters: convexFilters, sort: { by: debouncedQuery ? "relevance" : "recent", order: "desc" }, viewerEmail: getAuthEmail() ?? undefined },
     { initialNumItems: JOB_BOARD_PAGE_LIMIT }
   );
 
@@ -254,6 +262,22 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   const selectedCompany = selectedCollection?.company ?? null;
 
   const flattenedPositions = useMemo(() => flattenJobBoardPositions(displayedCollections), [displayedCollections]);
+  const flatSelectionOrder = useMemo(
+    () =>
+      flattenedPositions.map((item) => ({
+        id: item.job.externalId,
+        collectionIndex: item.collectionIndex,
+        jobIndex: item.jobIndex,
+      })),
+    [flattenedPositions]
+  );
+  const selectedJobs = useMemo(() => {
+    const selected = new Set(selectedJobIds);
+    return flatSelectionOrder
+      .filter((item) => selected.has(item.id))
+      .map((item) => displayedCollections[item.collectionIndex]?.jobs[item.jobIndex])
+      .filter(Boolean);
+  }, [displayedCollections, flatSelectionOrder, selectedJobIds]);
 
   const selectedFlatIndex = useMemo(
     () => jobBoardFlatIndexForSelection(flattenedPositions, selectedPosition),
@@ -272,6 +296,84 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   );
 
   const isInterviewing = useMemo(() => (selectedJob ? user.interviewing.includes(selectedJob.externalId) : false), [selectedJob, user.interviewing]);
+
+  const clearSelectionMode = useCallback(() => {
+    setJobBoardSelectionMode(false);
+    setSelectedJobIds(new Set());
+    setSelectionAnchorId(null);
+  }, [setJobBoardSelectionMode]);
+
+  const addToSelection = useCallback((jobId: string) => {
+    setSelectedJobIds((prev) => {
+      const next = new Set(prev);
+      next.add(jobId);
+      return next;
+    });
+  }, []);
+
+  const toggleSelection = useCallback((jobId: string) => {
+    setSelectedJobIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) next.delete(jobId);
+      else next.add(jobId);
+      return next;
+    });
+  }, []);
+
+  const handleCardSelectionClick = useCallback(
+    (e: React.MouseEvent, jobId: string) => {
+      const isModifier = e.shiftKey || e.ctrlKey || e.metaKey;
+      if (isModifier && !jobBoardSelectionMode) {
+        setJobBoardSelectionMode(true);
+        setSelectedJobIds(new Set([jobId]));
+        setSelectionAnchorId(jobId);
+        return;
+      }
+
+      if (!jobBoardSelectionMode) {
+        const item = flatSelectionOrder.find((row) => row.id === jobId);
+        if (item) openJobDetails(item.collectionIndex, item.jobIndex);
+        return;
+      }
+
+      if (e.shiftKey) {
+        const anchor = selectionAnchorId ?? jobId;
+        const rangeIds = selectRangeIds(flatSelectionOrder, anchor, jobId);
+        setSelectedJobIds((prev) => {
+          const next = new Set(prev);
+          for (const id of rangeIds) next.add(id);
+          return next;
+        });
+        if (!selectionAnchorId) setSelectionAnchorId(jobId);
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        toggleSelection(jobId);
+        if (!selectionAnchorId) setSelectionAnchorId(jobId);
+        return;
+      }
+
+      addToSelection(jobId);
+      if (!selectionAnchorId) setSelectionAnchorId(jobId);
+    },
+    [addToSelection, flatSelectionOrder, jobBoardSelectionMode, openJobDetails, selectionAnchorId, setJobBoardSelectionMode, toggleSelection]
+  );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && jobBoardSelectionMode) {
+        clearSelectionMode();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clearSelectionMode, jobBoardSelectionMode]);
+
+  useEffect(() => {
+    if (!jobBoardSelectionMode || selectedJobIds.size) return;
+    clearSelectionMode();
+  }, [clearSelectionMode, jobBoardSelectionMode, selectedJobIds.size]);
 
   const handleBookmarkToggle = useCallback(() => {
     if (!selectedJob) return;
@@ -293,6 +395,62 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     }
     addJob(selectedJob.externalId, "applied");
   }, [addJob, isApplied, removeJob, selectedJob, user.applied, user.interviewing]);
+
+  const handleBulkSave = useCallback(() => {
+    for (const row of selectedJobs) {
+      if (!row) continue;
+      const jobId = row.externalId;
+      if (!user.saved.includes(jobId)) addJob(jobId, "saved");
+    }
+    toast.success(`Saved ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"}.`);
+  }, [addJob, selectedJobs, user.saved]);
+
+  const handleBulkApply = useCallback(() => {
+    for (const row of selectedJobs) {
+      if (!row) continue;
+      const jobId = row.externalId;
+      if (!user.applied.includes(jobId)) addJob(jobId, "applied");
+    }
+    toast.success(`Marked ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"} as applied.`);
+  }, [addJob, selectedJobs, user.applied]);
+
+  const handleBulkShare = useCallback(async () => {
+    const payload = buildSharePayload(
+      selectedJobs.flatMap((job) => {
+        const jobUrl = `${window.location.origin}/?job=${encodeURIComponent(job.externalId)}`;
+        return [jobUrl, job.applyUrl ?? null];
+      })
+    );
+    if (!payload) {
+      toast.error("No links available to share.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(payload);
+      toast.success("Copied selected job links.");
+    } catch {
+      toast.error("Unable to copy links right now.");
+    }
+  }, [selectedJobs]);
+
+  const handleBulkHide = useCallback(async () => {
+    const externalIds = selectedJobs.map((job) => job.externalId);
+    if (!externalIds.length) return;
+    const res = await hideForCurrentUser({ externalIds, viewerEmail: getAuthEmail() ?? undefined });
+    if (!res.ok) {
+      toast.error("Please sign in to hide jobs.");
+      return;
+    }
+    for (const jobId of externalIds) {
+      if (user.saved.includes(jobId)) removeJob(jobId, "saved");
+      if (user.applied.includes(jobId)) removeJob(jobId, "applied");
+      if (user.interviewing.includes(jobId)) removeJob(jobId, "interviewing");
+      if (user.rejected.includes(jobId)) removeJob(jobId, "rejected");
+      if (!user.hidden.includes(jobId)) addJob(jobId, "hidden");
+    }
+    toast.success(`Hidden ${externalIds.length} job${externalIds.length === 1 ? "" : "s"}.`);
+    clearSelectionMode();
+  }, [addJob, clearSelectionMode, hideForCurrentUser, removeJob, selectedJobs, user.applied, user.hidden, user.interviewing, user.rejected, user.saved]);
 
   const prefetchJobAtNow = useCallback(
     (collectionIndex: number, jobIndex: number) => {
@@ -527,6 +685,9 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
                   jobCollection={collection}
                   onJobIndexChange={updateCollectionJobIndex}
                   onOpenJob={openJobDetails}
+                  onCardClick={handleCardSelectionClick}
+                  isSelectionMode={jobBoardSelectionMode}
+                  isSelected={selectedJobIds.has(collection.jobs[jobIndexByCollection[key] ?? 0]?.externalId ?? "")}
                 />
               </Suspense>
             );
@@ -540,6 +701,35 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
           )}
         </div>
       </div>
+
+      <ActionBar open={jobBoardSelectionMode} onOpenChange={(open) => (!open ? clearSelectionMode() : setJobBoardSelectionMode(open))}>
+        <ActionBarSelection>
+          Selection mode
+          <ActionBarSeparator />
+          {selectedJobIds.size} selected
+        </ActionBarSelection>
+        <ActionBarGroup>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkSave}>
+            Save
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkApply}>
+            <CheckCheck className="size-4" />
+            Mark Applied
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkShare}>
+            <Share2 className="size-4" />
+            Share
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkHide}>
+            <EyeOff className="size-4" />
+            Hide
+          </ActionBarItem>
+          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={clearSelectionMode}>
+            <X className="size-4" />
+            Exit
+          </ActionBarItem>
+        </ActionBarGroup>
+      </ActionBar>
 
       {isDesktop && selectedJob ? (
         <JobDialogContent
