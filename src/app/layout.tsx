@@ -50,20 +50,11 @@ export const metadata: Metadata = {
     title: "Hiring Cafe Clone",
     description: "UI Redesign of the hiring.cafe website",
     siteName: "Hiring Cafe Clone",
-    images: [
-      {
-        url: "/meta.png",
-        width: 1200,
-        height: 630,
-        alt: "Hiring Cafe Clone - Job Board Interface",
-      },
-    ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Hiring Cafe Clone",
     description: "UI Redesign of the hiring.cafe website",
-    images: ["/meta.png"],
     creator: "@hiringcafeclone",
   },
   robots: {
@@ -81,9 +72,9 @@ export const metadata: Metadata = {
     google: "your-google-verification-code",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: [{ url: "/window.svg", type: "image/svg+xml" }],
+    shortcut: "/window.svg",
+    apple: "/window.svg",
   },
   manifest: "/manifest.json",
 };

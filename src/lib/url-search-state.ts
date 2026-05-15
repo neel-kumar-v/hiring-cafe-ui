@@ -5,9 +5,19 @@ export function encodeSearchState(state: SearchState): string {
 	return encodeURIComponent(JSON.stringify(state));
 }
 
+function fullyDecodeURIComponent(raw: string): string {
+	let prev = raw;
+	for (let i = 0; i < 8; i++) {
+		const next = decodeURIComponent(prev);
+		if (next === prev) break;
+		prev = next;
+	}
+	return prev;
+}
+
 export function decodeSearchState(raw: string): SearchState | null {
 	try {
-		const json = decodeURIComponent(raw);
+		const json = fullyDecodeURIComponent(raw);
 		return JSON.parse(json) as SearchState;
 	} catch {
 		return null;

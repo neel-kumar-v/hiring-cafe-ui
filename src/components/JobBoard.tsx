@@ -28,7 +28,7 @@ const JobDrawerContent = dynamic(() => import("./job/contents/JobDrawerContent")
 
 // Keeping pages smaller avoids Convex "many bytes read" warnings when job payloads are large.
 const PAGE_LIMIT = 24;
-const JOBS_PER_CARD = 10;
+const JOBS_PER_CARD = 6;
 const NAV_FADE_OUT_MS = JOB_FADE_DURATION_MS;
 const NAV_SETTLE_MS = 50;
 const PREFILL_VIEWPORT_MARGIN_PX = 480;
@@ -523,9 +523,9 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     <>
       {jobCount !== undefined || companyCount !== undefined || location ? (
         <div className="my-2 text-sm text-muted-foreground">
-          {jobCount !== undefined ? <span>{formatRoundedNumber(jobCount, 3)} jobs</span> : null}
+          {jobCount !== undefined ? <span>{formatRoundedNumber(jobCount, 0)} jobs</span> : null}
           {jobCount !== undefined && companyCount !== undefined ? <span> - </span> : null}
-          {companyCount !== undefined ? <span>{formatRoundedNumber(companyCount, 3)} companies</span> : null}
+          {companyCount !== undefined ? <span>{formatRoundedNumber(companyCount, 0)} companies</span> : null}
           {(jobCount !== undefined || companyCount !== undefined) && location ? <span> - </span> : null}
           {location ? <span>{location}</span> : null}
         </div>

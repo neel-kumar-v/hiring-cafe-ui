@@ -57,7 +57,7 @@ const CardHeader = ({
         <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs">
           {locations.length > 0 &&
             (isDesktop ? (
-              <div className="pointer-fine:max-h-6 pointer-fine:group-hover:max-h-36 pointer-fine:motion-reduce:max-h-full flex max-h-full flex-row flex-wrap items-center gap-1 overflow-hidden transition-all duration-700 ease-out">
+              <div className="pointer-fine:max-h-6 pointer-fine:group-hover:max-h-36 pointer-fine:motion-reduce:max-h-full flex max-h-full flex-row flex-wrap items-center gap-1 overflow-hidden transition-all duration-700 group-hover:ease-linear ease-out">
                 {locations.map((loc, index) => (
                   <span key={index} className={`flex items-center gap-1 ${chipClass}`}>
                     <MapPin className="h-3 w-3 shrink-0" />

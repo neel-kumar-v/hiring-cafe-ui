@@ -39,7 +39,7 @@ const CardStats = ({
 
   return (
     <div onClick={handleGeneralClick}>
-      <div className="flex w-fit items-center gap-2 pr-4 text-muted-foreground text-md dark:text-muted-foreground">
+      <div className="flex w-fit items-center gap-1.5 pr-4 text-muted-foreground text-md dark:text-muted-foreground">
         <CardStatGroup
           appliedCount={appliedTotal}
           handleBookmarkClick={handleBookmarkClick}

@@ -256,7 +256,7 @@ const JobDialogContent = ({
   return (
     <Dialog onOpenChange={handleOpenChange} open={dialogOpen}>
       {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
-      <DialogContent showCloseButton={false} className="h-[90vh] w-[900px]  min-w-[60vw] max-w-[90vw] border border-border/60 bg-background p-0 dark:border-border dark:bg-card">
+      <DialogContent showCloseButton={false} className="h-[90vh] w-225  min-w-[65vw] max-w-[90vw] border border-border/60 bg-background p-0 dark:border-border dark:bg-card">
         <VisuallyHidden>
           <DialogTitle>Job Details</DialogTitle>
         </VisuallyHidden>

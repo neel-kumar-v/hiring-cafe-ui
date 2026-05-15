@@ -9,15 +9,10 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "16x16 32x32",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "/meta.png",
-      "sizes": "1200x630",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "/window.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "categories": ["business", "productivity"],
