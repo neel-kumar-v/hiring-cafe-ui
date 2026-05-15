@@ -14,19 +14,40 @@ export function toSortPublishMillis(job: Pick<Doc<"jobs">, "estimatedPublishDate
   return job._creationTime;
 }
 
+function buildSearchTextFallback(job: Doc<"jobs">, company: Doc<"companies">): string {
+  const parts = [
+    job.title,
+    company.name,
+    job.requirementsSummary ?? "",
+    (job.skills ?? []).join(" "),
+    (job.workplaceCities ?? []).join(" "),
+  ].filter((p) => typeof p === "string" && p.length > 0);
+  return parts.join("\n").toLowerCase();
+}
+
 export type JobCardUpsertFields = Omit<Doc<"jobCards">, "_id" | "_creationTime" | "createdAt" | "updatedAt">;
 
-export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">): JobCardUpsertFields {
+/**
+ * When `ingestSearchText` is set (ingestion path), it should match `scrape_to_convex.py` search_text.
+ * Otherwise uses any legacy `jobs.searchText` or a compact fallback so backfills work after dedupe.
+ */
+export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">, ingestSearchText?: string): JobCardUpsertFields {
+  const searchText =
+    typeof ingestSearchText === "string" && ingestSearchText.length > 0
+      ? ingestSearchText
+      : typeof job.searchText === "string" && job.searchText.length > 0
+        ? job.searchText
+        : buildSearchTextFallback(job, company);
+
   return {
     externalId: job.externalId,
     jobId: job._id,
-    detailsId: job.detailsId,
 
     title: job.title,
     applyUrl: job.applyUrl,
     companyId: job.companyId,
     companySlug: company.companyId,
-    searchText: job.searchText,
+    searchText,
 
     workplaceType: job.workplaceType,
     commitment: job.commitment ?? [],

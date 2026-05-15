@@ -14,7 +14,7 @@ async function getJobsCounter(ctx: any) {
     .unique();
 }
 
-async function incrementJobsCounter(ctx: any, delta: number) {
+export async function incrementJobsCounter(ctx: any, delta: number) {
   if (delta === 0) return;
   const now = Date.now();
   const row = await getJobsCounter(ctx);
@@ -179,7 +179,6 @@ export const ingestBatch = mutation({
         title: item.title,
         applyUrl: item.applyUrl,
         companyId: companyDocId,
-        searchText: item.searchText,
         detailsId,
 
         workplaceType: item.workplaceType,
@@ -292,7 +291,7 @@ export const ingestBatch = mutation({
       if (companyDoc) {
         const jobDoc = await ctx.db.get(jobId);
         if (jobDoc) {
-          const cardFields = buildJobCardFields(jobDoc, companyDoc);
+          const cardFields = buildJobCardFields(jobDoc, companyDoc, item.searchText);
           const existingCard = await ctx.db
             .query("jobCards")
             .withIndex("by_externalId", (q) => q.eq("externalId", item.externalId))
@@ -382,7 +381,8 @@ function normalizeStringList(values: string[] | undefined): string[] {
   return Array.from(out);
 }
 
-function toCardResult(card: any) {
+function toCardResult(card: any, detailsIdFromJob?: Id<"jobDetails"> | null) {
+  const detailsId = detailsIdFromJob ?? card.detailsId;
   return {
     job: {
       _id: card._id,
@@ -391,7 +391,7 @@ function toCardResult(card: any) {
       title: card.title,
       applyUrl: card.applyUrl,
       companyId: card.companyId,
-      detailsId: card.detailsId,
+      detailsId,
       workplaceType: card.workplaceType,
       commitment: card.commitment ?? [],
       workplaceCities: card.workplaceCities ?? [],
@@ -515,6 +515,36 @@ function toJobResult(job: any, company: any | null) {
   };
 }
 
+/** Distinct / sampling helpers: prefer `jobCards` (only indexed search surface) when backfilled. */
+async function sampleJobLikeDocsForDistinct(ctx: any, q: string, readLimit: number) {
+  const hasJobCards = (await ctx.db.query("jobCards").take(1)).length > 0;
+  if (hasJobCards) {
+    if (q) {
+      return await ctx.db
+        .query("jobCards")
+        .withSearchIndex("search_searchText", (q2: any) => q2.search("searchText", q))
+        .take(readLimit);
+    }
+    return await ctx.db.query("jobCards").withIndex("by_recent").order("desc").take(readLimit);
+  }
+  if (q) {
+    const rows = await ctx.db.query("jobs").order("desc").take(Math.min(readLimit * 3, 3000));
+    const qq = q.trim().toLowerCase();
+    return rows
+      .filter(
+        (d: any) =>
+          (d.title ?? "").toLowerCase().includes(qq) ||
+          (d.requirementsSummary ?? "").toLowerCase().includes(qq) ||
+          String(d.department ?? "")
+            .toLowerCase()
+            .includes(qq) ||
+          (d.skills ?? []).some((s: string) => (s ?? "").toLowerCase().includes(qq)),
+      )
+      .slice(0, readLimit);
+  }
+  return await ctx.db.query("jobs").order("desc").take(readLimit);
+}
+
 async function resolveCompanyDocIds(ctx: any, tokens: string[]): Promise<Set<string>> {
   const resolved = new Set<string>();
   for (const raw of tokens.slice(0, 30)) {
@@ -572,84 +602,46 @@ export const search = query({
     const hasJobCards = (await ctx.db.query("jobCards").take(1)).length > 0;
 
     let page;
-    if (!hasJobCards) {
-      if (hasQuery) {
-        mode = "jobs_search";
-        page = await ctx.db
-          .query("jobs")
-          .withSearchIndex("search_searchText", (q2) => q2.search("searchText", queryText))
-          .paginate(paginationOpts);
-      } else {
-        mode = "jobs_recent";
-        page = await ctx.db.query("jobs").order(order).paginate(paginationOpts);
-      }
-    } else if (hasQuery) {
+    if (hasQuery) {
       mode = "searchIndex";
       page = await ctx.db
         .query("jobCards")
         .withSearchIndex("search_searchText", (q2) => {
           let qq = q2.search("searchText", queryText);
-          if (companyDocIds.size === 1) qq = qq.eq("companyId", Array.from(companyDocIds)[0] as Id<"companies">);
           if (workplaceTypes.length === 1) qq = qq.eq("workplaceType", workplaceTypes[0]);
           if (departments.length === 1) qq = qq.eq("department", departments[0]);
           if (currencies.length === 1) qq = qq.eq("listedCompensationCurrency", currencies[0]);
           if (frequencies.length === 1) qq = qq.eq("listedCompensationFrequency", frequencies[0]);
-          if (companyProfit.length === 1) qq = qq.eq("companyProfit", companyProfit[0]);
-          if (companyStage.length === 1) qq = qq.eq("companyStage", companyStage[0]);
           return qq;
         })
         .paginate(paginationOpts);
-    } else if (companyDocIds.size === 1) {
-      mode = "by_company_recent";
-      page = await ctx.db
-        .query("jobCards")
-        .withIndex("by_companyId_and_recent", (q2) => q2.eq("companyId", Array.from(companyDocIds)[0] as Id<"companies">))
-        .order(order)
-        .paginate(paginationOpts);
-    } else if (workplaceTypes.length === 1) {
-      mode = "by_workplace_recent";
-      page = await ctx.db
-        .query("jobCards")
-        .withIndex("by_workplaceType_and_recent", (q2) => q2.eq("workplaceType", workplaceTypes[0]))
-        .order(order)
-        .paginate(paginationOpts);
-    } else if (departments.length === 1) {
-      mode = "by_department_recent";
-      page = await ctx.db
-        .query("jobCards")
-        .withIndex("by_department_and_recent", (q2) => q2.eq("department", departments[0]))
-        .order(order)
-        .paginate(paginationOpts);
-    } else if (currencies.length === 1 && frequencies.length === 1) {
-      mode = "by_currency_frequency_recent";
-      page = await ctx.db
-        .query("jobCards")
-        .withIndex("by_currency_and_frequency_and_recent", (q2) => q2.eq("listedCompensationCurrency", currencies[0]).eq("listedCompensationFrequency", frequencies[0]))
-        .order(order)
-        .paginate(paginationOpts);
+    } else if (!hasJobCards) {
+      mode = "jobs_recent";
+      page = await ctx.db.query("jobs").order(order).paginate(paginationOpts);
     } else {
-      mode = "by_group_recent";
-      page = await ctx.db.query("jobCards").withIndex("by_group_recent").order(order).paginate(paginationOpts);
+      // All browse paths use `by_recent` only; filters are applied in `applyPostFilters`.
+      mode = "by_recent";
+      page = await ctx.db.query("jobCards").withIndex("by_recent").order(order).paginate(paginationOpts);
     }
 
     const applyPostFilters = (rows: any[]) => {
       let filteredRows = rows;
-      if (companyDocIds.size > 1) {
+      if (companyDocIds.size >= 1) {
         filteredRows = filteredRows.filter((row: any) => companyDocIds.has(String(row.companyId)));
       }
-      if (workplaceTypes.length > 1) {
+      if (workplaceTypes.length >= 1) {
         const workplaceSet = new Set(workplaceTypes);
         filteredRows = filteredRows.filter((row: any) => workplaceSet.has(normalizeLower(row.workplaceType ?? "")));
       }
-      if (departments.length > 1) {
+      if (departments.length >= 1) {
         const deptSet = new Set(departments);
         filteredRows = filteredRows.filter((row: any) => deptSet.has(normalizeLower(row.department ?? "")));
       }
-      if (currencies.length > 1) {
+      if (currencies.length >= 1) {
         const currencySet = new Set(currencies);
         filteredRows = filteredRows.filter((row: any) => currencySet.has(normalizeLower(row.listedCompensationCurrency ?? "")));
       }
-      if (frequencies.length > 1) {
+      if (frequencies.length >= 1) {
         const frequencySet = new Set(frequencies);
         filteredRows = filteredRows.filter((row: any) => frequencySet.has(normalizeLower(row.listedCompensationFrequency ?? "")));
       }
@@ -707,10 +699,19 @@ export const search = query({
     let continueCursor = page.continueCursor;
     let isDone = page.isDone;
     const filteredRows = applyPostFilters(page.page);
-    let resultPage;
-    if (hasJobCards) {
-      resultPage = filteredRows.map((card: any) => toCardResult(card));
-    } else {
+    let resultPage: any[] = [];
+    const pageRowsAreJobCards = filteredRows.length > 0 && "jobId" in filteredRows[0];
+    if (pageRowsAreJobCards) {
+      const uniqueJobIds = Array.from(new Set(filteredRows.map((row: any) => String(row.jobId))));
+      const jobDocs = await Promise.all(uniqueJobIds.map((id) => ctx.db.get(id as Id<"jobs">)));
+      const detailsIdByJobId = new Map<string, Id<"jobDetails">>();
+      for (const j of jobDocs) {
+        if (j?._id && j.detailsId) detailsIdByJobId.set(String(j._id), j.detailsId);
+      }
+      resultPage = filteredRows.map((card: any) =>
+        toCardResult(card, detailsIdByJobId.get(String(card.jobId)) ?? null),
+      );
+    } else if (filteredRows.length > 0) {
       const companyIds = Array.from(new Set(filteredRows.map((row: any) => String(row.companyId))));
       const companyDocs = await Promise.all(companyIds.map((id) => ctx.db.get(id as Id<"companies">)));
       const companiesById = new Map<string, any>();
@@ -718,6 +719,8 @@ export const search = query({
         if (company?._id) companiesById.set(String(company._id), company);
       }
       resultPage = filteredRows.map((job: any) => toJobResult(job, companiesById.get(String(job.companyId)) ?? null));
+    } else {
+      resultPage = [];
     }
 
     const durationMs = Date.now() - startedAt;
@@ -921,12 +924,7 @@ export const distinctJobTitles = query({
     const max = Math.min(Math.max(limit ?? 50, 1), 200);
     const readLimit = Math.min(Math.max(max * 6, 120), 600);
 
-    const docs = q
-      ? await ctx.db
-          .query("jobs")
-          .withSearchIndex("search_searchText", (q2) => q2.search("searchText", q))
-          .take(readLimit)
-      : await ctx.db.query("jobs").order("desc").take(readLimit);
+    const docs = await sampleJobLikeDocsForDistinct(ctx, q, readLimit);
 
     const titles = new Set<string>();
     for (const d of docs) {
@@ -946,12 +944,7 @@ export const distinctSkills = query({
     const max = Math.min(Math.max(limit ?? 50, 1), 200);
     const readLimit = Math.min(Math.max(max * 8, 120), 800);
 
-    const docs = q
-      ? await ctx.db
-          .query("jobs")
-          .withSearchIndex("search_searchText", (q2) => q2.search("searchText", q))
-          .take(readLimit)
-      : await ctx.db.query("jobs").order("desc").take(readLimit);
+    const docs = await sampleJobLikeDocsForDistinct(ctx, q, readLimit);
 
     const skills = new Set<string>();
     for (const d of docs) {
@@ -976,12 +969,7 @@ export const distinctRequirementsSummaries = query({
     const max = Math.min(Math.max(limit ?? 50, 1), 200);
     const readLimit = Math.min(Math.max(max * 8, 120), 800);
 
-    const docs = q
-      ? await ctx.db
-          .query("jobs")
-          .withSearchIndex("search_searchText", (q2) => q2.search("searchText", q))
-          .take(readLimit)
-      : await ctx.db.query("jobs").order("desc").take(readLimit);
+    const docs = await sampleJobLikeDocsForDistinct(ctx, q, readLimit);
 
     const lines = new Set<string>();
     for (const d of docs) {

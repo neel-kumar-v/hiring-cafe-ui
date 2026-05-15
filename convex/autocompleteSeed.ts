@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, type MutationCtx } from "./_generated/server";
 import type { AutocompleteType } from "./autocompleteTypes";
 import { autocompleteTypeValidator } from "./autocompleteTypes";
+import type { Id } from "./_generated/dataModel";
 
 import companiesJson from "../src/data/company_name.json";
 import industriesJson from "../src/data/company_industry.json";
@@ -18,7 +19,6 @@ import bachelorFieldsJson from "../src/data/bachelor_fields.json";
 import masterFieldsJson from "../src/data/master_fields.json";
 import doctorateFieldsJson from "../src/data/doctorate_fields.json";
 import companyHqCountryJson from "../src/data/company_hq_country.json";
-import scrapeStateJson from "../src/data/scrape_state.json";
 
 type SuggestionsJson = { suggestions: string[] };
 
@@ -58,54 +58,49 @@ function jsonForType(type: AutocompleteType): SuggestionsJson {
 		case "company_hq_country":
 			return companyHqCountryJson as SuggestionsJson;
 		case "scrape_state":
-			// `scrape_state.json` is a scraper checkpoint file, not an autocomplete suggestions list.
-			// Keep the type in the union (used elsewhere), but don't try to seed suggestions from it.
 			return { suggestions: [] };
-	}
-}
-
-function tableForType(type: AutocompleteType) {
-	switch (type) {
-		case "companies":
-			return "autocompleteCompanies" as const;
-		case "industries":
-			return "autocompleteIndustries" as const;
-		case "company_activities":
-			return "autocompleteCompanyActivities" as const;
-		case "currencies":
-			return "autocompleteCurrencies" as const;
-		case "languages":
-			return "autocompleteLanguages" as const;
-		case "licenses":
-			return "autocompleteLicenses" as const;
-		case "investors":
-			return "autocompleteInvestors" as const;
-		case "round_types":
-			return "autocompleteRoundTypes" as const;
-		case "job_title":
-			return "autocompleteJobTitles" as const;
-		case "technology_keywords":
-		case "description_keywords":
-		case "requirements_keywords":
-			return "autocompleteTechnologies" as const;
-		case "bachelors_degree_titles":
-		case "bachelor_fields":
-			return "autocompleteBachelorsFields" as const;
-		case "associate_fields":
-			return "autocompleteAssociateFields" as const;
-		case "master_fields":
-			return "autocompleteMasterFields" as const;
-		case "doctorate_fields":
-			return "autocompleteDoctorateFields" as const;
-		case "company_hq_country":
-			return "autocompleteCompanyHqCountries" as const;
-		case "scrape_state":
-			return "autocompleteScrapeStates" as const;
 	}
 }
 
 function normalize(value: string) {
 	return value.trim();
+}
+
+async function upsertValueAndLink(
+	ctx: MutationCtx,
+	type: AutocompleteType,
+	value: string,
+): Promise<{ createdNewAssociation: boolean }> {
+	const existingValue = await ctx.db
+		.query("autocompleteValues")
+		.withIndex("by_value", (q) => q.eq("value", value))
+		.unique();
+
+	let valueId: Id<"autocompleteValues">;
+	if (!existingValue) {
+		valueId = await ctx.db.insert("autocompleteValues", { value, types: [type] });
+		await ctx.db.insert("autocompleteTypeIndex", { type, valueId });
+		return { createdNewAssociation: true };
+	}
+
+	valueId = existingValue._id;
+	const typesSet = new Set(existingValue.types ?? []);
+	const hadType = typesSet.has(type);
+	if (!hadType) {
+		typesSet.add(type);
+		await ctx.db.patch(valueId, { types: Array.from(typesSet) });
+	}
+
+	const existingLink = await ctx.db
+		.query("autocompleteTypeIndex")
+		.withIndex("by_type_and_valueId", (q) => q.eq("type", type).eq("valueId", valueId))
+		.unique();
+	if (!existingLink) {
+		await ctx.db.insert("autocompleteTypeIndex", { type, valueId });
+		return { createdNewAssociation: true };
+	}
+
+	return { createdNewAssociation: false };
 }
 
 export const seedBatch = mutation({
@@ -122,7 +117,6 @@ export const seedBatch = mutation({
 		const all = Array.isArray(json?.suggestions) ? json.suggestions : [];
 		const slice = all.slice(batchStart, batchStart + batchCount);
 
-		const table = tableForType(type);
 		let inserted = 0;
 		let processed = 0;
 
@@ -135,14 +129,8 @@ export const seedBatch = mutation({
 			if (seen.has(value)) continue;
 			seen.add(value);
 
-			const existing = await ctx.db
-				.query(table)
-				.withIndex("by_value", (q) => q.eq("value", value))
-				.unique();
-			if (existing) continue;
-
-			await ctx.db.insert(table, { value });
-			inserted++;
+			const { createdNewAssociation } = await upsertValueAndLink(ctx, type, value);
+			if (createdNewAssociation) inserted++;
 		}
 
 		const nextStart = batchStart + batchCount;
@@ -157,4 +145,3 @@ export const seedBatch = mutation({
 		};
 	},
 });
-

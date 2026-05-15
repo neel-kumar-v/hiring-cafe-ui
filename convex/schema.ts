@@ -45,6 +45,7 @@ export default defineSchema({
     .index("by_nameLower", ["nameLower"])
     .index("by_lastJobSortPublishMillis", ["lastJobSortPublishMillis"]),
 
+  /** Canonical job row (ingest + `jobDetails`); `jobCards` is a denormalized browse/search projection — do not drop `jobs` without migrating FKs. */
   jobs: defineTable({
     /** Stable identifier from scraped dataset (must be unique). */
     externalId: v.string(),
@@ -54,8 +55,11 @@ export default defineSchema({
 
     companyId: v.id("companies"),
 
-    /** For quick display and full-text search; should include title/company/summary/etc. */
-    searchText: v.string(),
+    /**
+     * Deprecated: full-text search runs on `jobCards.searchText` only.
+     * Cleared by `migrations.stripJobsSearchText` to save table bytes.
+     */
+    searchText: v.optional(v.string()),
 
     /** Dialog payload lives in `jobDetails`. */
     detailsId: v.id("jobDetails"),
@@ -164,18 +168,18 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
-    .index("by_companyId", ["companyId"])
-    .searchIndex("search_searchText", {
-      searchField: "searchText",
-      filterFields: ["companyId", "workplaceType", "department", "listedCompensationCurrency", "listedCompensationFrequency"],
-    }),
+    .index("by_companyId", ["companyId"]),
 
   jobCards: defineTable({
     /** Mirrors jobs.externalId for idempotent upserts and lookup. */
     externalId: v.string(),
     /** Link back to source jobs document so detail lookups stay unchanged. */
     jobId: v.id("jobs"),
-    detailsId: v.id("jobDetails"),
+    /**
+     * Deprecated: same row as `jobs.detailsId`. Prefer resolving via `jobId`;
+     * cleared by `migrations.stripJobCardsDetailsId`.
+     */
+    detailsId: v.optional(v.id("jobDetails")),
 
     title: v.string(),
     applyUrl: v.optional(v.string()),
@@ -242,19 +246,15 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
+    /** Required for ingest / backfill upserts by `externalId`. */
     .index("by_externalId", ["externalId"])
-    .index("by_jobId", ["jobId"])
+    /** Default browse + sampling; combine with post-filters for workplace/department/currency/etc. */
     .index("by_recent", ["sortPublishMillis"])
-    .index("by_group_recent", ["companySortPublishMillis", "companyId", "sortPublishMillis"])
-    .index("by_companyId_and_recent", ["companyId", "sortPublishMillis"])
-    .index("by_workplaceType_and_recent", ["workplaceType", "sortPublishMillis"])
-    .index("by_department_and_recent", ["department", "sortPublishMillis"])
-    .index("by_currency_and_frequency_and_recent", ["listedCompensationCurrency", "listedCompensationFrequency", "sortPublishMillis"])
-    .index("by_companyProfit_and_recent", ["companyProfit", "sortPublishMillis"])
-    .index("by_companyStage_and_recent", ["companyStage", "sortPublishMillis"])
+    /** Narrow scans when patching all cards for one company (`companies.updateCompanyLastJobMillis`). */
+    .index("by_companyId", ["companyId"])
     .searchIndex("search_searchText", {
       searchField: "searchText",
-      filterFields: ["companyId", "workplaceType", "department", "listedCompensationCurrency", "listedCompensationFrequency", "companyProfit", "companyStage"],
+      filterFields: ["workplaceType", "department", "listedCompensationCurrency", "listedCompensationFrequency"],
     }),
 
   jobDetails: defineTable({
@@ -288,39 +288,27 @@ export default defineSchema({
       filterFields: ["type"],
     }),
 
-  // --- Autocomplete option tables (seeded from `src/data/*.json`) ---
-  autocompleteCompanies: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
+  /**
+   * One row per distinct suggestion string. `types` lists API facets that use it
+   * (e.g. the same line may appear under technology_keywords and description_keywords).
+   * Convex always adds `_creationTime` on documents; we do not store an app-level createdAt.
+   */
+  autocompleteValues: defineTable({
+    value: v.string(),
+    types: v.array(v.string()),
+  })
+    .index("by_value", ["value"])
+    .searchIndex("search_value", { searchField: "value" }),
 
-  autocompleteIndustries: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteCompanyActivities: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteCurrencies: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteLanguages: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteLicenses: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteInvestors: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteRoundTypes: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteJobTitles: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteTechnologies: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteBachelorsFields: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  // Currently unused in UI, but split for completeness.
-  autocompleteAssociateFields: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteMasterFields: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteDoctorateFields: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteCompanyHqCountries: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
-
-  autocompleteScrapeStates: defineTable({ value: v.string() }).index("by_value", ["value"]).searchIndex("search_value", { searchField: "value" }),
+  /**
+   * One row per (facet `type`, canonical value row) so browse-without-query can use `by_type`.
+   */
+  autocompleteTypeIndex: defineTable({
+    type: v.string(),
+    valueId: v.id("autocompleteValues"),
+  })
+    .index("by_type", ["type"])
+    .index("by_type_and_valueId", ["type", "valueId"]),
 
   /** Denormalized counters (e.g. total jobs) so queries avoid full table scans. */
   counters: defineTable({

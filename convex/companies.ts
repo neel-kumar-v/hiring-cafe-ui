@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
+import { toSortPublishMillis } from "./jobCards";
 
 const COMPANIES_COUNTER_NAME = "companies";
 
@@ -92,12 +93,50 @@ export async function updateCompanyLastJobMillis(ctx: any, companyId: Id<"compan
   // Update all existing jobCards for this company to maintain grouping integrity.
   const cards = await ctx.db
     .query("jobCards")
-    .withIndex("by_companyId_and_recent", (q: any) => q.eq("companyId", companyId))
+    .withIndex("by_companyId", (q: any) => q.eq("companyId", companyId))
     .collect();
 
   for (const card of cards) {
     if (card.companySortPublishMillis !== millis) {
       await ctx.db.patch(card._id, { companySortPublishMillis: millis, updatedAt: Date.now() });
+    }
+  }
+}
+
+/**
+ * Recompute `lastJobSortPublishMillis` and card `companySortPublishMillis` from
+ * remaining `jobs` rows (e.g. after deletes).
+ */
+export async function refreshCompanyJobSortFromDb(ctx: any, companyDocId: Id<"companies">) {
+  const jobs = await ctx.db
+    .query("jobs")
+    .withIndex("by_companyId", (q: any) => q.eq("companyId", companyDocId))
+    .collect();
+
+  let maxMillis = 0;
+  for (const j of jobs) {
+    const m = toSortPublishMillis(j);
+    if (m > maxMillis) maxMillis = m;
+  }
+
+  const now = Date.now();
+  const company = await ctx.db.get(companyDocId);
+  if (!company) return;
+
+  const nextLast = maxMillis > 0 ? maxMillis : undefined;
+  if (company.lastJobSortPublishMillis !== nextLast) {
+    await ctx.db.patch(companyDocId, { lastJobSortPublishMillis: nextLast, updatedAt: now });
+  }
+
+  const cards = await ctx.db
+    .query("jobCards")
+    .withIndex("by_companyId", (q: any) => q.eq("companyId", companyDocId))
+    .collect();
+
+  const targetCompanySort = maxMillis > 0 ? maxMillis : undefined;
+  for (const card of cards) {
+    if (card.companySortPublishMillis !== targetCompanySort) {
+      await ctx.db.patch(card._id, { companySortPublishMillis: targetCompanySort, updatedAt: now });
     }
   }
 }
