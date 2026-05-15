@@ -38,6 +38,8 @@ interface JobDialogContentProps {
   onOpenChange?: (open: boolean) => void;
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
   isTransitioning?: boolean;
+  /** When true with `isTransitioning`, fades company line, logo/tagline, and description (footer in-card hops keep this false). */
+  fadeCompanyChrome?: boolean;
   footerNavigation?: DialogFooterNavigationProps;
   outsideNavigation?: JobDialogOutsideNavigationProps;
 }
@@ -56,6 +58,7 @@ const JobDialogContent = ({
   onOpenChange,
   scrollContainerRef,
   isTransitioning = false,
+  fadeCompanyChrome = false,
   footerNavigation,
   outsideNavigation,
 }: JobDialogContentProps) => {
@@ -210,6 +213,7 @@ const JobDialogContent = ({
       <div className="-mx-8 sticky top-0 z-20 bg-background px-8 dark:bg-card">
         <DialogJobTitle
           companyName={companyData.name}
+          fadeCompanyChrome={fadeCompanyChrome}
           isTransitioning={isTransitioning}
           jobTitle={job.title}
           tools={processed.technical_tools ?? []}
@@ -226,7 +230,7 @@ const JobDialogContent = ({
         />
       </div>
 
-      <DialogCompanyLogoCard companyData={companyData} />
+      <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} />
 
       <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
 
@@ -239,7 +243,12 @@ const JobDialogContent = ({
 
       <DialogSkills isTransitioning={isTransitioning} technicalTools={processed.technical_tools ?? []} />
 
-      <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} isTransitioning={isTransitioning} />
+      <DialogJobDescription
+        description={detailsDoc?.description ?? ""}
+        fadeCompanyChrome={fadeCompanyChrome}
+        isLoading={isDetailsLoading}
+        isTransitioning={isTransitioning}
+      />
 
       <DialogFooter
         isApplied={isApplied}

@@ -32,6 +32,7 @@ const JobDrawerContent = ({
   onClose,
   navigation,
   isTransitioning = false,
+  fadeCompanyChrome = false,
 }: {
   currentJob: JobDTO;
   company: CompanyDTO | null;
@@ -44,6 +45,7 @@ const JobDrawerContent = ({
   onClose: () => void;
   navigation?: JobDrawerNavigationProps;
   isTransitioning?: boolean;
+  fadeCompanyChrome?: boolean;
 }) => {
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [hasHorizontalSwipe, setHasHorizontalSwipe] = useState(false);
@@ -213,12 +215,13 @@ const JobDrawerContent = ({
         <div className="space-y-4 overflow-y-auto p-4" onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove} onTouchStart={handleTouchStart}>
           <DialogJobTitle
             companyName={companyData.name}
+            fadeCompanyChrome={fadeCompanyChrome}
             isTransitioning={isTransitioning}
             jobTitle={job.title}
             tools={processed.technical_tools ?? []}
             workplaceCities={processed.workplace_cities ?? []}
           />
-          <DialogCompanyLogoCard companyData={companyData} />
+          <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} />
           <div className={jobFadeClass(isTransitioning)}>
             <DialogBadges
               commitments={processed.commitment ?? []}
@@ -249,7 +252,12 @@ const JobDrawerContent = ({
             requirementsSummary={processed.requirements_summary ?? ""}
           />
           <DialogSkills isTransitioning={isTransitioning} technicalTools={processed.technical_tools ?? []} />
-          <DialogJobDescription description={detailsDoc?.description ?? ""} isLoading={isDetailsLoading} isTransitioning={isTransitioning} />
+          <DialogJobDescription
+            description={detailsDoc?.description ?? ""}
+            fadeCompanyChrome={fadeCompanyChrome}
+            isLoading={isDetailsLoading}
+            isTransitioning={isTransitioning}
+          />
         </div>
       </DrawerContent>
     </Drawer>

@@ -6,6 +6,7 @@ import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
 import type { JobCardResultDTO } from "@/types/convexJobs";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -62,6 +63,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
   const [dialogOpen, setDialogOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [fadeCompanyChromeNav, setFadeCompanyChromeNav] = useState(false);
   const transitionInFlightRef = useRef(false);
 
   const filteredJobs = useMemo(
@@ -105,9 +107,10 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
     if (nextIndex !== previousIndex) prefetch(getDetailsLookupId(filteredJobs[nextIndex].job));
   }, [filteredJobs, prefetch, selectedIndex]);
 
-  const runNavigationTransition = useCallback(async (navigate: () => void) => {
+  const runNavigationTransition = useCallback(async (navigate: () => void, opts?: { fadeCompanyChrome?: boolean }) => {
     if (transitionInFlightRef.current) return;
     transitionInFlightRef.current = true;
+    setFadeCompanyChromeNav(Boolean(opts?.fadeCompanyChrome));
     setIsTransitioning(true);
     try {
       await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
@@ -116,6 +119,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
     } finally {
       transitionInFlightRef.current = false;
       setIsTransitioning(false);
+      setFadeCompanyChromeNav(false);
     }
   }, []);
 
@@ -140,15 +144,23 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
   const handlePrevious = useCallback(async () => {
     if (!filteredJobs.length || selectedIndex === null) return;
     const previousIndex = (selectedIndex - 1 + filteredJobs.length) % filteredJobs.length;
+    const currentRow = filteredJobs[selectedIndex];
+    const previousRow = filteredJobs[previousIndex];
+    const fadeCompanyChrome =
+      stableCompanyKey(currentRow.company, currentRow.job) !== stableCompanyKey(previousRow.company, previousRow.job);
     prefetchNow(getDetailsLookupId(filteredJobs[previousIndex].job));
-    await runNavigationTransition(() => navigateToIndex(selectedIndex - 1));
+    await runNavigationTransition(() => navigateToIndex(selectedIndex - 1), { fadeCompanyChrome });
   }, [filteredJobs, navigateToIndex, prefetchNow, runNavigationTransition, selectedIndex]);
 
   const handleNext = useCallback(async () => {
     if (!filteredJobs.length || selectedIndex === null) return;
     const nextIndex = (selectedIndex + 1) % filteredJobs.length;
+    const currentRow = filteredJobs[selectedIndex];
+    const nextRow = filteredJobs[nextIndex];
+    const fadeCompanyChrome =
+      stableCompanyKey(currentRow.company, currentRow.job) !== stableCompanyKey(nextRow.company, nextRow.job);
     prefetchNow(getDetailsLookupId(filteredJobs[nextIndex].job));
-    await runNavigationTransition(() => navigateToIndex(selectedIndex + 1));
+    await runNavigationTransition(() => navigateToIndex(selectedIndex + 1), { fadeCompanyChrome });
   }, [filteredJobs, navigateToIndex, prefetchNow, runNavigationTransition, selectedIndex]);
 
   const isBookmarked = useMemo(
@@ -209,6 +221,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isInterviewing={isInterviewing}
+          fadeCompanyChrome={fadeCompanyChromeNav}
           isTransitioning={isTransitioning}
           onApplyToggle={handleApplyToggle}
           onBookmarkToggle={handleBookmarkToggle}
@@ -234,6 +247,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
           onDetailsResolved={prefetchNeighborsForSelected}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
+          fadeCompanyChrome={fadeCompanyChromeNav}
           isTransitioning={isTransitioning}
           navigation={{
             onPrevious: handlePrevious,

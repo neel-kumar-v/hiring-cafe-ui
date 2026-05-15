@@ -58,7 +58,7 @@ export function FilterSection({ title, items, isExtended }: FilterSectionProps) 
       className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
     >
       <AccordionItem value={itemValue}>
-        <AccordionTrigger className="text-md font-[600] pt-0 pb-1 ">
+        <AccordionTrigger className="text-md font-semibold pt-0 pb-1 ">
           {title}
         </AccordionTrigger>
         <AccordionContent className="p-2">

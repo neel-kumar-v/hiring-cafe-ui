@@ -2,24 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Combobox } from "@/components/ui/combobox";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchData } from "@/hooks/useSearchData";
 import type { SalaryUnit } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";
+import MinMax, { cleanDigits } from "../util/MinMax";
 
 const frequencyOptions: SalaryUnit[] = ["Any", "Hourly", "Daily", "Weekly", "Bi-Weekly", "Monthly", "Yearly"];
-
-type MoneyInputProps = {
-  label: string;
-  currencySymbol: string;
-  value: string;
-  placeholder: string;
-  onChangeValue: (nextValue: string) => void;
-  onBlurCommit: () => void;
-};
 
 function getCurrencySymbol(currencyCode: string) {
   try {
@@ -31,26 +22,6 @@ function getCurrencySymbol(currencyCode: string) {
   } catch {
     return "$";
   }
-}
-
-function MoneyInput({ label, currencySymbol, value, placeholder, onChangeValue, onBlurCommit }: MoneyInputProps) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-foreground">{label}</label>
-      <div className="relative">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">{currencySymbol}</span>
-        <Input
-          className="w-full pl-8 text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-          inputMode="numeric"
-          placeholder={placeholder}
-          type="text"
-          value={value}
-          onChange={(e) => onChangeValue(e.target.value)}
-          onBlur={onBlurCommit}
-        />
-      </div>
-    </div>
-  );
 }
 
 export default function Salary() {
@@ -79,7 +50,6 @@ export default function Salary() {
     setAdvMaxHigh(salary.max_range.max > 0 ? String(salary.max_range.max) : "");
   }, [salary.max_range.max, salary.max_range.min, salary.min_range.max, salary.min_range.min]);
 
-  const cleanDigits = (value: string) => value.replace(/[^0-9]/g, "");
   const toNumberOrZero = (value: string) => {
     const cleaned = cleanDigits(value);
     if (!cleaned) return 0;
@@ -91,7 +61,7 @@ export default function Salary() {
 
   return (
     <FilterContainer categoryId="salary" title="Salary Range">
-      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Enter salary amounts directly. Leave fields blank to remove that bound.</p>
+      <p className="-mt-4 mb-2 text-xs text-muted-foreground">Enter salary amounts directly. Leave fields blank to remove that bound.</p>
 
       <div className="grid grid-cols-1 gap-4">
         <LabelCheckbox
@@ -180,13 +150,15 @@ export default function Salary() {
 
       <div className="mt-4 flex flex-col gap-4">
         {!advanced ? (
-          <MoneyInput
-            label="Amount"
+          <MinMax
+            mode="single"
+            variant="money"
             currencySymbol={currencySymbol}
-            placeholder="Enter amount"
-            value={simpleAmount}
-            onChangeValue={(nextValue) => setSimpleAmount(cleanDigits(nextValue))}
-            onBlurCommit={() => {
+            minLabel="Amount"
+            minPlaceholder="Enter amount"
+            minValue={simpleAmount}
+            onChangeMinValue={setSimpleAmount}
+            onBlurMin={() => {
               const amount = toNumberOrZero(simpleAmount);
               updateSearchOptions({
                 salary: {
@@ -199,89 +171,77 @@ export default function Salary() {
           />
         ) : (
           <>
-            <div>
-              <div className="mb-1 text-xs font-medium">Minimum Salary Range</div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <MoneyInput
-                  label="Low"
-                  currencySymbol={currencySymbol}
-                  placeholder="No min"
-                  value={advMinLow}
-                  onChangeValue={(nextValue) => setAdvMinLow(cleanDigits(nextValue))}
-                  onBlurCommit={() =>
-                    updateSearchOptions({
-                      salary: {
-                        ...salary,
-                        min_range: {
-                          ...salary.min_range,
-                          min: toNumberOrZero(advMinLow),
-                        },
-                      },
-                    })
-                  }
-                />
-                <MoneyInput
-                  label="High"
-                  currencySymbol={currencySymbol}
-                  placeholder="No max"
-                  value={advMinHigh}
-                  onChangeValue={(nextValue) => setAdvMinHigh(cleanDigits(nextValue))}
-                  onBlurCommit={() =>
-                    updateSearchOptions({
-                      salary: {
-                        ...salary,
-                        min_range: {
-                          ...salary.min_range,
-                          max: toNumberOrZero(advMinHigh),
-                        },
-                      },
-                    })
-                  }
-                />
-              </div>
-            </div>
+            <MinMax
+              title="Minimum Salary Range"
+              variant="money"
+              currencySymbol={currencySymbol}
+              minLabel="Low"
+              maxLabel="High"
+              minPlaceholder="No min"
+              maxPlaceholder="No max"
+              minValue={advMinLow}
+              maxValue={advMinHigh}
+              onChangeMinValue={setAdvMinLow}
+              onChangeMaxValue={setAdvMinHigh}
+              onBlurMin={() =>
+                updateSearchOptions({
+                  salary: {
+                    ...salary,
+                    min_range: {
+                      ...salary.min_range,
+                      min: toNumberOrZero(advMinLow),
+                    },
+                  },
+                })
+              }
+              onBlurMax={() =>
+                updateSearchOptions({
+                  salary: {
+                    ...salary,
+                    min_range: {
+                      ...salary.min_range,
+                      max: toNumberOrZero(advMinHigh),
+                    },
+                  },
+                })
+              }
+            />
 
-            <div>
-              <div className="mb-1 text-xs font-medium">Maximum Salary Range</div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <MoneyInput
-                  label="Low"
-                  currencySymbol={currencySymbol}
-                  placeholder="No min"
-                  value={advMaxLow}
-                  onChangeValue={(nextValue) => setAdvMaxLow(cleanDigits(nextValue))}
-                  onBlurCommit={() =>
-                    updateSearchOptions({
-                      salary: {
-                        ...salary,
-                        max_range: {
-                          ...salary.max_range,
-                          min: toNumberOrZero(advMaxLow),
-                        },
-                      },
-                    })
-                  }
-                />
-                <MoneyInput
-                  label="High"
-                  currencySymbol={currencySymbol}
-                  placeholder="No max"
-                  value={advMaxHigh}
-                  onChangeValue={(nextValue) => setAdvMaxHigh(cleanDigits(nextValue))}
-                  onBlurCommit={() =>
-                    updateSearchOptions({
-                      salary: {
-                        ...salary,
-                        max_range: {
-                          ...salary.max_range,
-                          max: toNumberOrZero(advMaxHigh),
-                        },
-                      },
-                    })
-                  }
-                />
-              </div>
-            </div>
+            <MinMax
+              title="Maximum Salary Range"
+              variant="money"
+              currencySymbol={currencySymbol}
+              minLabel="Low"
+              maxLabel="High"
+              minPlaceholder="No min"
+              maxPlaceholder="No max"
+              minValue={advMaxLow}
+              maxValue={advMaxHigh}
+              onChangeMinValue={setAdvMaxLow}
+              onChangeMaxValue={setAdvMaxHigh}
+              onBlurMin={() =>
+                updateSearchOptions({
+                  salary: {
+                    ...salary,
+                    max_range: {
+                      ...salary.max_range,
+                      min: toNumberOrZero(advMaxLow),
+                    },
+                  },
+                })
+              }
+              onBlurMax={() =>
+                updateSearchOptions({
+                  salary: {
+                    ...salary,
+                    max_range: {
+                      ...salary.max_range,
+                      max: toNumberOrZero(advMaxHigh),
+                    },
+                  },
+                })
+              }
+            />
           </>
         )}
       </div>

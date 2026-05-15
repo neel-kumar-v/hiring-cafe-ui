@@ -11,10 +11,12 @@ const DialogJobDescription = ({
   description,
   isLoading = false,
   isTransitioning = false,
+  fadeCompanyChrome = false,
 }: {
   description: string;
   isLoading?: boolean;
   isTransitioning?: boolean;
+  fadeCompanyChrome?: boolean;
 }) => {
   const deferredDescription = useDeferredValue(description);
   const [isFormatting, setIsFormatting] = useState(false);
@@ -40,11 +42,13 @@ const DialogJobDescription = ({
     setIsFormatting(deferredDescription !== description);
   }, [deferredDescription, description]);
 
+  const fadeDescriptionBody = isTransitioning && fadeCompanyChrome;
+
   if (isLoading) {
     return (
       <div className="mb-2 md:mb-4">
         <Separator className="my-8" />
-        <div className={jobFadeClass(isTransitioning)}>
+        <div className={jobFadeClass(fadeDescriptionBody)}>
           <DescriptionSkeleton />
         </div>
       </div>
@@ -120,7 +124,7 @@ const DialogJobDescription = ({
           </Button>
         </div>
       </div>
-      <div className={jobFadeClass(isTransitioning)}>
+      <div className={jobFadeClass(fadeDescriptionBody)}>
         {isFormatting ? (
           <div className="mt-6">
             <DescriptionSkeleton />

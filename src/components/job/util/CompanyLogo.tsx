@@ -1,6 +1,7 @@
 import { analyzeImageBackground, companyFaviconUrl, extractDomainFromCompanyWebsite, getCompanyAbbreviation, renderCompanyAbbreviationGrid } from "@/lib/company-info";
 import type { ProcessedCompanyData } from "@/types/job";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CompanyLogoInnerProps {
   companyData: ProcessedCompanyData;
@@ -33,6 +34,16 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
 
   const activeSrc = chainIndex < srcChain.length ? srcChain[chainIndex] : undefined;
   const showImage = activeSrc !== undefined;
+
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [activeSrc]);
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+  }, []);
 
   const handleImageError = useCallback(() => {
     setChainIndex((i) => i + 1);
@@ -67,13 +78,22 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
     () => (
       <>
         {showImage ? (
-          <img alt={companyData.name} className={imageClassName} onError={handleImageError} src={activeSrc} />
+          <>
+            {!imageLoaded && <Skeleton className="h-full w-full" />}
+            <img
+              alt={companyData.name}
+              className={`${imageClassName} ${!imageLoaded ? "hidden" : ""}`}
+              onError={handleImageError}
+              onLoad={handleImageLoad}
+              src={activeSrc}
+            />
+          </>
         ) : (
           <span className={fallbackClassName}>{initialsContent}</span>
         )}
       </>
     ),
-    [showImage, companyData.name, imageClassName, fallbackClassName, initialsContent, handleImageError, activeSrc]
+    [showImage, companyData.name, imageClassName, fallbackClassName, initialsContent, handleImageError, handleImageLoad, activeSrc, imageLoaded]
   );
 
   return <div className={finalContainerClasses}>{logoContent}</div>;

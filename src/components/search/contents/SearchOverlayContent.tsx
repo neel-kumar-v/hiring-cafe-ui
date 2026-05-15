@@ -50,7 +50,6 @@ function SearchOverlayContentInner({
     setScrollToSection,
     selectedCategoryData,
     handleFilterSelectWithScroll,
-    handleFilterSelectNoScroll,
     handleHeaderClick,
   } = useCategoryState(from, open, "general");
   const { focusedFilterId, setFocusedFilterId } = useFocusedFilter();
@@ -74,11 +73,6 @@ function SearchOverlayContentInner({
     const firstFilterId = filters.find((category) => category.type === categoryType)?.id ?? null;
     setFocusedFilterId(firstFilterId);
     handleHeaderClick(categoryType);
-  };
-
-  const handleFilterFocusNoScroll = (categoryId: string) => {
-    handleFilterSelectNoScroll(categoryId);
-    setFocusedFilterId(categoryId);
   };
 
   const categories = getGroupedCategories();
@@ -125,12 +119,12 @@ function SearchOverlayContentInner({
           {singlePage
             ? renderAllCategoriesContent(
                 scrollToSection,
-                handleFilterFocusNoScroll,
+                handleFilterClickWithScroll,
                 clearScrollToSection
               )
             : renderCategoryContent(
                 selectedCategory,
-                handleFilterFocusNoScroll,
+                handleFilterClickWithScroll,
                 selectedCategoryData,
                 {
                   scrollToSection,

@@ -41,9 +41,6 @@ export default function Founding() {
 
   return (
     <FilterContainer categoryId="founding" title="Founding Year">
-      <div className="-mt-2 mb-2 text-xs text-muted-foreground">
-        Enter years directly. Leave fields blank to remove that bound.
-      </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-foreground">Min</label>

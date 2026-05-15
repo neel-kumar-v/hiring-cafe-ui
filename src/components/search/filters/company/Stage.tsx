@@ -1,72 +1,14 @@
-import { useApp } from "@/contexts/AppContext";
-import { getCurrentYear } from "@/lib/search/company";
-import { CurrentStage, Keywords, Select } from "@/types/search";
-import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useApp } from "@/contexts/AppContext";
+import { useSearchData } from "@/hooks/useSearchData";
+import { getCurrentYear } from "@/lib/search/company";
+import { CurrentStage, Keywords, Select } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
 import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
 import LabelCheckbox from "../util/LabelCheckbox";
 import LabelInputContainer from "../util/LabelInputContainer";
-import { useSearchData } from "@/hooks/useSearchData";
-
-type MinMaxInputProps = {
-  title: string;
-  minLabel?: string;
-  maxLabel?: string;
-  minValue: string;
-  maxValue: string;
-  minPlaceholder: string;
-  maxPlaceholder: string;
-  onChangeMinValue: (next: string) => void;
-  onChangeMaxValue: (next: string) => void;
-  onBlurCommit: () => void;
-};
-
-function MinMaxInputs({
-  title,
-  minLabel = "Min",
-  maxLabel = "Max",
-  minValue,
-  maxValue,
-  minPlaceholder,
-  maxPlaceholder,
-  onChangeMinValue,
-  onChangeMaxValue,
-  onBlurCommit,
-}: MinMaxInputProps) {
-  return (
-    <div>
-      <div className="mb-1 text-xs font-medium">{title}</div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-foreground">{minLabel}</label>
-          <Input
-            className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-            inputMode="numeric"
-            placeholder={minPlaceholder}
-            type="text"
-            value={minValue}
-            onChange={(e) => onChangeMinValue(e.target.value.replace(/[^0-9]/g, ""))}
-            onBlur={onBlurCommit}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-foreground">{maxLabel}</label>
-          <Input
-            className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-            inputMode="numeric"
-            placeholder={maxPlaceholder}
-            type="text"
-            value={maxValue}
-            onChange={(e) => onChangeMaxValue(e.target.value.replace(/[^0-9]/g, ""))}
-            onBlur={onBlurCommit}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+import MinMax from "../util/MinMax";
 
 export default function Stage() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -225,8 +167,9 @@ export default function Stage() {
         />
       )}
       <div>
-        <MinMaxInputs
+        <MinMax
           title="Latest Round Year Range"
+          variant="number"
           minValue={latestRoundMin}
           maxValue={latestRoundMax}
           minPlaceholder="No min"
@@ -237,8 +180,9 @@ export default function Stage() {
         />
       </div>
       <div>
-        <MinMaxInputs
+        <MinMax
           title="Latest Round Amount"
+          variant="number"
           minValue={latestRoundAmountMin}
           maxValue={latestRoundAmountMax}
           minPlaceholder="No min"

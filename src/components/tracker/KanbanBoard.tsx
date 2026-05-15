@@ -7,6 +7,7 @@ import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
 import type { JobStatus } from "@/types/app";
 import type { JobCardResultDTO } from "@/types/convexJobs";
 import { Copy } from "lucide-react";
@@ -48,6 +49,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
   const [dialogOpen, setDialogOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [fadeCompanyChromeNav, setFadeCompanyChromeNav] = useState(false);
   const transitionInFlightRef = useRef(false);
 
   const kanbanData = useMemo(() => {
@@ -190,9 +192,10 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     if (nextIndex !== previousIndex) prefetch(getDetailsLookupId(navigationSequence[nextIndex].job));
   }, [navigationSequence, prefetch, selectedSequenceIndex]);
 
-  const runNavigationTransition = useCallback(async (navigate: () => void) => {
+  const runNavigationTransition = useCallback(async (navigate: () => void, opts?: { fadeCompanyChrome?: boolean }) => {
     if (transitionInFlightRef.current) return;
     transitionInFlightRef.current = true;
+    setFadeCompanyChromeNav(Boolean(opts?.fadeCompanyChrome));
     setIsTransitioning(true);
     try {
       await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
@@ -201,23 +204,30 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
     } finally {
       transitionInFlightRef.current = false;
       setIsTransitioning(false);
+      setFadeCompanyChromeNav(false);
     }
   }, []);
 
   const handlePrevious = useCallback(async () => {
     if (!navigationSequence.length || selectedSequenceIndex === -1) return;
     const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
+    const current = navigationSequence[selectedSequenceIndex];
     const target = navigationSequence[previousIndex];
+    const fadeCompanyChrome =
+      stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
     prefetchNow(getDetailsLookupId(target.job));
-    await runNavigationTransition(() => setSelectedJobId(target.job.externalId));
+    await runNavigationTransition(() => setSelectedJobId(target.job.externalId), { fadeCompanyChrome });
   }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
 
   const handleNext = useCallback(async () => {
     if (!navigationSequence.length || selectedSequenceIndex === -1) return;
     const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
+    const current = navigationSequence[selectedSequenceIndex];
     const target = navigationSequence[nextIndex];
+    const fadeCompanyChrome =
+      stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
     prefetchNow(getDetailsLookupId(target.job));
-    await runNavigationTransition(() => setSelectedJobId(target.job.externalId));
+    await runNavigationTransition(() => setSelectedJobId(target.job.externalId), { fadeCompanyChrome });
   }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
 
   const isBookmarked = useMemo(
@@ -335,6 +345,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
           isApplied={isApplied}
           isBookmarked={isBookmarked}
           isInterviewing={isInterviewing}
+          fadeCompanyChrome={fadeCompanyChromeNav}
           isTransitioning={isTransitioning}
           onApplyToggle={handleApplyToggle}
           onBookmarkToggle={handleBookmarkToggle}
@@ -358,6 +369,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories }: KanbanBoardPro
           onDetailsResolved={prefetchNeighborsForSelected}
           isApplied={isApplied}
           isBookmarked={isBookmarked}
+          fadeCompanyChrome={fadeCompanyChromeNav}
           isTransitioning={isTransitioning}
           navigation={{
             onPrevious: handlePrevious,

@@ -58,7 +58,6 @@ function SearchDialogContentInner({
   scrollToSection,
   selectedCategoryData,
   handleFilterSelectWithScroll,
-  handleFilterSelectNoScroll,
   handleHeaderClick,
   clearScrollToSection,
   singlePage,
@@ -68,7 +67,6 @@ function SearchDialogContentInner({
   scrollToSection: string | undefined;
   selectedCategoryData: { name: string } | undefined;
   handleFilterSelectWithScroll: (categoryId: string) => void;
-  handleFilterSelectNoScroll: (categoryId: string) => void;
   handleHeaderClick: (categoryType: CategoryType) => void;
   clearScrollToSection: () => void;
   singlePage: boolean;
@@ -119,11 +117,6 @@ function SearchDialogContentInner({
     const firstFilterId = filters.find((category) => category.type === categoryType)?.id ?? null;
     setFocusedFilterId(firstFilterId);
     handleHeaderClick(categoryType);
-  };
-
-  const handleFilterFocusNoScroll = (categoryId: string) => {
-    handleFilterSelectNoScroll(categoryId);
-    setFocusedFilterId(categoryId);
   };
 
   return (
@@ -204,12 +197,12 @@ function SearchDialogContentInner({
             ? renderFilteredCategoriesContent(
                 filteredCategories,
                 scrollToSection,
-                handleFilterFocusNoScroll,
+                handleFilterClickWithScroll,
                 clearScrollToSection
               )
             : renderCategoryContent(
                 selectedCategory,
-                handleFilterFocusNoScroll,
+                handleFilterClickWithScroll,
                 selectedCategoryData,
                 {
                   scrollToSection,

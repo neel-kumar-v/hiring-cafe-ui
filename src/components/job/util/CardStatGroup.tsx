@@ -18,7 +18,7 @@ const HoverSwapText = ({ count, label, labelHoverWidthClassName, textClassName, 
       <span
         className={cn(
           "tabular-nums inline-flex overflow-hidden whitespace-nowrap transition-[width,opacity,transform,padding] duration-300 ease-out",
-          "w-4 opacity-100 translate-y-0 group-hover:w-0 group-hover:opacity-0 group-hover:translate-y-1"
+          "w-fit opacity-100 translate-y-0 group-hover:w-0 group-hover:opacity-0 group-hover:translate-y-1"
         )}
       >
         {count}
