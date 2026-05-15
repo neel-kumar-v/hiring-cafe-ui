@@ -1,58 +1,4 @@
 {
-  "companies": {
-    "updatedAt": "2026-04-23T03:40:00.0652406-05:00",
-    "done": true,
-    "total": 21845,
-    "nextStart": 22000
-  },
-  "industries": {
-    "total": 10860,
-    "updatedAt": "2026-05-03T14:59:00.7378293-05:00",
-    "nextStart": 11000,
-    "done": true
-  },
-  "company_activities": {
-    "total": 36607,
-    "updatedAt": "2026-05-03T15:12:38.5242662-05:00",
-    "nextStart": 36800,
-    "done": true
-  },
-  "currencies": {
-    "total": 247,
-    "updatedAt": "2026-05-03T15:12:48.2316405-05:00",
-    "nextStart": 400,
-    "done": true
-  },
-  "languages": {
-    "total": 772,
-    "updatedAt": "2026-05-03T15:13:07.8388843-05:00",
-    "nextStart": 800,
-    "done": true
-  },
-  "licenses": {
-    "total": 43852,
-    "updatedAt": "2026-05-03T16:01:15.6779515-05:00",
-    "nextStart": 44000,
-    "done": true
-  },
-  "investors": {
-    "total": 36379,
-    "updatedAt": "2026-05-03T16:16:34.7831143-05:00",
-    "nextStart": 36400,
-    "done": true
-  },
-  "round_types": {
-    "total": 24,
-    "updatedAt": "2026-05-03T16:16:49.4742065-05:00",
-    "nextStart": 200,
-    "done": true
-  },
-  "job_title": {
-    "total": 40146,
-    "updatedAt": "2026-05-03T16:41:39.1714018-05:00",
-    "nextStart": 40200,
-    "done": true
-  },
   "technology_keywords": {
     "total": 61272,
     "updatedAt": "2026-05-03T17:21:56.3299645-05:00",
@@ -92,7 +38,7 @@
   "master_fields": {
     "total": 16235,
     "done": true,
-    "updatedAt": "2026-05-04T14:38:46.6073180-05:00",
+    "updatedAt": "2026-05-04T14:38:46.607318-05:00",
     "nextStart": 16400
   },
   "doctorate_fields": {
@@ -106,5 +52,59 @@
     "done": true,
     "updatedAt": "2026-05-04T14:40:55.4426208-05:00",
     "nextStart": 400
+  },
+  "companies": {
+    "total": 21845,
+    "nextStart": 22000,
+    "updatedAt": "2026-05-15T00:41:03.3856925-05:00",
+    "done": true
+  },
+  "industries": {
+    "total": 10860,
+    "nextStart": 11000,
+    "updatedAt": "2026-05-15T00:51:26.4348487-05:00",
+    "done": true
+  },
+  "company_activities": {
+    "total": 36607,
+    "nextStart": 36800,
+    "updatedAt": "2026-05-15T01:25:22.4531051-05:00",
+    "done": true
+  },
+  "currencies": {
+    "total": 247,
+    "nextStart": 400,
+    "updatedAt": "2026-05-15T01:25:44.9698799-05:00",
+    "done": true
+  },
+  "languages": {
+    "total": 772,
+    "nextStart": 800,
+    "updatedAt": "2026-05-15T01:26:31.1767162-05:00",
+    "done": true
+  },
+  "licenses": {
+    "total": 43852,
+    "nextStart": 44000,
+    "updatedAt": "2026-05-15T02:08:50.2639822-05:00",
+    "done": true
+  },
+  "investors": {
+    "total": 36379,
+    "nextStart": 36400,
+    "updatedAt": "2026-05-15T02:41:49.6745838-05:00",
+    "done": true
+  },
+  "round_types": {
+    "total": 24,
+    "nextStart": 200,
+    "updatedAt": "2026-05-15T02:42:01.0597358-05:00",
+    "done": true
+  },
+  "job_title": {
+    "updatedAt": "2026-05-15T13:39:35.6675172-05:00",
+    "done": true,
+    "nextStart": 40200,
+    "total": 40146
   }
 }

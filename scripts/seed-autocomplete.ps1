@@ -26,6 +26,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Repo root (parent of /scripts). Convex expects cwd here for convex.json.
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$ConvexMainJs = Join-Path $RepoRoot "node_modules\convex\bin\main.js"
+if (-not (Test-Path $ConvexMainJs)) {
+  throw "Convex CLI not found at '$ConvexMainJs'. From repo root, run: pnpm install"
+}
+
 $statePath = Join-Path $PSScriptRoot ".seed-autocomplete-state.json"
 
 function Load-State {
@@ -63,8 +70,13 @@ function Invoke-SeedBatch {
     count = $Count
   } | ConvertTo-Json -Compress
 
-  # Capture output and surface CLI errors directly.
-  $raw = & npx -y convex run --push "convex/autocompleteSeed:seedBatch" $payload 2>&1
+  # Use Node to run the bundled CLI (pnpm's convex shim invokes bash on Windows and breaks).
+  Push-Location $RepoRoot
+  try {
+    $raw = & node $ConvexMainJs run --push "autocompleteSeed:seedBatch" $payload 2>&1
+  } finally {
+    Pop-Location
+  }
   if ($LASTEXITCODE -ne 0) {
     throw ("convex run failed for type='{0}' start={1} count={2}: {3}" -f $Type, $Start, $Count, ($raw -join [Environment]::NewLine))
   }
