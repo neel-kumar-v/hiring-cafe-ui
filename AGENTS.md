@@ -1,6 +1,9 @@
-## Project overview
+# Project overview
 
-UI clone of [hiring.cafe](https://hiring.cafe/). Stack: Next.js (App Router), React, Tailwind, TypeScript, Convex for jobs, saved searches, and users. Job documents store a full payload in Convex `jobs.raw` (normalized keys in app TypeScript).
+UI clone of [hiring.cafe](https://hiring.cafe/). Stack: Next.js (App Router),
+React, Tailwind, TypeScript, Convex for jobs, saved searches, and users. Job
+documents store a full payload in Convex `jobs.raw` (normalized keys in app
+TypeScript).
 
 ## Structure
 
