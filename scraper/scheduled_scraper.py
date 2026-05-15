@@ -25,9 +25,13 @@ def run_scraper():
         project_dir = r"C:\Users\green\Documents\GitHub\hiring-cafe-ui"
         os.chdir(project_dir)
         
-        # Run the scraper
-        result = subprocess.run([sys.executable, "scraper.py"], 
-                              capture_output=True, text=True, timeout=300)
+        # Run Convex ingest scraper (uses filtered hiring.cafe search URL from scraper.py)
+        result = subprocess.run(
+            [sys.executable, os.path.join("scraper", "scrape_to_convex.py")],
+            capture_output=True,
+            text=True,
+            timeout=3600,
+        )
         
         if result.returncode == 0:
             logging.info("Scraper completed successfully!")

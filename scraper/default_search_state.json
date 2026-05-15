@@ -7,8 +7,8 @@
       ],
       "geometry": {
         "location": {
-          "lat": "39.8283",
-          "lon": "-98.5795"
+          "lat": "40.1047",
+          "lon": "-88.2062"
         }
       },
       "id": "user_country",
@@ -182,7 +182,7 @@
   "searchModeSelectedCompany": null,
   "departments": [],
   "restrictedSearchAttributes": [],
-  "sortBy": "default",
+  "sortBy": "date",
   "technologyKeywordsQuery": "",
   "requirementsKeywordsQuery": "",
   "companyPublicOrPrivate": "all",

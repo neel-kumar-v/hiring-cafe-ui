@@ -11,49 +11,45 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 
 # --- Configuration ---
-# Mirrors hiring.cafe ?searchState=... (locations, sort, job title query).
-SEARCH_STATE = {
-    "locations": [
-        {
-            "formatted_address": "United States",
-            "types": ["country"],
-            "geometry": {
-                "location": {
-                    "lat": "40.1047",
-                    "lon": "-88.2062",
-                }
-            },
-            "id": "user_country",
-            "address_components": [
-                {
-                    "long_name": "United States",
-                    "short_name": "US",
-                    "types": ["country"],
-                }
-            ],
-            "options": {
-                "flexible_regions": [
-                    "anywhere_in_continent",
-                    "anywhere_in_world",
-                ]
-            },
-        }
-    ],
-    "sortBy": "date",
-    "jobTitleQuery": (
-        '("software" OR "application" OR "frontend" OR "backend" OR '
-        '"full stack" OR "full-stack" OR "fullstack" OR "android" OR '
-        '"ios" OR "ai") AND ("developer" OR "engineer" OR "development") '
-        'AND "intern"'
-    ),
-}
+# Canonical HiringCafe search (United States, sort by date, SWE title query).
+# Browser session and /api/search-jobs both use this state — not the bare homepage.
+HIRING_CAFE_ORIGIN = "https://hiring.cafe/"
 
-ENCODED_SEARCH_STATE = urllib.parse.quote(
-    json.dumps(SEARCH_STATE, separators=(",", ":")), safe=""
+# Reference URL from hiring.cafe UI (intern filter relaxed below for full-time + internships).
+HIRING_CAFE_SESSION_URL = (
+    "https://hiring.cafe/?searchState=%7B%22locations%22%3A%5B%7B%22formatted_address%22%3A%22United%20States%22%2C%22types%22%3A%5B%22country%22%5D%2C%22geometry%22%3A%7B%22location%22%3A%7B%22lat%22%3A%2240.1047%22%2C%22lon%22%3A%22-88.2062%22%7D%7D%2C%22id%22%3A%22user_country%22%2C%22address_components%22%3A%5B%7B%22long_name%22%3A%22United%20States%22%2C%22short_name%22%3A%22US%22%2C%22types%22%3A%5B%22country%22%5D%7D%5D%2C%22options%22%3A%7B%22flexible_regions%22%3A%5B%22anywhere_in_continent%22%2C%22anywhere_in_world%22%5D%7D%7D%5D%2C%22sortBy%22%3A%22date%22%2C%22jobTitleQuery%22%3A%22(%5C%22software%5C%22%20OR%20%5C%22application%5C%22%20OR%20%5C%22frontend%5C%22%20OR%20%5C%22backend%5C%22%20OR%20%5C%22full%20stack%5C%22%20OR%20%5C%22full-stack%5C%22%20OR%20%5C%22fullstack%5C%22%20OR%20%5C%22android%5C%22%20OR%20%5C%22ios%5C%22%20OR%20%5C%22ai%5C%22)%20AND%20(%5C%22developer%5C%22%20OR%20%5C%22engineer%5C%22%20OR%20%5C%22development%5C%22)%20AND%20%5C%22intern%5C%22%22%7D"
 )
-SESSION_URL = f"https://hiring.cafe/?searchState={ENCODED_SEARCH_STATE}"
+
+# Title filter: same as the URL above but without requiring "intern" (internships + full-time).
+_JOB_TITLE_QUERY = (
+    '("software" OR "application" OR "frontend" OR "backend" OR '
+    '"full stack" OR "full-stack" OR "fullstack" OR "android" OR '
+    '"ios" OR "ai") AND ("developer" OR "engineer" OR "development")'
+)
+
+
+def _search_state_from_url(url: str) -> dict:
+    parsed = urllib.parse.urlparse(url)
+    qs = urllib.parse.parse_qs(parsed.query)
+    raw = qs.get("searchState", [None])[0]
+    if not raw:
+        raise ValueError("HIRING_CAFE_SESSION_URL must include ?searchState=...")
+    return json.loads(raw)
+
+
+def _session_url_for_state(state: dict) -> str:
+    enc = urllib.parse.quote(json.dumps(state, separators=(",", ":")), safe="")
+    return f"{HIRING_CAFE_ORIGIN}?searchState={enc}"
+
+
+_SEARCH_FROM_URL = _search_state_from_url(HIRING_CAFE_SESSION_URL)
+_SEARCH_FROM_URL["jobTitleQuery"] = _JOB_TITLE_QUERY
+SEARCH_STATE = _SEARCH_FROM_URL
+
+SESSION_URL = _session_url_for_state(SEARCH_STATE)
 # Live site uses GET with query params (POST returns 405 Method Not Allowed).
-SEARCH_JOBS_URL = "https://hiring.cafe/api/search-jobs"
+# Use path-only URLs in fetch() so requests are same-origin with the active tab.
+SEARCH_JOBS_PATH = "/api/search-jobs"
 _DEFAULT_SEARCH_STATE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "default_search_state.json"
 )
@@ -83,11 +79,12 @@ def _default_jobs_request_envelope():
     }
 
 
-def _search_jobs_get_url(page: int, size: int, search_state: dict) -> str:
+def _search_jobs_get_relative_url(page: int, size: int, search_state: dict) -> str:
+    """Path + query only, for fetch() from the hiring.cafe tab (same origin)."""
     enc = urllib.parse.quote(
         json.dumps(search_state, separators=(",", ":")), safe=""
     )
-    return f"{SEARCH_JOBS_URL}?searchState={enc}&page={page}&size={size}"
+    return f"{SEARCH_JOBS_PATH}?searchState={enc}&page={page}&size={size}"
 
 
 # Cloudflare / bot interstitial markers (page HTML or URL)
@@ -258,7 +255,7 @@ def start_browser_session():
 
     # Let the SPA fire search-jobs after the wall is gone
     print("Waiting for network requests to complete...")
-    time.sleep(12)
+    time.sleep(16)
 
     if "vercel.link" in driver.current_url or "security-checkpoint" in driver.current_url:
         try:
@@ -280,17 +277,22 @@ def fetch_page_in_browser(driver, page, json_payload):
 
     Hiring.cafe responds with 405 to POST on /api/search-jobs; the UI uses GET
     with ``searchState``, ``page``, and ``size`` query parameters.
+
+    Uses a path-only URL (``/api/search-jobs?...``) so ``fetch`` is same-origin with
+    the hiring.cafe tab. Adds typical SPA headers and retries on 401/403/429.
     """
     payload_with_page = dict(json_payload)
     if "size" not in payload_with_page:
         payload_with_page["size"] = 1000
     if "searchState" not in payload_with_page:
         payload_with_page["searchState"] = _merged_api_search_state()
-    size = int(payload_with_page["size"])
+    base_size = int(payload_with_page["size"])
     search_state = payload_with_page["searchState"]
-    full_url = _search_jobs_get_url(page, size, search_state)
 
-    print(f"Fetching page {page}...")
+    size_candidates = [base_size]
+    for s in (100, 50, 25):
+        if base_size > s and s not in size_candidates:
+            size_candidates.append(s)
 
     script = """
     const url = arguments[0];
@@ -298,7 +300,10 @@ def fetch_page_in_browser(driver, page, json_payload):
     fetch(url, {
         method: 'GET',
         headers: {
-            'Accept': 'application/json, text/plain, */*'
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': navigator.language || 'en-US,en;q=0.9',
+            'Referer': window.location.href,
+            'X-Requested-With': 'XMLHttpRequest'
         },
         credentials: 'include'
     })
@@ -325,51 +330,84 @@ def fetch_page_in_browser(driver, page, json_payload):
     });
     """
 
-    try:
-        result = driver.execute_async_script(script, full_url)
-    except Exception as e:
-        print(f"Exception on page {page}: {e}")
-        return None
+    for try_size in size_candidates:
+        relative_url = _search_jobs_get_relative_url(page, try_size, search_state)
+        if try_size != base_size:
+            print(f"Fetching page {page} (fallback size={try_size})...")
 
-    if not result:
-        print(f"Error on page {page}: empty result from browser")
-        return None
+        for attempt in range(1, 5):
+            if attempt == 1 and try_size == base_size:
+                print(f"Fetching page {page}...")
+            elif attempt > 1:
+                delay = min(12, 3 + attempt * 2)
+                print(f"  Retry {attempt}/4 for page {page} after {delay}s...")
+                time.sleep(delay)
 
-    status = result.get("status", 0)
-    data = result.get("data")
+            try:
+                result = driver.execute_async_script(script, relative_url)
+            except Exception as e:
+                print(f"Exception on page {page}: {e}")
+                return None
 
-    if result.get("error"):
-        print(f"Error on page {page}: {result['error']}")
-        return None
+            if not result:
+                print(f"Error on page {page}: empty result from browser")
+                return None
 
-    if data and isinstance(data, dict) and data.get("_parseError"):
-        print(
-            f"Error on page {page}: non-JSON response (status {data.get('_status')}) "
-            f"snippet: {data.get('_snippet', '')[:200]!r}"
-        )
-        return None
+            if result.get("error"):
+                print(f"Error on page {page}: {result['error']}")
+                return None
 
-    if status == 200 and data is not None:
-        return data
+            status = result.get("status", 0)
+            data = result.get("data")
 
-    print(f"Error on page {page}: {status}")
-    if status == 403:
-        print("Access forbidden - likely blocked by security measures")
-    elif status == 405:
-        print(
-            "405 Method Not Allowed — if this persists, the API contract may have changed again."
-        )
-    elif status == 429:
-        print("Rate limited - waiting before retry...")
-        time.sleep(60)
-        try:
-            result = driver.execute_async_script(script, full_url)
-        except Exception as e:
-            print(f"Retry exception on page {page}: {e}")
+            if data and isinstance(data, dict) and data.get("_parseError"):
+                print(
+                    f"Error on page {page}: non-JSON response (status {data.get('_status')}) "
+                    f"snippet: {data.get('_snippet', '')[:200]!r}"
+                )
+                return None
+
+            if status == 200 and data is not None:
+                return data
+
+            if attempt == 1:
+                print(f"Error on page {page}: {status}")
+
+            if status == 403:
+                print("Access forbidden - likely blocked by security measures")
+                if attempt < 4:
+                    continue
+                break
+            if status == 401:
+                if attempt == 1:
+                    print(
+                        "Unauthorized from hiring.cafe /api/search-jobs (not Convex). "
+                        "Session or WAF may need more time, or the site now requires login."
+                    )
+                if attempt < 4:
+                    continue
+                break
+            if status == 405:
+                print(
+                    "405 Method Not Allowed — if this persists, the API contract may have changed again."
+                )
+                return None
+            if status == 429:
+                print("Rate limited - waiting 60s before retry...")
+                time.sleep(60)
+                try:
+                    result = driver.execute_async_script(script, relative_url)
+                except Exception as e:
+                    print(f"Retry exception on page {page}: {e}")
+                    result = None
+                if result and result.get("status") == 200 and result.get("data") is not None:
+                    return result["data"]
+                if attempt < 4:
+                    continue
+                break
             return None
-        if result and result.get("status") == 200 and result.get("data") is not None:
-            return result["data"]
 
+    print(f"Error on page {page}: giving up after retries and smaller page sizes.")
     return None
 
 

@@ -3,11 +3,11 @@
 Stream src/data/jobs_data.json into Convex without loading the full JSON into memory.
 
 Requires:
-  - pip install ijson requests
+  - pip install -r scraper/requirements.txt (ijson, requests, python-dotenv, …)
 
 Prerequisites:
-  - Run `npx convex dev --local` in another terminal.
-  - Ensure `.env.local` contains NEXT_PUBLIC_CONVEX_URL (created by `npx convex dev --local --once`).
+  - pip install -r scraper/requirements.txt
+  - Set NEXT_PUBLIC_CONVEX_URL or CONVEX_URL in `.env` / `.env.local` (hosted: deployment URL from Convex dashboard).
 
 From repo root:
   python scraper/import_json_to_convex.py
@@ -25,27 +25,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
+from convex_dotenv import MISSING_CONVEX_URL_MESSAGE, get_convex_deployment_url, load_convex_environment
 from convex_payload import strip_json_nones
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(REPO_ROOT, "src", "data", "jobs_data.json")
-ENV_PATH = os.path.join(REPO_ROOT, ".env.local")
 
 BATCH_SIZE = 200
-
-
-def _load_env_local(path: str) -> Dict[str, str]:
-    env: Dict[str, str] = {}
-    if not os.path.isfile(path):
-        return env
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            s = line.strip()
-            if not s or s.startswith("#") or "=" not in s:
-                continue
-            k, v = s.split("=", 1)
-            env[k.strip()] = v.strip()
-    return env
 
 
 class JobJSONEncoder(json.JSONEncoder):
@@ -161,10 +147,15 @@ def main() -> int:
         print(f"File not found: {JSON_PATH}", file=sys.stderr)
         return 1
 
-    env = _load_env_local(ENV_PATH)
-    convex_url = os.environ.get("NEXT_PUBLIC_CONVEX_URL") or env.get("NEXT_PUBLIC_CONVEX_URL")
+    try:
+        load_convex_environment()
+    except ImportError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+
+    convex_url = get_convex_deployment_url()
     if not convex_url:
-        print("Missing NEXT_PUBLIC_CONVEX_URL. Run `npx convex dev --local --once` first.", file=sys.stderr)
+        print(MISSING_CONVEX_URL_MESSAGE, file=sys.stderr)
         return 1
 
     total = 0

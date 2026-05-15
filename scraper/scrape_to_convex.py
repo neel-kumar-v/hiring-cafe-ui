@@ -8,7 +8,7 @@ Design goals:
 - Resume without restarting the whole scrape if Convex fails.
 
 Requires:
-  pip install requests
+  pip install -r scraper/requirements.txt  (requests, python-dotenv, …)
 
 Notes:
 - This script intentionally uses the existing Selenium session helpers from `scraper/scraper.py`
@@ -24,30 +24,16 @@ import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import requests
 
+from convex_dotenv import MISSING_CONVEX_URL_MESSAGE, get_convex_deployment_url, load_convex_environment
 from convex_payload import strip_json_nones
-from scraper import SEARCH_STATE, _jobs_request_envelope_from_config, fetch_page_in_browser, start_browser_session
+from scraper import SEARCH_STATE, _jobs_request_envelope_from_config, fetch_page_in_browser, start_browser_session  # pyright: ignore[reportAttributeAccessIssue]
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "src", "data")
-ENV_PATH = os.path.join(REPO_ROOT, ".env.local")
-
-
-def _load_env_local(path: str) -> Dict[str, str]:
-    env: Dict[str, str] = {}
-    if not os.path.isfile(path):
-        return env
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            s = line.strip()
-            if not s or s.startswith("#") or "=" not in s:
-                continue
-            k, v = s.split("=", 1)
-            env[k.strip()] = v.strip()
-    return env
 
 
 def _search_state_hash(state: dict) -> str:
@@ -276,10 +262,10 @@ def _build_ingest_item(raw: dict, fallback_i: int) -> dict:
     external_id = _job_external_id(raw, fallback_i)
     title = processed.get("core_job_title") if isinstance(processed.get("core_job_title"), str) else None
     if not title:
-        title = ji.get("title") if isinstance(ji.get("title"), str) else ""
+        title = ji.get("title") if isinstance(ji.get("title"), str) else ""  # pyright: ignore[reportOptionalMemberAccess]
 
     apply_url = raw.get("apply_url") if isinstance(raw.get("apply_url"), str) else None
-    description = ji.get("description") if isinstance(ji.get("description"), str) else ""
+    description = ji.get("description") if isinstance(ji.get("description"), str) else ""  # pyright: ignore[reportOptionalMemberAccess]
 
     company, company_filter_fields = _company_from_job(raw)
 
@@ -473,10 +459,15 @@ def _save_state(path: str, st: State) -> None:
 def main() -> int:
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    env = _load_env_local(ENV_PATH)
-    convex_url = os.environ.get("NEXT_PUBLIC_CONVEX_URL") or env.get("NEXT_PUBLIC_CONVEX_URL")
+    try:
+        load_convex_environment()
+    except ImportError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+
+    convex_url = get_convex_deployment_url()
     if not convex_url:
-        print("Missing NEXT_PUBLIC_CONVEX_URL. Run `npx convex dev --local --once` first.", file=sys.stderr)
+        print(MISSING_CONVEX_URL_MESSAGE, file=sys.stderr)
         return 1
 
     run_id = _now_stamp()

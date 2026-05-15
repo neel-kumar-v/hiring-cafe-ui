@@ -3,8 +3,8 @@
 Run a small Convex migration loop to backfill jobDetails and strip heavy fields.
 
 Prerequisites:
-  - Run `npx convex dev --local` (or have a Convex URL)
-  - Ensure `.env.local` contains NEXT_PUBLIC_CONVEX_URL (created by `npx convex dev --local --once`)
+  - pip install -r scraper/requirements.txt
+  - Set NEXT_PUBLIC_CONVEX_URL or CONVEX_URL in `.env` / `.env.local`.
 
 From repo root:
   python scraper/run_jobs_migration.py
@@ -24,22 +24,7 @@ from typing import Any, Dict
 import requests
 from requests.exceptions import ConnectionError, HTTPError, Timeout
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ENV_PATH = os.path.join(REPO_ROOT, ".env.local")
-
-
-def _load_env_local(path: str) -> Dict[str, str]:
-    env: Dict[str, str] = {}
-    if not os.path.isfile(path):
-        return env
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            s = line.strip()
-            if not s or s.startswith("#") or "=" not in s:
-                continue
-            k, v = s.split("=", 1)
-            env[k.strip()] = v.strip()
-    return env
+from convex_dotenv import MISSING_CONVEX_URL_MESSAGE, get_convex_deployment_url, load_convex_environment
 
 
 class JobJSONEncoder(json.JSONEncoder):
@@ -95,10 +80,15 @@ def _post_mutation(
 
 
 def main() -> int:
-    env = _load_env_local(ENV_PATH)
-    convex_url = os.environ.get("NEXT_PUBLIC_CONVEX_URL") or env.get("NEXT_PUBLIC_CONVEX_URL")
+    try:
+        load_convex_environment()
+    except ImportError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+
+    convex_url = get_convex_deployment_url()
     if not convex_url:
-        print("Missing NEXT_PUBLIC_CONVEX_URL. Run `npx convex dev --local --once` first.", file=sys.stderr)
+        print(MISSING_CONVEX_URL_MESSAGE, file=sys.stderr)
         return 1
 
     # Default smaller batch to reduce per-call load; override with env if desired.
