@@ -5,7 +5,7 @@ import { createContext, ReactNode, useContext, useState } from "react";
 
 export const defaultSearchOptions: SearchState = {
   sort: { by: "Relevance", order: "Most" },
-  date_range: { magnitude: 30, unit: "Days" },
+  date_range: { magnitude: 6, unit: "Months" },
   apply_form: "All",
   exclusion: [],
   department: "All",

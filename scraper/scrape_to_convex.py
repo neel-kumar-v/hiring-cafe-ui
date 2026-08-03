@@ -34,6 +34,8 @@ from scraper import SEARCH_STATE, _jobs_request_envelope_from_config, fetch_page
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "src", "data")
+# Cap each run so we don't flood Convex. Override with SCRAPE_MAX_JOBS.
+DEFAULT_MAX_JOBS = 500
 
 
 def _search_state_hash(state: dict) -> str:
@@ -470,12 +472,22 @@ def main() -> int:
         print(MISSING_CONVEX_URL_MESSAGE, file=sys.stderr)
         return 1
 
+    try:
+        max_jobs = int(os.environ.get("SCRAPE_MAX_JOBS", str(DEFAULT_MAX_JOBS)))
+    except ValueError:
+        max_jobs = DEFAULT_MAX_JOBS
+    if max_jobs < 1:
+        print("SCRAPE_MAX_JOBS must be >= 1", file=sys.stderr)
+        return 1
+
     run_id = _now_stamp()
     ndjson_path = os.path.join(DATA_DIR, f"jobs_data_{run_id}.ndjson")
     state_path = os.path.join(DATA_DIR, "scrape_state.json")
     shash = _search_state_hash(SEARCH_STATE)
 
-    st = _load_state(state_path)
+    # Fresh capped runs should start at page 0; resume only when SCRAPE_RESUME=1.
+    resume = os.environ.get("SCRAPE_RESUME", "").strip() in ("1", "true", "yes")
+    st = _load_state(state_path) if resume else None
     if st and st.search_hash == shash:
         start_page = st.committed_page + 1
         print(f"Resuming from page {start_page} (checkpoint {state_path})")
@@ -487,23 +499,30 @@ def main() -> int:
 
     driver, intercepted_payload = start_browser_session()
     try:
-        envelope = _jobs_request_envelope_from_config()
+        # Prefer a modest page size so a single page stays under the job cap.
+        page_size = min(250, max_jobs)
+        envelope = _jobs_request_envelope_from_config(size=page_size)
         if intercepted_payload:
             try:
                 parsed = json.loads(intercepted_payload)
                 if isinstance(parsed, dict) and parsed.get("size") is not None:
-                    envelope["size"] = int(parsed["size"])
+                    # Cap intercepted size so we don't pull thousands per page.
+                    envelope["size"] = min(int(parsed["size"]), page_size)
+                if isinstance(parsed, dict) and isinstance(parsed.get("searchState"), dict):
+                    envelope["searchState"] = parsed["searchState"]
             except Exception:
                 pass
 
         page = start_page
         total_pages = None
         fallback_i = 0
+        ingested_total = 0
 
         with open(ndjson_path, "a", encoding="utf-8") as backup_f:
             print(f"Backup NDJSON: {ndjson_path}")
             print(f"Convex URL: {convex_url}")
-            while True:
+            print(f"Max jobs this run: {max_jobs} (page size {envelope.get('size')})")
+            while ingested_total < max_jobs:
                 response_data = fetch_page_in_browser(driver, page, envelope)
                 if not response_data:
                     print(f"Failed to fetch page {page}; stopping.")
@@ -520,10 +539,11 @@ def main() -> int:
                     print(f"No results on page {page}; stopping.")
                     break
 
+                remaining = max_jobs - ingested_total
+                jobs = [j for j in jobs if isinstance(j, dict)][:remaining]
+
                 # Step A: append raw page results to NDJSON
                 for raw in jobs:
-                    if not isinstance(raw, dict):
-                        continue
                     backup_f.write(json.dumps({"page": page, "job": raw}, ensure_ascii=False) + "\n")
                 backup_f.flush()
                 os.fsync(backup_f.fileno())
@@ -531,8 +551,6 @@ def main() -> int:
                 # Step B: ingest page to Convex
                 items: List[dict] = []
                 for raw in jobs:
-                    if not isinstance(raw, dict):
-                        continue
                     fallback_i += 1
                     items.append(_build_ingest_item(raw, fallback_i))
 
@@ -545,8 +563,13 @@ def main() -> int:
                 # Commit checkpoint only after Convex succeeds
                 st.committed_page = page
                 _save_state(state_path, st)
+                ingested_total += len(items)
 
-                print(f"Committed page {page} ({len(items)} jobs).")
+                print(f"Committed page {page} ({len(items)} jobs). Total this run: {ingested_total}/{max_jobs}")
+
+                if ingested_total >= max_jobs:
+                    print(f"Reached max jobs cap ({max_jobs}).")
+                    break
 
                 if total_pages is None and isinstance(response_data, dict) and isinstance(response_data.get("pagination"), dict):
                     total_pages = response_data["pagination"].get("totalPages")
@@ -560,7 +583,7 @@ def main() -> int:
                 page += 1
                 time.sleep(1.5)
 
-        print("Done.")
+        print(f"Done. Ingested {ingested_total} jobs this run.")
         return 0
     finally:
         driver.quit()

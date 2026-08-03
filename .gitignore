@@ -53,3 +53,5 @@ docs/search-reference-audit.md
 /scraper/__pycache__
 *.ndjson
 *.zip
+scrape_state.json
+src/data/scrape_state.json

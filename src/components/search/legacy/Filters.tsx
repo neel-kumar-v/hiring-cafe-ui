@@ -505,7 +505,7 @@ export default function Filters() {
             {useDesktopMenus ? (
               <>
                 <DesktopMenuFrame
-                  active={searchOptions.date_range.magnitude !== 30 || searchOptions.date_range.unit !== "Days"}
+                  active={searchOptions.date_range.magnitude !== 6 || searchOptions.date_range.unit !== "Months"}
                   filterKey="date"
                   label={getDateLabel(searchOptions.date_range.magnitude, searchOptions.date_range.unit)}
                   menuLabel="Date range"
@@ -591,7 +591,7 @@ export default function Filters() {
             ) : (
               <>
                 <QuickFilterTrigger
-                  active={searchOptions.date_range.magnitude !== 30 || searchOptions.date_range.unit !== "Days"}
+                  active={searchOptions.date_range.magnitude !== 6 || searchOptions.date_range.unit !== "Months"}
                   label={getDateLabel(searchOptions.date_range.magnitude, searchOptions.date_range.unit)}
                   onClick={() => setMobileFilter("date")}
                 />
