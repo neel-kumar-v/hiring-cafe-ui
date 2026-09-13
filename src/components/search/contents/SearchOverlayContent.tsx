@@ -9,7 +9,6 @@ import { filters } from "@/data/search-filters";
 import {
   getGroupedCategories,
   renderAllCategoriesContent,
-  renderCategoryContent,
   useCategoryState,
 } from ".";
 
@@ -17,7 +16,8 @@ interface SearchOverlayContentProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   from?: string;
-  singlePage?: boolean;
+  /** Always renders all categories in one scrollable page (tabs chrome only). */
+  variant?: "tabs";
 }
 
 function SearchOverlayHeader({ onClose }: { onClose: () => void }) {
@@ -42,13 +42,11 @@ function SearchOverlayContentInner({
   open,
   onOpenChange,
   from,
-  singlePage = false,
 }: SearchOverlayContentProps) {
   const {
     selectedCategory,
     scrollToSection,
     setScrollToSection,
-    selectedCategoryData,
     handleFilterSelectWithScroll,
     handleHeaderClick,
   } = useCategoryState(from, open, "general");
@@ -116,21 +114,11 @@ function SearchOverlayContentInner({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="p-4">
-          {singlePage
-            ? renderAllCategoriesContent(
-                scrollToSection,
-                handleFilterClickWithScroll,
-                clearScrollToSection
-              )
-            : renderCategoryContent(
-                selectedCategory,
-                handleFilterClickWithScroll,
-                selectedCategoryData,
-                {
-                  scrollToSection,
-                  clearScrollToSection,
-                }
-              )}
+          {renderAllCategoriesContent(
+            scrollToSection,
+            handleFilterClickWithScroll,
+            clearScrollToSection
+          )}
         </div>
       </div>
     </div>

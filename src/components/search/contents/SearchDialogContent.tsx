@@ -12,7 +12,6 @@ import type { CategoryType } from "@/types/search";
 import { filters } from "@/data/search-filters";
 import {
   getGroupedCategories,
-  renderCategoryContent,
   renderFilteredCategoriesContent,
   useCategoryState,
 } from ".";
@@ -21,13 +20,13 @@ interface SearchDialogContentProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   from?: string;
-  singlePage?: boolean;
+  /** Sidebar chrome; always renders filtered categories in one scrollable page. */
+  variant?: "sidebar";
 }
 
 export default function SearchDialogContent({
   open,
   from,
-  singlePage = false,
 }: SearchDialogContentProps) {
   const { searchOptions } = useApp();
   const editedTags = useMemo(
@@ -45,7 +44,6 @@ export default function SearchDialogContent({
       <SearchDialogContentInner
         editedTags={editedTags}
         clearScrollToSection={clearScrollToSection}
-        singlePage={singlePage}
         {...categoryState}
       />
     </FocusedFilterProvider>
@@ -56,20 +54,16 @@ function SearchDialogContentInner({
   editedTags,
   selectedCategory,
   scrollToSection,
-  selectedCategoryData,
   handleFilterSelectWithScroll,
   handleHeaderClick,
   clearScrollToSection,
-  singlePage,
 }: {
   editedTags: Set<string>;
   selectedCategory: CategoryType;
   scrollToSection: string | undefined;
-  selectedCategoryData: { name: string } | undefined;
   handleFilterSelectWithScroll: (categoryId: string) => void;
   handleHeaderClick: (categoryType: CategoryType) => void;
   clearScrollToSection: () => void;
-  singlePage: boolean;
 }) {
   const { focusedFilterId, setFocusedFilterId } = useFocusedFilter();
   const [sidebarSearch, setSidebarSearch] = useState("");
@@ -193,22 +187,12 @@ function SearchDialogContentInner({
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-r-md bg-background">
         <div className="flex-1 overflow-y-auto p-6 py-4 pr-10">
-          {singlePage
-            ? renderFilteredCategoriesContent(
-                filteredCategories,
-                scrollToSection,
-                handleFilterClickWithScroll,
-                clearScrollToSection
-              )
-            : renderCategoryContent(
-                selectedCategory,
-                handleFilterClickWithScroll,
-                selectedCategoryData,
-                {
-                  scrollToSection,
-                  clearScrollToSection,
-                }
-              )}
+          {renderFilteredCategoriesContent(
+            filteredCategories,
+            scrollToSection,
+            handleFilterClickWithScroll,
+            clearScrollToSection
+          )}
         </div>
       </div>
     </div>

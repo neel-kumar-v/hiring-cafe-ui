@@ -28,9 +28,9 @@ export default function SearchDialog({ open, onOpenChange, from, isDarkMode }: S
         <ResponsiveDialogDescription className="sr-only">Configure your job search filters and preferences.</ResponsiveDialogDescription>
 
         {isMobile ? (
-          <SearchOverlayContent open={open} onOpenChange={onOpenChange} from={from} singlePage={true} />
+          <SearchOverlayContent open={open} onOpenChange={onOpenChange} from={from} variant="tabs" />
         ) : (
-          <SearchDialogContent from={from} onOpenChange={onOpenChange} open={open} singlePage={true} />
+          <SearchDialogContent from={from} onOpenChange={onOpenChange} open={open} variant="sidebar" />
         )}
       </ResponsiveDialogContent>
     </ResponsiveDialog>
