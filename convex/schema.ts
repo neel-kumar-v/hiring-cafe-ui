@@ -279,16 +279,6 @@ export default defineSchema({
     .index("by_user_updatedAt", ["userId", "updatedAt"])
     .index("by_public", ["isPublic"]),
 
-  searchOptions: defineTable({
-    type: v.string(),
-    value: v.string(),
-  })
-    .index("by_type", ["type"])
-    .searchIndex("search_value", {
-      searchField: "value",
-      filterFields: ["type"],
-    }),
-
   /**
    * One row per distinct suggestion string. `types` lists API facets that use it
    * (e.g. the same line may appear under technology_keywords and description_keywords).

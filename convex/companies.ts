@@ -1,7 +1,5 @@
-import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { paginationOptsValidator } from "convex/server";
 import { toSortPublishMillis } from "./jobCards";
 
 const COMPANIES_COUNTER_NAME = "companies";
@@ -88,24 +86,12 @@ export async function updateCompanyLastJobMillis(ctx: any, companyId: Id<"compan
   const current = company.lastJobSortPublishMillis ?? 0;
   if (millis <= current) return;
 
+  // Only the company row is used for grouping; `companySortPublishMillis` on cards is unused by queries.
   await ctx.db.patch(companyId, { lastJobSortPublishMillis: millis, updatedAt: Date.now() });
-
-  // Update all existing jobCards for this company to maintain grouping integrity.
-  const cards = await ctx.db
-    .query("jobCards")
-    .withIndex("by_companyId", (q: any) => q.eq("companyId", companyId))
-    .collect();
-
-  for (const card of cards) {
-    if (card.companySortPublishMillis !== millis) {
-      await ctx.db.patch(card._id, { companySortPublishMillis: millis, updatedAt: Date.now() });
-    }
-  }
 }
 
 /**
- * Recompute `lastJobSortPublishMillis` and card `companySortPublishMillis` from
- * remaining `jobs` rows (e.g. after deletes).
+ * Recompute `lastJobSortPublishMillis` from remaining `jobs` rows (e.g. after deletes).
  */
 export async function refreshCompanyJobSortFromDb(ctx: any, companyDocId: Id<"companies">) {
   const jobs = await ctx.db
@@ -127,18 +113,6 @@ export async function refreshCompanyJobSortFromDb(ctx: any, companyDocId: Id<"co
   if (company.lastJobSortPublishMillis !== nextLast) {
     await ctx.db.patch(companyDocId, { lastJobSortPublishMillis: nextLast, updatedAt: now });
   }
-
-  const cards = await ctx.db
-    .query("jobCards")
-    .withIndex("by_companyId", (q: any) => q.eq("companyId", companyDocId))
-    .collect();
-
-  const targetCompanySort = maxMillis > 0 ? maxMillis : undefined;
-  for (const card of cards) {
-    if (card.companySortPublishMillis !== targetCompanySort) {
-      await ctx.db.patch(card._id, { companySortPublishMillis: targetCompanySort, updatedAt: now });
-    }
-  }
 }
 
 export async function addCompanyJobPreview(ctx: any, companyDocId: Id<"companies">, jobId: Id<"jobs">) {
@@ -155,49 +129,5 @@ export const count = query({
   handler: async (ctx) => {
     const row = await getCompaniesCounterRow(ctx);
     return row?.value ?? null;
-  },
-});
-
-export const getByCompanyId = query({
-  args: { companyId: v.string() },
-  handler: async (ctx, { companyId }) => {
-    return await ctx.db
-      .query("companies")
-      .withIndex("by_companyId", (q) => q.eq("companyId", companyId))
-      .unique();
-  },
-});
-
-export const getByCanonicalDomain = query({
-  args: { canonicalDomain: v.string() },
-  handler: async (ctx, { canonicalDomain }) => {
-    return await ctx.db
-      .query("companies")
-      .withIndex("by_canonicalDomain", (q) => q.eq("canonicalDomain", canonicalDomain))
-      .unique();
-  },
-});
-
-export const listJobsByCompanyId = query({
-  args: { companyId: v.string(), paginationOpts: paginationOptsValidator },
-  handler: async (ctx, { companyId, paginationOpts }) => {
-    const company = await ctx.db
-      .query("companies")
-      .withIndex("by_companyId", (q) => q.eq("companyId", companyId))
-      .unique();
-    if (!company) {
-      return { company: null, page: [], continueCursor: null, isDone: true };
-    }
-    const page = await ctx.db
-      .query("jobs")
-      .withIndex("by_companyId", (q) => q.eq("companyId", company._id))
-      .order("desc")
-      .paginate(paginationOpts);
-    return {
-      company,
-      page: page.page,
-      continueCursor: page.continueCursor,
-      isDone: page.isDone,
-    };
   },
 });
