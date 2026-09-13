@@ -64,11 +64,15 @@ function Invoke-SeedBatch {
   )
 
   # Build a real JSON object argument for Convex CLI (no manual escaping).
-  $payload = @{
+  $payloadObj = @{
     type = $Type
     start = $Start
     count = $Count
-  } | ConvertTo-Json -Compress
+  }
+  if ($env:INGEST_ADMIN_SECRET) {
+    $payloadObj.adminSecret = $env:INGEST_ADMIN_SECRET
+  }
+  $payload = $payloadObj | ConvertTo-Json -Compress
 
   # Use Node to run the bundled CLI (pnpm's convex shim invokes bash on Windows and breaks).
   Push-Location $RepoRoot

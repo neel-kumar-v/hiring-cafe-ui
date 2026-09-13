@@ -23,7 +23,12 @@ from typing import Any, Dict, List
 
 import requests
 
-from convex_dotenv import MISSING_CONVEX_URL_MESSAGE, get_convex_deployment_url, load_convex_environment
+from convex_dotenv import (
+    MISSING_CONVEX_URL_MESSAGE,
+    get_convex_deployment_url,
+    load_convex_environment,
+    with_ingest_admin_secret,
+)
 from convex_payload import strip_json_nones
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -134,13 +139,13 @@ def import_file(convex_url: str, path: str, batch_size: int) -> int:
 
             if len(batch) >= batch_size:
                 print(f"[convex] sending batch size={len(batch)} (upserted_so_far={total})", file=sys.stderr)
-                _post_mutation(convex_url, "jobs:ingestBatch", {"items": batch})
+                _post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": batch}))
                 total += len(batch)
                 batch.clear()
 
     if batch:
         print(f"[convex] sending final batch size={len(batch)} (upserted_so_far={total})", file=sys.stderr)
-        _post_mutation(convex_url, "jobs:ingestBatch", {"items": batch})
+        _post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": batch}))
         total += len(batch)
 
     return total
@@ -153,12 +158,12 @@ def main() -> int:
         default=DATA_DIR,
         help="NDJSON path / glob / directory. Default: src/data (imports *.ndjson).",
     )
-    ap.add_argument("--batch", type=int, default=200, help="ingestBatch items per request (default 200)")
+    ap.add_argument("--batch", type=int, default=100, help="ingestBatch items per request (default 100, max 100)")
     ap.add_argument("--delete", action="store_true", help="Delete imported NDJSON file(s) after success")
     args = ap.parse_args()
 
-    if args.batch < 1 or args.batch > 500:
-        print("Batch size must be between 1 and 500.", file=sys.stderr)
+    if args.batch < 1 or args.batch > 100:
+        print("Batch size must be between 1 and 100.", file=sys.stderr)
         return 2
 
     try:

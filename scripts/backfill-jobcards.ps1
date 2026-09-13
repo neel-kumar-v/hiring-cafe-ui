@@ -181,7 +181,7 @@ function Start-JobCardsBackfill {
   $attemptBatchSize = $RequestedBatchSize
   while ($true) {
     try {
-      $start = Invoke-ConvexRun -FunctionName "migrations:backfillJobCards" -ArgsObject @{
+      $start = Invoke-ConvexRun -FunctionName "migrations:runJobCardsBackfill" -ArgsObject @{
         batchSize = $attemptBatchSize
         reset = $ResetRequested
         dryRun = $false

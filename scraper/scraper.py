@@ -5,15 +5,14 @@ import re
 import sys
 import time
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Exact search URL requested by user (do not mutate).
@@ -526,7 +525,7 @@ def _extract_company_info(driver) -> dict[str, Any]:
     return out
 
 
-def _extract_job_from_open_drawer(driver) -> Optional[dict[str, Any]]:
+def _extract_job_from_open_drawer(driver) -> dict[str, Any] | None:
     title = _txt(driver, ["h2.font-extrabold.text-3xl", "h2"])
     company_raw = _txt(driver, ["span.text-xl.font-semibold", "span.text-2xl.font-semibold"])
     company = company_raw.lstrip("@").strip()
@@ -900,45 +899,10 @@ def _scrape_stacks(driver) -> list[dict[str, Any]]:
 
 
 def main():
-    driver, _ = start_browser_session()
-
-    try:
-        output_dir = r"C:\Users\green\Documents\GitHub\hiring-cafe-ui\src\data"
-        logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
-        os.makedirs(output_dir, exist_ok=True)
-        os.makedirs(logs_dir, exist_ok=True)
-
-        print("Starting sequential in-stack scraping (no View all traversal)...")
-        try:
-            jobs = _scrape_stacks(driver)
-        except WebDriverException as e:
-            print(f"WebDriver disconnected during scrape: {e}")
-            jobs = []
-
-        payload = {
-            "metadata": {
-                "total_jobs": len(jobs),
-                "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "search_state": SEARCH_STATE,
-                "search_url": SESSION_URL,
-                "mode": "sequential_stack_next_arrow",
-            },
-            "jobs": jobs,
-        }
-
-        out_path = os.path.join(output_dir, "jobs_data.json")
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-
-        log_path = os.path.join(logs_dir, "scraper.log")
-        with open(log_path, "a", encoding="utf-8") as logf:
-            logf.write(
-                f"{time.strftime('%Y-%m-%d %H:%M:%S')} | mode=sequential_stack_next_arrow | jobs={len(jobs)} | output={out_path}\n"
-            )
-
-        print(f"Saved {len(jobs)} jobs to {out_path}")
-    finally:
-        driver.quit()
+    raise SystemExit(
+        "Legacy JSON dump entrypoint removed. Use scraper/scrape_to_convex.py "
+        "(or `pnpm run import-jobs-convex`) to scrape into Convex."
+    )
 
 
 if __name__ == "__main__":

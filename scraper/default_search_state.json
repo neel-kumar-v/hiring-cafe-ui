@@ -2,9 +2,7 @@
   "locations": [
     {
       "formatted_address": "United States",
-      "types": [
-        "country"
-      ],
+      "types": ["country"],
       "geometry": {
         "location": {
           "lat": "40.1047",
@@ -16,57 +14,23 @@
         {
           "long_name": "United States",
           "short_name": "US",
-          "types": [
-            "country"
-          ]
+          "types": ["country"]
         }
       ],
       "options": {
-        "flexible_regions": [
-          "anywhere_in_continent",
-          "anywhere_in_world"
-        ]
+        "flexible_regions": ["anywhere_in_continent", "anywhere_in_world"]
       }
     }
   ],
-  "workplaceTypes": [
-    "Remote",
-    "Hybrid",
-    "Onsite"
-  ],
+  "workplaceTypes": ["Remote", "Hybrid", "Onsite"],
   "defaultToUserLocation": false,
   "userLocation": null,
-  "physicalEnvironments": [
-    "Office",
-    "Outdoor",
-    "Vehicle",
-    "Industrial",
-    "Customer-Facing"
-  ],
-  "physicalLaborIntensity": [
-    "Low",
-    "Medium",
-    "High"
-  ],
-  "physicalPositions": [
-    "Sitting",
-    "Standing"
-  ],
-  "oralCommunicationLevels": [
-    "Low",
-    "Medium",
-    "High"
-  ],
-  "computerUsageLevels": [
-    "Low",
-    "Medium",
-    "High"
-  ],
-  "cognitiveDemandLevels": [
-    "Low",
-    "Medium",
-    "High"
-  ],
+  "physicalEnvironments": ["Office", "Outdoor", "Vehicle", "Industrial", "Customer-Facing"],
+  "physicalLaborIntensity": ["Low", "Medium", "High"],
+  "physicalPositions": ["Sitting", "Standing"],
+  "oralCommunicationLevels": ["Low", "Medium", "High"],
+  "computerUsageLevels": ["Low", "Medium", "High"],
+  "cognitiveDemandLevels": ["Low", "Medium", "High"],
   "currency": {
     "label": "Any",
     "value": null
@@ -81,15 +45,7 @@
   "maxCompensationHighEnd": null,
   "restrictJobsToTransparentSalaries": false,
   "calcFrequency": "Yearly",
-  "commitmentTypes": [
-    "Full Time",
-    "Part Time",
-    "Contract",
-    "Internship",
-    "Temporary",
-    "Seasonal",
-    "Volunteer"
-  ],
+  "commitmentTypes": ["Full Time", "Part Time", "Contract", "Internship", "Temporary", "Seasonal", "Volunteer"],
   "jobTitleQuery": "",
   "jobDescriptionQuery": "",
   "associatesDegreeFieldsOfStudy": [],
@@ -107,62 +63,26 @@
   "licensesAndCertifications": [],
   "excludedLicensesAndCertifications": [],
   "excludeAllLicensesAndCertifications": false,
-  "seniorityLevel": [
-    "No Prior Experience Required",
-    "Entry Level",
-    "Mid Level"
-  ],
-  "roleTypes": [
-    "Individual Contributor",
-    "People Manager"
-  ],
-  "roleYoeRange": [
-    0,
-    20
-  ],
+  "seniorityLevel": ["No Prior Experience Required", "Entry Level", "Mid Level"],
+  "roleTypes": ["Individual Contributor", "People Manager"],
+  "roleYoeRange": [0, 20],
   "excludeIfRoleYoeIsNotSpecified": false,
-  "managementYoeRange": [
-    0,
-    20
-  ],
+  "managementYoeRange": [0, 20],
   "excludeIfManagementYoeIsNotSpecified": false,
-  "securityClearances": [
-    "None",
-    "Confidential",
-    "Secret",
-    "Top Secret",
-    "Top Secret/SCI",
-    "Public Trust",
-    "Interim Clearances",
-    "Other"
-  ],
+  "securityClearances": ["None", "Confidential", "Secret", "Top Secret", "Top Secret/SCI", "Public Trust", "Interim Clearances", "Other"],
   "languageRequirements": [],
   "excludedLanguageRequirements": [],
   "languageRequirementsOperator": "OR",
   "excludeJobsWithAdditionalLanguageRequirements": false,
-  "airTravelRequirement": [
-    "None",
-    "Minimal",
-    "Moderate",
-    "Extensive"
-  ],
-  "landTravelRequirement": [
-    "None",
-    "Minimal",
-    "Moderate",
-    "Extensive"
-  ],
+  "airTravelRequirement": ["None", "Minimal", "Moderate", "Extensive"],
+  "landTravelRequirement": ["None", "Minimal", "Moderate", "Extensive"],
   "morningShiftWork": [],
   "eveningShiftWork": [],
   "overnightShiftWork": [],
   "weekendAvailabilityRequired": "Doesn't Matter",
   "holidayAvailabilityRequired": "Doesn't Matter",
   "overtimeRequired": "Doesn't Matter",
-  "onCallRequirements": [
-    "None",
-    "Occasional (once a month or less)",
-    "Regular (once a week or more)"
-  ],
+  "onCallRequirements": ["None", "Occasional (once a month or less)", "Regular (once a week or more)"],
   "benefitsAndPerks": [],
   "applicationFormEase": [],
   "companyNames": [],
@@ -186,10 +106,7 @@
   "technologyKeywordsQuery": "",
   "requirementsKeywordsQuery": "",
   "companyPublicOrPrivate": "all",
-  "latestInvestmentYearRange": [
-    null,
-    null
-  ],
+  "latestInvestmentYearRange": [null, null],
   "latestInvestmentSeries": [],
   "latestInvestmentAmount": null,
   "latestInvestmentCurrency": [],

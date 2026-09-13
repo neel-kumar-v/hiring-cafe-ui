@@ -56,3 +56,19 @@ MISSING_CONVEX_URL_MESSAGE = (
     "Missing Convex deployment URL. Set NEXT_PUBLIC_CONVEX_URL or CONVEX_URL in .env or .env.local "
     "(hosted example: https://<deployment>.convex.cloud from the Convex dashboard)."
 )
+
+
+def get_ingest_admin_secret() -> Optional[str]:
+    raw = os.environ.get("INGEST_ADMIN_SECRET")
+    if not isinstance(raw, str):
+        return None
+    secret = raw.strip()
+    return secret or None
+
+
+def with_ingest_admin_secret(args: dict) -> dict:
+    """Attach adminSecret when INGEST_ADMIN_SECRET is set in the environment."""
+    secret = get_ingest_admin_secret()
+    if secret:
+        return {**args, "adminSecret": secret}
+    return args

@@ -24,13 +24,23 @@ import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 import requests
-
-from convex_dotenv import MISSING_CONVEX_URL_MESSAGE, get_convex_deployment_url, load_convex_environment
+from convex_dotenv import (
+    MISSING_CONVEX_URL_MESSAGE,
+    get_convex_deployment_url,
+    load_convex_environment,
+    with_ingest_admin_secret,
+)
 from convex_payload import strip_json_nones
-from scraper import SEARCH_STATE, _jobs_request_envelope_from_config, fetch_page_in_browser, start_browser_session  # pyright: ignore[reportAttributeAccessIssue]
+
+from scraper import (  # pyright: ignore[reportAttributeAccessIssue]
+    SEARCH_STATE,
+    _jobs_request_envelope_from_config,
+    fetch_page_in_browser,
+    start_browser_session,
+)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "src", "data")
@@ -47,7 +57,7 @@ def _now_stamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def _normalize_domain(homepage_uri: Optional[str]) -> Optional[str]:
+def _normalize_domain(homepage_uri: str | None) -> str | None:
     if not homepage_uri or not isinstance(homepage_uri, str):
         return None
     s = homepage_uri.strip().lower()
@@ -56,8 +66,7 @@ def _normalize_domain(homepage_uri: Optional[str]) -> Optional[str]:
     # Common inputs: "rogersandhollands.com", "https://example.com/path"
     s = s.replace("http://", "").replace("https://", "")
     s = s.split("/")[0]
-    if s.startswith("www."):
-        s = s[4:]
+    s = s.removeprefix("www.")
     # Very light validation
     if "." not in s:
         return None
@@ -96,25 +105,25 @@ def _get(obj: dict, *path: str) -> Any:
     return cur
 
 
-def _as_list_str(x: Any) -> List[str]:
+def _as_list_str(x: Any) -> list[str]:
     if not isinstance(x, list):
         return []
-    out: List[str] = []
+    out: list[str] = []
     for v in x:
         if isinstance(v, str) and v:
             out.append(v)
     return out
 
 
-def _as_bool(x: Any) -> Optional[bool]:
+def _as_bool(x: Any) -> bool | None:
     return x if isinstance(x, bool) else None
 
 
-def _as_num(x: Any) -> Optional[float]:
+def _as_num(x: Any) -> float | None:
     return float(x) if isinstance(x, (int, float)) else None
 
 
-def _merged_dict(preferred: Optional[dict], secondary: Optional[dict]) -> dict:
+def _merged_dict(preferred: dict | None, secondary: dict | None) -> dict:
     """Prefer keys from `preferred` when both API shapes exist (matches TS `normalizeJob`)."""
     p = dict(preferred) if isinstance(preferred, dict) else {}
     s = dict(secondary) if isinstance(secondary, dict) else {}
@@ -139,7 +148,7 @@ def _company_enriched(raw: dict) -> dict:
     )
 
 
-def _as_workplace_type(x: Any) -> Optional[str]:
+def _as_workplace_type(x: Any) -> str | None:
     if isinstance(x, str):
         s = x.strip()
         return s or None
@@ -150,11 +159,11 @@ def _as_workplace_type(x: Any) -> Optional[str]:
     return None
 
 
-def _as_text_object_list(x: Any) -> List[str]:
+def _as_text_object_list(x: Any) -> list[str]:
     """Commitment / similar fields may be string[] or { text: string }[]."""
     if not isinstance(x, list):
         return []
-    out: List[str] = []
+    out: list[str] = []
     for v in x:
         if isinstance(v, str) and v.strip():
             out.append(v.strip())
@@ -165,10 +174,10 @@ def _as_text_object_list(x: Any) -> List[str]:
     return out
 
 
-def _as_skill_list(x: Any) -> List[str]:
+def _as_skill_list(x: Any) -> list[str]:
     if not isinstance(x, list):
         return []
-    out: List[str] = []
+    out: list[str] = []
     for v in x:
         if isinstance(v, str) and v.strip():
             out.append(v.strip())
@@ -179,7 +188,7 @@ def _as_skill_list(x: Any) -> List[str]:
     return out
 
 
-def _workplace_cities_from_processed(processed: dict) -> List[str]:
+def _workplace_cities_from_processed(processed: dict) -> list[str]:
     cities = _as_list_str(processed.get("workplace_cities"))
     if cities:
         return cities
@@ -189,7 +198,7 @@ def _workplace_cities_from_processed(processed: dict) -> List[str]:
     return []
 
 
-def _company_from_job(raw: dict) -> Tuple[dict, dict]:
+def _company_from_job(raw: dict) -> tuple[dict, dict]:
     enriched = _company_enriched(raw)
     processed = _job_processed(raw)
 
@@ -272,7 +281,7 @@ def _build_ingest_item(raw: dict, fallback_i: int) -> dict:
     company, company_filter_fields = _company_from_job(raw)
 
     geoloc = raw.get("_geoloc")
-    geoloc_out: List[dict] = []
+    geoloc_out: list[dict] = []
     if isinstance(geoloc, list):
         for g in geoloc:
             if isinstance(g, dict) and isinstance(g.get("lat"), (int, float)) and isinstance(g.get("lon"), (int, float)):
@@ -432,7 +441,7 @@ class State:
     committed_page: int
 
 
-def _load_state(path: str) -> Optional[State]:
+def _load_state(path: str) -> State | None:
     if not os.path.isfile(path):
         return None
     try:
@@ -543,13 +552,12 @@ def main() -> int:
                 jobs = [j for j in jobs if isinstance(j, dict)][:remaining]
 
                 # Step A: append raw page results to NDJSON
-                for raw in jobs:
-                    backup_f.write(json.dumps({"page": page, "job": raw}, ensure_ascii=False) + "\n")
+                backup_f.writelines(json.dumps({"page": page, "job": raw}, ensure_ascii=False) + "\n" for raw in jobs)
                 backup_f.flush()
                 os.fsync(backup_f.fileno())
 
                 # Step B: ingest page to Convex
-                items: List[dict] = []
+                items: list[dict] = []
                 for raw in jobs:
                     fallback_i += 1
                     items.append(_build_ingest_item(raw, fallback_i))
@@ -558,7 +566,7 @@ def main() -> int:
                 BATCH = 100
                 for i in range(0, len(items), BATCH):
                     chunk = items[i : i + BATCH]
-                    _post_mutation(convex_url, "jobs:ingestBatch", {"items": chunk})
+                    _post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": chunk}))
 
                 # Commit checkpoint only after Convex succeeds
                 st.committed_page = page
