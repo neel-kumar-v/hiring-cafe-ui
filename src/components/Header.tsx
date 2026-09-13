@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeIconSwap } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -40,26 +41,8 @@ export default function Header() {
     <header className={cn("sticky top-0 z-50 border-b border-border bg-background-header", pathname === "/" && "hidden md:block")}>
       <div className="mx-auto max-w-full px-4 transition-[padding] duration-500 ease-in-out lg:px-8 ">
         <div className="flex min-h-16 items-center justify-between gap-4 py-3">
-          {/* Logo */}
           <div className="flex items-center space-x-0 lg:space-x-3">
-            <div className="w-fit rounded-full bg-primary p-2 text-primary-foreground">
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5 flex-none"
-                data-slot="icon"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            <BrandLogo />
             <Link className="hidden font-bold text-primary text-xl lg:block" href="/">
               CloneCafe
             </Link>

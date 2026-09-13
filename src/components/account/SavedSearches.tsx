@@ -2,11 +2,9 @@
 
 import { AllFilter } from "@/components/search/filters/util/AllFilter";
 import { useApp } from "@/contexts/AppContext";
+import { useSavedSearches } from "@/hooks/useSavedSearches";
 import type { SearchState } from "@/types/search";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
 import { CalendarIcon, Edit, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -15,9 +13,7 @@ import { toast } from "sonner";
 export default function SavedSearches() {
   const router = useRouter();
   const { setSearchOptions } = useApp();
-  const { user: convexUser, email } = useCurrentUser();
-  const savedSearches = useQuery(api.savedSearches.listByUser, convexUser ? { userId: convexUser._id } : "skip");
-  const renameSavedSearch = useMutation(api.savedSearches.rename);
+  const { convexUser, email, savedSearches, rename } = useSavedSearches();
   const [editingId, setEditingId] = useState<Id<"savedSearches"> | null>(null);
   const [editingName, setEditingName] = useState("");
   const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
@@ -31,8 +27,7 @@ export default function SavedSearches() {
   };
 
   const handleEditSave = (id: Id<"savedSearches">) => {
-    if (!convexUser) return;
-    void renameSavedSearch({ id, userId: convexUser._id, name: editingName.trim() || "Untitled" });
+    void rename(id, editingName.trim() || "Untitled");
     setEditingId(null);
     setEditingName("");
   };

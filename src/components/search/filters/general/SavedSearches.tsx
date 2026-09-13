@@ -3,28 +3,18 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/contexts/AppContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { getEditedTags } from "@/lib/edited-filters";
 import type { SearchState } from "@/types/search";
-import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
 import { Calendar, Edit, Eye, Plus, Search } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 import { AllFilter } from "../util/AllFilter";
 import FilterContainer from "../util/FilterContainer";
 
 export default function SavedSearches() {
   const { searchOptions, setSearchOptions } = useApp();
-  const { user: convexUser, email } = useCurrentUser();
-  const savedSearches = useQuery(
-    api.savedSearches.listByUser,
-    convexUser ? { userId: convexUser._id } : "skip"
-  );
-  const createSavedSearch = useMutation(api.savedSearches.create);
-  const renameSavedSearch = useMutation(api.savedSearches.rename);
-  const removeSavedSearch = useMutation(api.savedSearches.remove);
+  const { convexUser, email, savedSearches, create, rename, remove } = useSavedSearches();
 
   const [editingId, setEditingId] = useState<Id<"savedSearches"> | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -43,8 +33,7 @@ export default function SavedSearches() {
   };
 
   const handleEditSave = (id: Id<"savedSearches">) => {
-    if (!convexUser) return;
-    void renameSavedSearch({ id, userId: convexUser._id, name: editingName.trim() || "Untitled" });
+    void rename(id, editingName.trim() || "Untitled");
     setEditingId(null);
     setEditingName("");
   };
@@ -69,18 +58,9 @@ export default function SavedSearches() {
   const handleCategoryClick: Parameters<typeof AllFilter>[0]["handleCategoryClick"] = () => {};
 
   const handleSaveSearch = () => {
-    if (!convexUser) {
-      toast.error("Sign in first to save searches.");
-      return;
-    }
     void (async () => {
-      const newId = await createSavedSearch({
-        userId: convexUser._id,
-        name: "New Search",
-        searchState: searchOptions,
-      });
-      setTimeout(() => handleEditStart(newId, "New Search"), 0);
-      toast.success("Search saved successfully!");
+      const newId = await create("New Search", searchOptions);
+      if (newId) setTimeout(() => handleEditStart(newId, "New Search"), 0);
     })();
   };
 
@@ -181,9 +161,7 @@ export default function SavedSearches() {
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    if (!convexUser) return;
-                    void removeSavedSearch({ id: search._id, userId: convexUser._id });
-                    toast.success("Deleted saved search.");
+                    void remove(search._id);
                   }}
                   className="flex items-center gap-1 text-destructive"
                 >
