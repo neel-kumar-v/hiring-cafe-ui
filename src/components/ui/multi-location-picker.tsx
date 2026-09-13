@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from '@/components/ui/input'
-import { cn } from "@/lib/utils"
-import { Location, LocationType } from '@/types/search'
-import { LoaderCircle, Locate, MapPinned, Search } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Location, LocationType } from "@/types/search";
+import { LoaderCircle, Locate, MapPinned, Search } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 type LocationSuggestion = {
   display_name: string;
@@ -17,7 +17,7 @@ type LocationSuggestion = {
     country?: string;
     [key: string]: string | undefined;
   };
-}
+};
 
 export interface MultiLocationPickerTheme {
   container?: string;
@@ -46,21 +46,15 @@ interface MultiLocationPickerProps {
   theme?: MultiLocationPickerTheme;
 }
 
-export function MultiLocationPicker({
-  className,
-  locations,
-  onLocationsChange,
-  placeholder = "Enter city, district, or area",
-  theme,
-}: MultiLocationPickerProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [locationSearch, setLocationSearch] = useState('')
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([])
-  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function MultiLocationPicker({ className, locations, onLocationsChange, placeholder = "Enter city, district, or area", theme }: MultiLocationPickerProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const API_URL = "https://nominatim.openstreetmap.org"
+  const API_URL = "https://nominatim.openstreetmap.org";
 
   const defaultTheme: MultiLocationPickerTheme = {
     container: "space-y-4",
@@ -75,36 +69,38 @@ export function MultiLocationPicker({
     errorContainer: "w-full bg-destructive/10 rounded-md border border-destructive/20 p-3 text-center",
     loadingContainer: "w-full bg-transparent rounded-md border border-input shadow-md p-4 text-center",
     popoverContent: "w-[var(--radix-popover-trigger-width)] p-0 shadow-lg dark:bg-transparent",
-    popoverTrigger: "flex items-center gap-2 text-muted-foreground hover:text-foreground border border-input hover:border-primary/50 cursor-pointer px-3 py-2 rounded-md transition-colors",
+    popoverTrigger:
+      "flex items-center gap-2 text-muted-foreground hover:text-foreground border border-input hover:border-primary/50 cursor-pointer px-3 py-2 rounded-md transition-colors",
     locationList: "space-y-2",
     locationItem: "flex items-center justify-between p-2 bg-muted rounded-md",
-    addButton: "w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors rounded-md p-3 text-center text-muted-foreground hover:text-foreground"
-  }
+    addButton:
+      "w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors rounded-md p-3 text-center text-muted-foreground hover:text-foreground",
+  };
 
-  const appliedTheme = { ...defaultTheme, ...theme }
+  const appliedTheme = { ...defaultTheme, ...theme };
 
   const convertSuggestionToLocation = (suggestion: LocationSuggestion): Location => {
     const addressComponents = [];
-    
+
     if (suggestion.address.city) {
       addressComponents.push({
         long_name: suggestion.address.city,
         short_name: suggestion.address.city,
-        types: ["Locality" as LocationType]
+        types: ["Locality" as LocationType],
       });
     }
     if (suggestion.address.state) {
       addressComponents.push({
         long_name: suggestion.address.state,
         short_name: suggestion.address.state,
-        types: ["Admin Area" as LocationType]
+        types: ["Admin Area" as LocationType],
       });
     }
     if (suggestion.address.country) {
       addressComponents.push({
         long_name: suggestion.address.country,
         short_name: suggestion.address.country,
-        types: ["Country" as LocationType]
+        types: ["Country" as LocationType],
       });
     }
 
@@ -114,102 +110,98 @@ export function MultiLocationPicker({
       types: ["Locality" as LocationType],
       address: {
         formatted: suggestion.display_name,
-        components: addressComponents
+        components: addressComponents,
       },
       geographical: {
         latitude: 0, // Would need to get from API
-        longitude: 0
-      }
+        longitude: 0,
+      },
     };
   };
 
   const addLocation = (location: Location) => {
     const newLocations = [...locations, location];
     onLocationsChange(newLocations);
-    setLocationSearch('');
+    setLocationSearch("");
     setSuggestions([]);
     setIsPopoverOpen(false);
   };
 
   const getLocation = async (lat: number, long: number) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const res = await fetch(`${API_URL}/reverse?lat=${lat}&lon=${long}&format=json`)
-      const data = await res.json()
-      const city = data.address?.county || data.address?.city || data.address?.state || ''
+      const res = await fetch(`${API_URL}/reverse?lat=${lat}&lon=${long}&format=json`);
+      const data = await res.json();
+      const city = data.address?.county || data.address?.city || data.address?.state || "";
 
       if (city) {
         const location = convertSuggestionToLocation({
           display_name: data.display_name || city,
           place_id: Date.now(),
-          address: data.address || {}
+          address: data.address || {},
         });
         addLocation(location);
       }
     } catch (error) {
-      console.error("Error fetching location:", error)
+      console.error("Error fetching location:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const searchLocation = async () => {
-    if (!locationSearch.trim()) return
+    if (!locationSearch.trim()) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const res = await fetch(
-        `${API_URL}/search?q=${encodeURIComponent(locationSearch)}&format=json&addressdetails=1`
-      )
-      const data = await res.json()
+      const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(locationSearch)}&format=json&addressdetails=1`);
+      const data = await res.json();
 
       if (data && data.length > 0) {
-        const place = data[0]
+        const place = data[0];
         const location = convertSuggestionToLocation(place);
         addLocation(location);
-      } else {
-        console.log("No location found")
       }
     } catch (error) {
-      console.error("Error searching location:", error)
+      console.error("Error searching location:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const getCurrentLocation = useCallback(() => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by this browser")
-      setIsLoading(false)
-      return
+      setError("Geolocation is not supported by this browser");
+      setIsLoading(false);
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords
-        getLocation(latitude, longitude)
+        const { latitude, longitude } = position.coords;
+        getLocation(latitude, longitude);
       },
       (error) => {
-        let errorMessage = "Unable to retrieve location"
+        let errorMessage = "Unable to retrieve location";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Location access denied by user"
-            break
+            errorMessage = "Location access denied by user";
+            break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable"
-            break
+            errorMessage = "Location information unavailable";
+            break;
           case error.TIMEOUT:
-            errorMessage = "Location request timed out"
-            break
+            errorMessage = "Location request timed out";
+            break;
         }
-        setError(errorMessage)
-        setIsLoading(false)
+        setError(errorMessage);
+        setIsLoading(false);
       },
       { timeout: 10000, enableHighAccuracy: true }
-    )
+    );
   }, []);
 
   const fetchSuggestions = async (query: string) => {
@@ -220,9 +212,7 @@ export function MultiLocationPicker({
 
     setIsFetchingSuggestions(true);
     try {
-      const res = await fetch(
-        `${API_URL}/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`
-      );
+      const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`);
       const data = await res.json();
       setSuggestions(data);
     } catch (error) {
@@ -239,13 +229,13 @@ export function MultiLocationPicker({
   };
 
   const formatLocationName = (suggestion: LocationSuggestion) => {
-    const mainName = suggestion.address.village || suggestion.address?.city || suggestion.address?.state || '';
-    const region = suggestion.address?.state || suggestion.address?.country || '';
+    const mainName = suggestion.address.village || suggestion.address?.city || suggestion.address?.state || "";
+    const region = suggestion.address?.state || suggestion.address?.country || "";
 
     if (mainName && region && mainName !== region) {
       return `${mainName}, ${region}`;
     }
-    return mainName || suggestion.display_name.split(',')[0];
+    return mainName || suggestion.display_name.split(",")[0];
   };
 
   useEffect(() => {
@@ -273,44 +263,24 @@ export function MultiLocationPicker({
               placeholder={placeholder}
               value={locationSearch}
               onChange={(e) => setLocationSearch(e.target.value)}
-              onKeyUp={(e) => e.key === 'Enter' && suggestions.length === 0 && searchLocation()}
+              onKeyUp={(e) => e.key === "Enter" && suggestions.length === 0 && searchLocation()}
               aria-label="Search for location"
               aria-describedby={suggestions.length > 0 ? "suggestions-list" : undefined}
               className={appliedTheme.input}
             />
           </div>
 
-          <Button
-            className={appliedTheme.searchButton}
-            variant="outline"
-            onClick={searchLocation}
-            disabled={isLoading || !locationSearch.trim()}
-            title="Search Location"
-          >
-            {isLoading ? (
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-            ) : (
-              <Search className="h-4 w-4" />
-            )}
+          <Button className={appliedTheme.searchButton} variant="outline" onClick={searchLocation} disabled={isLoading || !locationSearch.trim()} title="Search Location">
+            {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={getCurrentLocation}
-            className={appliedTheme.locateButton}
-            title="Use Current Location"
-          >
+          <Button variant="outline" onClick={getCurrentLocation} className={appliedTheme.locateButton} title="Use Current Location">
             <Locate className="h-4 w-4" />
           </Button>
         </div>
 
         {suggestions.length > 0 && (
-          <div
-            id="suggestions-list"
-            role="listbox"
-            aria-label="Location suggestions"
-            className={appliedTheme.suggestionsContainer}
-          >
+          <div id="suggestions-list" role="listbox" aria-label="Location suggestions" className={appliedTheme.suggestionsContainer}>
             {suggestions.map((suggestion) => (
               <div
                 key={suggestion.place_id}
@@ -320,21 +290,17 @@ export function MultiLocationPicker({
                 className={appliedTheme.suggestionItem}
                 onClick={() => selectSuggestion(suggestion)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    selectSuggestion(suggestion)
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    selectSuggestion(suggestion);
                   }
                 }}
               >
                 <div className="flex items-start">
                   <MapPinned size={16} className={cn("mt-0.5 mr-2 shrink-0", appliedTheme.suggestionIcon)} />
                   <div>
-                    <p className={appliedTheme.suggestionLocation}>
-                      {formatLocationName(suggestion)}
-                    </p>
-                    <p className={appliedTheme.suggestionAddress}>
-                      {suggestion.display_name}
-                    </p>
+                    <p className={appliedTheme.suggestionLocation}>{formatLocationName(suggestion)}</p>
+                    <p className={appliedTheme.suggestionAddress}>{suggestion.display_name}</p>
                   </div>
                 </div>
               </div>
@@ -383,7 +349,6 @@ export function MultiLocationPicker({
           ))}
         </div>
       )} */}
-
     </div>
   );
-} 
+}

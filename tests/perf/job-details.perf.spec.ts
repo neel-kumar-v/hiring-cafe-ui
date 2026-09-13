@@ -30,4 +30,3 @@ test("@perf job details: time to description render", async ({ page, baseURL }) 
     expect(elapsed).toBeLessThan(maxMs);
   }
 });
-

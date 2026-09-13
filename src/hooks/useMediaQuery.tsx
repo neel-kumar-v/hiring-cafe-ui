@@ -3,84 +3,84 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export function useMediaQuery(query: string): boolean {
-	const [matches, setMatches] = useState(false);
-	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [matches, setMatches] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const memoizedQuery = useMemo(() => query, [query]);
+  const memoizedQuery = useMemo(() => query, [query]);
 
-	const updateMatches = useCallback((media: MediaQueryList) => {
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current);
-		}
-		
-		timeoutRef.current = setTimeout(() => {
-			setMatches(media.matches);
-		}, 50);
-	}, []);
+  const updateMatches = useCallback((media: MediaQueryList) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-	useEffect(() => {
-		if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-			return;
-		}
+    timeoutRef.current = setTimeout(() => {
+      setMatches(media.matches);
+    }, 50);
+  }, []);
 
-		const media = window.matchMedia(memoizedQuery);
-		
-		setMatches(media.matches);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
 
-		const listener = (event: MediaQueryListEvent) => {
-			updateMatches(event.target as MediaQueryList);
-		};
+    const media = window.matchMedia(memoizedQuery);
 
-		media.addEventListener("change", listener);
-		return () => {
-			media.removeEventListener("change", listener);
-			if (timeoutRef.current) {
-				clearTimeout(timeoutRef.current);
-			}
-		};
-	}, [memoizedQuery, updateMatches]);
+    setMatches(media.matches);
 
-	return matches;
+    const listener = (event: MediaQueryListEvent) => {
+      updateMatches(event.target as MediaQueryList);
+    };
+
+    media.addEventListener("change", listener);
+    return () => {
+      media.removeEventListener("change", listener);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [memoizedQuery, updateMatches]);
+
+  return matches;
 }
 
 export function useResponsiveBreakpoint() {
-	const [isDesktop, setIsDesktop] = useState(false);
-	const [isStable, setIsStable] = useState(true);
-	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isStable, setIsStable] = useState(true);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const updateBreakpoint = useCallback((matches: boolean) => {
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current);
-		}
+  const updateBreakpoint = useCallback((matches: boolean) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-		setIsStable(false);
-		
-		timeoutRef.current = setTimeout(() => {
-			setIsDesktop(matches);
-			setIsStable(true);
-		}, 100);
-	}, []);
+    setIsStable(false);
 
-	useEffect(() => {
-		if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-			return;
-		}
+    timeoutRef.current = setTimeout(() => {
+      setIsDesktop(matches);
+      setIsStable(true);
+    }, 100);
+  }, []);
 
-		const mediaQuery = window.matchMedia("(min-width: 768px)");
-		setIsDesktop(mediaQuery.matches);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
 
-		const listener = (event: MediaQueryListEvent) => {
-			updateBreakpoint(event.matches);
-		};
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mediaQuery.matches);
 
-		mediaQuery.addEventListener("change", listener);
-		return () => {
-			mediaQuery.removeEventListener("change", listener);
-			if (timeoutRef.current) {
-				clearTimeout(timeoutRef.current);
-			}
-		};
-	}, [updateBreakpoint]);
+    const listener = (event: MediaQueryListEvent) => {
+      updateBreakpoint(event.matches);
+    };
 
-	return { isDesktop, isStable };
+    mediaQuery.addEventListener("change", listener);
+    return () => {
+      mediaQuery.removeEventListener("change", listener);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [updateBreakpoint]);
+
+  return { isDesktop, isStable };
 }

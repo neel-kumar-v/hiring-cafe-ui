@@ -33,12 +33,7 @@ const DialogStats = ({
   return (
     <div className="absolute top-8 left-8 flex items-center gap-3">
       <div className="flex items-center gap-1 text-muted-foreground text-sm dark:text-muted-foreground">
-        <ScrapeTime
-          iconClassName="size-4"
-          isTransitioning={isTransitioning}
-          postedAt={publishDate}
-          textClassName="text-md"
-        />
+        <ScrapeTime iconClassName="size-4" isTransitioning={isTransitioning} postedAt={publishDate} textClassName="text-md" />
       </div>
 
       <div className="flex items-center space-x-3 text-muted-foreground text-sm dark:text-muted-foreground">

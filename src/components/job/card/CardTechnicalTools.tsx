@@ -3,34 +3,29 @@ import { useApp } from "@/contexts/AppContext";
 import { useMemo } from "react";
 import { Check } from "lucide-react";
 
-const CardTechnicalTools = ({
-  technicalTools,
-  variant = "card",
-}: {
-  technicalTools: string[];
-  variant?: "card" | "dialog";
-}) => {
+const CardTechnicalTools = ({ technicalTools, variant = "card" }: { technicalTools: string[]; variant?: "card" | "dialog" }) => {
   const { user, addSkill, removeSkill } = useApp();
   const tools = technicalTools ?? [];
 
   // Create skill matching logic - similar to CardSkillMatch but for individual skills
   const skillMatchInfo = useMemo(() => {
     const normalizeSkill = (skill: string) => {
-      return skill.toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '') // Remove special characters
-        .replace(/\s+/g, ' ') // Normalize whitespace
+      return skill
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "") // Remove special characters
+        .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
     };
 
     const normalizedUserSkills = user.skills.map(normalizeSkill);
-    
-    return tools.map(tool => {
+
+    return tools.map((tool) => {
       const normalizedTool = normalizeSkill(tool);
       const isMatched = normalizedUserSkills.includes(normalizedTool);
       return {
         original: tool,
         normalized: normalizedTool,
-        isMatched
+        isMatched,
       };
     });
   }, [user.skills, tools]);
@@ -38,7 +33,7 @@ const CardTechnicalTools = ({
   const handleSkillClick = (e: React.MouseEvent, skillInfo: { original: string; isMatched: boolean }) => {
     e.stopPropagation(); // Prevent card dialog from opening
     e.preventDefault();
-    
+
     if (skillInfo.isMatched) {
       removeSkill(skillInfo.original);
     } else {
@@ -62,11 +57,7 @@ const CardTechnicalTools = ({
 
   const chips = skillMatchInfo.map((skillInfo, skillIndex) => (
     <button
-      className={`${chipClass} ${
-        skillInfo.isMatched
-          ? "flex cursor-pointer items-center gap-1 bg-primary text-primary-foreground shadow-sm"
-          : unmatchedClass
-      }`}
+      className={`${chipClass} ${skillInfo.isMatched ? "flex cursor-pointer items-center gap-1 bg-primary text-primary-foreground shadow-sm" : unmatchedClass}`}
       key={skillIndex}
       style={{ whiteSpace: "nowrap" }}
       title={skillInfo.isMatched ? `Remove ${skillInfo.original} from your skills` : `Add ${skillInfo.original} to your skills`}

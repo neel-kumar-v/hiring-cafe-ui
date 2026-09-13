@@ -84,4 +84,3 @@ export interface JobDetailsResultDTO {
   details: JobDetailsDTO | null;
   company: CompanyDTO | null;
 }
-

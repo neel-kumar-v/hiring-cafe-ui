@@ -107,10 +107,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     return accumulatedJobs as unknown as JobCardResultDTO[];
   }, [accumulatedJobs]);
 
-  const displayedCollections = useMemo(
-    () => buildJobBoardDisplayedCollections(accumulatedRows, visibleRowCount),
-    [accumulatedRows, visibleRowCount]
-  );
+  const displayedCollections = useMemo(() => buildJobBoardDisplayedCollections(accumulatedRows, visibleRowCount), [accumulatedRows, visibleRowCount]);
 
   const requestMoreForNavigation = useCallback(() => {
     if (revealLoading || isLoading) return;
@@ -152,8 +149,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     if (status === "LoadingFirstPage" || revealLoading || isLoading) return;
     if (!displayedCollections.length) return;
 
-    const canLoadMore =
-      visibleRowCount < accumulatedRows.length || status === "CanLoadMore";
+    const canLoadMore = visibleRowCount < accumulatedRows.length || status === "CanLoadMore";
     if (!canLoadMore) return;
 
     const container = containerRef.current;
@@ -164,15 +160,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     if (rect.bottom < targetBottom) {
       loadMoreItems();
     }
-  }, [
-    accumulatedRows.length,
-    displayedCollections.length,
-    isLoading,
-    loadMoreItems,
-    revealLoading,
-    status,
-    visibleRowCount,
-  ]);
+  }, [accumulatedRows.length, displayedCollections.length, isLoading, loadMoreItems, revealLoading, status, visibleRowCount]);
 
   useEffect(() => {
     if (isDesktop) {
@@ -279,10 +267,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
       .filter(Boolean);
   }, [displayedCollections, flatSelectionOrder, selectedJobIds]);
 
-  const selectedFlatIndex = useMemo(
-    () => jobBoardFlatIndexForSelection(flattenedPositions, selectedPosition),
-    [flattenedPositions, selectedPosition]
-  );
+  const selectedFlatIndex = useMemo(() => jobBoardFlatIndexForSelection(flattenedPositions, selectedPosition), [flattenedPositions, selectedPosition]);
 
   const isBookmarked = useMemo(
     () =>
@@ -589,7 +574,18 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
       setPendingJobAdvance(true);
       requestMoreForNavigation();
     }
-  }, [accumulatedRows.length, displayedCollections, flattenedPositions, prefetchJobAtNow, requestMoreForNavigation, runDialogTransition, selectedFlatIndex, setSelection, status, visibleRowCount]);
+  }, [
+    accumulatedRows.length,
+    displayedCollections,
+    flattenedPositions,
+    prefetchJobAtNow,
+    requestMoreForNavigation,
+    runDialogTransition,
+    selectedFlatIndex,
+    setSelection,
+    status,
+    visibleRowCount,
+  ]);
 
   const canGoPreviousMobile = selectedFlatIndex > 0;
   const canGoNextMobile =

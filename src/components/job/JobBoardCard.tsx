@@ -1,13 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialContent,
-  SpeedDialItem,
-  SpeedDialTrigger,
-} from "@/components/ui/speed-dial";
+import { SpeedDial, SpeedDialAction, SpeedDialContent, SpeedDialItem, SpeedDialTrigger } from "@/components/ui/speed-dial";
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
@@ -216,223 +210,228 @@ interface JobBoardCardProps {
   isSelected?: boolean;
 }
 
-const JobBoardCard = memo(({ jobCollection, collectionIndex, currentJobIndex, onJobIndexChange, onOpenJob, onCardClick, isSelectionMode = false, isSelected = false }: JobBoardCardProps) => {
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const { isDesktop } = useResponsiveBreakpoint();
-  const { addJob, removeJob, user } = useApp();
+const JobBoardCard = memo(
+  ({ jobCollection, collectionIndex, currentJobIndex, onJobIndexChange, onOpenJob, onCardClick, isSelectionMode = false, isSelected = false }: JobBoardCardProps) => {
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const { isDesktop } = useResponsiveBreakpoint();
+    const { addJob, removeJob, user } = useApp();
 
-  const safeIndex = useMemo(() => {
-    if (!jobCollection.jobs.length) return 0;
-    return Math.max(0, Math.min(currentJobIndex, jobCollection.jobs.length - 1));
-  }, [currentJobIndex, jobCollection.jobs.length]);
+    const safeIndex = useMemo(() => {
+      if (!jobCollection.jobs.length) return 0;
+      return Math.max(0, Math.min(currentJobIndex, jobCollection.jobs.length - 1));
+    }, [currentJobIndex, jobCollection.jobs.length]);
 
-  const currentJob = useMemo(() => jobCollection.jobs[safeIndex], [jobCollection.jobs, safeIndex]);
+    const currentJob = useMemo(() => jobCollection.jobs[safeIndex], [jobCollection.jobs, safeIndex]);
 
-  const stableKey = useMemo(() => {
-    return jobCollection.company?.companyId ?? jobCollection.company?._id ?? "unknown-company";
-  }, [jobCollection.company]);
+    const stableKey = useMemo(() => {
+      return jobCollection.company?.companyId ?? jobCollection.company?._id ?? "unknown-company";
+    }, [jobCollection.company]);
 
-  const setIndex = useCallback(
-    (nextIndex: number) => {
-      onJobIndexChange(collectionIndex, nextIndex);
-    },
-    [collectionIndex, onJobIndexChange]
-  );
+    const setIndex = useCallback(
+      (nextIndex: number) => {
+        onJobIndexChange(collectionIndex, nextIndex);
+      },
+      [collectionIndex, onJobIndexChange]
+    );
 
-  const handleNextJob = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setIndex((safeIndex + 1) % jobCollection.jobs.length);
+    const handleNextJob = useCallback(() => {
+      if (isTransitioning) return;
+      setIsTransitioning(true);
       setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }, JOB_FADE_DURATION_MS);
-  }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
+        setIndex((safeIndex + 1) % jobCollection.jobs.length);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 50);
+      }, JOB_FADE_DURATION_MS);
+    }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
 
-  const handlePreviousJob = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setIndex((safeIndex - 1 + jobCollection.jobs.length) % jobCollection.jobs.length);
+    const handlePreviousJob = useCallback(() => {
+      if (isTransitioning) return;
+      setIsTransitioning(true);
       setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }, JOB_FADE_DURATION_MS);
-  }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
+        setIndex((safeIndex - 1 + jobCollection.jobs.length) % jobCollection.jobs.length);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 50);
+      }, JOB_FADE_DURATION_MS);
+    }, [isTransitioning, jobCollection.jobs.length, safeIndex, setIndex]);
 
-  const isBookmarked = useMemo(
-    () => user.saved.includes(currentJob.externalId) || user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
-    [user.saved, user.applied, user.interviewing, currentJob.externalId]
-  );
+    const isBookmarked = useMemo(
+      () => user.saved.includes(currentJob.externalId) || user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
+      [user.saved, user.applied, user.interviewing, currentJob.externalId]
+    );
 
-  const isApplied = useMemo(
-    () => user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
-    [user.applied, user.interviewing, currentJob.externalId]
-  );
+    const isApplied = useMemo(
+      () => user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
+      [user.applied, user.interviewing, currentJob.externalId]
+    );
 
-  const isInterviewing = useMemo(() => user.interviewing.includes(currentJob.externalId), [user.interviewing, currentJob.externalId]);
+    const isInterviewing = useMemo(() => user.interviewing.includes(currentJob.externalId), [user.interviewing, currentJob.externalId]);
 
-  const handleBookmarkToggle = useCallback(() => {
-    if (isBookmarked) {
-      // Remove from all bookmark-related states
-      if (user.saved.includes(currentJob.externalId)) removeJob(currentJob.externalId, "saved");
-      if (user.applied.includes(currentJob.externalId)) removeJob(currentJob.externalId, "applied");
-      if (user.interviewing.includes(currentJob.externalId)) removeJob(currentJob.externalId, "interviewing");
-    } else {
-      // Add to saved (default bookmark state)
-      addJob(currentJob.externalId, "saved");
-    }
-  }, [isBookmarked, user.saved, user.applied, user.interviewing, currentJob.externalId, removeJob, addJob]);
-
-  const handleApplyToggle = useCallback(() => {
-    if (isApplied) {
-      // Remove from all apply-related states
-      if (user.applied.includes(currentJob.externalId)) removeJob(currentJob.externalId, "applied");
-      if (user.interviewing.includes(currentJob.externalId)) removeJob(currentJob.externalId, "interviewing");
-    } else {
-      // Add to applied (default apply state)
-      addJob(currentJob.externalId, "applied");
-    }
-  }, [isApplied, user.applied, user.interviewing, currentJob.externalId, removeJob, addJob]);
-
-  const handleBookmarkClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      handleBookmarkToggle();
-    },
-    [handleBookmarkToggle]
-  );
-
-  const handleApplyClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      handleApplyToggle();
-    },
-    [handleApplyToggle]
-  );
-
-  const handleShareClick = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const url = currentJob.applyUrl ?? "";
-      if (!url) {
-        toast.error("No application link available to share.");
-        return;
+    const handleBookmarkToggle = useCallback(() => {
+      if (isBookmarked) {
+        // Remove from all bookmark-related states
+        if (user.saved.includes(currentJob.externalId)) removeJob(currentJob.externalId, "saved");
+        if (user.applied.includes(currentJob.externalId)) removeJob(currentJob.externalId, "applied");
+        if (user.interviewing.includes(currentJob.externalId)) removeJob(currentJob.externalId, "interviewing");
+      } else {
+        // Add to saved (default bookmark state)
+        addJob(currentJob.externalId, "saved");
       }
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success("Application link copied to clipboard.");
-      } catch {
-        toast.error("Unable to copy link right now.");
+    }, [isBookmarked, user.saved, user.applied, user.interviewing, currentJob.externalId, removeJob, addJob]);
+
+    const handleApplyToggle = useCallback(() => {
+      if (isApplied) {
+        // Remove from all apply-related states
+        if (user.applied.includes(currentJob.externalId)) removeJob(currentJob.externalId, "applied");
+        if (user.interviewing.includes(currentJob.externalId)) removeJob(currentJob.externalId, "interviewing");
+      } else {
+        // Add to applied (default apply state)
+        addJob(currentJob.externalId, "applied");
       }
-    },
-    [currentJob.applyUrl]
-  );
+    }, [isApplied, user.applied, user.interviewing, currentJob.externalId, removeJob, addJob]);
 
-  const handleHideClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const jobId = currentJob.externalId;
+    const handleBookmarkClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleBookmarkToggle();
+      },
+      [handleBookmarkToggle]
+    );
 
-      if (user.hidden.includes(jobId)) {
-        toast.info("Job is already hidden.");
-        return;
-      }
+    const handleApplyClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleApplyToggle();
+      },
+      [handleApplyToggle]
+    );
 
-      if (user.saved.includes(jobId)) removeJob(jobId, "saved");
-      if (user.applied.includes(jobId)) removeJob(jobId, "applied");
-      if (user.interviewing.includes(jobId)) removeJob(jobId, "interviewing");
-      if (user.rejected.includes(jobId)) removeJob(jobId, "rejected");
+    const handleShareClick = useCallback(
+      async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const url = currentJob.applyUrl ?? "";
+        if (!url) {
+          toast.error("No application link available to share.");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success("Application link copied to clipboard.");
+        } catch {
+          toast.error("Unable to copy link right now.");
+        }
+      },
+      [currentJob.applyUrl]
+    );
 
-      addJob(jobId, "hidden");
-      toast.success("Job hidden.");
-    },
-    [addJob, currentJob.externalId, removeJob, user.applied, user.hidden, user.interviewing, user.rejected, user.saved]
-  );
+    const handleHideClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const jobId = currentJob.externalId;
 
-  const handleReportClick = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const reportPayload = [
-        `Job: ${currentJob.title}`,
-        `External ID: ${currentJob.externalId}`,
-        `Apply URL: ${currentJob.applyUrl ?? "(none)"}`,
-        "",
-        "Report: (describe the issue here)",
-      ].join("\n");
+        if (user.hidden.includes(jobId)) {
+          toast.info("Job is already hidden.");
+          return;
+        }
 
-      try {
-        await navigator.clipboard.writeText(reportPayload);
-        toast.success("Report template copied to clipboard.");
-      } catch {
-        toast.error("Unable to copy report template right now.");
-      }
-    },
-    [currentJob.applyUrl, currentJob.externalId, currentJob.title]
-  );
+        if (user.saved.includes(jobId)) removeJob(jobId, "saved");
+        if (user.applied.includes(jobId)) removeJob(jobId, "applied");
+        if (user.interviewing.includes(jobId)) removeJob(jobId, "interviewing");
+        if (user.rejected.includes(jobId)) removeJob(jobId, "rejected");
 
-  const handleJobIndexChange = useCallback(
-    (index: number) => {
-      setIndex(index);
-    },
-    [setIndex]
-  );
+        addJob(jobId, "hidden");
+        toast.success("Job hidden.");
+      },
+      [addJob, currentJob.externalId, removeJob, user.applied, user.hidden, user.interviewing, user.rejected, user.saved]
+    );
 
-  const handleOpenJob = useCallback((e: React.MouseEvent) => {
-    if (onCardClick) {
-      onCardClick(e, currentJob.externalId);
-      return;
-    }
-    onOpenJob(collectionIndex, safeIndex);
-  }, [collectionIndex, currentJob.externalId, onCardClick, onOpenJob, safeIndex]);
+    const handleReportClick = useCallback(
+      async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const reportPayload = [
+          `Job: ${currentJob.title}`,
+          `External ID: ${currentJob.externalId}`,
+          `Apply URL: ${currentJob.applyUrl ?? "(none)"}`,
+          "",
+          "Report: (describe the issue here)",
+        ].join("\n");
 
-  const card = (
-    <JobCard
-      currentJob={currentJob}
-      currentJobIndex={safeIndex}
-      isApplied={isApplied}
-      isBookmarked={isBookmarked}
-      isInterviewing={isInterviewing}
-      isTransitioning={isTransitioning}
-      jobCollection={jobCollection}
-      onBookmarkToggle={handleBookmarkClick}
-      onApplyToggle={handleApplyClick}
-      onShare={handleShareClick}
-      onHide={handleHideClick}
-      onReport={handleReportClick}
-      onClick={handleOpenJob}
-      onJobSelect={handleJobIndexChange}
-      onNext={handleNextJob}
-      onPrevious={handlePreviousJob}
-      isSelected={isSelected}
-      selectionMode={isSelectionMode}
-    />
-  );
+        try {
+          await navigator.clipboard.writeText(reportPayload);
+          toast.success("Report template copied to clipboard.");
+        } catch {
+          toast.error("Unable to copy report template right now.");
+        }
+      },
+      [currentJob.applyUrl, currentJob.externalId, currentJob.title]
+    );
 
-  return (
-    <div key={`${isDesktop ? "desktop" : "mobile"}-${stableKey}`}>
-      {isDesktop ? (
-        <CardContextMenuProvider
-          currentJob={currentJob}
-          company={jobCollection.company}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          onApplyClick={handleApplyClick}
-          onBookmarkClick={handleBookmarkClick}
-          onShareClick={handleShareClick}
-          onHideClick={handleHideClick}
-          onReportClick={handleReportClick}
-          applyUrl={currentJob.applyUrl ?? ""}
-        >
-          {card}
-        </CardContextMenuProvider>
-      ) : (
-        card
-      )}
-    </div>
-  );
-});
+    const handleJobIndexChange = useCallback(
+      (index: number) => {
+        setIndex(index);
+      },
+      [setIndex]
+    );
+
+    const handleOpenJob = useCallback(
+      (e: React.MouseEvent) => {
+        if (onCardClick) {
+          onCardClick(e, currentJob.externalId);
+          return;
+        }
+        onOpenJob(collectionIndex, safeIndex);
+      },
+      [collectionIndex, currentJob.externalId, onCardClick, onOpenJob, safeIndex]
+    );
+
+    const card = (
+      <JobCard
+        currentJob={currentJob}
+        currentJobIndex={safeIndex}
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        isInterviewing={isInterviewing}
+        isTransitioning={isTransitioning}
+        jobCollection={jobCollection}
+        onBookmarkToggle={handleBookmarkClick}
+        onApplyToggle={handleApplyClick}
+        onShare={handleShareClick}
+        onHide={handleHideClick}
+        onReport={handleReportClick}
+        onClick={handleOpenJob}
+        onJobSelect={handleJobIndexChange}
+        onNext={handleNextJob}
+        onPrevious={handlePreviousJob}
+        isSelected={isSelected}
+        selectionMode={isSelectionMode}
+      />
+    );
+
+    return (
+      <div key={`${isDesktop ? "desktop" : "mobile"}-${stableKey}`}>
+        {isDesktop ? (
+          <CardContextMenuProvider
+            currentJob={currentJob}
+            company={jobCollection.company}
+            isApplied={isApplied}
+            isBookmarked={isBookmarked}
+            onApplyClick={handleApplyClick}
+            onBookmarkClick={handleBookmarkClick}
+            onShareClick={handleShareClick}
+            onHideClick={handleHideClick}
+            onReportClick={handleReportClick}
+            applyUrl={currentJob.applyUrl ?? ""}
+          >
+            {card}
+          </CardContextMenuProvider>
+        ) : (
+          card
+        )}
+      </div>
+    );
+  }
+);
 
 JobBoardCard.displayName = "JobBoardCard";
 

@@ -11,28 +11,16 @@ interface CardSwipeIndicatorProps {
   className?: string;
 }
 
-const CardSwipeIndicator = ({
-  children,
-  onNext,
-  onPrevious,
-  totalJobs,
-  className = "",
-}: CardSwipeIndicatorProps) => {
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
-    null
-  );
-  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(
-    null
-  );
+const CardSwipeIndicator = ({ children, onNext, onPrevious, totalJobs, className = "" }: CardSwipeIndicatorProps) => {
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [hasSwiped, setHasSwiped] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     const checkTouchDevice = () => {
-      setIsTouchDevice(
-        "ontouchstart" in window || navigator.maxTouchPoints > 0
-      );
+      setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
     };
 
     checkTouchDevice();
@@ -99,12 +87,7 @@ const CardSwipeIndicator = ({
   };
 
   return (
-    <div
-      className={`relative h-full ${className}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className={`relative h-full ${className}`} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
       {swipeDirection && (
         <div
           className={`absolute inset-0 flex items-center pointer-events-none z-10 transition-opacity duration-200 ${

@@ -1,26 +1,10 @@
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { formatCompanyWebsite } from "@/lib/company-info";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
-import {
-  Bookmark,
-  CheckCheck,
-  ExternalLink,
-  EyeOff,
-  Link2,
-  MessageSquareWarning,
-  Send,
-  Share2,
-} from "lucide-react";
+import { Bookmark, CheckCheck, ExternalLink, EyeOff, Link2, MessageSquareWarning, Send, Share2 } from "lucide-react";
 
 const CardContextMenuProvider = ({
   children,
-  currentJob,
   company,
   isBookmarked,
   isApplied,
@@ -51,11 +35,7 @@ const CardContextMenuProvider = ({
       <ContextMenuTrigger>{children}</ContextMenuTrigger>
       <ContextMenuContent className="min-w-64">
         <ContextMenuItem onClick={onBookmarkClick}>
-          {isBookmarked ? (
-            <Bookmark className="mr-2 size-4 fill-current text-primary" />
-          ) : (
-            <Bookmark className="mr-2 size-4" />
-          )}
+          {isBookmarked ? <Bookmark className="mr-2 size-4 fill-current text-primary" /> : <Bookmark className="mr-2 size-4" />}
           {isBookmarked ? "Unsave Job" : "Save Job"}
         </ContextMenuItem>
         <ContextMenuItem className="group">

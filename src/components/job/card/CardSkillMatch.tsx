@@ -17,9 +17,10 @@ const CardSkillMatch = ({ technicalTools }: CardSkillMatchProps) => {
 
     // Normalize skills for comparison (case-insensitive, remove special chars)
     const normalizeSkill = (skill: string) => {
-      return skill.toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '') // Remove special characters
-        .replace(/\s+/g, ' ') // Normalize whitespace
+      return skill
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "") // Remove special characters
+        .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
     };
 
@@ -27,23 +28,21 @@ const CardSkillMatch = ({ technicalTools }: CardSkillMatchProps) => {
     const normalizedJobTools = technicalTools.map(normalizeSkill);
 
     // Find exact matches only
-    const matchedSkills = normalizedUserSkills.filter(userSkill =>
-      normalizedJobTools.includes(userSkill)
-    );
+    const matchedSkills = normalizedUserSkills.filter((userSkill) => normalizedJobTools.includes(userSkill));
 
     // Find the original skill names that matched
-    const matchedSkillNames = user.skills.filter(userSkill => {
+    const matchedSkillNames = user.skills.filter((userSkill) => {
       const normalizedUserSkill = normalizeSkill(userSkill);
       return matchedSkills.includes(normalizedUserSkill);
     });
 
     const percentage = Math.round((matchedSkills.length / technicalTools.length) * 100);
-    
+
     return {
       percentage: Math.min(percentage, 100), // Cap at 100%
       matchedSkills,
       totalSkills: technicalTools.length,
-      matchedSkillNames
+      matchedSkillNames,
     };
   }, [user.skills, technicalTools]);
 
@@ -51,15 +50,13 @@ const CardSkillMatch = ({ technicalTools }: CardSkillMatchProps) => {
   const secondaryColor = "color-mix(in srgb, var(--muted) 80%, transparent)";
 
   if (!technicalTools || technicalTools.length === 0) {
-    return (
-      <div className="col-span-1 flex justify-end">
-      </div>
-    );
+    return <div className="col-span-1 flex justify-end"></div>;
   }
 
-  const tooltipContent = skillMatchData.matchedSkillNames.length > 0
-    ? `${skillMatchData.matchedSkillNames.length} / ${skillMatchData.totalSkills} matched.`
-    : `0 / ${skillMatchData.totalSkills} matched`;
+  const tooltipContent =
+    skillMatchData.matchedSkillNames.length > 0
+      ? `${skillMatchData.matchedSkillNames.length} / ${skillMatchData.totalSkills} matched.`
+      : `0 / ${skillMatchData.totalSkills} matched`;
 
   return (
     <div className="col-span-1 flex justify-end">

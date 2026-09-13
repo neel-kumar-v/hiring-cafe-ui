@@ -19,12 +19,7 @@ const DialogJobTitle = ({
   fadeCompanyChrome?: boolean;
 }) => {
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
-  const cleanTitle = getCleanJobTitle(
-    jobTitle,
-    companyName,
-    locationForTitle,
-    tools
-  );
+  const cleanTitle = getCleanJobTitle(jobTitle, companyName, locationForTitle, tools);
   const className =
     "z-20 mb-4 flex flex-row flex-wrap items-center gap-2 border-border py-4 font-bold text-3xl text-foreground sm:border-b md:pt-6 dark:border-border dark:text-foreground";
 

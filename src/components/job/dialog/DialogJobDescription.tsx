@@ -10,11 +10,13 @@ import { toast } from "sonner";
 const DialogJobDescription = ({
   description,
   isLoading = false,
+  loadFailed = false,
   isTransitioning = false,
   fadeCompanyChrome = false,
 }: {
   description: string;
   isLoading?: boolean;
+  loadFailed?: boolean;
   isTransitioning?: boolean;
   fadeCompanyChrome?: boolean;
 }) => {
@@ -27,7 +29,7 @@ const DialogJobDescription = ({
     const html = formatJobDescription(deferredDescription);
     const elapsed = performance.now() - started;
     if (process.env.NODE_ENV !== "production" && elapsed > 24) {
-      // eslint-disable-next-line no-console
+       
       console.log(`[perf] formatJobDescription ${elapsed.toFixed(1)}ms`);
     }
     return html;
@@ -55,6 +57,15 @@ const DialogJobDescription = ({
     );
   }
 
+  if (loadFailed) {
+    return (
+      <div className="mb-2 md:mb-4">
+        <Separator className="my-8" />
+        <p className="text-sm text-muted-foreground">Couldn&apos;t load job details</p>
+      </div>
+    );
+  }
+
   if (!description) return null;
 
   const handleCopyDescription = async () => {
@@ -70,27 +81,10 @@ const DialogJobDescription = ({
         }
         if (node.nodeType === Node.ELEMENT_NODE) {
           const tag = (node as HTMLElement).tagName.toLowerCase();
-          const blockTags = [
-            "p",
-            "div",
-            "br",
-            "li",
-            "ul",
-            "ol",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "pre",
-            "blockquote",
-            "tr",
-          ];
+          const blockTags = ["p", "div", "br", "li", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "blockquote", "tr"];
           if (blockTags.includes(tag) && text.length > 0) text += "\n";
           if (tag === "br") text += "\n";
-          for (const child of Array.from(node.childNodes))
-            text += getTextWithLineBreaks(child);
+          for (const child of Array.from(node.childNodes)) text += getTextWithLineBreaks(child);
           if (blockTags.includes(tag)) text += "\n";
         }
         return text;

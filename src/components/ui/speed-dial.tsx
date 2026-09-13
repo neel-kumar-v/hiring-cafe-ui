@@ -85,10 +85,7 @@ function useStoreContext(consumerName: string) {
   return context;
 }
 
-function useStore<T>(
-  selector: (state: StoreState) => T,
-  ogStore?: Store | null,
-): T {
+function useStore<T>(selector: (state: StoreState) => T, ogStore?: Store | null): T {
   const contextStore = React.useContext(StoreContext);
 
   const store = ogStore ?? contextStore;
@@ -97,10 +94,7 @@ function useStore<T>(
     throw new Error(`\`useStore\` must be used within \`${ROOT_NAME}\``);
   }
 
-  const getSnapshot = React.useCallback(
-    () => selector(store.getState()),
-    [store, selector],
-  );
+  const getSnapshot = React.useCallback(() => selector(store.getState()), [store, selector]);
 
   return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
 }
@@ -128,9 +122,7 @@ interface SpeedDialContextValue {
   disabled: boolean;
 }
 
-const SpeedDialContext = React.createContext<SpeedDialContextValue | null>(
-  null,
-);
+const SpeedDialContext = React.createContext<SpeedDialContextValue | null>(null);
 
 function useSpeedDialContext(consumerName: string) {
   const context = React.useContext(SpeedDialContext);
@@ -259,13 +251,11 @@ function SpeedDial(props: SpeedDialProps) {
 
       const target = event.target as HTMLElement;
       const nodes = getNodes();
-      const isInteractiveElement = nodes.some((node) =>
-        node.ref.current?.contains(target),
-      );
+      const isInteractiveElement = nodes.some((node) => node.ref.current?.contains(target));
 
       isPointerInsideReactTreeRef.current = isInteractiveElement;
     },
-    [propsRef, getNodes],
+    [propsRef, getNodes]
   );
 
   const contextValue = React.useMemo<SpeedDialContextValue>(
@@ -285,18 +275,7 @@ function SpeedDial(props: SpeedDialProps) {
       delay,
       disabled,
     }),
-    [
-      getNodes,
-      onNodeRegister,
-      onNodeUnregister,
-      contentId,
-      side,
-      radius,
-      rotationOffset,
-      activationMode,
-      delay,
-      disabled,
-    ],
+    [getNodes, onNodeRegister, onNodeUnregister, contentId, side, radius, rotationOffset, activationMode, delay, disabled]
   );
 
   const RootPrimitive = asChild ? SlotPrimitive.Slot : "div";
@@ -319,29 +298,11 @@ function SpeedDial(props: SpeedDialProps) {
 }
 
 function SpeedDialTrigger(props: React.ComponentProps<typeof Button>) {
-  const {
-    onClick: onClickProp,
-    onMouseEnter: onMouseEnterProp,
-    onMouseLeave: onMouseLeaveProp,
-    className,
-    disabled: disabledProp,
-    id,
-    ref,
-    ...triggerProps
-  } = props;
+  const { onClick: onClickProp, onMouseEnter: onMouseEnterProp, onMouseLeave: onMouseLeaveProp, className, disabled: disabledProp, id, ref, ...triggerProps } = props;
 
   const store = useStoreContext(TRIGGER_NAME);
 
-  const {
-    onNodeRegister,
-    onNodeUnregister,
-    contentId,
-    hoverCloseTimerRef,
-    triggerRef,
-    activationMode,
-    delay,
-    disabled,
-  } = useSpeedDialContext(TRIGGER_NAME);
+  const { onNodeRegister, onNodeUnregister, contentId, hoverCloseTimerRef, triggerRef, activationMode, delay, disabled } = useSpeedDialContext(TRIGGER_NAME);
 
   const open = useStore((state) => state.open);
   const isDisabled = disabledProp || disabled;
@@ -391,14 +352,13 @@ function SpeedDialTrigger(props: React.ComponentProps<typeof Button>) {
 
       store.setState("open", !open);
     },
-    [onClickProp, store, open, hoverCloseTimerRef],
+    [onClickProp, store, open, hoverCloseTimerRef]
   );
 
   const onMouseEnter = React.useCallback(
     (event: React.MouseEvent<TriggerElement>) => {
       onMouseEnterProp?.(event);
-      if (event.defaultPrevented || activationMode !== "hover" || isDisabled)
-        return;
+      if (event.defaultPrevented || activationMode !== "hover" || isDisabled) return;
 
       if (hoverCloseTimerRef.current) {
         window.clearTimeout(hoverCloseTimerRef.current);
@@ -413,21 +373,13 @@ function SpeedDialTrigger(props: React.ComponentProps<typeof Button>) {
         store.setState("open", true);
       }, delay);
     },
-    [
-      onMouseEnterProp,
-      activationMode,
-      isDisabled,
-      store,
-      delay,
-      hoverCloseTimerRef,
-    ],
+    [onMouseEnterProp, activationMode, isDisabled, store, delay, hoverCloseTimerRef]
   );
 
   const onMouseLeave = React.useCallback(
     (event: React.MouseEvent<TriggerElement>) => {
       onMouseLeaveProp?.(event);
-      if (event.defaultPrevented || activationMode !== "hover" || isDisabled)
-        return;
+      if (event.defaultPrevented || activationMode !== "hover" || isDisabled) return;
 
       if (hoverOpenTimerRef.current) {
         window.clearTimeout(hoverOpenTimerRef.current);
@@ -438,7 +390,7 @@ function SpeedDialTrigger(props: React.ComponentProps<typeof Button>) {
         store.setState("open", false);
       }, DEFAULT_HOVER_CLOSE_DELAY);
     },
-    [onMouseLeaveProp, activationMode, isDisabled, store, hoverCloseTimerRef],
+    [onMouseLeaveProp, activationMode, isDisabled, store, hoverCloseTimerRef]
   );
 
   return (
@@ -470,8 +422,7 @@ interface SpeedDialItemImplContextValue {
   y: number;
 }
 
-const SpeedDialItemImplContext =
-  React.createContext<SpeedDialItemImplContextValue | null>(null);
+const SpeedDialItemImplContext = React.createContext<SpeedDialItemImplContextValue | null>(null);
 
 function useSpeedDialItemImplContext() {
   return React.useContext(SpeedDialItemImplContext);
@@ -485,46 +436,28 @@ interface SpeedDialItemImplProps {
   children: React.ReactNode;
 }
 
-const SpeedDialItemImpl = React.memo(function SpeedDialItemImpl({
-  delay,
-  open,
-  x = 0,
-  y = 0,
-  children,
-}: SpeedDialItemImplProps) {
-  const contextValue = React.useMemo<SpeedDialItemImplContextValue>(
-    () => ({ delay, open, x, y }),
-    [delay, open, x, y],
-  );
+const SpeedDialItemImpl = React.memo(function SpeedDialItemImpl({ delay, open, x = 0, y = 0, children }: SpeedDialItemImplProps) {
+  const contextValue = React.useMemo<SpeedDialItemImplContextValue>(() => ({ delay, open, x, y }), [delay, open, x, y]);
 
-  return (
-    <SpeedDialItemImplContext.Provider value={contextValue}>
-      {children}
-    </SpeedDialItemImplContext.Provider>
-  );
+  return <SpeedDialItemImplContext.Provider value={contextValue}>{children}</SpeedDialItemImplContext.Provider>;
 });
 
-const speedDialContentVariants = cva(
-  "absolute z-50 flex gap-[var(--speed-dial-gap)] data-[state=closed]:pointer-events-none",
-  {
-    variants: {
-      side: {
-        top: "flex-col-reverse items-end",
-        bottom: "flex-col items-end",
-        left: "flex-row-reverse items-center",
-        right: "flex-row items-center",
-        circular: "block",
-      },
-    },
-    defaultVariants: {
-      side: "top",
+const speedDialContentVariants = cva("absolute z-50 flex gap-[var(--speed-dial-gap)] data-[state=closed]:pointer-events-none", {
+  variants: {
+    side: {
+      top: "flex-col-reverse items-end",
+      bottom: "flex-col items-end",
+      left: "flex-row-reverse items-center",
+      right: "flex-row items-center",
+      circular: "block",
     },
   },
-);
+  defaultVariants: {
+    side: "top",
+  },
+});
 
-interface SpeedDialContentProps
-  extends DivProps,
-    VariantProps<typeof speedDialContentVariants> {
+interface SpeedDialContentProps extends DivProps, VariantProps<typeof speedDialContentVariants> {
   offset?: number;
   gap?: number;
   forceMount?: boolean;
@@ -552,18 +485,8 @@ function SpeedDialContent(props: SpeedDialContentProps) {
   const store = useStoreContext(CONTENT_NAME);
   const open = useStore((state) => state.open);
 
-  const {
-    contentId,
-    side,
-    radius,
-    rotationOffset,
-    getNodes,
-    rootRef,
-    triggerRef,
-    isPointerInsideReactTreeRef,
-    hoverCloseTimerRef,
-    activationMode,
-  } = useSpeedDialContext(CONTENT_NAME);
+  const { contentId, side, radius, rotationOffset, getNodes, rootRef, triggerRef, isPointerInsideReactTreeRef, hoverCloseTimerRef, activationMode } =
+    useSpeedDialContext(CONTENT_NAME);
 
   const contentRef = React.useRef<ContentElement | null>(null);
   const composedRef = useComposedRefs(ref, contentRef);
@@ -579,13 +502,12 @@ function SpeedDialContent(props: SpeedDialContentProps) {
 
   const transformOrigin = React.useMemo(() => getTransformOrigin(side), [side]);
 
-  const ownerDocument =
-    contentRef.current?.ownerDocument ?? globalThis?.document;
+  const ownerDocument = contentRef.current?.ownerDocument ?? globalThis?.document;
 
   const mounted = React.useSyncExternalStore(
     () => () => {},
     () => true,
-    () => false,
+    () => false
   );
 
   const [renderState, setRenderState] = React.useState({
@@ -775,14 +697,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
       ownerDocument.removeEventListener("pointerdown", onPointerDown);
       ownerDocument.removeEventListener("click", onClickRef.current);
     };
-  }, [
-    open,
-    rootRef,
-    isPointerInsideReactTreeRef,
-    propsRef,
-    ownerDocument,
-    store,
-  ]);
+  }, [open, rootRef, isPointerInsideReactTreeRef, propsRef, ownerDocument, store]);
 
   const onMouseEnter = React.useCallback(
     (event: React.MouseEvent<ContentElement>) => {
@@ -794,7 +709,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
         hoverCloseTimerRef.current = null;
       }
     },
-    [propsRef, hoverCloseTimerRef, activationMode],
+    [propsRef, hoverCloseTimerRef, activationMode]
   );
 
   const onMouseLeave = React.useCallback(
@@ -806,7 +721,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
         store.setState("open", false);
       }, DEFAULT_HOVER_CLOSE_DELAY);
     },
-    [propsRef, hoverCloseTimerRef, store, activationMode],
+    [propsRef, hoverCloseTimerRef, store, activationMode]
   );
 
   const contentStyle = React.useMemo<React.CSSProperties>(
@@ -817,7 +732,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
       ...position,
       ...style,
     }),
-    [gap, offset, transformOrigin, position, style],
+    [gap, offset, transformOrigin, position, style]
   );
 
   const ContentPrimitive = asChild ? SlotPrimitive.Slot : "div";
@@ -847,9 +762,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
         return React.Children.map(children, (child, index) => {
           if (!React.isValidElement(child)) return child;
 
-          const delay = renderState.animating
-            ? index * DEFAULT_ITEM_DELAY
-            : (totalChildren - index - 1) * DEFAULT_ITEM_DELAY;
+          const delay = renderState.animating ? index * DEFAULT_ITEM_DELAY : (totalChildren - index - 1) * DEFAULT_ITEM_DELAY;
 
           let x = 0;
           let y = 0;
@@ -861,13 +774,7 @@ function SpeedDialContent(props: SpeedDialContentProps) {
           }
 
           return (
-            <SpeedDialItemImpl
-              key={child.key ?? index}
-              delay={delay}
-              open={renderState.animating}
-              x={x}
-              y={y}
-            >
+            <SpeedDialItemImpl key={child.key ?? index} delay={delay} open={renderState.animating} x={x} y={y}>
               {child}
             </SpeedDialItemImpl>
           );
@@ -910,7 +817,7 @@ const speedDialItemVariants = cva(
     defaultVariants: {
       side: "top",
     },
-  },
+  }
 );
 
 interface SpeedDialItemContextValue {
@@ -918,8 +825,7 @@ interface SpeedDialItemContextValue {
   labelId: string;
 }
 
-const SpeedDialItemContext =
-  React.createContext<SpeedDialItemContextValue | null>(null);
+const SpeedDialItemContext = React.createContext<SpeedDialItemContextValue | null>(null);
 
 function useSpeedDialItemContext(consumerName: string) {
   const context = React.useContext(SpeedDialItemContext);
@@ -942,32 +848,24 @@ function SpeedDialItem(props: DivProps) {
   const actionId = React.useId();
   const labelId = React.useId();
 
-  const contextValue = React.useMemo<SpeedDialItemContextValue>(
-    () => ({ actionId, labelId }),
-    [actionId, labelId],
-  );
+  const contextValue = React.useMemo<SpeedDialItemContextValue>(() => ({ actionId, labelId }), [actionId, labelId]);
 
-  const itemStyle = React.useMemo<React.CSSProperties>(
-    () => {
-      const baseStyle = {
-        "--speed-dial-animation-duration": `${DEFAULT_ANIMATION_DURATION}ms`,
-        "--speed-dial-delay": `${delay}ms`,
-      } as React.CSSProperties & Record<string, string>;
+  const itemStyle = React.useMemo<React.CSSProperties>(() => {
+    const baseStyle = {
+      "--speed-dial-animation-duration": `${DEFAULT_ANIMATION_DURATION}ms`,
+      "--speed-dial-delay": `${delay}ms`,
+    } as React.CSSProperties & Record<string, string>;
 
-      if (side === "circular") {
-        return {
-          ...baseStyle,
-          transform: open
-            ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
-            : "translate(-50%, -50%)",
-          ...style,
-        };
-      }
+    if (side === "circular") {
+      return {
+        ...baseStyle,
+        transform: open ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` : "translate(-50%, -50%)",
+        ...style,
+      };
+    }
 
-      return { ...baseStyle, ...style };
-    },
-    [delay, style, open, x, y, side],
-  );
+    return { ...baseStyle, ...style };
+  }, [delay, style, open, x, y, side]);
 
   const ItemPrimitive = asChild ? SlotPrimitive.Slot : "div";
 
@@ -988,22 +886,12 @@ function SpeedDialItem(props: DivProps) {
   );
 }
 
-interface SpeedDialActionProps
-  extends Omit<React.ComponentProps<typeof Button>, "onSelect"> {
+interface SpeedDialActionProps extends Omit<React.ComponentProps<typeof Button>, "onSelect"> {
   onSelect?: (event: Event) => void;
 }
 
 function SpeedDialAction(props: SpeedDialActionProps) {
-  const {
-    onSelect,
-    onClick: onClickProp,
-    variant = "outline",
-    className,
-    disabled,
-    id,
-    ref,
-    ...actionProps
-  } = props;
+  const { onSelect, onClick: onClickProp, variant = "outline", className, disabled, id, ref, ...actionProps } = props;
 
   const propsRef = useAsRef({
     onClick: onClickProp,
@@ -1013,8 +901,7 @@ function SpeedDialAction(props: SpeedDialActionProps) {
   const store = useStoreContext(ACTION_NAME);
 
   const { onNodeRegister, onNodeUnregister } = useSpeedDialContext(ACTION_NAME);
-  const { actionId: itemActionId, labelId } =
-    useSpeedDialItemContext(ACTION_NAME);
+  const { actionId: itemActionId, labelId } = useSpeedDialItemContext(ACTION_NAME);
 
   const actionId = id ?? itemActionId;
 
@@ -1043,20 +930,16 @@ function SpeedDialAction(props: SpeedDialActionProps) {
 
       const actionSelectEvent = new CustomEvent(ACTION_SELECT, EVENT_OPTIONS);
 
-      action.addEventListener(
-        ACTION_SELECT,
-        (event) => propsRef.current?.onSelect?.(event),
-        {
-          once: true,
-        },
-      );
+      action.addEventListener(ACTION_SELECT, (event) => propsRef.current?.onSelect?.(event), {
+        once: true,
+      });
 
       action.dispatchEvent(actionSelectEvent);
       if (actionSelectEvent.defaultPrevented) return;
 
       store.setState("open", false);
     },
-    [propsRef, store],
+    [propsRef, store]
   );
 
   return (
@@ -1071,10 +954,7 @@ function SpeedDialAction(props: SpeedDialActionProps) {
       disabled={disabled}
       ref={composedRefs}
       {...actionProps}
-      className={cn(
-        "size-11 shrink-0 rounded-full bg-background",
-        className,
-      )}
+      className={cn("size-11 shrink-0 rounded-full bg-background", className)}
       onClick={onClick}
     />
   );
@@ -1090,20 +970,9 @@ function SpeedDialLabel({ asChild, className, ...props }: DivProps) {
       id={labelId}
       data-slot="speed-dial-label"
       {...props}
-      className={cn(
-        "pointer-events-none whitespace-nowrap rounded-md bg-popover px-2 py-1 text-popover-foreground text-sm shadow-md",
-        className,
-      )}
+      className={cn("pointer-events-none whitespace-nowrap rounded-md bg-popover px-2 py-1 text-popover-foreground text-sm shadow-md", className)}
     />
   );
 }
 
-export {
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialContent,
-  SpeedDialItem,
-  SpeedDialLabel,
-  type SpeedDialProps,
-  SpeedDialTrigger,
-};
+export { SpeedDial, SpeedDialAction, SpeedDialContent, SpeedDialItem, SpeedDialLabel, type SpeedDialProps, SpeedDialTrigger };

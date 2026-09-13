@@ -12,16 +12,9 @@ const FocusedFilterContext = createContext<FocusedFilterContextValue | null>(nul
 export function FocusedFilterProvider({ children }: { children: ReactNode }) {
   const [focusedFilterId, setFocusedFilterId] = useState<string | null>(null);
 
-  const value = useMemo(
-    () => ({ focusedFilterId, setFocusedFilterId }),
-    [focusedFilterId]
-  );
+  const value = useMemo(() => ({ focusedFilterId, setFocusedFilterId }), [focusedFilterId]);
 
-  return (
-    <FocusedFilterContext.Provider value={value}>
-      {children}
-    </FocusedFilterContext.Provider>
-  );
+  return <FocusedFilterContext.Provider value={value}>{children}</FocusedFilterContext.Provider>;
 }
 
 export function useFocusedFilter(): FocusedFilterContextValue {

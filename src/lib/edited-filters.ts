@@ -6,9 +6,7 @@ function isEqual(left: unknown, right: unknown) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-const tagToCategoryId: Record<string, CategoryId> = Object.fromEntries(
-  filters.map((filter) => [filter.name, filter.id])
-) as Record<string, CategoryId>;
+const tagToCategoryId: Record<string, CategoryId> = Object.fromEntries(filters.map((filter) => [filter.name, filter.id])) as Record<string, CategoryId>;
 
 const categoryStateKeys: Record<string, (keyof SearchState)[]> = {
   "date-range": ["date_range"],
@@ -39,33 +37,21 @@ const categoryStateKeys: Record<string, (keyof SearchState)[]> = {
 
 export const initialSearchState = defaultSearchOptions;
 
-export function isCategoryEdited(
-  state: SearchState,
-  initialState: SearchState,
-  categoryId: string
-): boolean {
+export function isCategoryEdited(state: SearchState, initialState: SearchState, categoryId: string): boolean {
   const keys = categoryStateKeys[categoryId];
   if (!keys?.length) return false;
 
   return keys.some((key) => !isEqual(state[key], initialState[key]));
 }
 
-export function getInitialPatchForCategory(
-  categoryId: string,
-  initialState: SearchState = initialSearchState
-): Partial<SearchState> {
+export function getInitialPatchForCategory(categoryId: string, initialState: SearchState = initialSearchState): Partial<SearchState> {
   const keys = categoryStateKeys[categoryId];
   if (!keys?.length) return {};
 
-  return Object.fromEntries(
-    keys.map((key) => [key, initialState[key]])
-  ) as Partial<SearchState>;
+  return Object.fromEntries(keys.map((key) => [key, initialState[key]])) as Partial<SearchState>;
 }
 
-export function getEditedTags(
-  state: SearchState,
-  initialState: SearchState = initialSearchState
-): Set<string> {
+export function getEditedTags(state: SearchState, initialState: SearchState = initialSearchState): Set<string> {
   const edited = new Set<string>();
 
   for (const [tag, categoryId] of Object.entries(tagToCategoryId)) {

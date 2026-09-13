@@ -11,10 +11,7 @@ const CardRequirements = ({
   minIndustryAndRoleYoe?: number | null;
   minManagementAndLeadershipYoe?: number | null;
 }) => {
-  const experienceInfo = getExperienceInfo(
-    minIndustryAndRoleYoe,
-    minManagementAndLeadershipYoe
-  );
+  const experienceInfo = getExperienceInfo(minIndustryAndRoleYoe, minManagementAndLeadershipYoe);
 
   return (
     <div className="line-clamp-3 cursor-text text-foreground/80 text-xs leading-normal dark:text-foreground/80">

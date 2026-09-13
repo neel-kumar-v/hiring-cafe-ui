@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type TransitionEvent,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type TransitionEvent } from "react";
 
 const DURATION_MS = 300;
 
@@ -44,9 +36,7 @@ export function useCollapsibleHeight(open: boolean) {
 
     prevOpen.current = open;
 
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReduced) {
       setHeight(open ? "auto" : 0);

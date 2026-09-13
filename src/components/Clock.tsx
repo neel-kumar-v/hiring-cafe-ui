@@ -1,6 +1,6 @@
-'use client';
-import { SlidingNumber } from '@/components/ui/motion/sliding-number';
-import { useEffect, useState } from 'react';
+"use client";
+import { SlidingNumber } from "@/components/ui/motion/sliding-number";
+import { useEffect, useState } from "react";
 
 interface Time {
   hours: number;
@@ -15,7 +15,7 @@ export function Clock() {
     const getNextEighthHour = () => {
       const now = new Date();
       const currentHour = now.getHours();
-      const nextEighth = Math.ceil((currentHour + 1) / 8) * 8 % 24;
+      const nextEighth = (Math.ceil((currentHour + 1) / 8) * 8) % 24;
       const target = new Date(now);
       target.setMinutes(0, 0, 0);
       target.setHours(nextEighth);
@@ -48,15 +48,15 @@ export function Clock() {
   }, []);
 
   return (
-    <div className='flex-col items-center hidden sm:flex'>
-      <div className='flex items-center gap-0.5 px-2 text-sm'>
+    <div className="flex-col items-center hidden sm:flex">
+      <div className="flex items-center gap-0.5 px-2 text-sm">
         <SlidingNumber value={time.hours} padStart={true} />
-        <span className='text-muted-foreground'>:</span>
+        <span className="text-muted-foreground">:</span>
         <SlidingNumber value={time.minutes} padStart={true} />
-        <span className='text-muted-foreground'>:</span>
+        <span className="text-muted-foreground">:</span>
         <SlidingNumber value={time.seconds} padStart={true} />
       </div>
-      <div className='text-[8px] text-muted-foreground'>refreshing in</div>
+      <div className="text-[8px] text-muted-foreground">refreshing in</div>
     </div>
   );
 }

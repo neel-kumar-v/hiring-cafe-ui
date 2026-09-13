@@ -18,11 +18,9 @@ const ScrapeTime = ({
   const { abbreviated, full } = getTimeSince(postedAt);
   return (
     <span className="col-span-1 justify-self-end">
-      <UniversalTooltip content={`HiringCafe scraped this job ${full} ago`} side="bottom" >
+      <UniversalTooltip content={`HiringCafe scraped this job ${full} ago`} side="bottom">
         <div className="-translate-y-0.25 inline-flex cursor-default items-center gap-1 w-fit">
-          <Clock
-            className={`text-muted-foreground ${iconClassName}`}
-          />
+          <Clock className={`text-muted-foreground ${iconClassName}`} />
           <span className={cn("text-muted-foreground", textClassName, jobFadeClass(isTransitioning))}>{abbreviated}</span>
         </div>
       </UniversalTooltip>

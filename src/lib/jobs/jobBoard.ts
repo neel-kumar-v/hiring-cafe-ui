@@ -33,11 +33,7 @@ export function getJobBoardCollectionKey(collection: JobBoardCollection, index: 
 /**
  * Groups visible search rows by company, then chunks each company's jobs into card-sized slices.
  */
-export function buildJobBoardDisplayedCollections(
-  accumulatedRows: JobCardResultDTO[],
-  visibleRowCount: number,
-  jobsPerCard: number = JOBS_PER_CARD
-): JobBoardCollection[] {
+export function buildJobBoardDisplayedCollections(accumulatedRows: JobCardResultDTO[], visibleRowCount: number, jobsPerCard: number = JOBS_PER_CARD): JobBoardCollection[] {
   const visibleRows = accumulatedRows.slice(0, visibleRowCount);
   if (!visibleRows.length) return [];
 
@@ -76,38 +72,22 @@ export function flattenJobBoardPositions(displayedCollections: JobBoardCollectio
   return rows;
 }
 
-export function jobBoardFlatIndexForSelection(
-  flattened: JobBoardFlattenedPosition[],
-  selected: JobBoardSelectedPosition | null
-): number {
+export function jobBoardFlatIndexForSelection(flattened: JobBoardFlattenedPosition[], selected: JobBoardSelectedPosition | null): number {
   if (!selected) return -1;
   return flattened.findIndex((item) => item.collectionIndex === selected.collectionIndex && item.jobIndex === selected.jobIndex);
 }
 
 /** Clamped job index remembered per collection key (outside navigation). */
-export function jobBoardRememberedJobIndex(
-  collection: JobBoardCollection,
-  collectionIndex: number,
-  jobIndexByCollection: Record<string, number>
-): number {
+export function jobBoardRememberedJobIndex(collection: JobBoardCollection, collectionIndex: number, jobIndexByCollection: Record<string, number>): number {
   const key = getJobBoardCollectionKey(collection, collectionIndex);
   return Math.max(0, Math.min(jobIndexByCollection[key] ?? 0, collection.jobs.length - 1));
 }
 
-export function jobBoardFadeCompanyChromeBetweenJobs(
-  fromCollection: JobBoardCollection,
-  fromJob: JobDTO,
-  toCollection: JobBoardCollection,
-  toJob: JobDTO
-): boolean {
+export function jobBoardFadeCompanyChromeBetweenJobs(fromCollection: JobBoardCollection, fromJob: JobDTO, toCollection: JobBoardCollection, toJob: JobDTO): boolean {
   return stableCompanyKey(fromCollection.company, fromJob) !== stableCompanyKey(toCollection.company, toJob);
 }
 
-export function jobBoardFadeCompanyChromeBetweenFlatNeighbors(
-  displayedCollections: JobBoardCollection[],
-  from: JobBoardFlattenedPosition,
-  to: JobBoardFlattenedPosition
-): boolean {
+export function jobBoardFadeCompanyChromeBetweenFlatNeighbors(displayedCollections: JobBoardCollection[], from: JobBoardFlattenedPosition, to: JobBoardFlattenedPosition): boolean {
   const fromCollection = displayedCollections[from.collectionIndex];
   const toCollection = displayedCollections[to.collectionIndex];
   if (!fromCollection || !toCollection) return true;

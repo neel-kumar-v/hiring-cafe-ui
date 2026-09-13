@@ -21,12 +21,7 @@ const StatIcon = ({
   return (
     <UniversalTooltip content={tooltipText} side="bottom">
       <span className="flex items-center space-x-1">
-        <Icon
-          className={cn(
-            "inline text-muted-foreground",
-            iconClassName
-          )}
-        />
+        <Icon className={cn("inline text-muted-foreground", iconClassName)} />
         <span className={cn(textClassName, jobFadeClass(isTransitioning))}>{count}</span>
       </span>
     </UniversalTooltip>

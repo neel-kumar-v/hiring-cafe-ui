@@ -48,32 +48,22 @@ const DialogBadges = ({
         {isDesktop ? (
           <div className={`flex flex-row flex-wrap items-center ${compact ? "gap-1" : "gap-2"}`}>
             {commitments.map((commitment, index) => (
-              <span
-                key={index}
-                className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}
-              >
+              <span key={index} className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}>
                 {commitment}
               </span>
             ))}
           </div>
         ) : (
           commitments.map((commitment, index) => (
-            <span
-              key={index}
-              className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}
-            >
+            <span key={index} className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}>
               {commitment}
             </span>
           ))
         )}
         {isDesktop ? (
-          <div className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}>
-            {workType}
-          </div>
+          <div className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}>{workType}</div>
         ) : (
-          <span className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}>
-            {workType}
-          </span>
+          <span className={`bg-secondary rounded-lg ${compact ? "px-2 py-1 text-sm" : "px-3 py-2"} text-foreground/80`}>{workType}</span>
         )}
         {getCompensation(compensation) ? (
           isDesktop ? (

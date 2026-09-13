@@ -3,64 +3,42 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Mention({
-  className,
-  ...props
-}: React.ComponentProps<typeof MentionPrimitive.Root>) {
+function Mention({ className, ...props }: React.ComponentProps<typeof MentionPrimitive.Root>) {
   return (
     <MentionPrimitive.Root
       data-slot="mention"
-      className={cn(
-        "mention-input-stack **:data-tag:rounded **:data-tag:bg-brand-soft **:data-tag:py-px **:data-tag:text-brand-soft-foreground",
-        className,
-      )}
+      className={cn("mention-input-stack **:data-tag:rounded **:data-tag:bg-brand-soft **:data-tag:py-px **:data-tag:text-brand-soft-foreground", className)}
       {...props}
     />
   );
 }
 
-function MentionLabel({
-  className,
-  ...props
-}: React.ComponentProps<typeof MentionPrimitive.Label>) {
-  return (
-    <MentionPrimitive.Label
-      data-slot="mention-label"
-      className={cn("px-0.5 py-1.5 font-semibold text-sm", className)}
-      {...props}
-    />
-  );
+function MentionLabel({ className, ...props }: React.ComponentProps<typeof MentionPrimitive.Label>) {
+  return <MentionPrimitive.Label data-slot="mention-label" className={cn("px-0.5 py-1.5 font-semibold text-sm", className)} {...props} />;
 }
 
-function MentionInput({
-  className,
-  ...props
-}: React.ComponentProps<typeof MentionPrimitive.Input>) {
+function MentionInput({ className, ...props }: React.ComponentProps<typeof MentionPrimitive.Input>) {
   return (
     <MentionPrimitive.Input
       data-slot="mention-input"
       className={cn(
         "flex w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
         "text-transparent caret-foreground",
-        className,
+        className
       )}
       {...props}
     />
   );
 }
 
-function MentionContent({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof MentionPrimitive.Content>) {
+function MentionContent({ className, children, ...props }: React.ComponentProps<typeof MentionPrimitive.Content>) {
   return (
     <MentionPrimitive.Portal>
       <MentionPrimitive.Content
         data-slot="mention-content"
         className={cn(
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 min-w-32 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md dark:border-border data-[state=closed]:animate-out data-[state=open]:animate-in",
-          className,
+          className
         )}
         {...props}
       >
@@ -70,17 +48,13 @@ function MentionContent({
   );
 }
 
-function MentionItem({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof MentionPrimitive.Item>) {
+function MentionItem({ className, children, ...props }: React.ComponentProps<typeof MentionPrimitive.Item>) {
   return (
     <MentionPrimitive.Item
       data-slot="mention-item"
       className={cn(
         "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50",
-        className,
+        className
       )}
       {...props}
     >

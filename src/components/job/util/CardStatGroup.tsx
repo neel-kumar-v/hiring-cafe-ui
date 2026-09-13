@@ -36,7 +36,7 @@ const HoverSwapText = ({ count, label, labelHoverWidthClassName, textClassName, 
   );
 };
 
-export const CardStatGroup = ({
+const CardStatGroup = ({
   viewedCount,
   savedCount,
   appliedCount,
@@ -63,8 +63,7 @@ export const CardStatGroup = ({
   isTransitioning?: boolean;
   onApplyClick?: (e: React.MouseEvent) => void;
 }) => {
-  const savedTooltip =
-    savedCount === 0 && !isBookmarked ? "Be the first to save this job" : isBookmarked ? "You have saved this job" : `Saved by ${savedCount} users`;
+  const savedTooltip = savedCount === 0 && !isBookmarked ? "Be the first to save this job" : isBookmarked ? "You have saved this job" : `Saved by ${savedCount} users`;
 
   const appliedTooltip = isApplied
     ? "You have applied to this job"
@@ -150,4 +149,3 @@ export const CardStatGroup = ({
 };
 
 export default CardStatGroup;
-

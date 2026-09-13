@@ -39,18 +39,10 @@ const DialogCompanyLogoCard = ({
   return (
     <div className={cn("my-4 min-h-30 items-center gap-x-8 flex flex-col", jobFadeClass(fadeCompanyBlock))}>
       <div className="w-full flex flex-row items-center gap-x-8">
-        <CompanyLogo
-          companyData={companyData}
-          size="xl"
-          variant="dialog"
-        />
+        <CompanyLogo companyData={companyData} size="xl" variant="dialog" />
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center">
           <p className="line-clamp-5 wrap-break-word text-foreground/80 md:text-base md:leading-relaxed">
-            {removeHtmlTags(companyData.tagline || "") || (
-              <span className="text-muted-foreground italic">
-                No description provided.
-              </span>
-            )}
+            {removeHtmlTags(companyData.tagline || "") || <span className="text-muted-foreground italic">No description provided.</span>}
           </p>
         </div>
       </div>
@@ -66,11 +58,7 @@ const DialogCompanyLogoCard = ({
           size="sm"
           variant="outline"
         >
-          {showExtended ? (
-            <ChevronUp className="mr-2 size-4" />
-          ) : (
-            <ChevronDown className="mr-2 size-4" />
-          )}
+          {showExtended ? <ChevronUp className="mr-2 size-4" /> : <ChevronDown className="mr-2 size-4" />}
           {showExtended ? "Show less" : "Show more company info"}
         </Button>
       </div>

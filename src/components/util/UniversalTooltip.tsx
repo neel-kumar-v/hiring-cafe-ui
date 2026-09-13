@@ -25,7 +25,7 @@ export default function UniversalTooltip({
   alignOffset = 0,
   arrow = false,
   blur = false,
-  removeOnMobile = true
+  removeOnMobile = true,
 }: UniversalTooltipProps) {
   const isPointerCoarse = useMediaQuery("(pointer: coarse)");
   const isPointerNone = useMediaQuery("(pointer: none)");

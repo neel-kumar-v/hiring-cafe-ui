@@ -4,11 +4,7 @@ interface ScrollRefs {
   [key: string]: RefObject<HTMLDivElement | null>;
 }
 
-export function useScrollToSection(
-  scrollToSection?: string,
-  refs?: ScrollRefs,
-  onComplete?: () => void
-) {
+export function useScrollToSection(scrollToSection?: string, refs?: ScrollRefs, onComplete?: () => void) {
   useEffect(() => {
     if (scrollToSection && refs) {
       const targetRef = refs[scrollToSection];
@@ -37,8 +33,8 @@ export function useScrollToSection(
 
 export function createRefs<T extends string>(keys: T[]): Record<T, RefObject<HTMLDivElement | null>> {
   const refs: Partial<Record<T, RefObject<HTMLDivElement | null>>> = {};
-  keys.forEach(key => {
+  keys.forEach((key) => {
     refs[key] = useRef<HTMLDivElement>(null);
   });
   return refs as Record<T, RefObject<HTMLDivElement | null>>;
-} 
+}

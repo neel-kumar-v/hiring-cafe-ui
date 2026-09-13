@@ -2,7 +2,6 @@
 
 import { BooleanTextbox } from "@/components/search/filters/util/BooleanTextbox";
 import { useApp } from "@/contexts/AppContext";
-import { decodeSearchExpression } from "@/lib/search";
 import type { SearchExpression } from "@/types/search";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";

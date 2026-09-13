@@ -53,27 +53,10 @@ const COMPOUND_PHRASES: readonly string[] = [
 ];
 
 /** First group in the HiringCafe title query (whole-word match). */
-const STACK_WORDS: readonly string[] = [
-  "software",
-  "application",
-  "frontend",
-  "backend",
-  "fullstack",
-  "android",
-  "ios",
-  "ai",
-];
+const STACK_WORDS: readonly string[] = ["software", "application", "frontend", "backend", "fullstack", "android", "ios", "ai"];
 
 /** Second group in the HiringCafe title query (whole-word match). */
-const ROLE_WORDS: readonly string[] = [
-  "developer",
-  "engineer",
-  "engineering",
-  "development",
-  "programmer",
-  "programming",
-  "devops",
-];
+const ROLE_WORDS: readonly string[] = ["developer", "engineer", "engineering", "development", "programmer", "programming", "devops"];
 
 const COMPOUND_N = dedupe(COMPOUND_PHRASES);
 const STACK_N = dedupe(STACK_WORDS);
@@ -117,10 +100,7 @@ function hasPhrase(flat: string, phrase: string): boolean {
  * Returns true when the job title (and optional department) looks like a SWE /
  * IT-engineering role per the HiringCafe-style title query.
  */
-export function jobTitleLooksEngineering(
-  title: string,
-  department?: string | null,
-): boolean {
+export function jobTitleLooksEngineering(title: string, department?: string | null): boolean {
   const flat = normalizeFlat([title, department ?? ""].filter(Boolean).join(" "));
   if (!flat) return false;
 
@@ -128,9 +108,7 @@ export function jobTitleLooksEngineering(
     if (hasPhrase(flat, phrase)) return true;
   }
 
-  const hasStack =
-    hasPhrase(flat, "full stack") ||
-    STACK_N.some((w) => hasWholeWord(flat, w));
+  const hasStack = hasPhrase(flat, "full stack") || STACK_N.some((w) => hasWholeWord(flat, w));
 
   const hasRole = ROLE_N.some((w) => hasWholeWord(flat, w));
 

@@ -1,7 +1,7 @@
 import { useApp } from "@/contexts/AppContext";
 import { ExperienceLevel, Role, Select } from "@/types/search";
 import { Input } from "@/components/ui/input";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import FilterContainer from "../util/FilterContainer";
 import LabelCheckbox from "../util/LabelCheckbox";

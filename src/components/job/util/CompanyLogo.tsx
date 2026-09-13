@@ -80,13 +80,7 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
         {showImage ? (
           <>
             {!imageLoaded && <Skeleton className="h-full w-full" />}
-            <img
-              alt={companyData.name}
-              className={`${imageClassName} ${!imageLoaded ? "hidden" : ""}`}
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              src={activeSrc}
-            />
+            <img alt={companyData.name} className={`${imageClassName} ${!imageLoaded ? "hidden" : ""}`} onError={handleImageError} onLoad={handleImageLoad} src={activeSrc} />
           </>
         ) : (
           <span className={fallbackClassName}>{initialsContent}</span>

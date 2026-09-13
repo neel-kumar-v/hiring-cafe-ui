@@ -1,30 +1,17 @@
-"use client"
+"use client";
 
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react"
-import * as React from "react"
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-
-
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export type ComboboxItem = {
   value: string;
   label: string;
-}
+};
 
 export interface ComboboxProps {
   items: ComboboxItem[];
@@ -33,48 +20,33 @@ export interface ComboboxProps {
   placeholder?: string;
   buttonClassName?: string;
   modalPopover?: boolean;
-  }
+}
 
 export function Combobox({ items, value, onChange, placeholder, buttonClassName, modalPopover = true }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState("")
+  const [open, setOpen] = React.useState(false);
+  const [inputValue, setInputValue] = React.useState("");
 
   React.useEffect(() => {
-    if (!open) setInputValue("")
-  }, [open])
+    if (!open) setInputValue("");
+  }, [open]);
 
-  const lowerInput = inputValue.trim().toLowerCase()
-  const filteredItems = inputValue
-    ? items.filter((item) =>
-        item.label.toLowerCase().includes(lowerInput) ||
-        item.value.toLowerCase().includes(lowerInput)
-      )
-    : items
-  const isCustom =
-    inputValue &&
-    !items.some(
-      (item) =>
-        item.value.toLowerCase() === lowerInput ||
-        item.label.toLowerCase() === lowerInput
-    )
+  const lowerInput = inputValue.trim().toLowerCase();
+  const filteredItems = inputValue ? items.filter((item) => item.label.toLowerCase().includes(lowerInput) || item.value.toLowerCase().includes(lowerInput)) : items;
+  const isCustom = inputValue && !items.some((item) => item.value.toLowerCase() === lowerInput || item.label.toLowerCase() === lowerInput);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={modalPopover}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn("min-w-[200px] justify-between h-8", buttonClassName)}
-        >
-          {value
-            ? (
-                items.find((item) => item.value === value)
-                  ? items.find((item) => item.value === value)!.label
-                  : <span className="text-foreground">{value}</span>
-              )
-            : <span className="text-muted-foreground">{placeholder || "Keyword/Phrase"}</span>
-          }
+        <Button variant="outline" role="combobox" aria-expanded={open} className={cn("min-w-[200px] justify-between h-8", buttonClassName)}>
+          {value ? (
+            items.find((item) => item.value === value) ? (
+              items.find((item) => item.value === value)!.label
+            ) : (
+              <span className="text-foreground">{value}</span>
+            )
+          ) : (
+            <span className="text-muted-foreground">{placeholder || "Keyword/Phrase"}</span>
+          )}
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -86,8 +58,8 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName,
             onValueChange={setInputValue}
             onKeyDown={(e) => {
               if (e.key === "Enter" && isCustom) {
-                onChange(inputValue)
-                setOpen(false)
+                onChange(inputValue);
+                setOpen(false);
               }
             }}
           />
@@ -99,16 +71,11 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName,
                   key={item.value}
                   value={item.value}
                   onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue)
-                    setOpen(false)
+                    onChange(currentValue === value ? "" : currentValue);
+                    setOpen(false);
                   }}
                 >
-                  <CheckIcon
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === item.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                  <CheckIcon className={cn("mr-2 h-4 w-4", value === item.value ? "opacity-100" : "opacity-0")} />
                   {item.label}
                 </CommandItem>
               ))}
@@ -117,16 +84,11 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName,
                   key="custom-value"
                   value={inputValue}
                   onSelect={() => {
-                    onChange(inputValue)
-                    setOpen(false)
+                    onChange(inputValue);
+                    setOpen(false);
                   }}
                 >
-                  <CheckIcon
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === inputValue ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                  <CheckIcon className={cn("mr-2 h-4 w-4", value === inputValue ? "opacity-100" : "opacity-0")} />
                   {`Use "${inputValue}"`}
                 </CommandItem>
               )}
@@ -135,5 +97,5 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName,
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

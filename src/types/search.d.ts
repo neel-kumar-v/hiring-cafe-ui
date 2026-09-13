@@ -2,13 +2,7 @@ export interface SortOptions {
   by: "Relevance" | "Recency" | "Salary" | "Experience" | "Match Score";
   order: "Most" | "Least";
 }
-export type TimeUnits =
-  | "Minutes"
-  | "Hours"
-  | "Days"
-  | "Weeks"
-  | "Months"
-  | "Years";
+export type TimeUnits = "Minutes" | "Hours" | "Days" | "Weeks" | "Months" | "Years";
 export interface DateRangeOptions {
   magnitude: number;
   unit: TimeUnits;
@@ -20,19 +14,51 @@ export type Exclusion = "Saved" | "Applied" | "Hidden" | "Viewed";
 
 export type ExclusionOptions = Exclusion[];
 
-export type Department = "Engineering" | "Software Development" | "Information Technology" | "Data and Analytics" | "Design" | "Creative and Art Services" | "Project and Program Management" | "Product Management" | "Business Operations" | "Legal and Compliance" | "Finance and Accounting" | "Human Resources" | "Administrative & Clerical Support" | "Sales" | "Marketing" | "Communications and Public Affairs" | "Business Development" | "Advanced Practice" | "Allied Health" | "Nursing" | "Pharmacy" | "Veterinary" | "Education" | "Customer Service" | "Social Services" | "Construction" | "Mechanical and Electrical" | "Manufacturing and Industrial" | "Maintenance and Repair" | "General Labor" | "Transportation Services" | "Supply Chain / Logistics / Procurement" | "Quality Assurance" | "Environment, Health, and Safety" | "Research and Development (R&D)" | "Food and Beverage Services" | "Protective Services" | "Custodial Services";
+export type Department =
+  | "Engineering"
+  | "Software Development"
+  | "Information Technology"
+  | "Data and Analytics"
+  | "Design"
+  | "Creative and Art Services"
+  | "Project and Program Management"
+  | "Product Management"
+  | "Business Operations"
+  | "Legal and Compliance"
+  | "Finance and Accounting"
+  | "Human Resources"
+  | "Administrative & Clerical Support"
+  | "Sales"
+  | "Marketing"
+  | "Communications and Public Affairs"
+  | "Business Development"
+  | "Advanced Practice"
+  | "Allied Health"
+  | "Nursing"
+  | "Pharmacy"
+  | "Veterinary"
+  | "Education"
+  | "Customer Service"
+  | "Social Services"
+  | "Construction"
+  | "Mechanical and Electrical"
+  | "Manufacturing and Industrial"
+  | "Maintenance and Repair"
+  | "General Labor"
+  | "Transportation Services"
+  | "Supply Chain / Logistics / Procurement"
+  | "Quality Assurance"
+  | "Environment, Health, and Safety"
+  | "Research and Development (R&D)"
+  | "Food and Beverage Services"
+  | "Protective Services"
+  | "Custodial Services";
 
 export type Select<T, V = "All"> = T[] | V;
 
 export type DepartmentOptions = Select<Department>;
 
-export type SalaryUnit = "Any"
-  | "Hourly"
-  | "Daily"
-  | "Weekly"
-  | "Bi-Weekly"
-  | "Monthly"
-  | "Yearly";
+export type SalaryUnit = "Any" | "Hourly" | "Daily" | "Weekly" | "Bi-Weekly" | "Monthly" | "Yearly";
 
 export interface Range {
   min: number;
@@ -101,7 +127,6 @@ export interface DegreePreferencesOptions {
 export type ExperienceLevel = "None" | "Entry Level" | "Mid Level" | "Senior Level";
 export type Role = "Individual Contributor" | "People Manager";
 
-
 export interface ExperienceLevelOptions {
   level: Select<ExperienceLevel>;
   role: Select<Role>;
@@ -164,7 +189,7 @@ export interface FundingOptions {
 }
 
 export type Workplace = "Remote" | "Hybrid" | "Onsite";
-export type Environment = "Office"  | "Outdoor"  | "Vehicle"  | "Industrial"  | "Customer-Facing";
+export type Environment = "Office" | "Outdoor" | "Vehicle" | "Industrial" | "Customer-Facing";
 
 export type LocationType = "Locality" | "Admin Area" | "Country" | "Continent";
 export interface AddressComponent {
@@ -244,15 +269,7 @@ export interface SearchState {
 export interface SettingsCategory {
   id: CategoryId;
   name: string;
-  type:
-    | "general"
-    | "compensation"
-    | "role-department"
-    | "qualifications"
-    | "availability"
-    | "miscellaneous"
-    | "company"
-    | "location";
+  type: "general" | "compensation" | "role-department" | "qualifications" | "availability" | "miscellaneous" | "company" | "location";
 }
 
 export interface HiringCafeSearchState {
@@ -380,7 +397,34 @@ export interface HiringCafeSearchState {
 
 export type CategoryType = "general" | "compensation" | "role-department" | "qualifications" | "availability" | "location" | "company";
 
-export type CategoryId = | "filters" | "saved" | "date-range" | "sorting" | "apply-form" | "exclusion" | "encouraged" | "salary" | "commitment" | "experience" | "benefits" | "departments" | "job-titles" | "education" | "licenses" | "security" | "languages" | "shifts" | "travel" | "location" | "workplace-activity" | "options" | "company" | "industry" | "stage" | "size" | "founding" ;
+export type CategoryId =
+  | "filters"
+  | "saved"
+  | "date-range"
+  | "sorting"
+  | "apply-form"
+  | "exclusion"
+  | "encouraged"
+  | "salary"
+  | "commitment"
+  | "experience"
+  | "benefits"
+  | "departments"
+  | "job-titles"
+  | "education"
+  | "licenses"
+  | "security"
+  | "languages"
+  | "shifts"
+  | "travel"
+  | "location"
+  | "workplace-activity"
+  | "options"
+  | "company"
+  | "industry"
+  | "stage"
+  | "size"
+  | "founding";
 
 // Type definitions for search state based on CurrentSearchFiltersContext
 
@@ -604,7 +648,7 @@ export interface CurrentSearchFiltersState {
   searchQuery: string;
   dateFetchedPastNDays: number;
   hiddenCompanies: string[];
-  user: any | null;
+  user: unknown | null;
   searchModeSelectedCompany: string | null;
 
   // Departments

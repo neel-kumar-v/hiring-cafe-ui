@@ -50,9 +50,7 @@ function TooltipContent({
         side={side}
         align={align}
         className={cn(
-          blur
-            ? "border border-border/60 bg-background/85 fill-background text-foreground shadow-lg backdrop-blur-md"
-            : "bg-popover text-popover-foreground drop-shadow-xl",
+          blur ? "border border-border/60 bg-background/85 fill-background text-foreground shadow-lg backdrop-blur-md" : "bg-popover text-popover-foreground drop-shadow-xl",
           // Animations rely on Radix `data-state` + `data-side` attributes.
           // Provided by `tw-animate-css` (tailwind animate utility classes).
           "data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=top]:slide-in-from-bottom-2 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2",
@@ -62,9 +60,7 @@ function TooltipContent({
         {...props}
       >
         {children}
-        {arrow && (
-          <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] fill-background" />
-        )}
+        {arrow && <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] fill-background" />}
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

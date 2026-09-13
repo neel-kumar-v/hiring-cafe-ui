@@ -11,10 +11,7 @@ const JobBoardCardSkeleton = () => {
         </div>
         <div className="mb-2 flex items-center gap-2">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton
-              className={`h-4 w-1/6 [animation-delay:${index * 100}ms]`}
-              key={index}
-            />
+            <Skeleton className={`h-4 w-1/6 [animation-delay:${index * 100}ms]`} key={index} />
           ))}
         </div>
         <div className="mb-3 flex items-center">

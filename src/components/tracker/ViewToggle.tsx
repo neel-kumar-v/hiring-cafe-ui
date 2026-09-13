@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Toggle } from "@/components/ui/toggle";
 import { KanbanIcon, LayoutListIcon } from "lucide-react";
@@ -13,21 +13,11 @@ interface ViewToggleProps {
 const ViewToggle = ({ viewMode, onViewChange }: ViewToggleProps) => {
   return (
     <div className="flex items-center gap-2">
-      <Toggle
-        pressed={viewMode === "board"}
-        onPressedChange={() => onViewChange("board")}
-        variant="category"
-        size="md"
-      >
-        <KanbanIcon className="size-4"/>
+      <Toggle pressed={viewMode === "board"} onPressedChange={() => onViewChange("board")} variant="category" size="md">
+        <KanbanIcon className="size-4" />
         Board
       </Toggle>
-      <Toggle
-        pressed={viewMode === "list"}
-        onPressedChange={() => onViewChange("list")}
-        variant="category"
-        size="md"
-      >
+      <Toggle pressed={viewMode === "list"} onPressedChange={() => onViewChange("list")} variant="category" size="md">
         <LayoutListIcon />
         List
       </Toggle>
@@ -35,4 +25,4 @@ const ViewToggle = ({ viewMode, onViewChange }: ViewToggleProps) => {
   );
 };
 
-export default ViewToggle; 
+export default ViewToggle;

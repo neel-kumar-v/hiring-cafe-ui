@@ -168,4 +168,4 @@ export function useSearchUI() {
     throw new Error("useSearchUI must be used within a SearchUIProvider");
   }
   return context;
-} 
+}

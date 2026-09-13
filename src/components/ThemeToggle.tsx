@@ -4,35 +4,14 @@ import { Hitbox } from "@/components/ui/hitbox";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { cn } from "@/lib/utils";
 import { Moon, Sun } from "lucide-react";
-import { Swap, SwapOff, SwapOn } from "./ui/swap";
 
-/** Decorative moon/sun swap for menus; parent handles toggling `isDarkMode`. */
-export function ThemeIconSwap({
-  isDarkMode,
-  className,
-}: {
-  isDarkMode: boolean;
-  className?: string;
-}) {
+/** Decorative moon/sun for menus; parent handles toggling `isDarkMode`. */
+export function ThemeIconSwap({ isDarkMode, className }: { isDarkMode: boolean; className?: string }) {
   return (
-    <Swap
-      animation="rotate"
-      aria-hidden
-      className={cn(
-        "pointer-events-none relative size-4 shrink-0 cursor-default text-muted-foreground",
-        className,
-      )}
-      role="none"
-      swapped={isDarkMode}
-      tabIndex={-1}
-    >
-      <SwapOff className="absolute inset-0 flex items-center justify-center transition-none">
-        <Moon className="size-4" />
-      </SwapOff>
-      <SwapOn className="absolute inset-0 flex items-center justify-center text-foreground transition-none">
-        <Sun className="size-4" />
-      </SwapOn>
-    </Swap>
+    <span aria-hidden className={cn("relative inline-flex size-4 shrink-0 text-muted-foreground", className)}>
+      <Moon className={cn("absolute inset-0 size-4 transition-opacity", isDarkMode ? "opacity-0" : "opacity-100")} />
+      <Sun className={cn("absolute inset-0 size-4 text-foreground transition-opacity", isDarkMode ? "opacity-100" : "opacity-0")} />
+    </span>
   );
 }
 
@@ -47,21 +26,16 @@ export default function ThemeToggle({ className }: ThemeToggleProps) {
 
   return (
     <Hitbox size="sm" radius="full" className={cn("shrink-0", className)}>
-      <Swap
-        animation="rotate"
+      <button
+        type="button"
         aria-label={label}
-        className="size-9 rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent dark:border-border dark:bg-card dark:hover:bg-accent"
-        onSwappedChange={setIsDarkMode}
-        swapped={isDarkMode}
         title={label}
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className="relative flex size-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent dark:border-border dark:bg-card dark:hover:bg-accent"
       >
-        <SwapOff className="absolute inset-0 flex items-center justify-center text-muted-foreground transition-none">
-          <Moon className="size-4" />
-        </SwapOff>
-        <SwapOn className="absolute inset-0 flex items-center justify-center text-foreground transition-none">
-          <Sun className="size-4" />
-        </SwapOn>
-      </Swap>
+        <Moon className={cn("absolute size-4 transition-opacity", isDarkMode ? "opacity-0" : "opacity-100")} />
+        <Sun className={cn("absolute size-4 text-foreground transition-opacity", isDarkMode ? "opacity-100" : "opacity-0")} />
+      </button>
     </Hitbox>
   );
 }
