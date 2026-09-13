@@ -25,7 +25,8 @@ export interface JobDTO {
   title: string;
   applyUrl?: string;
   companyId: ConvexId; // companies doc id
-  detailsId: ConvexId;
+  /** Optional on browse rows from `jobCards` (resolved via `jobId` in getDetailsLite). */
+  detailsId?: ConvexId;
 
   workplaceType?: string;
   commitment: string[];

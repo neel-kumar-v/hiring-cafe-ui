@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { addCompanyJobPreview, updateCompanyLastJobMillis, upsertCompanyFromIngest } from "./companies";
 import { assertIngestAdminSecret } from "./ingestAdmin";
 import { buildJobCardFields, toSortPublishMillis } from "./jobCards";
@@ -13,14 +14,16 @@ const BY_EXTERNAL_IDS_MAX = 400;
 const SEARCH_PAGE_MAX_ITEMS = 48;
 const SEARCH_OVERSCAN_MAX_PAGES = 5;
 
-async function getJobsCounter(ctx: any) {
+type DbCtx = QueryCtx | MutationCtx;
+
+async function getJobsCounter(ctx: DbCtx): Promise<Doc<"counters"> | null> {
   return await ctx.db
     .query("counters")
-    .withIndex("by_name", (q: any) => q.eq("name", JOBS_COUNTER_NAME))
+    .withIndex("by_name", (q) => q.eq("name", JOBS_COUNTER_NAME))
     .unique();
 }
 
-export async function incrementJobsCounter(ctx: any, delta: number) {
+export async function incrementJobsCounter(ctx: MutationCtx, delta: number) {
   if (delta === 0) return;
   const now = Date.now();
   const row = await getJobsCounter(ctx);
@@ -392,8 +395,7 @@ function normalizeStringList(values: string[] | undefined): string[] {
   return Array.from(out);
 }
 
-function toCardResult(card: any, detailsIdFromJob?: Id<"jobDetails"> | null) {
-  const detailsId = detailsIdFromJob ?? card.detailsId;
+function toCardResult(card: Doc<"jobCards">) {
   return {
     job: {
       _id: card._id,
@@ -402,7 +404,7 @@ function toCardResult(card: any, detailsIdFromJob?: Id<"jobDetails"> | null) {
       title: card.title,
       applyUrl: card.applyUrl,
       companyId: card.companyId,
-      detailsId,
+      detailsId: card.detailsId,
       workplaceType: card.workplaceType,
       commitment: card.commitment ?? [],
       workplaceCities: card.workplaceCities ?? [],
@@ -452,114 +454,18 @@ function toCardResult(card: any, detailsIdFromJob?: Id<"jobDetails"> | null) {
   };
 }
 
-function toJobResult(job: any, company: any | null) {
-  const resolvedCompany = company ?? {
-    _id: job.companyId,
-    companyId: undefined,
-    name: "",
-    homepageUri: undefined,
-    imageUrl: undefined,
-    tagline: undefined,
-    industries: [],
-    activities: [],
-    hqCountry: undefined,
-    yearFounded: job.companyFoundedYear,
-    numEmployees: job.companyNumEmployees,
-    jobIdsPreview: [],
-  };
-
-  return {
-    job: {
-      _id: job._id,
-      jobId: job._id,
-      externalId: job.externalId,
-      title: job.title,
-      applyUrl: job.applyUrl,
-      companyId: job.companyId,
-      detailsId: job.detailsId,
-      workplaceType: job.workplaceType,
-      commitment: job.commitment ?? [],
-      workplaceCities: job.workplaceCities ?? [],
-      workplaceStates: job.workplaceStates ?? [],
-      workplaceCountries: job.workplaceCountries ?? [],
-      workplaceContinents: job.workplaceContinents ?? [],
-      geoloc: job.geoloc ?? [],
-      minIcYoe: job.minIcYoe,
-      minMgmtYoe: job.minMgmtYoe,
-      requirementsSummary: job.requirementsSummary,
-      skills: job.skills ?? [],
-      estimatedPublishDate: job.estimatedPublishDate,
-      estimatedPublishDateMillis: job.estimatedPublishDateMillis,
-      views: job.views ?? 0,
-      saves: job.saves ?? 0,
-      applies: job.applies ?? 0,
-      listedCompensationCurrency: job.listedCompensationCurrency,
-      listedCompensationFrequency: job.listedCompensationFrequency,
-      isCompensationTransparent: job.isCompensationTransparent,
-      hourlyMinComp: job.hourlyMinComp,
-      hourlyMaxComp: job.hourlyMaxComp,
-      dailyMinComp: job.dailyMinComp,
-      dailyMaxComp: job.dailyMaxComp,
-      weeklyMinComp: job.weeklyMinComp,
-      weeklyMaxComp: job.weeklyMaxComp,
-      biWeeklyMinComp: job.biWeeklyMinComp,
-      biWeeklyMaxComp: job.biWeeklyMaxComp,
-      monthlyMinComp: job.monthlyMinComp,
-      monthlyMaxComp: job.monthlyMaxComp,
-      yearlyMinComp: job.yearlyMinComp,
-      yearlyMaxComp: job.yearlyMaxComp,
-    },
-    company: {
-      _id: resolvedCompany._id,
-      companyId: resolvedCompany.companyId,
-      name: resolvedCompany.name,
-      homepageUri: resolvedCompany.homepageUri,
-      imageUrl: resolvedCompany.imageUrl,
-      tagline: resolvedCompany.tagline,
-      industries: resolvedCompany.industries ?? [],
-      activities: resolvedCompany.activities ?? [],
-      hqCountry: resolvedCompany.hqCountry,
-      yearFounded: resolvedCompany.yearFounded,
-      numEmployees: resolvedCompany.numEmployees,
-      jobIdsPreview: resolvedCompany.jobIdsPreview ?? [],
-    },
-  };
-}
-
-/** Distinct / sampling helpers: prefer `jobCards` (only indexed search surface) when backfilled. */
-async function sampleJobLikeDocsForDistinct(ctx: any, q: string, readLimit: number) {
-  const hasJobCards = (await ctx.db.query("jobCards").take(1)).length > 0;
-  if (hasJobCards) {
-    if (q) {
-      return await ctx.db
-        .query("jobCards")
-        .withSearchIndex("search_searchText", (q2: any) => q2.search("searchText", q))
-        .take(readLimit);
-    }
-    return await ctx.db.query("jobCards").withIndex("by_recent").order("desc").take(readLimit);
-  }
+/** Distinct / sampling helpers — browse surface is `jobCards` (backfill assumed populated). */
+async function sampleJobLikeDocsForDistinct(ctx: QueryCtx, q: string, readLimit: number) {
   if (q) {
-    const rows = await ctx.db
-      .query("jobs")
-      .order("desc")
-      .take(Math.min(readLimit * 3, 3000));
-    const qq = q.trim().toLowerCase();
-    return rows
-      .filter(
-        (d: any) =>
-          (d.title ?? "").toLowerCase().includes(qq) ||
-          (d.requirementsSummary ?? "").toLowerCase().includes(qq) ||
-          String(d.department ?? "")
-            .toLowerCase()
-            .includes(qq) ||
-          (d.skills ?? []).some((s: string) => (s ?? "").toLowerCase().includes(qq))
-      )
-      .slice(0, readLimit);
+    return await ctx.db
+      .query("jobCards")
+      .withSearchIndex("search_searchText", (q2) => q2.search("searchText", q))
+      .take(readLimit);
   }
-  return await ctx.db.query("jobs").order("desc").take(readLimit);
+  return await ctx.db.query("jobCards").withIndex("by_recent").order("desc").take(readLimit);
 }
 
-async function resolveCompanyDocIds(ctx: any, tokens: string[]): Promise<Set<string>> {
+async function resolveCompanyDocIds(ctx: QueryCtx, tokens: string[]): Promise<Set<string>> {
   const resolved = new Set<string>();
   for (const raw of tokens.slice(0, 30)) {
     const token = normalizeLower(raw);
@@ -567,15 +473,15 @@ async function resolveCompanyDocIds(ctx: any, tokens: string[]): Promise<Set<str
     const candidates = await Promise.all([
       ctx.db
         .query("companies")
-        .withIndex("by_companyId", (q: any) => q.eq("companyId", token))
+        .withIndex("by_companyId", (q) => q.eq("companyId", token))
         .unique(),
       ctx.db
         .query("companies")
-        .withIndex("by_canonicalDomain", (q: any) => q.eq("canonicalDomain", token))
+        .withIndex("by_canonicalDomain", (q) => q.eq("canonicalDomain", token))
         .unique(),
       ctx.db
         .query("companies")
-        .withIndex("by_nameLower", (q: any) => q.eq("nameLower", token))
+        .withIndex("by_nameLower", (q) => q.eq("nameLower", token))
         .unique(),
     ]);
     for (const company of candidates) {
@@ -622,7 +528,6 @@ export const search = query({
     const hasQuery = queryText.length > 0;
     const order = normalizedSort.order === "asc" ? "asc" : "desc";
     let mode = "recent";
-    const hasJobCards = (await ctx.db.query("jobCards").take(1)).length > 0;
     const boundedNumItems = Math.min(Math.max(paginationOpts.numItems, 1), SEARCH_PAGE_MAX_ITEMS);
     const boundedPaginationOpts = { ...paginationOpts, numItems: boundedNumItems };
 
@@ -716,11 +621,7 @@ export const search = query({
           })
           .paginate(pageOpts);
       }
-      if (!hasJobCards) {
-        mode = "jobs_recent";
-        return await ctx.db.query("jobs").order(order).paginate(pageOpts);
-      }
-      // All browse paths use `by_recent` only; filters are applied in `applyPostFilters`.
+      // Browse uses `by_recent` only; filters are applied in `applyPostFilters`.
       mode = "by_recent";
       return await ctx.db.query("jobCards").withIndex("by_recent").order(order).paginate(pageOpts);
     };
@@ -729,7 +630,7 @@ export const search = query({
     let continueCursor = "";
     let isDone = false;
     let cursor: string | null = boundedPaginationOpts.cursor;
-    const filteredRows: any[] = [];
+    const filteredRows: Doc<"jobCards">[] = [];
 
     for (let overscanPage = 0; overscanPage < SEARCH_OVERSCAN_MAX_PAGES; overscanPage++) {
       const page = await fetchSearchPage(cursor);
@@ -737,7 +638,7 @@ export const search = query({
       continueCursor = page.continueCursor;
       isDone = page.isDone;
 
-      const pageFiltered = applyPostFilters(page.page);
+      const pageFiltered = applyPostFilters(page.page) as Doc<"jobCards">[];
       filteredRows.push(...pageFiltered);
 
       if (filteredRows.length >= boundedNumItems || isDone) break;
@@ -747,27 +648,8 @@ export const search = query({
     }
 
     const trimmedFilteredRows = filteredRows.slice(0, boundedNumItems);
-    let resultPage: any[] = [];
-    const pageRowsAreJobCards = trimmedFilteredRows.length > 0 && "jobId" in trimmedFilteredRows[0];
-    if (pageRowsAreJobCards) {
-      const uniqueJobIds = Array.from(new Set(trimmedFilteredRows.map((row: any) => String(row.jobId))));
-      const jobDocs = await Promise.all(uniqueJobIds.map((id) => ctx.db.get(id as Id<"jobs">)));
-      const detailsIdByJobId = new Map<string, Id<"jobDetails">>();
-      for (const j of jobDocs) {
-        if (j?._id && j.detailsId) detailsIdByJobId.set(String(j._id), j.detailsId);
-      }
-      resultPage = trimmedFilteredRows.map((card: any) => toCardResult(card, detailsIdByJobId.get(String(card.jobId)) ?? null));
-    } else if (trimmedFilteredRows.length > 0) {
-      const companyIds = Array.from(new Set(trimmedFilteredRows.map((row: any) => String(row.companyId))));
-      const companyDocs = await Promise.all(companyIds.map((id) => ctx.db.get(id as Id<"companies">)));
-      const companiesById = new Map<string, any>();
-      for (const company of companyDocs) {
-        if (company?._id) companiesById.set(String(company._id), company);
-      }
-      resultPage = trimmedFilteredRows.map((job: any) => toJobResult(job, companiesById.get(String(job.companyId)) ?? null));
-    } else {
-      resultPage = [];
-    }
+    // Card rows already carry browse fields; details resolve via jobId in getDetailsLite (no per-page jobs db.get).
+    const resultPage = trimmedFilteredRows.map((card) => toCardResult(card));
 
     const durationMs = Date.now() - startedAt;
     const slowThresholdMs = 1200;
@@ -984,11 +866,11 @@ export const byExternalIds = query({
       )
     );
     const jobs = docs.filter((d): d is NonNullable<typeof d> => d !== null).filter((job) => !hiddenExternalIds.has(job.externalId));
-    const uniqCompanies = Array.from(new Set(jobs.map((j) => String(j.companyId))));
-    const companyDocs = await Promise.all(uniqCompanies.map((id) => ctx.db.get(id as any)));
-    const byId = new Map<string, any>();
+    const uniqCompanies = Array.from(new Set(jobs.map((j) => j.companyId)));
+    const companyDocs = await Promise.all(uniqCompanies.map((id) => ctx.db.get(id)));
+    const byId = new Map<string, Doc<"companies">>();
     for (const c of companyDocs) if (c) byId.set(String(c._id), c);
-    return jobs.map((job: any) => ({ job, company: byId.get(String(job.companyId)) ?? null }));
+    return jobs.map((job) => ({ job, company: byId.get(String(job.companyId)) ?? null }));
   },
 });
 

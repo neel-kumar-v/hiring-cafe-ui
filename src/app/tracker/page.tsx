@@ -3,22 +3,15 @@
 import { CategoryToggle, KanbanBoard, ListView, SearchBar, ViewToggle } from "@/components/tracker";
 import { useApp } from "@/contexts/AppContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { JobCardResultDTO } from "@/types/convexJobs";
-import { useConvex } from "convex/react";
+import { useTrackedJobs } from "@/hooks/useTrackedJobs";
 import { BookmarkIcon, EyeOffIcon, PhoneOutgoingIcon, SendIcon, XIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { api } from "../../../convex/_generated/api";
-import { getAuthEmail } from "@/lib/local-auth";
+import { useMemo, useState } from "react";
 import type { JobCategory } from "@/types/tracker";
 
 type ViewMode = "board" | "list";
 
 export default function TrackerPage() {
   const { user, moveJob } = useApp();
-  const convex = useConvex();
-  const [jobs, setJobs] = useState<JobCardResultDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("board");
   const [visibleCategories, setVisibleCategories] = useState<Record<JobCategory, boolean>>({
@@ -39,34 +32,7 @@ export default function TrackerPage() {
     return unique;
   }, [user.saved, user.applied, user.interviewing, user.rejected, user.hidden]);
 
-  useEffect(() => {
-    const loadJobs = async () => {
-      setLoadError(null);
-      try {
-        if (trackedJobIds.length === 0) {
-          setJobs([]);
-          return;
-        }
-
-        const chunkSize = 400;
-        const merged: JobCardResultDTO[] = [];
-        for (let i = 0; i < trackedJobIds.length; i += chunkSize) {
-          const slice = trackedJobIds.slice(i, i + chunkSize);
-          const data = await convex.query(api.jobs.byExternalIds, { ids: slice, viewerEmail: getAuthEmail() ?? undefined });
-          for (const row of (data ?? []) as unknown as JobCardResultDTO[]) merged.push(row);
-        }
-        setJobs(merged);
-      } catch (error) {
-        console.error("Error loading jobs:", error);
-        setJobs([]);
-        setLoadError("Couldn't load tracked jobs. Please refresh and try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadJobs();
-  }, [convex, trackedJobIds]);
+  const { jobs, loading, loadError } = useTrackedJobs(trackedJobIds);
 
   const getJobStatus = (jobId: string): JobCategory => {
     if (user.applied.includes(jobId)) return "applied";
@@ -80,13 +46,11 @@ export default function TrackerPage() {
     moveJob(jobId, fromStatus, toStatus);
   };
 
-  // First, filter to only include jobs that are in the user's arrays
   const userJobs = jobs.filter(({ job }) => {
     const allJobIds = new Set([...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden]);
     return allJobIds.has(job.externalId);
   });
 
-  // Then apply search filter to user jobs only
   const filteredJobs = userJobs.filter(({ job, company }) => {
     if (!searchQuery.trim()) return true;
 

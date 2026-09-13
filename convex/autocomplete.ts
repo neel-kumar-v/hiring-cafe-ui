@@ -4,8 +4,9 @@ import { autocompleteTypeValidator } from "./autocompleteTypes";
 
 /**
  * Values live in `autocompleteValues` (deduped by string + `types[]`).
- * Facet browse without a query uses `autocompleteTypeIndex`; text search uses one shared
- * search index on `value` then filters by facet `type`.
+ * Facet browse without a query uses `autocompleteTypeIndex`.
+ * Text search uses the shared `search_value` index then filters by facet type
+ * (search indexes cannot filter on array membership; oversample is capped).
  */
 export const getOptions = query({
   args: {

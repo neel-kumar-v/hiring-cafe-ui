@@ -17,7 +17,7 @@ function buildSearchTextFallback(job: Doc<"jobs">, company: Doc<"companies">): s
   return parts.join("\n").toLowerCase();
 }
 
-export type JobCardUpsertFields = Omit<Doc<"jobCards">, "_id" | "_creationTime" | "createdAt" | "updatedAt">;
+export type JobCardUpsertFields = Omit<Doc<"jobCards">, "_id" | "_creationTime" | "createdAt" | "updatedAt" | "companySortPublishMillis" | "detailsId">;
 
 /**
  * When `ingestSearchText` is set (ingestion path), it should match `scrape_to_convex.py` search_text.
@@ -56,7 +56,7 @@ export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">, 
     estimatedPublishDate: job.estimatedPublishDate,
     estimatedPublishDateMillis: job.estimatedPublishDateMillis,
     sortPublishMillis: toSortPublishMillis(job),
-    companySortPublishMillis: Math.max(toSortPublishMillis(job), company.lastJobSortPublishMillis ?? 0),
+    // companySortPublishMillis intentionally omitted — written historically, never queried.
 
     views: toNumberOrZero(job.views),
     saves: toNumberOrZero(job.saves),

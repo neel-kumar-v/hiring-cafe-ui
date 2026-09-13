@@ -1,5 +1,6 @@
 import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { toSortPublishMillis } from "./jobCards";
 
 const COMPANIES_COUNTER_NAME = "companies";
@@ -23,14 +24,14 @@ function normalizeLower(value: string): string {
   return value.trim().toLowerCase();
 }
 
-async function getCompaniesCounterRow(ctx: any): Promise<Doc<"counters"> | null> {
+async function getCompaniesCounterRow(ctx: QueryCtx | MutationCtx): Promise<Doc<"counters"> | null> {
   return await ctx.db
     .query("counters")
-    .withIndex("by_name", (q: any) => q.eq("name", COMPANIES_COUNTER_NAME))
+    .withIndex("by_name", (q) => q.eq("name", COMPANIES_COUNTER_NAME))
     .unique();
 }
 
-export async function incrementCompaniesCounter(ctx: any, delta: number) {
+export async function incrementCompaniesCounter(ctx: MutationCtx, delta: number) {
   if (delta === 0) return;
   const now = Date.now();
   const row = await getCompaniesCounterRow(ctx);
@@ -41,11 +42,11 @@ export async function incrementCompaniesCounter(ctx: any, delta: number) {
   }
 }
 
-export async function upsertCompanyFromIngest(ctx: any, input: CompanyIngest): Promise<{ companyDocId: Id<"companies">; inserted: boolean }> {
+export async function upsertCompanyFromIngest(ctx: MutationCtx, input: CompanyIngest): Promise<{ companyDocId: Id<"companies">; inserted: boolean }> {
   const now = Date.now();
   const existing = await ctx.db
     .query("companies")
-    .withIndex("by_companyId", (q: any) => q.eq("companyId", input.companyId))
+    .withIndex("by_companyId", (q) => q.eq("companyId", input.companyId))
     .unique();
 
   const patch = {
@@ -79,24 +80,24 @@ export async function upsertCompanyFromIngest(ctx: any, input: CompanyIngest): P
   return { companyDocId: id, inserted: true };
 }
 
-export async function updateCompanyLastJobMillis(ctx: any, companyId: Id<"companies">, millis: number) {
+export async function updateCompanyLastJobMillis(ctx: MutationCtx, companyId: Id<"companies">, millis: number) {
   const company = await ctx.db.get(companyId);
   if (!company) return;
 
   const current = company.lastJobSortPublishMillis ?? 0;
   if (millis <= current) return;
 
-  // Only the company row is used for grouping; `companySortPublishMillis` on cards is unused by queries.
+  // Only the company row is used for grouping; do not fan out to all jobCards.
   await ctx.db.patch(companyId, { lastJobSortPublishMillis: millis, updatedAt: Date.now() });
 }
 
 /**
  * Recompute `lastJobSortPublishMillis` from remaining `jobs` rows (e.g. after deletes).
  */
-export async function refreshCompanyJobSortFromDb(ctx: any, companyDocId: Id<"companies">) {
+export async function refreshCompanyJobSortFromDb(ctx: MutationCtx, companyDocId: Id<"companies">) {
   const jobs = await ctx.db
     .query("jobs")
-    .withIndex("by_companyId", (q: any) => q.eq("companyId", companyDocId))
+    .withIndex("by_companyId", (q) => q.eq("companyId", companyDocId))
     .collect();
 
   let maxMillis = 0;
@@ -115,7 +116,7 @@ export async function refreshCompanyJobSortFromDb(ctx: any, companyDocId: Id<"co
   }
 }
 
-export async function addCompanyJobPreview(ctx: any, companyDocId: Id<"companies">, jobId: Id<"jobs">) {
+export async function addCompanyJobPreview(ctx: MutationCtx, companyDocId: Id<"companies">, jobId: Id<"jobs">) {
   const c = await ctx.db.get(companyDocId);
   if (!c) return;
   const prev = c.jobIdsPreview ?? [];
