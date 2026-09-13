@@ -1,59 +1,22 @@
-import { useEffect, useState } from 'react';
+import type { AutocompleteType } from "../../convex/autocompleteTypes";
+import { api } from "../../convex/_generated/api";
+import { useQuery } from "convex/react";
+import { useMemo } from "react";
 
 export function useSearchData(type: string, uppercase: boolean = false) {
-  const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
-  const [rawStrings, setRawStrings] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const result = useQuery(api.autocomplete.getOptions, {
+    type: type as AutocompleteType,
+    limit: 1000,
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => {
-    
-    async function fetchOptions() {
-      try {
-        const res = await fetch(`/api/search?type=${type}&limit=1000`, { signal: controller.signal });
-        if (!res.ok) {
-          if (mounted) {
-            setRawStrings([]);
-            setOptions([]);
-          }
-          return;
-        }
-        const data = await res.json();
-        
-        if (mounted && data.suggestions) {
-            const strings: string[] = data.suggestions.map((item: string) => {
-                return uppercase 
-                    ? item.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)) 
-                    : item;
-            });
-            
-            setRawStrings(strings);
-            setOptions(strings.map(s => ({ label: s, value: s })));
-        }
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          if (mounted) {
-            setRawStrings([]);
-            setOptions([]);
-          }
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    
-    void fetchOptions();
-    }, 200);
+  const loading = result === undefined;
 
-    return () => { 
-      mounted = false; 
-      controller.abort();
-      window.clearTimeout(timeout);
-    };
-  }, [type, uppercase]);
+  const rawStrings = useMemo(() => {
+    if (!result?.suggestions) return [];
+    return result.suggestions.map((item) => (uppercase ? item.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)) : item));
+  }, [result, uppercase]);
+
+  const options = useMemo(() => rawStrings.map((s) => ({ label: s, value: s })), [rawStrings]);
 
   return { options, rawStrings, loading };
 }
