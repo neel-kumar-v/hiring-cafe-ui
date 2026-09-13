@@ -651,6 +651,13 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
         </div>
       );
     }
+    if (typeof jobCount === "number" && jobCount > 0) {
+      return (
+        <div className="col-span-full py-16 text-center text-text">
+          No jobs match the current filters. Clear or loosen filters to see results.
+        </div>
+      );
+    }
     return (
       <div className="col-span-full py-16 text-center text-text">
         No jobs found in Convex. Run the scraper: <code className="text-sm">python scraper/scrape_to_convex.py</code>.
