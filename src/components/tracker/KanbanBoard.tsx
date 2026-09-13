@@ -12,6 +12,7 @@ import { buildSharePayload, selectRangeIds } from "@/lib/jobs/selection";
 import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
 import type { JobStatus } from "@/types/app";
 import type { JobCardResultDTO } from "@/types/convexJobs";
+import type { JobCategory } from "@/types/tracker";
 import { api } from "../../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { CheckCheck, Copy, EyeOff, MoveHorizontal, Share2, X } from "lucide-react";
@@ -32,8 +33,6 @@ const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"
 
 const NAV_FADE_OUT_MS = JOB_FADE_DURATION_MS;
 const NAV_SETTLE_MS = 50;
-
-type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 
 interface KanbanBoardProps {
   jobs: JobCardResultDTO[];
@@ -118,7 +117,13 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     }
     return columnOrder.flatMap((columnId) => byColumn.get(columnId) ?? []);
   }, [columnOrder, kanbanData]);
-  const selectedRows = useMemo(() => Array.from(selectedJobIds).map((id) => jobMap.get(id)).filter(Boolean) as JobCardResultDTO[], [jobMap, selectedJobIds]);
+  const selectedRows = useMemo(
+    () =>
+      Array.from(selectedJobIds)
+        .map((id) => jobMap.get(id))
+        .filter(Boolean) as JobCardResultDTO[],
+    [jobMap, selectedJobIds]
+  );
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -272,8 +277,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
     const current = navigationSequence[selectedSequenceIndex];
     const target = navigationSequence[previousIndex];
-    const fadeCompanyChrome =
-      stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
+    const fadeCompanyChrome = stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
     prefetchNow(getDetailsLookupId(target.job));
     await runNavigationTransition(() => setSelectedJobId(target.job.externalId), { fadeCompanyChrome });
   }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
@@ -283,8 +287,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
     const current = navigationSequence[selectedSequenceIndex];
     const target = navigationSequence[nextIndex];
-    const fadeCompanyChrome =
-      stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
+    const fadeCompanyChrome = stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
     prefetchNow(getDetailsLookupId(target.job));
     await runNavigationTransition(() => setSelectedJobId(target.job.externalId), { fadeCompanyChrome });
   }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);

@@ -9,8 +9,8 @@ import { BookmarkIcon, EyeOffIcon, PhoneOutgoingIcon, SendIcon, XIcon } from "lu
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { getAuthEmail } from "@/lib/local-auth";
+import type { JobCategory } from "@/types/tracker";
 
-type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 type ViewMode = "board" | "list";
 
 export default function TrackerPage() {
@@ -18,6 +18,7 @@ export default function TrackerPage() {
   const convex = useConvex();
   const [jobs, setJobs] = useState<JobCardResultDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("board");
   const [visibleCategories, setVisibleCategories] = useState<Record<JobCategory, boolean>>({
@@ -40,6 +41,7 @@ export default function TrackerPage() {
 
   useEffect(() => {
     const loadJobs = async () => {
+      setLoadError(null);
       try {
         if (trackedJobIds.length === 0) {
           setJobs([]);
@@ -56,6 +58,8 @@ export default function TrackerPage() {
         setJobs(merged);
       } catch (error) {
         console.error("Error loading jobs:", error);
+        setJobs([]);
+        setLoadError("Couldn't load tracked jobs. Please refresh and try again.");
       } finally {
         setLoading(false);
       }
@@ -118,6 +122,19 @@ export default function TrackerPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="min-h-[calc(100vh-4.5rem)] bg-background-body">
+        <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
+          <div className="py-16 text-center">
+            <h1 className="mb-4 text-3xl font-bold text-foreground">Job Tracker</h1>
+            <p className="text-muted-foreground">{loadError}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-background-body">
       <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out lg:p-8">
@@ -152,7 +169,6 @@ export default function TrackerPage() {
               <CategoryToggle category="rejected" isActive={visibleCategories.rejected} onToggle={handleCategoryToggle} icon={<XIcon className="size-4" />} />
               <CategoryToggle category="hidden" isActive={visibleCategories.hidden} onToggle={handleCategoryToggle} icon={<EyeOffIcon className="size-4" />} />
             </div>
-
           </div>
         </div>
 

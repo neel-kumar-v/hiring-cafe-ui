@@ -8,6 +8,7 @@ import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
 import type { JobCardResultDTO } from "@/types/convexJobs";
+import type { JobCategory } from "@/types/tracker";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ListJobCardContents } from "../job/contents";
@@ -24,8 +25,6 @@ const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"
 
 const NAV_FADE_OUT_MS = JOB_FADE_DURATION_MS;
 const NAV_SETTLE_MS = 50;
-
-type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
 
 interface ListViewProps {
   jobs: JobCardResultDTO[];
@@ -46,10 +45,7 @@ const ListViewJobCard = ({
   onJobClick: () => void;
 }) => {
   return (
-    <Card
-      className="mb-3 cursor-pointer border border-input p-4 shadow-none transition-all duration-300 ease-in-out hover:border-input/75"
-      onClick={onJobClick}
-    >
+    <Card className="mb-3 cursor-pointer border border-input p-4 shadow-none transition-all duration-300 ease-in-out hover:border-input/75" onClick={onJobClick}>
       <ListJobCardContents job={row.job} company={row.company} currentStage={currentStage} onMoveJob={onMoveJob} />
     </Card>
   );
@@ -146,8 +142,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
     const previousIndex = (selectedIndex - 1 + filteredJobs.length) % filteredJobs.length;
     const currentRow = filteredJobs[selectedIndex];
     const previousRow = filteredJobs[previousIndex];
-    const fadeCompanyChrome =
-      stableCompanyKey(currentRow.company, currentRow.job) !== stableCompanyKey(previousRow.company, previousRow.job);
+    const fadeCompanyChrome = stableCompanyKey(currentRow.company, currentRow.job) !== stableCompanyKey(previousRow.company, previousRow.job);
     prefetchNow(getDetailsLookupId(filteredJobs[previousIndex].job));
     await runNavigationTransition(() => navigateToIndex(selectedIndex - 1), { fadeCompanyChrome });
   }, [filteredJobs, navigateToIndex, prefetchNow, runNavigationTransition, selectedIndex]);
@@ -157,8 +152,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
     const nextIndex = (selectedIndex + 1) % filteredJobs.length;
     const currentRow = filteredJobs[selectedIndex];
     const nextRow = filteredJobs[nextIndex];
-    const fadeCompanyChrome =
-      stableCompanyKey(currentRow.company, currentRow.job) !== stableCompanyKey(nextRow.company, nextRow.job);
+    const fadeCompanyChrome = stableCompanyKey(currentRow.company, currentRow.job) !== stableCompanyKey(nextRow.company, nextRow.job);
     prefetchNow(getDetailsLookupId(filteredJobs[nextIndex].job));
     await runNavigationTransition(() => navigateToIndex(selectedIndex + 1), { fadeCompanyChrome });
   }, [filteredJobs, navigateToIndex, prefetchNow, runNavigationTransition, selectedIndex]);
@@ -204,13 +198,7 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
   return (
     <div className="h-full overflow-y-auto">
       {filteredJobs.map((row, index) => (
-        <ListViewJobCard
-          key={row.job.externalId}
-          row={row}
-          currentStage={getJobStatus(row.job.externalId)}
-          onJobClick={() => handleJobClick(index)}
-          onMoveJob={onMoveJob}
-        />
+        <ListViewJobCard key={row.job.externalId} row={row} currentStage={getJobStatus(row.job.externalId)} onJobClick={() => handleJobClick(index)} onMoveJob={onMoveJob} />
       ))}
 
       {isDesktop && selectedRow ? (

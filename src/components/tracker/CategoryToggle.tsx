@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
 import { Toggle } from "@/components/ui/toggle";
-
-type JobCategory = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
+import type { JobCategory } from "@/types/tracker";
 
 interface CategoryToggleProps {
   category: JobCategory;
@@ -11,7 +10,7 @@ interface CategoryToggleProps {
   icon?: React.ReactNode;
 }
 
-const CategoryToggle = ({ category, isActive, onToggle, icon}: CategoryToggleProps) => {
+const CategoryToggle = ({ category, isActive, onToggle, icon }: CategoryToggleProps) => {
   const getCategoryLabel = (category: JobCategory) => {
     switch (category) {
       case "saved":
@@ -30,16 +29,11 @@ const CategoryToggle = ({ category, isActive, onToggle, icon}: CategoryTogglePro
   };
 
   return (
-    <Toggle
-      pressed={isActive}
-      onPressedChange={() => onToggle(category)}
-      variant="category"
-      size="md"
-    >
+    <Toggle pressed={isActive} onPressedChange={() => onToggle(category)} variant="category" size="md">
       {icon}
       <span className="hidden min-[500px]:inline">{getCategoryLabel(category)}</span>
     </Toggle>
   );
 };
 
-export default CategoryToggle; 
+export default CategoryToggle;
