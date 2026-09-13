@@ -1,3 +1,4 @@
+import type { JobDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import { api } from "../../convex/_generated/api";
 import { useConvex } from "convex/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -32,14 +33,17 @@ export function useJobDetailsPrefetch(options?: Options) {
   const seenQueueRef = useRef<string[]>([]);
   const seenFailedRef = useRef(new Set<string>());
 
-  const enqueue = useCallback((jobId: string) => {
-    if (!jobId) return;
-    if (seenSetRef.current.has(jobId)) return;
-    if (!retryOnError && seenFailedRef.current.has(jobId)) return;
-    if (!queuedRef.current.includes(jobId)) {
-      queuedRef.current.push(jobId);
-    }
-  }, [retryOnError]);
+  const enqueue = useCallback(
+    (jobId: string) => {
+      if (!jobId) return;
+      if (seenSetRef.current.has(jobId)) return;
+      if (!retryOnError && seenFailedRef.current.has(jobId)) return;
+      if (!queuedRef.current.includes(jobId)) {
+        queuedRef.current.push(jobId);
+      }
+    },
+    [retryOnError]
+  );
 
   const markSeen = useCallback(
     (jobId: string) => {
@@ -61,7 +65,7 @@ export function useJobDetailsPrefetch(options?: Options) {
       markSeen(jobId);
       inflightRef.current += 1;
       void convex
-        .query(api.jobs.getDetailsLite, { jobId: jobId as any })
+        .query(api.jobs.getDetailsLite, { jobId: jobId as JobDetailsLookupId })
         .catch(() => {
           seenFailedRef.current.add(jobId);
           // best-effort

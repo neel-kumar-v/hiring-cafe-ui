@@ -1,4 +1,6 @@
 import { jobFadeClass } from "@/lib/jobs/fadeTransition";
+import { toCompensationRange } from "@/lib/jobs/toCompensationRange";
+import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import { memo, useMemo } from "react";
 import CardCompanyInfo from "../card/CardCompanyInfo";
@@ -12,23 +14,7 @@ interface JobCardContentProps {
 }
 
 const JobCardContent = memo(({ currentJob, company, isTransitioning }: JobCardContentProps) => {
-  const compensation = useMemo(
-    () => ({
-      yearly_min_compensation: currentJob.yearlyMinComp ?? null,
-      yearly_max_compensation: currentJob.yearlyMaxComp ?? null,
-      monthly_min_compensation: currentJob.monthlyMinComp ?? null,
-      monthly_max_compensation: currentJob.monthlyMaxComp ?? null,
-      weekly_min_compensation: currentJob.weeklyMinComp ?? null,
-      weekly_max_compensation: currentJob.weeklyMaxComp ?? null,
-      hourly_min_compensation: currentJob.hourlyMinComp ?? null,
-      hourly_max_compensation: currentJob.hourlyMaxComp ?? null,
-      "bi-weekly_min_compensation": currentJob.biWeeklyMinComp ?? null,
-      "bi-weekly_max_compensation": currentJob.biWeeklyMaxComp ?? null,
-      daily_min_compensation: currentJob.dailyMinComp ?? null,
-      daily_max_compensation: currentJob.dailyMaxComp ?? null,
-    }),
-    [currentJob]
-  );
+  const compensation = useMemo(() => toCompensationRange(currentJob), [currentJob]);
 
   const requirementsSummary = useMemo(() => currentJob.requirementsSummary ?? "", [currentJob.requirementsSummary]);
 
@@ -66,39 +52,7 @@ const JobCardContent = memo(({ currentJob, company, isTransitioning }: JobCardCo
         />
       </div>
 
-      <CardCompanyInfo
-        companyData={{
-          name: company?.name ?? "",
-          website: company?.homepageUri ?? "",
-          image_url: company?.imageUrl ?? "",
-          tagline: company?.tagline ?? "",
-          subsidiaries: [],
-          parent_company: "",
-          linkedin_url: "",
-          industries: company?.industries ?? [],
-          activities: company?.activities ?? [],
-          is_non_profit: false,
-          is_public_company: false,
-          is_dissolved: false,
-          is_acquired: false,
-          num_employees: company?.numEmployees ?? 0,
-          year_founded: company?.yearFounded ?? 0,
-          headquarters_country: company?.hqCountry ?? "",
-          total_funding_amount: null,
-          total_funding_currency: null,
-          latest_investment_amount: null,
-          latest_investment_currency: null,
-          latest_investment_year: null,
-          latest_investment_series: null,
-          investors: [],
-          stock_exchange: null,
-          stock_symbol: null,
-          latest_revenue: null,
-          latest_revenue_currency: null,
-          latest_revenue_year: null,
-        }}
-        tagline={companySubtitle}
-      />
+      <CardCompanyInfo companyData={toUiCompany(company)} tagline={companySubtitle} />
 
       <div className={jobFadeClass(isTransitioning)}>
         <CardJobDescription

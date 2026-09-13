@@ -1,13 +1,14 @@
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { jobFadeClass } from "@/lib/jobs/fadeTransition";
+import { useJobDetailsLite } from "@/hooks/useJobDetailsLite";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { toCompensationRange } from "@/lib/jobs/toCompensationRange";
+import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import { cn } from "@/lib/utils";
-import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
+import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { useQuery } from "convex/react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { api } from "../../../../convex/_generated/api";
 import type { DialogFooterNavigationProps } from "../dialog/DialogFooter";
 import { DialogBadges, DialogFooter, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills, DialogStats } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
@@ -79,29 +80,14 @@ const JobDialogContent = ({
     [isControlled, onOpenChange]
   );
 
-  const details = useQuery(api.jobs.getDetailsLite, dialogOpen ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as
-    | JobDetailsResultDTO
-    | null
-    | undefined;
+  const details = useJobDetailsLite(currentJob, dialogOpen);
   const isDetailsLoading = dialogOpen && details === undefined;
+  const detailsLoadFailed = dialogOpen && details === null;
   const job = details?.job ?? currentJob;
   const detailsDoc = details?.details ?? null;
   const companyDoc = details?.company ?? company;
 
-  const compensation = {
-    yearly_min_compensation: job.yearlyMinComp ?? null,
-    yearly_max_compensation: job.yearlyMaxComp ?? null,
-    monthly_min_compensation: job.monthlyMinComp ?? null,
-    monthly_max_compensation: job.monthlyMaxComp ?? null,
-    weekly_min_compensation: job.weeklyMinComp ?? null,
-    weekly_max_compensation: job.weeklyMaxComp ?? null,
-    hourly_min_compensation: job.hourlyMinComp ?? null,
-    hourly_max_compensation: job.hourlyMaxComp ?? null,
-    "bi-weekly_min_compensation": job.biWeeklyMinComp ?? null,
-    "bi-weekly_max_compensation": job.biWeeklyMaxComp ?? null,
-    daily_min_compensation: job.dailyMinComp ?? null,
-    daily_max_compensation: job.dailyMaxComp ?? null,
-  };
+  const compensation = toCompensationRange(job);
 
   const processed = {
     estimated_publish_date: job.estimatedPublishDate,
@@ -115,36 +101,7 @@ const JobDialogContent = ({
     role_activities: detailsDoc?.roleActivities ?? [],
   };
 
-  const companyData = {
-    name: companyDoc?.name ?? "",
-    website: companyDoc?.homepageUri ?? "",
-    image_url: companyDoc?.imageUrl ?? "",
-    tagline: companyDoc?.tagline ?? "",
-    subsidiaries: [],
-    parent_company: "",
-    linkedin_url: "",
-    industries: companyDoc?.industries ?? [],
-    activities: companyDoc?.activities ?? [],
-    is_non_profit: false,
-    is_public_company: false,
-    is_dissolved: false,
-    is_acquired: false,
-    num_employees: companyDoc?.numEmployees ?? 0,
-    year_founded: companyDoc?.yearFounded ?? 0,
-    headquarters_country: companyDoc?.hqCountry ?? "",
-    total_funding_amount: null,
-    total_funding_currency: null,
-    latest_investment_amount: null,
-    latest_investment_currency: null,
-    latest_investment_year: null,
-    latest_investment_series: null,
-    investors: [],
-    stock_exchange: null,
-    stock_symbol: null,
-    latest_revenue: null,
-    latest_revenue_currency: null,
-    latest_revenue_year: null,
-  };
+  const companyData = toUiCompany(companyDoc);
 
   const lookupId = useMemo(() => getDetailsLookupId(currentJob), [currentJob]);
 
@@ -184,7 +141,7 @@ const JobDialogContent = ({
     if (!openedAtRef.current) return;
     const elapsed = performance.now() - openedAtRef.current;
     if (elapsed > 120) {
-      // eslint-disable-next-line no-console
+       
       console.log(`[perf] getDetailsLite dialog ${elapsed.toFixed(1)}ms jobId=${lookupId}`);
     }
   }, [details, dialogOpen, lookupId, perfEnabled]);
@@ -247,6 +204,7 @@ const JobDialogContent = ({
         description={detailsDoc?.description ?? ""}
         fadeCompanyChrome={fadeCompanyChrome}
         isLoading={isDetailsLoading}
+        loadFailed={detailsLoadFailed}
         isTransitioning={isTransitioning}
       />
 

@@ -1,18 +1,18 @@
 import { DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { useJobDetailsLite } from "@/hooks/useJobDetailsLite";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import { jobFadeClass } from "@/lib/jobs/fadeTransition";
-import type { CompanyDTO, JobDTO, JobDetailsResultDTO } from "@/types/convexJobs";
+import { toCompensationRange } from "@/lib/jobs/toCompensationRange";
+import { toUiCompany } from "@/lib/jobs/toUiCompany";
+import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { useQuery } from "convex/react";
 import type { TouchEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {  DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
+import { DialogBadges, DialogJobDescription, DialogJobTitle, DialogRequirements, DialogSkills } from "../dialog";
 import DialogCompanyLogoCard from "../dialog/DialogCompanyLogoCard";
 import { DialogActionButtons } from "../dialog/DialogFooter";
 import DialogResponsibilities from "../dialog/DialogResponsibilities";
-import { api } from "../../../../convex/_generated/api";
-
 export interface JobDrawerNavigationProps {
   onPrevious: () => void | Promise<void>;
   onNext: () => void | Promise<void>;
@@ -98,45 +98,14 @@ const JobDrawerContent = ({
     [hasHorizontalSwipe, navigation, touchStart]
   );
 
-  const details = useQuery(api.jobs.getDetailsLite, open ? { jobId: getDetailsLookupId(currentJob) as any } : "skip") as unknown as
-    | JobDetailsResultDTO
-    | null
-    | undefined;
+  const details = useJobDetailsLite(currentJob, open);
   const isDetailsLoading = open && details === undefined;
+  const detailsLoadFailed = open && details === null;
   const job = details?.job ?? currentJob;
   const detailsDoc = details?.details ?? null;
   const companyDoc = details?.company ?? company;
 
-  const companyData = {
-    name: companyDoc?.name ?? "",
-    website: companyDoc?.homepageUri ?? "",
-    image_url: companyDoc?.imageUrl ?? "",
-    tagline: companyDoc?.tagline ?? "",
-    subsidiaries: [],
-    parent_company: "",
-    linkedin_url: "",
-    industries: companyDoc?.industries ?? [],
-    activities: companyDoc?.activities ?? [],
-    is_non_profit: false,
-    is_public_company: false,
-    is_dissolved: false,
-    is_acquired: false,
-    num_employees: companyDoc?.numEmployees ?? 0,
-    year_founded: companyDoc?.yearFounded ?? 0,
-    headquarters_country: companyDoc?.hqCountry ?? "",
-    total_funding_amount: null,
-    total_funding_currency: null,
-    latest_investment_amount: null,
-    latest_investment_currency: null,
-    latest_investment_year: null,
-    latest_investment_series: null,
-    investors: [],
-    stock_exchange: null,
-    stock_symbol: null,
-    latest_revenue: null,
-    latest_revenue_currency: null,
-    latest_revenue_year: null,
-  };
+  const companyData = toUiCompany(companyDoc);
 
   const processed = {
     workplace_cities: job.workplaceCities,
@@ -186,7 +155,7 @@ const JobDrawerContent = ({
     if (!openedAtRef.current) return;
     const elapsed = performance.now() - openedAtRef.current;
     if (elapsed > 120) {
-      // eslint-disable-next-line no-console
+       
       console.log(`[perf] getDetailsLite drawer ${elapsed.toFixed(1)}ms jobId=${lookupId}`);
     }
   }, [details, lookupId, open, perfEnabled]);
@@ -225,20 +194,7 @@ const JobDrawerContent = ({
           <div className={jobFadeClass(isTransitioning)}>
             <DialogBadges
               commitments={processed.commitment ?? []}
-              compensation={{
-                yearly_min_compensation: job.yearlyMinComp ?? null,
-                yearly_max_compensation: job.yearlyMaxComp ?? null,
-                monthly_min_compensation: job.monthlyMinComp ?? null,
-                monthly_max_compensation: job.monthlyMaxComp ?? null,
-                weekly_min_compensation: job.weeklyMinComp ?? null,
-                weekly_max_compensation: job.weeklyMaxComp ?? null,
-                hourly_min_compensation: job.hourlyMinComp ?? null,
-                hourly_max_compensation: job.hourlyMaxComp ?? null,
-                "bi-weekly_min_compensation": job.biWeeklyMinComp ?? null,
-                "bi-weekly_max_compensation": job.biWeeklyMaxComp ?? null,
-                daily_min_compensation: job.dailyMinComp ?? null,
-                daily_max_compensation: job.dailyMaxComp ?? null,
-              }}
+              compensation={toCompensationRange(job)}
               workplaceCities={processed.workplace_cities ?? []}
               workType={processed.workplace_type ?? ""}
               compact={true}
@@ -256,6 +212,7 @@ const JobDrawerContent = ({
             description={detailsDoc?.description ?? ""}
             fadeCompanyChrome={fadeCompanyChrome}
             isLoading={isDetailsLoading}
+            loadFailed={detailsLoadFailed}
             isTransitioning={isTransitioning}
           />
         </div>
