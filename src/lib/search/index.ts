@@ -3,13 +3,12 @@ import { InfiniteRange, Keywords, Location, Range, SearchExpression, Select } fr
 // Export functions from other files
 export { createAvailabilityRadioHandler, createNestedSelectHandler, createOncallCheckboxHandler, createShiftCheckboxHandler } from './availability';
 export {
-  createCompanyHandler, createFoundingYearHandler, createIndustryKeywordsHandler,
+  createCompanyHandler, createIndustryKeywordsHandler,
   createIndustryProfitHandler,
   createIndustryUsaJobsHandler, createSizeHandler, getSizeRanges
 } from './company';
-export { createBenefitsHandler, createDepartmentHandler, createEncouragedHandler } from './compensation';
+export { createBenefitsHandler, createEncouragedHandler } from './compensation';
 export { createExclusionHandler, getApplyFormDescription, getApplyFormMap, getApplyFormValueMap } from './general';
-export { convertSearchStateToHiringCafe } from './hiring-cafe';
 export {
   createLocationFlexibleRegionsHandler,
   createLocationIgnoreRadiusHandler,

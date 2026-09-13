@@ -1,4 +1,4 @@
-import { Benefits, BenefitsOptions, Department, DepartmentOptions, Encouraged, EncouragedOptions, SearchState } from '../../types/search';
+import { Benefits, BenefitsOptions, Encouraged, EncouragedOptions, SearchState } from '../../types/search';
 
 export function createBenefitsHandler(
   currentBenefits: BenefitsOptions,
@@ -11,40 +11,6 @@ export function createBenefitsHandler(
       : [...(currentBenefits || []), benefit];
     
     updateSearchOptions({ benefits: newBenefits });
-  };
-}
-
-export function createDepartmentHandler(
-  currentDepartments: DepartmentOptions,
-  allDepartments: Department[],
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (department: Department) => {
-    let currentDepartmentsArray: Department[] = [];
-    
-    if (currentDepartments === "All") {
-      currentDepartmentsArray = allDepartments.filter(item => item !== department);
-    } else if (Array.isArray(currentDepartments)) {
-      currentDepartmentsArray = [...currentDepartments];
-    }
-    
-    let newDepartments: DepartmentOptions;
-    
-    if (currentDepartments === "All") {
-      newDepartments = currentDepartmentsArray;
-    } else if (currentDepartmentsArray.includes(department)) {
-      const filtered = currentDepartmentsArray.filter(item => item !== department);
-      newDepartments = filtered.length === 0 ? [] : filtered;
-    } else {
-      const added = [...currentDepartmentsArray, department];
-      newDepartments = added.length === allDepartments.length ? "All" : added;
-    }
-    
-    if (Array.isArray(newDepartments) && newDepartments.length === allDepartments.length) {
-      newDepartments = "All";
-    }
-    
-    updateSearchOptions({ department: newDepartments });
   };
 }
 

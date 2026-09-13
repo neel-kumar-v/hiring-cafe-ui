@@ -1,6 +1,5 @@
 import { CurrentStage, FundingOptions, IndustryOptions, InfiniteRange, Keywords, Profit, SearchState, Select, USAJobs } from '../../types/search';
-import { createRadioHandler, createSelectHandler } from './handlers';
-import { createRangeHandler } from './index';
+import { createRadioHandler, createRangeHandler, createSelectHandler } from './handlers';
 
 export function createCompanyHandler(
   updateSearchOptions: (updates: Partial<SearchState>) => void
@@ -14,12 +13,6 @@ export function createCompanyHandler(
 
 export const getCurrentYear = () => {
   return new Date().getFullYear();
-}
-
-export function createFoundingYearHandler(
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return createRangeHandler(updateSearchOptions, "founding_year");
 }
 
 // Size handlers
@@ -69,20 +62,6 @@ export function createSizeHandler(
     }
     
     updateSearchOptions({ size: newSize });
-  };
-}
-
-export function createIndustryHandler(
-  currentIndustry: IndustryOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (keywords: Keywords, field: 'activities' | 'industry') => {
-    updateSearchOptions({
-      industry: {
-        ...currentIndustry,
-        [field]: keywords
-      }
-    });
   };
 }
 

@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
-// import { PerformanceMonitor } from "@/lib/performance-monitor";
 import { AppProvider } from "@/contexts/AppContext";
 import { SearchUIProvider } from "@/contexts/SearchContext";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
