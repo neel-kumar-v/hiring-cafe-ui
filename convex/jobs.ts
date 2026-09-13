@@ -3,9 +3,15 @@ import { paginationOptsValidator } from "convex/server";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { addCompanyJobPreview, updateCompanyLastJobMillis, upsertCompanyFromIngest } from "./companies";
+import { assertIngestAdminSecret } from "./ingestAdmin";
 import { buildJobCardFields, toSortPublishMillis } from "./jobCards";
 
 const JOBS_COUNTER_NAME = "jobs";
+const INGEST_BATCH_MAX_ITEMS = 100;
+const HIDE_EXTERNAL_IDS_MAX = 200;
+const BY_EXTERNAL_IDS_MAX = 400;
+const SEARCH_PAGE_MAX_ITEMS = 48;
+const SEARCH_OVERSCAN_MAX_PAGES = 5;
 
 async function getJobsCounter(ctx: any) {
   return await ctx.db
@@ -27,6 +33,7 @@ export async function incrementJobsCounter(ctx: any, delta: number) {
 
 export const ingestBatch = mutation({
   args: {
+    adminSecret: v.optional(v.string()),
     items: v.array(
       v.object({
         externalId: v.string(),
@@ -142,7 +149,11 @@ export const ingestBatch = mutation({
       })
     ),
   },
-  handler: async (ctx, { items }) => {
+  handler: async (ctx, { adminSecret, items }) => {
+    assertIngestAdminSecret(adminSecret);
+    if (items.length > INGEST_BATCH_MAX_ITEMS) {
+      throw new Error(`ingestBatch accepts at most ${INGEST_BATCH_MAX_ITEMS} items per call`);
+    }
     const now = Date.now();
     let insertedJobs = 0;
     let insertedCompanies = 0;
@@ -291,11 +302,11 @@ export const ingestBatch = mutation({
       if (companyDoc) {
         const jobDoc = await ctx.db.get(jobId);
         if (jobDoc) {
-          const cardFields = buildJobCardFields(jobDoc, companyDoc, item.searchText);
           const existingCard = await ctx.db
             .query("jobCards")
             .withIndex("by_externalId", (q) => q.eq("externalId", item.externalId))
             .unique();
+          const cardFields = buildJobCardFields(jobDoc, companyDoc, item.searchText, existingCard?.hidden);
           if (existingCard) {
             await ctx.db.patch(existingCard._id, { ...cardFields, updatedAt: now });
           } else {
@@ -528,7 +539,10 @@ async function sampleJobLikeDocsForDistinct(ctx: any, q: string, readLimit: numb
     return await ctx.db.query("jobCards").withIndex("by_recent").order("desc").take(readLimit);
   }
   if (q) {
-    const rows = await ctx.db.query("jobs").order("desc").take(Math.min(readLimit * 3, 3000));
+    const rows = await ctx.db
+      .query("jobs")
+      .order("desc")
+      .take(Math.min(readLimit * 3, 3000));
     const qq = q.trim().toLowerCase();
     return rows
       .filter(
@@ -538,7 +552,7 @@ async function sampleJobLikeDocsForDistinct(ctx: any, q: string, readLimit: numb
           String(d.department ?? "")
             .toLowerCase()
             .includes(qq) ||
-          (d.skills ?? []).some((s: string) => (s ?? "").toLowerCase().includes(qq)),
+          (d.skills ?? []).some((s: string) => (s ?? "").toLowerCase().includes(qq))
       )
       .slice(0, readLimit);
   }
@@ -609,29 +623,8 @@ export const search = query({
     const order = normalizedSort.order === "asc" ? "asc" : "desc";
     let mode = "recent";
     const hasJobCards = (await ctx.db.query("jobCards").take(1)).length > 0;
-
-    let page;
-    if (hasQuery) {
-      mode = "searchIndex";
-      page = await ctx.db
-        .query("jobCards")
-        .withSearchIndex("search_searchText", (q2) => {
-          let qq = q2.search("searchText", queryText);
-          if (workplaceTypes.length === 1) qq = qq.eq("workplaceType", workplaceTypes[0]);
-          if (departments.length === 1) qq = qq.eq("department", departments[0]);
-          if (currencies.length === 1) qq = qq.eq("listedCompensationCurrency", currencies[0]);
-          if (frequencies.length === 1) qq = qq.eq("listedCompensationFrequency", frequencies[0]);
-          return qq;
-        })
-        .paginate(paginationOpts);
-    } else if (!hasJobCards) {
-      mode = "jobs_recent";
-      page = await ctx.db.query("jobs").order(order).paginate(paginationOpts);
-    } else {
-      // All browse paths use `by_recent` only; filters are applied in `applyPostFilters`.
-      mode = "by_recent";
-      page = await ctx.db.query("jobCards").withIndex("by_recent").order(order).paginate(paginationOpts);
-    }
+    const boundedNumItems = Math.min(Math.max(paginationOpts.numItems, 1), SEARCH_PAGE_MAX_ITEMS);
+    const boundedPaginationOpts = { ...paginationOpts, numItems: boundedNumItems };
 
     const applyPostFilters = (rows: any[]) => {
       let filteredRows = rows;
@@ -707,30 +700,71 @@ export const search = query({
       return filteredRows;
     };
 
-    let scannedCount = page.page.length;
-    let continueCursor = page.continueCursor;
-    let isDone = page.isDone;
-    const filteredRows = applyPostFilters(page.page);
+    const fetchSearchPage = async (cursor: string | null) => {
+      const pageOpts = { ...boundedPaginationOpts, cursor };
+      if (hasQuery) {
+        mode = "searchIndex";
+        return await ctx.db
+          .query("jobCards")
+          .withSearchIndex("search_searchText", (q2) => {
+            let qq = q2.search("searchText", queryText);
+            if (workplaceTypes.length === 1) qq = qq.eq("workplaceType", workplaceTypes[0]);
+            if (departments.length === 1) qq = qq.eq("department", departments[0]);
+            if (currencies.length === 1) qq = qq.eq("listedCompensationCurrency", currencies[0]);
+            if (frequencies.length === 1) qq = qq.eq("listedCompensationFrequency", frequencies[0]);
+            return qq;
+          })
+          .paginate(pageOpts);
+      }
+      if (!hasJobCards) {
+        mode = "jobs_recent";
+        return await ctx.db.query("jobs").order(order).paginate(pageOpts);
+      }
+      // All browse paths use `by_recent` only; filters are applied in `applyPostFilters`.
+      mode = "by_recent";
+      return await ctx.db.query("jobCards").withIndex("by_recent").order(order).paginate(pageOpts);
+    };
+
+    let scannedCount = 0;
+    let continueCursor = "";
+    let isDone = false;
+    let cursor: string | null = boundedPaginationOpts.cursor;
+    const filteredRows: any[] = [];
+
+    for (let overscanPage = 0; overscanPage < SEARCH_OVERSCAN_MAX_PAGES; overscanPage++) {
+      const page = await fetchSearchPage(cursor);
+      scannedCount += page.page.length;
+      continueCursor = page.continueCursor;
+      isDone = page.isDone;
+
+      const pageFiltered = applyPostFilters(page.page);
+      filteredRows.push(...pageFiltered);
+
+      if (filteredRows.length >= boundedNumItems || isDone) break;
+      if (pageFiltered.length > 0) break;
+
+      cursor = page.continueCursor;
+    }
+
+    const trimmedFilteredRows = filteredRows.slice(0, boundedNumItems);
     let resultPage: any[] = [];
-    const pageRowsAreJobCards = filteredRows.length > 0 && "jobId" in filteredRows[0];
+    const pageRowsAreJobCards = trimmedFilteredRows.length > 0 && "jobId" in trimmedFilteredRows[0];
     if (pageRowsAreJobCards) {
-      const uniqueJobIds = Array.from(new Set(filteredRows.map((row: any) => String(row.jobId))));
+      const uniqueJobIds = Array.from(new Set(trimmedFilteredRows.map((row: any) => String(row.jobId))));
       const jobDocs = await Promise.all(uniqueJobIds.map((id) => ctx.db.get(id as Id<"jobs">)));
       const detailsIdByJobId = new Map<string, Id<"jobDetails">>();
       for (const j of jobDocs) {
         if (j?._id && j.detailsId) detailsIdByJobId.set(String(j._id), j.detailsId);
       }
-      resultPage = filteredRows.map((card: any) =>
-        toCardResult(card, detailsIdByJobId.get(String(card.jobId)) ?? null),
-      );
-    } else if (filteredRows.length > 0) {
-      const companyIds = Array.from(new Set(filteredRows.map((row: any) => String(row.companyId))));
+      resultPage = trimmedFilteredRows.map((card: any) => toCardResult(card, detailsIdByJobId.get(String(card.jobId)) ?? null));
+    } else if (trimmedFilteredRows.length > 0) {
+      const companyIds = Array.from(new Set(trimmedFilteredRows.map((row: any) => String(row.companyId))));
       const companyDocs = await Promise.all(companyIds.map((id) => ctx.db.get(id as Id<"companies">)));
       const companiesById = new Map<string, any>();
       for (const company of companyDocs) {
         if (company?._id) companiesById.set(String(company._id), company);
       }
-      resultPage = filteredRows.map((job: any) => toJobResult(job, companiesById.get(String(job.companyId)) ?? null));
+      resultPage = trimmedFilteredRows.map((job: any) => toJobResult(job, companiesById.get(String(job.companyId)) ?? null));
     } else {
       resultPage = [];
     }
@@ -750,50 +784,6 @@ export const search = query({
       continueCursor,
       isDone,
     };
-  },
-});
-
-export const getDetails = query({
-  args: { jobId: v.union(v.id("jobs"), v.id("jobCards")) },
-  handler: async (ctx, { jobId }) => {
-    const sourceDoc = await ctx.db.get(jobId);
-    if (!sourceDoc) return null;
-
-    const isCardSource = "jobId" in sourceDoc;
-    const sourceJobId = isCardSource ? sourceDoc.jobId : sourceDoc._id;
-    let job = await ctx.db.get(sourceJobId);
-
-    // Backward compatibility for stale card pointers after history rewrites/import drift.
-    if (!job && "externalId" in sourceDoc) {
-      job = await ctx.db
-        .query("jobs")
-        .withIndex("by_externalId", (q) => q.eq("externalId", sourceDoc.externalId))
-        .unique();
-    }
-
-    let details = null;
-    if (job?.detailsId) {
-      details = await ctx.db.get(job.detailsId);
-    }
-    if (!details && "detailsId" in sourceDoc && sourceDoc.detailsId) {
-      details = await ctx.db.get(sourceDoc.detailsId);
-    }
-    if (!details && job?._id) {
-      details = await ctx.db
-        .query("jobDetails")
-        .withIndex("by_jobId", (q) => q.eq("jobId", job._id))
-        .unique();
-    }
-    if (!details && isCardSource) {
-      details = await ctx.db
-        .query("jobDetails")
-        .withIndex("by_jobId", (q) => q.eq("jobId", sourceDoc.jobId))
-        .unique();
-    }
-
-    const resolvedJob = job ?? sourceDoc;
-    const company = await ctx.db.get(resolvedJob.companyId);
-    return { job: resolvedJob, details, company };
   },
 });
 
@@ -948,53 +938,6 @@ export const distinctJobTitles = query({
   },
 });
 
-/** Distinct skill tags from jobs (used for description-keyword @ suggestions). */
-export const distinctSkills = query({
-  args: { query: v.optional(v.string()), limit: v.optional(v.number()) },
-  handler: async (ctx, { query, limit }) => {
-    const q = (query ?? "").trim().toLowerCase();
-    const max = Math.min(Math.max(limit ?? 50, 1), 200);
-    const readLimit = Math.min(Math.max(max * 8, 120), 800);
-
-    const docs = await sampleJobLikeDocsForDistinct(ctx, q, readLimit);
-
-    const skills = new Set<string>();
-    for (const d of docs) {
-      for (const raw of d.skills ?? []) {
-        const s = (raw ?? "").trim();
-        if (!s) continue;
-        if (q && !s.toLowerCase().includes(q)) continue;
-        skills.add(s);
-        if (skills.size >= max) break;
-      }
-      if (skills.size >= max) break;
-    }
-    return Array.from(skills);
-  },
-});
-
-/** Distinct requirements summary lines from jobs (for requirements-keyword @ suggestions). */
-export const distinctRequirementsSummaries = query({
-  args: { query: v.optional(v.string()), limit: v.optional(v.number()) },
-  handler: async (ctx, { query, limit }) => {
-    const q = (query ?? "").trim().toLowerCase();
-    const max = Math.min(Math.max(limit ?? 50, 1), 200);
-    const readLimit = Math.min(Math.max(max * 8, 120), 800);
-
-    const docs = await sampleJobLikeDocsForDistinct(ctx, q, readLimit);
-
-    const lines = new Set<string>();
-    for (const d of docs) {
-      const s = (d.requirementsSummary ?? "").trim();
-      if (!s) continue;
-      if (q && !s.toLowerCase().includes(q)) continue;
-      lines.add(s);
-      if (lines.size >= max) break;
-    }
-    return Array.from(lines);
-  },
-});
-
 export const count = query({
   args: {},
   handler: async (ctx) => {
@@ -1006,6 +949,9 @@ export const count = query({
 export const byExternalIds = query({
   args: { ids: v.array(v.string()), viewerEmail: v.optional(v.string()) },
   handler: async (ctx, { ids, viewerEmail }) => {
+    if (ids.length > BY_EXTERNAL_IDS_MAX) {
+      throw new Error(`byExternalIds accepts at most ${BY_EXTERNAL_IDS_MAX} ids per call`);
+    }
     const normalizedViewerEmail = (viewerEmail ?? "").trim().toLowerCase();
     const viewerUser = normalizedViewerEmail
       ? await ctx.db
@@ -1037,9 +983,7 @@ export const byExternalIds = query({
           .unique()
       )
     );
-    const jobs = docs
-      .filter((d): d is NonNullable<typeof d> => d !== null)
-      .filter((job) => !hiddenExternalIds.has(job.externalId));
+    const jobs = docs.filter((d): d is NonNullable<typeof d> => d !== null).filter((job) => !hiddenExternalIds.has(job.externalId));
     const uniqCompanies = Array.from(new Set(jobs.map((j) => String(j.companyId))));
     const companyDocs = await Promise.all(uniqCompanies.map((id) => ctx.db.get(id as any)));
     const byId = new Map<string, any>();
@@ -1051,6 +995,9 @@ export const byExternalIds = query({
 export const hideForCurrentUser = mutation({
   args: { externalIds: v.array(v.string()), viewerEmail: v.optional(v.string()) },
   handler: async (ctx, { externalIds, viewerEmail }) => {
+    if (externalIds.length > HIDE_EXTERNAL_IDS_MAX) {
+      throw new Error(`hideForCurrentUser accepts at most ${HIDE_EXTERNAL_IDS_MAX} externalIds per call`);
+    }
     const normalizedViewerEmail = (viewerEmail ?? "").trim().toLowerCase();
     if (!normalizedViewerEmail) {
       return { ok: false as const, reason: "SIGN_IN_REQUIRED" as const, updated: 0 };

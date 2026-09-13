@@ -38,11 +38,12 @@ export const backfillJobCards = migrations.define({
     const updatedCompany = (await ctx.db.get(company._id))!;
 
     for (const job of jobs) {
-      const fields = buildJobCardFields(job, updatedCompany);
       const existing = await ctx.db
         .query("jobCards")
         .withIndex("by_externalId", (q) => q.eq("externalId", job.externalId))
         .unique();
+
+      const fields = buildJobCardFields(job, updatedCompany, undefined, existing?.hidden);
 
       if (existing) {
         await ctx.db.patch(existing._id, { ...fields, updatedAt: now });
@@ -123,31 +124,6 @@ export const getJobCardsBackfillStatus = query({
   handler: async (ctx): Promise<MigrationStatus | null> => {
     const [status] = await migrations.getStatus(ctx, {
       migrations: ["backfillJobCards"],
-      limit: 1,
-    });
-    return status ?? null;
-  },
-});
-
-export const getStorageDedupeMigrationStatus = query({
-  args: {},
-  handler: async (ctx) => {
-    const statuses = await migrations.getStatus(ctx, {
-      migrations: ["stripJobsSearchText", "stripJobCardsDetailsId"],
-      limit: 2,
-    });
-    return {
-      stripJobsSearchText: statuses[0] ?? null,
-      stripJobCardsDetailsId: statuses[1] ?? null,
-    };
-  },
-});
-
-export const getDeleteNonEngineeringJobsStatus = query({
-  args: {},
-  handler: async (ctx): Promise<MigrationStatus | null> => {
-    const [status] = await migrations.getStatus(ctx, {
-      migrations: ["deleteNonEngineeringJobs"],
       limit: 1,
     });
     return status ?? null;

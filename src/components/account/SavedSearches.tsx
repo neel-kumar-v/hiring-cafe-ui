@@ -2,7 +2,7 @@
 
 import { AllFilter } from "@/components/search/filters/util/AllFilter";
 import { useApp } from "@/contexts/AppContext";
-import type { CategoryId, SearchState } from "@/types/search";
+import type { SearchState } from "@/types/search";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -16,10 +16,7 @@ export default function SavedSearches() {
   const router = useRouter();
   const { setSearchOptions } = useApp();
   const { user: convexUser, email } = useCurrentUser();
-  const savedSearches = useQuery(
-    api.savedSearches.listByUser,
-    convexUser ? { userId: convexUser._id } : "skip"
-  );
+  const savedSearches = useQuery(api.savedSearches.listByUser, convexUser ? { userId: convexUser._id } : "skip");
   const renameSavedSearch = useMutation(api.savedSearches.rename);
   const [editingId, setEditingId] = useState<Id<"savedSearches"> | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -34,7 +31,8 @@ export default function SavedSearches() {
   };
 
   const handleEditSave = (id: Id<"savedSearches">) => {
-    void renameSavedSearch({ id, name: editingName.trim() || "Untitled" });
+    if (!convexUser) return;
+    void renameSavedSearch({ id, userId: convexUser._id, name: editingName.trim() || "Untitled" });
     setEditingId(null);
     setEditingName("");
   };
@@ -52,27 +50,17 @@ export default function SavedSearches() {
     }
   };
 
-  const handleCategoryClick = (categoryType: CategoryId) => {
-    // This would typically open the search filters dialog
-    console.log("Category clicked:", categoryType);
-  };
+  const handleCategoryClick: Parameters<typeof AllFilter>[0]["handleCategoryClick"] = () => {};
 
   return (
     <div className="rounded-lg border border-border bg-card p-6">
-      <h2 className="mb-4 text-xl font-semibold text-foreground">
-        Saved Searches
-      </h2>
+      <h2 className="mb-4 text-xl font-semibold text-foreground">Saved Searches</h2>
       {!convexUser ? (
-        <p className="text-muted-foreground italic">
-          Sign in{email ? "" : " with an email"} to see saved searches.
-        </p>
+        <p className="text-muted-foreground italic">Sign in{email ? "" : " with an email"} to see saved searches.</p>
       ) : (savedSearches ?? []).length > 0 ? (
         <div className="space-y-6">
           {(savedSearches ?? []).map((search) => (
-            <div
-              key={String(search._id)}
-              className="rounded-lg border border-border p-4"
-            >
+            <div key={String(search._id)} className="rounded-lg border border-border p-4">
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {editingId === search._id ? (
@@ -120,19 +108,13 @@ export default function SavedSearches() {
                   <Search className="size-4" /> Go to Search
                 </button>
               </div>
-              <AllFilter
-                searchOptions={search.searchState as SearchState}
-                handleCategoryClick={handleCategoryClick}
-                showButton={false}
-              />
+              <AllFilter searchOptions={search.searchState as SearchState} handleCategoryClick={handleCategoryClick} showButton={false} />
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-muted-foreground italic">
-          No saved searches yet.
-        </p>
+        <p className="text-muted-foreground italic">No saved searches yet.</p>
       )}
     </div>
   );
-} 
+}

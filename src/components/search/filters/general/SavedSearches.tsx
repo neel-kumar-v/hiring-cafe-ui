@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useApp } from "@/contexts/AppContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { getEditedTags } from "@/lib/edited-filters";
-import type { CategoryId, SearchState } from "@/types/search";
+import type { SearchState } from "@/types/search";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
@@ -43,7 +43,8 @@ export default function SavedSearches() {
   };
 
   const handleEditSave = (id: Id<"savedSearches">) => {
-    void renameSavedSearch({ id, name: editingName.trim() || "Untitled" });
+    if (!convexUser) return;
+    void renameSavedSearch({ id, userId: convexUser._id, name: editingName.trim() || "Untitled" });
     setEditingId(null);
     setEditingName("");
   };
@@ -65,9 +66,7 @@ export default function SavedSearches() {
     setSearchOptions(search.searchState);
   };
 
-  const handleCategoryClick = (categoryId: CategoryId) => {
-    console.log("Category clicked:", categoryId);
-  };
+  const handleCategoryClick: Parameters<typeof AllFilter>[0]["handleCategoryClick"] = () => {};
 
   const handleSaveSearch = () => {
     if (!convexUser) {
@@ -182,7 +181,8 @@ export default function SavedSearches() {
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    void removeSavedSearch({ id: search._id });
+                    if (!convexUser) return;
+                    void removeSavedSearch({ id: search._id, userId: convexUser._id });
                     toast.success("Deleted saved search.");
                   }}
                   className="flex items-center gap-1 text-destructive"

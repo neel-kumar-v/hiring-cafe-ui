@@ -1,8 +1,4 @@
-import type { Doc } from "./_generated/dataModel";
-
-export const JOBCARDS_BACKFILL_TOTAL_COUNTER = "jobCards_backfill_total";
-export const JOBCARDS_BACKFILL_DONE_COUNTER = "jobCards_backfill_done";
-export const JOBCARDS_BACKFILL_UPDATED_AT_COUNTER = "jobCards_backfill_updatedAt";
+import type { Doc, Id } from "./_generated/dataModel";
 
 function toNumberOrZero(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
@@ -15,13 +11,9 @@ export function toSortPublishMillis(job: Pick<Doc<"jobs">, "estimatedPublishDate
 }
 
 function buildSearchTextFallback(job: Doc<"jobs">, company: Doc<"companies">): string {
-  const parts = [
-    job.title,
-    company.name,
-    job.requirementsSummary ?? "",
-    (job.skills ?? []).join(" "),
-    (job.workplaceCities ?? []).join(" "),
-  ].filter((p) => typeof p === "string" && p.length > 0);
+  const parts = [job.title, company.name, job.requirementsSummary ?? "", (job.skills ?? []).join(" "), (job.workplaceCities ?? []).join(" ")].filter(
+    (p) => typeof p === "string" && p.length > 0
+  );
   return parts.join("\n").toLowerCase();
 }
 
@@ -31,7 +23,7 @@ export type JobCardUpsertFields = Omit<Doc<"jobCards">, "_id" | "_creationTime" 
  * When `ingestSearchText` is set (ingestion path), it should match `scrape_to_convex.py` search_text.
  * Otherwise uses any legacy `jobs.searchText` or a compact fallback so backfills work after dedupe.
  */
-export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">, ingestSearchText?: string): JobCardUpsertFields {
+export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">, ingestSearchText?: string, existingHidden?: Id<"users">[]): JobCardUpsertFields {
   const searchText =
     typeof ingestSearchText === "string" && ingestSearchText.length > 0
       ? ingestSearchText
@@ -69,7 +61,7 @@ export function buildJobCardFields(job: Doc<"jobs">, company: Doc<"companies">, 
     views: toNumberOrZero(job.views),
     saves: toNumberOrZero(job.saves),
     applies: toNumberOrZero(job.applies),
-    hidden: [],
+    hidden: existingHidden ?? [],
 
     department: job.department,
     listedCompensationCurrency: job.listedCompensationCurrency,
