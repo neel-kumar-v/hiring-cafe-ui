@@ -42,16 +42,24 @@ next-env.d.ts
 scraper.log
 package-lock.json
 
-# Local SQLite job store (generated from jobs_data.json)
+# Local SQLite / scrape dumps (generated)
 src/data/jobs.db
+src/data/jobs_data.json
+scrape_state.json
+src/data/scrape_state.json
+
+# Local seed / tool state
+scripts/.seed-autocomplete-state.json
+playwright-report/
+test-results/
+/scraper/logs/
+/scraper/__pycache__
+
 CLAUDE.md
 /.agents
 /.claude
 /convex/_generated
 /Search
 docs/search-reference-audit.md
-/scraper/__pycache__
 *.ndjson
 *.zip
-scrape_state.json
-src/data/scrape_state.json
