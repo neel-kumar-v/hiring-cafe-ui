@@ -1,26 +1,22 @@
 ## Playwright tests
 
-This repo uses Playwright for end-to-end (E2E) and lightweight performance regression checks.
+This repo has a lightweight Playwright **perf** smoke (`tests/perf/`), not a full E2E suite.
 
 ### Prereqs
-- App server running at `http://localhost:3000`
-- Convex running (because job details come from Convex)
 
-### Run E2E
+- App at `http://localhost:3000`
+- Convex with job data
 
-```bash
-pnpm test:e2e
-```
-
-### Run perf tests (measures time-to-description-render)
+### Run
 
 ```bash
 pnpm test:perf
 ```
 
-To enforce a hard threshold:
+Hard threshold:
 
 ```bash
 PERF_MAX_MS=1200 pnpm test:perf
 ```
 
+`pnpm test:e2e` runs the same Playwright project under `./tests`.

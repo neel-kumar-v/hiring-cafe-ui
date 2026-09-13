@@ -1,35 +1,34 @@
 # Project overview
 
 UI clone of [hiring.cafe](https://hiring.cafe/). Stack: Next.js (App Router),
-React, Tailwind, TypeScript, Convex for jobs, saved searches, and users. Job
-documents store a full payload in Convex `jobs.raw` (normalized keys in app
-TypeScript).
+React, Tailwind, TypeScript, Convex for jobs, saved searches, and users.
+Browse/search uses denormalized `jobCards`; dialog payloads live in `jobDetails`.
 
 ## Structure
 
-| Path | Role |
-|------|------|
-| `src/app/` | Routes, layouts, API route handlers |
-| `src/components/` | UI, job board, search, tracker |
-| `src/lib/` | Server/client helpers (search, utils, job normalization) |
-| `src/data/` | Static JSON and filter config |
-| `convex/` | Convex schema, queries, mutations |
-| `Search/` | Legacy JS modules (excluded from root `tsconfig`; separate types in `Search/search.d.ts`) |
-| `scraper/` | Python import scripts (Convex JSON import) |
+| Path              | Role                                                      |
+| ----------------- | --------------------------------------------------------- |
+| `src/app/`        | Routes, layouts, API route handlers                       |
+| `src/components/` | UI, job board, search, tracker                            |
+| `src/lib/`        | Server/client helpers (search, utils, job helpers)        |
+| `src/data/`       | Autocomplete seed JSON and filter config                  |
+| `convex/`         | Convex schema, queries, mutations                         |
+| `scraper/`        | Python scrape + NDJSON replay into Convex                 |
+| `scripts/`        | PowerShell helpers (autocomplete seed, jobCards backfill) |
 
 Path alias: `@/*` → `src/*`.
 
 ## Commands
 
-| Command | Purpose |
-|---------|---------|
-| `pnpm run typecheck` | TypeScript only (`tsc --noEmit`). **Use this for type errors — do not use `pnpm run build` as a substitute.** |
-| `pnpm run lint` | ESLint (Next) |
-| `pnpm run lint:fix` | ESLint with fixes |
-| `pnpm run format` | Prettier |
-| `pnpm run build` | Production build (slow; not for routine type checking) |
-| `pnpm run start` | Serve production build |
-| `pnpm run import-jobs-convex` | Import scraped JSON into Convex |
+| Command                       | Purpose                                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm run typecheck`          | TypeScript only (`tsc --noEmit`). **Use this for type errors — do not use `pnpm run build` as a substitute.** |
+| `pnpm run lint`               | ESLint                                                                                                        |
+| `pnpm run lint:fix`           | ESLint with fixes                                                                                             |
+| `pnpm run format`             | Prettier                                                                                                      |
+| `pnpm run build`              | Production build (slow; not for routine type checking)                                                        |
+| `pnpm run start`              | Serve production build                                                                                        |
+| `pnpm run import-jobs-convex` | Live scrape to Convex (`scraper/scrape_to_convex.py`)                                                         |
 
 Do **not** run `pnpm run dev` unless the user asks (redundant for agents).
 
@@ -38,6 +37,7 @@ Do **not** delete local convex state unless explicitly asked.
 ## Agent notes
 
 - Prefer `pnpm run typecheck` in a loop while editing; avoid `build` for that.
+- Identity is localStorage email (`src/lib/local-auth.ts`), not Convex Auth.
 
 <!-- convex-ai-start -->
 
