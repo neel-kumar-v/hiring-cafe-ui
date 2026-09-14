@@ -4,8 +4,7 @@ import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription,
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SearchDialogContent } from "./search/contents";
-import SearchOverlayContent from "./search/contents/SearchOverlayContent";
+import SearchContent from "./search/contents/SearchContent";
 
 interface SearchDialogProps {
   open: boolean;
@@ -27,11 +26,7 @@ export default function SearchDialog({ open, onOpenChange, from, isDarkMode }: S
         <ResponsiveDialogTitle className="sr-only">Create your Job Search</ResponsiveDialogTitle>
         <ResponsiveDialogDescription className="sr-only">Configure your job search filters and preferences.</ResponsiveDialogDescription>
 
-        {isMobile ? (
-          <SearchOverlayContent open={open} onOpenChange={onOpenChange} from={from} variant="tabs" />
-        ) : (
-          <SearchDialogContent from={from} onOpenChange={onOpenChange} open={open} variant="sidebar" />
-        )}
+        <SearchContent open={open} onOpenChange={onOpenChange} from={from} variant={isMobile ? "tabs" : "sidebar"} />
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );

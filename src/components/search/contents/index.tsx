@@ -261,5 +261,4 @@ export function getGroupedCategories(): FilteredGroup[] {
   }));
 }
 
-export { default as SearchDialogContent } from "./SearchDialogContent";
-export { default as SearchOverlayContent } from "./SearchOverlayContent";
+export { default as SearchContent } from "./SearchContent";
