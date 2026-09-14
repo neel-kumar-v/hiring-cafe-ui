@@ -38,14 +38,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://hiring-cafe-clone.vercel.app"),
+  metadataBase: new URL("https://hiring-cafe-ui-neelkumarvs-projects.vercel.app"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://hiring-cafe-clone.vercel.app",
+    url: "https://hiring-cafe-ui-neelkumarvs-projects.vercel.app",
     title: "Hiring Cafe Clone",
     description: "UI Redesign of the hiring.cafe website",
     siteName: "Hiring Cafe Clone",

@@ -38,6 +38,7 @@ Do **not** delete local convex state unless explicitly asked.
 
 - Prefer `pnpm run typecheck` in a loop while editing; avoid `build` for that.
 - Identity is localStorage email (`src/lib/local-auth.ts`), not Convex Auth.
+- `convex/_generated` is tracked in git (required for Vercel). Keep regenerating via `pnpm run build` / `convex codegen`; do not delete it casually.
 
 <!-- convex-ai-start -->
 
