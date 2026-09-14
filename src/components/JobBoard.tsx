@@ -10,8 +10,8 @@ import { api } from "../../convex/_generated/api";
 import { getAuthEmail } from "../lib/local-auth";
 import { useApp } from "../contexts/AppContext";
 import { useSearchUI } from "../contexts/SearchContext";
-import { useJobDetailsPrefetch } from "../hooks/useJobDetailsPrefetch";
-import { useMediaQuery, useResponsiveBreakpoint } from "../hooks/useMediaQuery";
+import { JobPreviewOverlay, useJobPreviewChrome } from "../hooks/useJobPreview";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
   buildJobBoardDisplayedCollections,
   flattenJobBoardPositions,
@@ -21,8 +21,6 @@ import {
   jobBoardFadeCompanyChromeBetweenJobs,
   jobBoardFlatIndexForSelection,
   jobBoardRememberedJobIndex,
-  JOB_BOARD_NAV_FADE_OUT_MS,
-  JOB_BOARD_NAV_SETTLE_MS,
   JOB_BOARD_PAGE_LIMIT,
   JOB_BOARD_PREFILL_VIEWPORT_MARGIN_PX,
   type JobBoardSelectedPosition,
@@ -35,23 +33,25 @@ const JobBoardCard = dynamic(() => import("./job/JobBoardCard"), {
   ssr: false,
 });
 
-const JobDialogContent = dynamic(() => import("./job/contents/JobDialogContent"), {
-  loading: () => null,
-  ssr: false,
-});
-
-const JobDrawerContent = dynamic(() => import("./job/contents/JobDrawerContent"), {
-  loading: () => null,
-  ssr: false,
-});
-
 const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number; jobCount?: number; location?: string }) => {
   const { boardSearchQuery, jobBoardSelectionMode, setJobBoardSelectionMode } = useSearchUI();
   const { searchOptions } = useApp();
   const { user, addJob, removeJob } = useApp();
   const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
-  const { isDesktop } = useResponsiveBreakpoint();
-  const { prefetch, prefetchNow } = useJobDetailsPrefetch({ delayMs: 140, maxInflight: 3, maxSeen: 600 });
+  const {
+    isDesktop,
+    dialogOpen,
+    setDialogOpen,
+    drawerOpen,
+    setDrawerOpen,
+    isTransitioning,
+    fadeCompanyChrome,
+    prefetch,
+    prefetchNow,
+    openPreview,
+    closePreview,
+    runTransition,
+  } = useJobPreviewChrome({ delayMs: 140, maxInflight: 3, maxSeen: 600 });
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
@@ -75,15 +75,10 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   const [revealLoading, setRevealLoading] = useState(false);
   const [jobIndexByCollection, setJobIndexByCollection] = useState<Record<string, number>>({});
   const [selectedPosition, setSelectedPosition] = useState<JobBoardSelectedPosition | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isTransitioningDialog, setIsTransitioningDialog] = useState(false);
-  const [fadeCompanyChromeDialog, setFadeCompanyChromeDialog] = useState(false);
   const [pendingGroupAdvance, setPendingGroupAdvance] = useState(false);
   const [pendingJobAdvance, setPendingJobAdvance] = useState(false);
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null);
-  const transitionInFlightRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const convexFilters = useMemo(() => toConvexJobSearchFilters(searchOptions), [searchOptions]);
@@ -163,18 +158,9 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   }, [accumulatedRows.length, displayedCollections.length, isLoading, loadMoreItems, revealLoading, status, visibleRowCount]);
 
   useEffect(() => {
-    if (isDesktop) {
-      setDrawerOpen(false);
-      return;
-    }
-    setDialogOpen(false);
-  }, [isDesktop]);
-
-  useEffect(() => {
     if (!displayedCollections.length) {
       setSelectedPosition(null);
-      setDialogOpen(false);
-      setDrawerOpen(false);
+      closePreview();
       return;
     }
     if (!selectedPosition) return;
@@ -190,7 +176,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     if (clampedJobIndex !== selectedPosition.jobIndex) {
       setSelectedPosition({ collectionIndex: selectedPosition.collectionIndex, jobIndex: clampedJobIndex });
     }
-  }, [displayedCollections, selectedPosition]);
+  }, [closePreview, displayedCollections, selectedPosition]);
 
   const updateCollectionJobIndex = useCallback(
     (collectionIndex: number, nextJobIndex: number) => {
@@ -218,31 +204,13 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     [displayedCollections]
   );
 
-  const runDialogTransition = useCallback(async (navigate: () => boolean | Promise<boolean>, opts?: { fadeCompanyChrome?: boolean }) => {
-    if (transitionInFlightRef.current) return false;
-    transitionInFlightRef.current = true;
-    setFadeCompanyChromeDialog(Boolean(opts?.fadeCompanyChrome));
-    setIsTransitioningDialog(true);
-    try {
-      await new Promise((resolve) => window.setTimeout(resolve, JOB_BOARD_NAV_FADE_OUT_MS));
-      const didNavigate = await navigate();
-      await new Promise((resolve) => window.setTimeout(resolve, JOB_BOARD_NAV_SETTLE_MS));
-      return didNavigate;
-    } finally {
-      transitionInFlightRef.current = false;
-      setIsTransitioningDialog(false);
-      setFadeCompanyChromeDialog(false);
-    }
-  }, []);
-
   const openJobDetails = useCallback(
     (collectionIndex: number, jobIndex: number) => {
       const didSelect = setSelection({ collectionIndex, jobIndex });
       if (!didSelect) return;
-      if (isDesktop) setDialogOpen(true);
-      else setDrawerOpen(true);
+      openPreview();
     },
-    [isDesktop, setSelection]
+    [openPreview, setSelection]
   );
 
   const selectedCollection = selectedPosition ? displayedCollections[selectedPosition.collectionIndex] : null;
@@ -471,28 +439,28 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     if (!selectedPosition || !selectedCollection || selectedCollection.jobs.length < 2) return;
     const previousIndex = (selectedPosition.jobIndex - 1 + selectedCollection.jobs.length) % selectedCollection.jobs.length;
     prefetchJobAtNow(selectedPosition.collectionIndex, previousIndex);
-    await runDialogTransition(() => setSelection({ collectionIndex: selectedPosition.collectionIndex, jobIndex: previousIndex }), {
+    await runTransition(() => setSelection({ collectionIndex: selectedPosition.collectionIndex, jobIndex: previousIndex }), {
       fadeCompanyChrome: false,
     });
-  }, [prefetchJobAtNow, runDialogTransition, selectedCollection, selectedPosition, setSelection]);
+  }, [prefetchJobAtNow, runTransition, selectedCollection, selectedPosition, setSelection]);
 
   const handleFooterNext = useCallback(async () => {
     if (!selectedPosition || !selectedCollection || selectedCollection.jobs.length < 2) return;
     const nextIndex = (selectedPosition.jobIndex + 1) % selectedCollection.jobs.length;
     prefetchJobAtNow(selectedPosition.collectionIndex, nextIndex);
-    await runDialogTransition(() => setSelection({ collectionIndex: selectedPosition.collectionIndex, jobIndex: nextIndex }), {
+    await runTransition(() => setSelection({ collectionIndex: selectedPosition.collectionIndex, jobIndex: nextIndex }), {
       fadeCompanyChrome: false,
     });
-  }, [prefetchJobAtNow, runDialogTransition, selectedCollection, selectedPosition, setSelection]);
+  }, [prefetchJobAtNow, runTransition, selectedCollection, selectedPosition, setSelection]);
 
   const handleFooterSelect = useCallback(
     async (jobIndex: number) => {
       if (!selectedPosition) return;
       if (selectedPosition.jobIndex === jobIndex) return;
       prefetchJobAtNow(selectedPosition.collectionIndex, jobIndex);
-      await runDialogTransition(() => setSelection({ collectionIndex: selectedPosition.collectionIndex, jobIndex }), { fadeCompanyChrome: false });
+      await runTransition(() => setSelection({ collectionIndex: selectedPosition.collectionIndex, jobIndex }), { fadeCompanyChrome: false });
     },
-    [prefetchJobAtNow, runDialogTransition, selectedPosition, setSelection]
+    [prefetchJobAtNow, runTransition, selectedPosition, setSelection]
   );
 
   const canGoPreviousGroup = Boolean(selectedPosition && selectedPosition.collectionIndex > 0);
@@ -509,10 +477,10 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     const targetJob = previousCollection.jobs[targetJobIndex];
     const fadeCompanyChrome = jobBoardFadeCompanyChromeBetweenJobs(selectedCollection, selectedJob, previousCollection, targetJob);
     prefetchJobAtNow(previousCollectionIndex, targetJobIndex);
-    await runDialogTransition(() => setSelection({ collectionIndex: previousCollectionIndex, jobIndex: targetJobIndex }), {
+    await runTransition(() => setSelection({ collectionIndex: previousCollectionIndex, jobIndex: targetJobIndex }), {
       fadeCompanyChrome,
     });
-  }, [displayedCollections, jobIndexByCollection, prefetchJobAtNow, runDialogTransition, selectedCollection, selectedJob, selectedPosition, setSelection]);
+  }, [displayedCollections, jobIndexByCollection, prefetchJobAtNow, runTransition, selectedCollection, selectedJob, selectedPosition, setSelection]);
 
   const handleOutsideNext = useCallback(async () => {
     if (!selectedPosition || !selectedCollection || !selectedJob) return;
@@ -523,7 +491,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
       const targetJob = nextCollection.jobs[targetJobIndex];
       const fadeCompanyChrome = jobBoardFadeCompanyChromeBetweenJobs(selectedCollection, selectedJob, nextCollection, targetJob);
       prefetchJobAtNow(nextCollectionIndex, targetJobIndex);
-      await runDialogTransition(() => setSelection({ collectionIndex: nextCollectionIndex, jobIndex: targetJobIndex }), {
+      await runTransition(() => setSelection({ collectionIndex: nextCollectionIndex, jobIndex: targetJobIndex }), {
         fadeCompanyChrome,
       });
       return;
@@ -538,7 +506,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     jobIndexByCollection,
     prefetchJobAtNow,
     requestMoreForNavigation,
-    runDialogTransition,
+    runTransition,
     selectedCollection,
     selectedJob,
     selectedPosition,
@@ -553,10 +521,10 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     const previous = flattenedPositions[selectedFlatIndex - 1];
     const fadeCompanyChrome = jobBoardFadeCompanyChromeBetweenFlatNeighbors(displayedCollections, current, previous);
     prefetchJobAtNow(previous.collectionIndex, previous.jobIndex);
-    await runDialogTransition(() => setSelection({ collectionIndex: previous.collectionIndex, jobIndex: previous.jobIndex }), {
+    await runTransition(() => setSelection({ collectionIndex: previous.collectionIndex, jobIndex: previous.jobIndex }), {
       fadeCompanyChrome,
     });
-  }, [displayedCollections, flattenedPositions, prefetchJobAtNow, runDialogTransition, selectedFlatIndex, setSelection]);
+  }, [displayedCollections, flattenedPositions, prefetchJobAtNow, runTransition, selectedFlatIndex, setSelection]);
 
   const handleMobileNext = useCallback(async () => {
     if (selectedFlatIndex === -1) return;
@@ -565,7 +533,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
       const next = flattenedPositions[selectedFlatIndex + 1];
       const fadeCompanyChrome = jobBoardFadeCompanyChromeBetweenFlatNeighbors(displayedCollections, current, next);
       prefetchJobAtNow(next.collectionIndex, next.jobIndex);
-      await runDialogTransition(() => setSelection({ collectionIndex: next.collectionIndex, jobIndex: next.jobIndex }), {
+      await runTransition(() => setSelection({ collectionIndex: next.collectionIndex, jobIndex: next.jobIndex }), {
         fadeCompanyChrome,
       });
       return;
@@ -580,7 +548,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
     flattenedPositions,
     prefetchJobAtNow,
     requestMoreForNavigation,
-    runDialogTransition,
+    runTransition,
     selectedFlatIndex,
     setSelection,
     status,
@@ -734,66 +702,45 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
         </ActionBarGroup>
       </ActionBar>
 
-      {isDesktop && selectedJob ? (
-        <JobDialogContent
-          company={selectedCompany}
-          currentJob={selectedJob}
-          onDetailsResolved={prefetchNeighborsForSelected}
-          footerNavigation={
-            selectedCollection && selectedCollection.jobs.length > 1 && selectedPosition
-              ? {
-                  currentJobIndex: selectedPosition.jobIndex,
-                  totalJobs: selectedCollection.jobs.length,
-                  onPrevious: handleFooterPrevious,
-                  onNext: handleFooterNext,
-                  onJobSelect: handleFooterSelect,
-                  onJobHover: undefined,
-                  onPreviousHover: undefined,
-                  onNextHover: undefined,
-                }
-              : undefined
-          }
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          isInterviewing={isInterviewing}
-          fadeCompanyChrome={fadeCompanyChromeDialog}
-          isTransitioning={isTransitioningDialog}
-          onApplyToggle={handleApplyToggle}
-          onBookmarkToggle={handleBookmarkToggle}
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
-          outsideNavigation={{
-            onPrevious: handleOutsidePrevious,
-            onNext: handleOutsideNext,
-            onPreviousHover: undefined,
-            onNextHover: undefined,
-            canGoPrevious: canGoPreviousGroup,
-            canGoNext: canGoNextGroup,
-          }}
-        />
-      ) : null}
-
-      {!isDesktop && selectedJob ? (
-        <JobDrawerContent
-          company={selectedCompany}
-          currentJob={selectedJob}
-          onDetailsResolved={prefetchNeighborsForSelected}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          fadeCompanyChrome={fadeCompanyChromeDialog}
-          isTransitioning={isTransitioningDialog}
-          navigation={{
-            onPrevious: handleMobilePrevious,
-            onNext: handleMobileNext,
-            canGoPrevious: canGoPreviousMobile,
-            canGoNext: canGoNextMobile,
-          }}
-          onApplyToggle={handleApplyToggle}
-          onBookmarkToggle={handleBookmarkToggle}
-          onClose={() => setDrawerOpen(false)}
-          open={drawerOpen}
-        />
-      ) : null}
+      <JobPreviewOverlay
+        job={selectedJob}
+        company={selectedCompany}
+        isDesktop={isDesktop}
+        dialogOpen={dialogOpen}
+        drawerOpen={drawerOpen}
+        onDialogOpenChange={setDialogOpen}
+        onDrawerClose={() => setDrawerOpen(false)}
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        isInterviewing={isInterviewing}
+        fadeCompanyChrome={fadeCompanyChrome}
+        isTransitioning={isTransitioning}
+        onApplyToggle={handleApplyToggle}
+        onBookmarkToggle={handleBookmarkToggle}
+        onDetailsResolved={prefetchNeighborsForSelected}
+        onPrevious={handleMobilePrevious}
+        onNext={handleMobileNext}
+        canGoPrevious={canGoPreviousMobile}
+        canGoNext={canGoNextMobile}
+        footerNavigation={
+          selectedCollection && selectedCollection.jobs.length > 1 && selectedPosition
+            ? {
+                currentJobIndex: selectedPosition.jobIndex,
+                totalJobs: selectedCollection.jobs.length,
+                onPrevious: handleFooterPrevious,
+                onNext: handleFooterNext,
+                onJobSelect: handleFooterSelect,
+                onJobHover: undefined,
+                onPreviousHover: undefined,
+                onNextHover: undefined,
+              }
+            : undefined
+        }
+        outsideCanGoPrevious={canGoPreviousGroup}
+        outsideCanGoNext={canGoNextGroup}
+        onOutsidePrevious={handleOutsidePrevious}
+        onOutsideNext={handleOutsideNext}
+      />
     </>
   );
 };

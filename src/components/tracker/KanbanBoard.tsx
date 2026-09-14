@@ -4,35 +4,17 @@ import KanbanJobCardContents from "@/components/job/contents/KanbanJobCardConten
 import { KanbanBoard as KanbanBoardUI, KanbanCardWithDragHandle, KanbanCards, KanbanHeader, KanbanProvider } from "@/components/ui/kanban";
 import { ActionBar, ActionBarGroup, ActionBarItem, ActionBarSelection, ActionBarSeparator } from "@/components/ui/action-bar";
 import { useApp } from "@/contexts/AppContext";
-import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
-import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
-import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
-import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { JobPreviewOverlay, useJobPreviewSequence } from "@/hooks/useJobPreview";
 import { buildSharePayload, selectRangeIds } from "@/lib/jobs/selection";
-import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
 import type { JobStatus } from "@/types/app";
 import type { JobCardResultDTO } from "@/types/convexJobs";
 import type { JobCategory } from "@/types/tracker";
 import { api } from "../../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { CheckCheck, Copy, EyeOff, MoveHorizontal, Share2, X } from "lucide-react";
-import dynamic from "next/dynamic";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { getAuthEmail } from "@/lib/local-auth";
 import { toast } from "sonner";
-
-const JobDialogContent = dynamic(() => import("../job/contents/JobDialogContent"), {
-  loading: () => null,
-  ssr: false,
-});
-
-const JobDrawerContent = dynamic(() => import("../job/contents/JobDrawerContent"), {
-  loading: () => null,
-  ssr: false,
-});
-
-const NAV_FADE_OUT_MS = JOB_FADE_DURATION_MS;
-const NAV_SETTLE_MS = 50;
 
 interface KanbanBoardProps {
   jobs: JobCardResultDTO[];
@@ -51,16 +33,9 @@ type KanbanColumn = {
 const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = false, onSelectionModeChange }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
   const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
-  const { isDesktop } = useResponsiveBreakpoint();
-  const { prefetch, prefetchNow } = useJobDetailsPrefetch({ delayMs: 140, maxInflight: 2, maxSeen: 600 });
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [fadeCompanyChromeNav, setFadeCompanyChromeNav] = useState(false);
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [anchorId, setAnchorId] = useState<string | null>(null);
-  const transitionInFlightRef = useRef(false);
 
   const kanbanData = useMemo(() => {
     const allJobIds = new Set([...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden]);
@@ -125,23 +100,6 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     [jobMap, selectedJobIds]
   );
 
-  useEffect(() => {
-    if (!selectedJobId) return;
-    if (!jobMap.has(selectedJobId)) {
-      setSelectedJobId(null);
-      setDialogOpen(false);
-      setDrawerOpen(false);
-    }
-  }, [jobMap, selectedJobId]);
-
-  useEffect(() => {
-    if (isDesktop) {
-      setDrawerOpen(false);
-      return;
-    }
-    setDialogOpen(false);
-  }, [isDesktop]);
-
   const getCurrentStatus = useCallback(
     (jobId: string): JobCategory => {
       if (user.applied.includes(jobId)) return "applied";
@@ -170,6 +128,57 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     setSelectedJobIds(new Set());
     setAnchorId(null);
   }, [onSelectionModeChange]);
+
+  const selectedColumnId = selectedJobId ? (kanbanData.find((item) => item.id === selectedJobId)?.column ?? null) : null;
+
+  const jobsByColumn = useMemo(() => {
+    const grouped = new Map<string, JobCardResultDTO[]>();
+    for (const column of columns) {
+      grouped.set(column.id, []);
+    }
+    for (const item of kanbanData) {
+      if (!grouped.has(item.column)) continue;
+      const row = jobMap.get(item.id);
+      if (!row) continue;
+      grouped.get(item.column)!.push(row);
+    }
+    return grouped;
+  }, [columns, jobMap, kanbanData]);
+
+  const rotatedColumnOrder = useMemo(() => {
+    if (!columnOrder.length) return [];
+    if (!selectedColumnId) return columnOrder;
+    const selectedColumnIndex = columnOrder.indexOf(selectedColumnId);
+    if (selectedColumnIndex === -1) return columnOrder;
+    return [...columnOrder.slice(selectedColumnIndex), ...columnOrder.slice(0, selectedColumnIndex)];
+  }, [columnOrder, selectedColumnId]);
+
+  const navigationSequence = useMemo(() => rotatedColumnOrder.flatMap((columnId) => jobsByColumn.get(columnId) ?? []), [jobsByColumn, rotatedColumnOrder]);
+
+  const {
+    isDesktop,
+    dialogOpen,
+    setDialogOpen,
+    drawerOpen,
+    setDrawerOpen,
+    isTransitioning,
+    fadeCompanyChrome,
+    selectedRow,
+    canNavigate,
+    openJob,
+    prefetchNeighbors,
+    handlePrevious,
+    handleNext,
+    previousAriaLabel,
+    nextAriaLabel,
+  } = useJobPreviewSequence({
+    sequence: navigationSequence,
+    selectedId: selectedJobId,
+    onSelectId: setSelectedJobId,
+    prefetchOptions: { delayMs: 140, maxInflight: 2, maxSeen: 600 },
+    previousAriaLabel: "Previous kanban job",
+    nextAriaLabel: "Next kanban job",
+  });
 
   const handleJobSelect = useCallback(
     (jobId: string, e: React.MouseEvent) => {
@@ -206,91 +215,11 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
         if (!anchorId) setAnchorId(jobId);
         return;
       }
-      const row = jobMap.get(jobId);
-      if (!row) return;
-      setSelectedJobId(jobId);
-      if (isDesktop) setDialogOpen(true);
-      else setDrawerOpen(true);
+      if (!jobMap.has(jobId)) return;
+      openJob(jobId);
     },
-    [anchorId, isDesktop, jobMap, onSelectionModeChange, orderedItems, selectionMode]
+    [anchorId, jobMap, onSelectionModeChange, openJob, orderedItems, selectionMode]
   );
-
-  const selectedRow = selectedJobId ? (jobMap.get(selectedJobId) ?? null) : null;
-  const selectedColumnId = selectedJobId ? (kanbanData.find((item) => item.id === selectedJobId)?.column ?? null) : null;
-
-  const jobsByColumn = useMemo(() => {
-    const grouped = new Map<string, JobCardResultDTO[]>();
-    for (const column of columns) {
-      grouped.set(column.id, []);
-    }
-    for (const item of kanbanData) {
-      if (!grouped.has(item.column)) continue;
-      const row = jobMap.get(item.id);
-      if (!row) continue;
-      grouped.get(item.column)!.push(row);
-    }
-    return grouped;
-  }, [columns, jobMap, kanbanData]);
-
-  const rotatedColumnOrder = useMemo(() => {
-    if (!columnOrder.length) return [];
-    if (!selectedColumnId) return columnOrder;
-    const selectedColumnIndex = columnOrder.indexOf(selectedColumnId);
-    if (selectedColumnIndex === -1) return columnOrder;
-    return [...columnOrder.slice(selectedColumnIndex), ...columnOrder.slice(0, selectedColumnIndex)];
-  }, [columnOrder, selectedColumnId]);
-
-  const navigationSequence = useMemo(() => rotatedColumnOrder.flatMap((columnId) => jobsByColumn.get(columnId) ?? []), [jobsByColumn, rotatedColumnOrder]);
-
-  const selectedSequenceIndex = useMemo(
-    () => (selectedJobId ? navigationSequence.findIndex((row) => row.job.externalId === selectedJobId) : -1),
-    [navigationSequence, selectedJobId]
-  );
-
-  const prefetchNeighborsForSelected = useCallback(() => {
-    if (!navigationSequence.length || selectedSequenceIndex === -1) return;
-    if (navigationSequence.length < 2) return;
-    const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
-    const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
-    prefetch(getDetailsLookupId(navigationSequence[previousIndex].job));
-    if (nextIndex !== previousIndex) prefetch(getDetailsLookupId(navigationSequence[nextIndex].job));
-  }, [navigationSequence, prefetch, selectedSequenceIndex]);
-
-  const runNavigationTransition = useCallback(async (navigate: () => void, opts?: { fadeCompanyChrome?: boolean }) => {
-    if (transitionInFlightRef.current) return;
-    transitionInFlightRef.current = true;
-    setFadeCompanyChromeNav(Boolean(opts?.fadeCompanyChrome));
-    setIsTransitioning(true);
-    try {
-      await new Promise((resolve) => window.setTimeout(resolve, NAV_FADE_OUT_MS));
-      navigate();
-      await new Promise((resolve) => window.setTimeout(resolve, NAV_SETTLE_MS));
-    } finally {
-      transitionInFlightRef.current = false;
-      setIsTransitioning(false);
-      setFadeCompanyChromeNav(false);
-    }
-  }, []);
-
-  const handlePrevious = useCallback(async () => {
-    if (!navigationSequence.length || selectedSequenceIndex === -1) return;
-    const previousIndex = (selectedSequenceIndex - 1 + navigationSequence.length) % navigationSequence.length;
-    const current = navigationSequence[selectedSequenceIndex];
-    const target = navigationSequence[previousIndex];
-    const fadeCompanyChrome = stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
-    prefetchNow(getDetailsLookupId(target.job));
-    await runNavigationTransition(() => setSelectedJobId(target.job.externalId), { fadeCompanyChrome });
-  }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
-
-  const handleNext = useCallback(async () => {
-    if (!navigationSequence.length || selectedSequenceIndex === -1) return;
-    const nextIndex = (selectedSequenceIndex + 1) % navigationSequence.length;
-    const current = navigationSequence[selectedSequenceIndex];
-    const target = navigationSequence[nextIndex];
-    const fadeCompanyChrome = stableCompanyKey(current.company, current.job) !== stableCompanyKey(target.company, target.job);
-    prefetchNow(getDetailsLookupId(target.job));
-    await runNavigationTransition(() => setSelectedJobId(target.job.externalId), { fadeCompanyChrome });
-  }, [navigationSequence, prefetchNow, runNavigationTransition, selectedSequenceIndex]);
 
   const isBookmarked = useMemo(
     () =>
@@ -553,52 +482,29 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
         </ActionBarGroup>
       </ActionBar>
 
-      {isDesktop && selectedRow ? (
-        <JobDialogContent
-          company={selectedRow.company}
-          currentJob={selectedRow.job}
-          onDetailsResolved={prefetchNeighborsForSelected}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          isInterviewing={isInterviewing}
-          fadeCompanyChrome={fadeCompanyChromeNav}
-          isTransitioning={isTransitioning}
-          onApplyToggle={handleApplyToggle}
-          onBookmarkToggle={handleBookmarkToggle}
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
-          outsideNavigation={{
-            onPrevious: handlePrevious,
-            onNext: handleNext,
-            canGoPrevious: navigationSequence.length > 1,
-            canGoNext: navigationSequence.length > 1,
-            previousAriaLabel: "Previous kanban job",
-            nextAriaLabel: "Next kanban job",
-          }}
-        />
-      ) : null}
-
-      {!isDesktop && selectedRow ? (
-        <JobDrawerContent
-          company={selectedRow.company}
-          currentJob={selectedRow.job}
-          onDetailsResolved={prefetchNeighborsForSelected}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          fadeCompanyChrome={fadeCompanyChromeNav}
-          isTransitioning={isTransitioning}
-          navigation={{
-            onPrevious: handlePrevious,
-            onNext: handleNext,
-            canGoPrevious: navigationSequence.length > 1,
-            canGoNext: navigationSequence.length > 1,
-          }}
-          onApplyToggle={handleApplyToggle}
-          onBookmarkToggle={handleBookmarkToggle}
-          onClose={() => setDrawerOpen(false)}
-          open={drawerOpen}
-        />
-      ) : null}
+      <JobPreviewOverlay
+        job={selectedRow?.job ?? null}
+        company={selectedRow?.company ?? null}
+        isDesktop={isDesktop}
+        dialogOpen={dialogOpen}
+        drawerOpen={drawerOpen}
+        onDialogOpenChange={setDialogOpen}
+        onDrawerClose={() => setDrawerOpen(false)}
+        isApplied={isApplied}
+        isBookmarked={isBookmarked}
+        isInterviewing={isInterviewing}
+        fadeCompanyChrome={fadeCompanyChrome}
+        isTransitioning={isTransitioning}
+        onApplyToggle={handleApplyToggle}
+        onBookmarkToggle={handleBookmarkToggle}
+        onDetailsResolved={prefetchNeighbors}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        canGoPrevious={canNavigate}
+        canGoNext={canNavigate}
+        previousAriaLabel={previousAriaLabel}
+        nextAriaLabel={nextAriaLabel}
+      />
     </div>
   );
 });
