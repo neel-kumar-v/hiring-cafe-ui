@@ -31,6 +31,7 @@ Opens [http://localhost:3000](http://localhost:3000) (Next + Convex).
 
 ## Notes
 
-- Job identity for hide/saved-search is a **localStorage email**, not real auth. Do not treat it as secure.
-- Autocomplete options are seeded via `scripts/seed-autocomplete.ps1` into Convex `autocompleteValues`.
+- Job identity for hide/saved-search is a **localStorage email**, not real auth. `users.ensureByEmail` is a public demo mutation (email format check only). Do not treat it as secure.
+- Ingest/seed admin writes require `INGEST_ADMIN_SECRET` when set on the Convex deployment.
+- Autocomplete options are seeded via `scripts/seed-autocomplete.ps1` into Convex `autocompleteValues` / `autocompleteTypeIndex` (re-run after schema changes so type-index rows get denormalized `value` for typed search).
 - Prefer `pnpm run typecheck` over `pnpm run build` for routine type checks.
