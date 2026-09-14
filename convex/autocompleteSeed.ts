@@ -76,7 +76,7 @@ async function upsertValueAndLink(ctx: MutationCtx, type: AutocompleteType, valu
   let valueId: Id<"autocompleteValues">;
   if (!existingValue) {
     valueId = await ctx.db.insert("autocompleteValues", { value, types: [type] });
-    await ctx.db.insert("autocompleteTypeIndex", { type, valueId });
+    await ctx.db.insert("autocompleteTypeIndex", { type, valueId, value });
     return { createdNewAssociation: true };
   }
 
@@ -93,8 +93,12 @@ async function upsertValueAndLink(ctx: MutationCtx, type: AutocompleteType, valu
     .withIndex("by_type_and_valueId", (q) => q.eq("type", type).eq("valueId", valueId))
     .unique();
   if (!existingLink) {
-    await ctx.db.insert("autocompleteTypeIndex", { type, valueId });
+    await ctx.db.insert("autocompleteTypeIndex", { type, valueId, value });
     return { createdNewAssociation: true };
+  }
+
+  if (existingLink.value !== value) {
+    await ctx.db.patch(existingLink._id, { value });
   }
 
   return { createdNewAssociation: false };
@@ -141,6 +145,35 @@ export const seedBatch = mutation({
       nextStart,
       total: all.length,
       done: nextStart >= all.length,
+    };
+  },
+});
+
+/** Fill denormalized `value` on autocompleteTypeIndex rows (needed for typed search). */
+export const backfillTypeIndexValues = mutation({
+  args: {
+    adminSecret: v.optional(v.string()),
+    cursor: v.optional(v.string()),
+    count: v.optional(v.number()),
+  },
+  handler: async (ctx, { adminSecret, cursor, count }) => {
+    assertIngestAdminSecret(adminSecret);
+    const batchCount = Math.min(Math.max(Math.floor(count ?? 200), 1), 500);
+    const page = await ctx.db.query("autocompleteTypeIndex").paginate({ numItems: batchCount, cursor: cursor ?? null });
+
+    let patched = 0;
+    for (const link of page.page) {
+      if (typeof link.value === "string" && link.value.length > 0) continue;
+      const valueDoc = await ctx.db.get(link.valueId);
+      if (!valueDoc) continue;
+      await ctx.db.patch(link._id, { value: valueDoc.value });
+      patched++;
+    }
+
+    return {
+      patched,
+      continueCursor: page.continueCursor,
+      isDone: page.isDone,
     };
   },
 });

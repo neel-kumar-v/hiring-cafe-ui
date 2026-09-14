@@ -5,8 +5,8 @@ import { autocompleteTypeValidator } from "./autocompleteTypes";
 /**
  * Values live in `autocompleteValues` (deduped by string + `types[]`).
  * Facet browse without a query uses `autocompleteTypeIndex`.
- * Text search uses the shared `search_value` index then filters by facet type
- * (search indexes cannot filter on array membership; oversample is capped).
+ * Text search uses type-scoped `search_value_by_type` on the type index
+ * (falls back to shared-value oversample when denormalized `value` is missing).
  */
 export const getOptions = query({
   args: {
@@ -19,7 +19,23 @@ export const getOptions = query({
     const q = (query ?? "").trim();
 
     if (q.length > 0) {
-      // Search index is shared across types; oversample then filter by facet.
+      const typedHits = await ctx.db
+        .query("autocompleteTypeIndex")
+        .withSearchIndex("search_value_by_type", (q2) => q2.search("value", q).eq("type", type))
+        .take(max);
+
+      const fromTyped = typedHits.map((d) => d.value).filter((value): value is string => typeof value === "string" && value.length > 0);
+
+      if (fromTyped.length > 0 || typedHits.length > 0) {
+        // Prefer type-scoped results; if links lack denormalized value, resolve via valueId.
+        if (fromTyped.length >= typedHits.length) {
+          return { suggestions: fromTyped.slice(0, max) };
+        }
+        const resolved = await Promise.all(typedHits.map(async (link) => link.value ?? (await ctx.db.get(link.valueId))?.value ?? null));
+        return { suggestions: resolved.filter((value): value is string => typeof value === "string" && value.length > 0).slice(0, max) };
+      }
+
+      // Legacy fallback before type-index values are backfilled / re-seeded.
       const oversample = Math.min(Math.max(max * 4, max), 400);
       const hits = await ctx.db
         .query("autocompleteValues")
@@ -33,8 +49,9 @@ export const getOptions = query({
       .query("autocompleteTypeIndex")
       .withIndex("by_type", (q2) => q2.eq("type", type))
       .take(max);
-    const rows = await Promise.all(links.map((l) => ctx.db.get(l.valueId)));
-    const suggestions = rows.filter((d): d is NonNullable<typeof d> => d !== null).map((d) => d.value);
+    const suggestions = (
+      await Promise.all(links.map(async (l) => l.value ?? (await ctx.db.get(l.valueId))?.value ?? null))
+    ).filter((value): value is string => typeof value === "string" && value.length > 0);
     return { suggestions };
   },
 });

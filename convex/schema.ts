@@ -293,13 +293,19 @@ export default defineSchema({
 
   /**
    * One row per (facet `type`, canonical value row) so browse-without-query can use `by_type`.
+   * `value` is denormalized for type-scoped search (filterFields: type).
    */
   autocompleteTypeIndex: defineTable({
     type: v.string(),
     valueId: v.id("autocompleteValues"),
+    value: v.optional(v.string()),
   })
     .index("by_type", ["type"])
-    .index("by_type_and_valueId", ["type", "valueId"]),
+    .index("by_type_and_valueId", ["type", "valueId"])
+    .searchIndex("search_value_by_type", {
+      searchField: "value",
+      filterFields: ["type"],
+    }),
 
   /** Denormalized counters (e.g. total jobs) so queries avoid full table scans. */
   counters: defineTable({
