@@ -1,101 +1,71 @@
 # Hiring Cafe UI
 
-A production-shaped **UI clone** of [hiring.cafe](https://hiring.cafe/) — a job search product with filters, job details, and an application tracker.
+I rebuilt [hiring.cafe](https://hiring.cafe/) as a full-stack product clone: search, filters, job details, and an application tracker, wired to a real Convex backend and a live scrape → ingest pipeline.
 
-Built as a portfolio / take-home style rebuild: same product surface as the original, backed by a real Convex database and scrape → ingest pipeline instead of mock fixtures.
+**Try it:** [hiring-cafe-ui-neelkumarvs-projects.vercel.app](https://hiring-cafe-ui-neelkumarvs-projects.vercel.app)
 
-**Live:** [hiring-cafe-ui-neelkumarvs-projects.vercel.app](https://hiring-cafe-ui-neelkumarvs-projects.vercel.app)
+## What I built
 
-## What this demonstrates
+### Product surface
+- Job board with company grouping, infinite scroll, multi-select bulk actions (save / apply / hide / share)
+- Desktop job dialog and mobile drawer with neighbor prefetch and fade transitions while paging jobs
+- hiring.cafe-style search dialog (tabs on mobile, sidebar on desktop) with the full filter chrome of the original
+- Application tracker with Kanban drag-and-drop and a list view across saved → applied → interviewing → rejected → hidden
 
-- **Job board UX** — company-grouped results, infinite scroll, multi-select actions, dialog (desktop) / drawer (mobile) job details
-- **Search & filters** — hiring.cafe-style filter dialog with workplace, company, compensation, location, role, and more (Convex query covers the filters that map cleanly to indexed fields)
-- **Application tracker** — Kanban + list views for saved / applied / interviewing / rejected / hidden, with drag-and-drop
-- **Backend data model** — Convex tables for jobs, denormalized `jobCards` for search, `jobDetails` for description payloads, companies, autocomplete, saved searches
-- **Ingest path** — Python scraper → `jobs.ingestBatch` (admin-secret gated) with hide-list preservation on re-scrape
+### Backend and data
+- Convex schema for jobs, companies, denormalized `jobCards` (search/browse), `jobDetails` (heavy description payloads), autocomplete, users, and saved searches
+- Search over `jobCards` with indexed text search, pagination caps, and overscan so post-filters do not return empty pages while matches still exist
+- Autocomplete seeded into Convex with type-scoped search (denormalized values on the type index)
+- Python scraper that posts batches into Convex (`ingestBatch`), with an admin secret gate and NDJSON replay for offline imports
+
+### Engineering choices I care about
+- Split browse cards from job details so list/search stays cheap and opening a job only fetches what the UI needs (`getDetailsLite`)
+- Preserved user hide lists across re-ingest (a scrape must not wipe hides)
+- Locked world-writable admin paths (ingest / seed / migrations) behind `INGEST_ADMIN_SECRET`
+- Owner checks on saved-search rename/delete so an id alone is not enough
+- Collapsed duplicated UI paths: shared job preview hook, shared search content variants, typed job/company mappers, tracker loaded via `useQueries` instead of imperative chunked fetches
+- Cut search read amplification (no per-page parent `jobs` fetches just to recover `detailsId`; stopped writing unused sort fields on cards)
+
+### Honest scope
+- “Sign in” is a demo identity (email in `localStorage`), not OAuth. Enough to exercise hides and saved searches; not production auth.
+- The filter UI mirrors hiring.cafe; the Convex query implements the facets that map cleanly to indexes (workplace, company, department, commitment, salary, YOE, date, location, profit/stage). Extra chips stay for clone fidelity.
 
 ## Stack
 
-| Layer | Choice |
-| ----- | ------ |
-| App | Next.js App Router, React 19, TypeScript |
-| UI | Tailwind CSS 4, Radix / shadcn-style primitives |
-| Data | [Convex](https://convex.dev) (queries, mutations, search indexes) |
-| Ingest | Python scraper + NDJSON import scripts |
-| Deploy | Vercel (frontend) + Convex Cloud (backend) |
+Next.js App Router · React 19 · TypeScript · Tailwind CSS 4 · Convex · Python scraper · Vercel
 
-## Architecture (short)
-
-```
-Browser  →  Next.js (Vercel)  →  Convex (jobs / jobCards / users / savedSearches)
-                ↑
-         scrape_to_convex.py  (admin secret)
-```
-
-- Browse/search reads **`jobCards`** (search text + filter fields denormalized for speed).
-- Opening a job loads **`getDetailsLite`** (description + company) by job or card id.
-- “Sign in” is a **demo identity**: email in `localStorage`, not OAuth. Fine for a clone; not production auth.
-
-## Local setup
+## Run it locally
 
 ```bash
 pnpm install
 ```
 
-Create `.env.local`:
+`.env.local`:
 
 ```bash
 NEXT_PUBLIC_CONVEX_URL=https://<your-deployment>.convex.cloud
-CONVEX_DEPLOYMENT=<dev:your-deployment>   # for local convex / scraper
-# optional but recommended for ingest:
-INGEST_ADMIN_SECRET=<secret>              # also set on the Convex deployment
+CONVEX_DEPLOYMENT=<dev:your-deployment>
+INGEST_ADMIN_SECRET=<secret>   # optional locally; set on Convex for ingest
 ```
 
 ```bash
-pnpm dev          # Next + convex dev
-pnpm run typecheck
-pnpm run lint
+pnpm dev
+pnpm run import-jobs-convex          # scrape → Convex
+./scripts/seed-autocomplete.ps1      # autocomplete options
 ```
-
-Populate jobs:
-
-```bash
-pnpm run import-jobs-convex
-```
-
-Seed autocomplete (PowerShell):
-
-```powershell
-./scripts/seed-autocomplete.ps1
-```
-
-## Scripts
 
 | Command | Purpose |
 | ------- | ------- |
-| `pnpm dev` | Next + Convex watchers |
-| `pnpm run typecheck` | `tsc --noEmit` (prefer this over `build` while iterating) |
-| `pnpm run lint` / `lint:fix` | ESLint |
-| `pnpm run format` | Prettier |
-| `pnpm run build` | Next production build (expects `convex/_generated` present) |
-| `pnpm run codegen` | Regenerate `convex/_generated` (usually via `pnpm convex dev`) |
-| `pnpm run import-jobs-convex` | Live scrape → Convex ingest |
-| `pnpm run test:perf` | Playwright perf smoke |
+| `pnpm run typecheck` | TypeScript |
+| `pnpm run lint` | ESLint |
+| `pnpm run build` | Production build |
+| `pnpm run import-jobs-convex` | Live scrape ingest |
 
-## Repo layout
+## Repo map
 
-| Path | Role |
-| ---- | ---- |
-| `src/app/` | Routes, layouts, API handlers |
-| `src/components/` | Job board, search, tracker, UI |
-| `src/lib/` | Search helpers, job mappers, auth stub |
-| `convex/` | Schema, queries, mutations, generated API |
-| `scraper/` | Python scrape + Convex ingest |
-| `scripts/` | Autocomplete seed, backfill helpers |
-
-## Notes for reviewers
-
-- Identity, hides, and saved searches are **not** hardened multi-tenant auth — they use a client-supplied email string with server-side owner checks on saved-search mutations.
-- Admin writes (`ingestBatch`, autocomplete seed, migrations) require `INGEST_ADMIN_SECRET` when that env is set on Convex.
-- Not every filter chip in the UI is wired into the Convex search query; the clone keeps the full filter surface while the backend indexes the high-value facets.
-- `convex/_generated` is committed so Vercel can build without a Convex login at build time. After schema/API changes, regenerate with `pnpm convex dev` or `pnpm run codegen`.
+| Path | What is here |
+| ---- | ------------ |
+| `src/` | App Router UI: board, search, tracker |
+| `convex/` | Schema, search, ingest, autocomplete, migrations |
+| `scraper/` | Scrape + Convex ingest |
+| `scripts/` | Seed / backfill helpers |
