@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryToggle, KanbanBoard, ListView, SearchBar, ViewToggle } from "@/components/tracker";
+import { CategoryToggle, KanbanBoard, ListView, SearchBar, TrackerFlowDiagram, ViewToggle } from "@/components/tracker";
 import { useApp } from "@/contexts/AppContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useTrackedJobs } from "@/hooks/useTrackedJobs";
@@ -63,6 +63,22 @@ export default function TrackerPage() {
     return titleMatch || companyMatch || locationMatch;
   });
 
+  const flowCounts = useMemo(() => {
+    const counts: Record<JobCategory, number> = {
+      saved: 0,
+      applied: 0,
+      interviewing: 0,
+      rejected: 0,
+      hidden: 0,
+    };
+
+    filteredJobs.forEach(({ job }) => {
+      counts[getJobStatus(job.externalId)] += 1;
+    });
+
+    return counts;
+  }, [filteredJobs, user.applied, user.hidden, user.interviewing, user.rejected]);
+
   const handleCategoryToggle = (category: JobCategory) => {
     setVisibleCategories((prev) => ({
       ...prev,
@@ -104,14 +120,22 @@ export default function TrackerPage() {
       <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out lg:p-8">
         <div className="mb-3">
           <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <h1 className="text-3xl font-bold text-foreground">
-              Job Tracker
-              <p className="text-sm font-normal text-muted-foreground">
-                Click on a card to view more details or {getEffectiveViewMode() === "list" ? " use the dropdown" : " drag and drop"} to move between stages.
-              </p>
-            </h1>
-            {isLargeScreen && (
-              <div className="flex items-center gap-2 lg:pt-1">
+            <h1 className="text-3xl font-bold text-foreground">Job Tracker</h1>
+          </div>
+
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+            <SearchBar className="w-full xl:min-w-0 xl:flex-1" searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <CategoryToggle category="saved" isActive={visibleCategories.saved} onToggle={handleCategoryToggle} icon={<BookmarkIcon className="size-4" />} />
+              <CategoryToggle category="applied" isActive={visibleCategories.applied} onToggle={handleCategoryToggle} icon={<SendIcon className="size-4" />} />
+              <CategoryToggle category="interviewing" isActive={visibleCategories.interviewing} onToggle={handleCategoryToggle} icon={<PhoneOutgoingIcon className="size-4" />} />
+              <CategoryToggle category="rejected" isActive={visibleCategories.rejected} onToggle={handleCategoryToggle} icon={<XIcon className="size-4" />} />
+              <CategoryToggle category="hidden" isActive={visibleCategories.hidden} onToggle={handleCategoryToggle} icon={<EyeOffIcon className="size-4" />} />
+            </div>
+
+            {isLargeScreen ? (
+              <div className="flex items-center gap-2 xl:ml-auto">
                 <button
                   className={`h-9 rounded-md border px-3 text-sm ${kanbanSelectionMode ? "bg-primary text-primary-foreground" : "bg-background"}`}
                   onClick={() => setKanbanSelectionMode((prev) => !prev)}
@@ -120,19 +144,7 @@ export default function TrackerPage() {
                 </button>
                 <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
               </div>
-            )}
-          </div>
-
-          <div className="space-y-4 flex lg:flex-row flex-col gap-2">
-            <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-
-            <div className="flex gap-2">
-              <CategoryToggle category="saved" isActive={visibleCategories.saved} onToggle={handleCategoryToggle} icon={<BookmarkIcon className="size-4" />} />
-              <CategoryToggle category="applied" isActive={visibleCategories.applied} onToggle={handleCategoryToggle} icon={<SendIcon className="size-4" />} />
-              <CategoryToggle category="interviewing" isActive={visibleCategories.interviewing} onToggle={handleCategoryToggle} icon={<PhoneOutgoingIcon className="size-4" />} />
-              <CategoryToggle category="rejected" isActive={visibleCategories.rejected} onToggle={handleCategoryToggle} icon={<XIcon className="size-4" />} />
-              <CategoryToggle category="hidden" isActive={visibleCategories.hidden} onToggle={handleCategoryToggle} icon={<EyeOffIcon className="size-4" />} />
-            </div>
+            ) : null}
           </div>
         </div>
 
@@ -142,6 +154,9 @@ export default function TrackerPage() {
           ) : (
             <ListView jobs={filteredJobs} visibleCategories={visibleCategories} getJobStatus={getJobStatus} onMoveJob={handleMoveJob} />
           )}
+        </div>
+        <div className="mt-6">
+          <TrackerFlowDiagram counts={flowCounts} />
         </div>
       </div>
     </div>
