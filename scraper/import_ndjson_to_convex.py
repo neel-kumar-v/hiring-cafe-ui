@@ -18,10 +18,7 @@ import importlib.util
 import json
 import os
 import sys
-import time
 from typing import Any, Dict, List
-
-import requests
 
 from convex_dotenv import (
     MISSING_CONVEX_URL_MESSAGE,
@@ -29,50 +26,10 @@ from convex_dotenv import (
     load_convex_environment,
     with_ingest_admin_secret,
 )
-from convex_payload import strip_json_nones
+from convex_transport import post_mutation
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "src", "data")
-
-
-def _convex_mutation_url(convex_url: str) -> str:
-    convex_url = convex_url.rstrip("/")
-    return f"{convex_url}/api/mutation"
-
-
-def _post_mutation(convex_url: str, fn: str, args: dict, timeout_s: int = 30) -> Any:
-    args = strip_json_nones(args)
-    payload = json.dumps({"path": fn, "args": args, "format": "json"}, ensure_ascii=False)
-    url = _convex_mutation_url(convex_url)
-
-    # Convex local dev can briefly return 503 during startup/restart. Retry with backoff.
-    last_err: Exception | None = None
-    for attempt in range(1, 9):
-        try:
-            r = requests.post(
-                url,
-                data=payload.encode("utf-8"),
-                headers={"Content-Type": "application/json; charset=utf-8"},
-                timeout=timeout_s,
-            )
-            if r.status_code == 503:
-                raise requests.exceptions.HTTPError("503 Service Unavailable", response=r)
-            r.raise_for_status()
-            data = r.json()
-            if data.get("status") == "error":
-                raise RuntimeError(data.get("errorMessage") or "Convex mutation error")
-            return data.get("value")
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.HTTPError) as e:
-            last_err = e
-            sleep_s = min(10.0, 0.75 * (2 ** (attempt - 1)))
-            # Keep output sparse but visible so it doesn't look hung.
-            msg = str(e)
-            if isinstance(e, requests.exceptions.HTTPError) and getattr(e, "response", None) is not None:
-                msg = f"HTTP {e.response.status_code}"
-            print(f"[convex] attempt {attempt}/8 failed ({msg}); retrying in {sleep_s:0.1f}s", file=sys.stderr)
-            time.sleep(sleep_s)
-
-    raise last_err if last_err is not None else RuntimeError("Failed to call Convex mutation")
 
 
 def _iter_paths(pattern_or_path: str) -> List[str]:
@@ -139,13 +96,25 @@ def import_file(convex_url: str, path: str, batch_size: int) -> int:
 
             if len(batch) >= batch_size:
                 print(f"[convex] sending batch size={len(batch)} (upserted_so_far={total})", file=sys.stderr)
-                _post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": batch}))
+                post_mutation(
+                    convex_url,
+                    "jobs:ingestBatch",
+                    with_ingest_admin_secret({"items": batch}),
+                    timeout_s=30,
+                    retry_transient=True,
+                )
                 total += len(batch)
                 batch.clear()
 
     if batch:
         print(f"[convex] sending final batch size={len(batch)} (upserted_so_far={total})", file=sys.stderr)
-        _post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": batch}))
+        post_mutation(
+            convex_url,
+            "jobs:ingestBatch",
+            with_ingest_admin_secret({"items": batch}),
+            timeout_s=30,
+            retry_transient=True,
+        )
         total += len(batch)
 
     return total

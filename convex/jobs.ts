@@ -6,6 +6,16 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { addCompanyJobPreview, updateCompanyLastJobMillis, upsertCompanyFromIngest } from "./companies";
 import { assertIngestAdminSecret } from "./ingestAdmin";
 import { buildJobCardFields, toSortPublishMillis } from "./jobCards";
+import {
+  applyPostFilters,
+  normalizeLower,
+  normalizeStringList,
+  searchFiltersValidator,
+  searchSortValidator,
+  toCardResult,
+  type ConvexJobSearchFilters,
+  type ConvexJobSearchSort,
+} from "./jobSearch";
 
 const JOBS_COUNTER_NAME = "jobs";
 const INGEST_BATCH_MAX_ITEMS = 100;
@@ -332,128 +342,6 @@ export const ingestBatch = mutation({
   },
 });
 
-const searchFiltersValidator = v.object({
-  workplaceTypes: v.optional(v.array(v.string())),
-  companyIds: v.optional(v.array(v.string())),
-  departments: v.optional(v.array(v.string())),
-  commitment: v.optional(v.array(v.string())),
-  currencies: v.optional(v.array(v.string())),
-  frequencies: v.optional(v.array(v.string())),
-  postedAfterMillis: v.optional(v.number()),
-  locationCountries: v.optional(v.array(v.string())),
-  locationStates: v.optional(v.array(v.string())),
-  locationCities: v.optional(v.array(v.string())),
-  minYearlyComp: v.optional(v.number()),
-  maxYearlyComp: v.optional(v.number()),
-  minIcYoe: v.optional(v.number()),
-  minMgmtYoe: v.optional(v.number()),
-  companyProfit: v.optional(v.array(v.string())),
-  companyStage: v.optional(v.array(v.string())),
-});
-
-const searchSortValidator = v.object({
-  by: v.union(v.literal("relevance"), v.literal("recent")),
-  order: v.union(v.literal("asc"), v.literal("desc")),
-});
-
-type ConvexJobSearchFilters = {
-  workplaceTypes?: string[];
-  companyIds?: string[];
-  departments?: string[];
-  commitment?: string[];
-  currencies?: string[];
-  frequencies?: string[];
-  postedAfterMillis?: number;
-  locationCountries?: string[];
-  locationStates?: string[];
-  locationCities?: string[];
-  minYearlyComp?: number;
-  maxYearlyComp?: number;
-  minIcYoe?: number;
-  minMgmtYoe?: number;
-  companyProfit?: string[];
-  companyStage?: string[];
-};
-
-type ConvexJobSearchSort = {
-  by: "relevance" | "recent";
-  order: "asc" | "desc";
-};
-
-function normalizeLower(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function normalizeStringList(values: string[] | undefined): string[] {
-  if (!Array.isArray(values)) return [];
-  const out = new Set<string>();
-  for (const value of values) {
-    if (typeof value !== "string") continue;
-    const normalized = normalizeLower(value);
-    if (normalized) out.add(normalized);
-  }
-  return Array.from(out);
-}
-
-function toCardResult(card: Doc<"jobCards">) {
-  return {
-    job: {
-      _id: card._id,
-      jobId: card.jobId,
-      externalId: card.externalId,
-      title: card.title,
-      applyUrl: card.applyUrl,
-      companyId: card.companyId,
-      detailsId: card.detailsId,
-      workplaceType: card.workplaceType,
-      commitment: card.commitment ?? [],
-      workplaceCities: card.workplaceCities ?? [],
-      workplaceStates: card.workplaceStates ?? [],
-      workplaceCountries: card.workplaceCountries ?? [],
-      workplaceContinents: card.workplaceContinents ?? [],
-      geoloc: card.geoloc ?? [],
-      minIcYoe: card.minIcYoe,
-      minMgmtYoe: card.minMgmtYoe,
-      requirementsSummary: card.requirementsSummary,
-      skills: card.skills ?? [],
-      estimatedPublishDate: card.estimatedPublishDate,
-      estimatedPublishDateMillis: card.estimatedPublishDateMillis,
-      views: card.views ?? 0,
-      saves: card.saves ?? 0,
-      applies: card.applies ?? 0,
-      listedCompensationCurrency: card.listedCompensationCurrency,
-      listedCompensationFrequency: card.listedCompensationFrequency,
-      isCompensationTransparent: card.isCompensationTransparent,
-      hourlyMinComp: card.hourlyMinComp,
-      hourlyMaxComp: card.hourlyMaxComp,
-      dailyMinComp: card.dailyMinComp,
-      dailyMaxComp: card.dailyMaxComp,
-      weeklyMinComp: card.weeklyMinComp,
-      weeklyMaxComp: card.weeklyMaxComp,
-      biWeeklyMinComp: card.biWeeklyMinComp,
-      biWeeklyMaxComp: card.biWeeklyMaxComp,
-      monthlyMinComp: card.monthlyMinComp,
-      monthlyMaxComp: card.monthlyMaxComp,
-      yearlyMinComp: card.yearlyMinComp,
-      yearlyMaxComp: card.yearlyMaxComp,
-    },
-    company: {
-      _id: card.companyId,
-      companyId: card.companySlug,
-      name: card.companyName,
-      homepageUri: card.companyHomepageUri,
-      imageUrl: card.companyImageUrl,
-      tagline: card.companyTagline,
-      industries: card.companyIndustries ?? [],
-      activities: card.companyActivities ?? [],
-      hqCountry: card.companyHqCountry,
-      yearFounded: card.companyFoundedYear,
-      numEmployees: card.companyNumEmployees,
-      jobIdsPreview: [],
-    },
-  };
-}
-
 /** Distinct / sampling helpers — browse surface is `jobCards` (backfill assumed populated). */
 async function sampleJobLikeDocsForDistinct(ctx: QueryCtx, q: string, readLimit: number) {
   if (q) {
@@ -470,23 +358,23 @@ async function resolveCompanyDocIds(ctx: QueryCtx, tokens: string[]): Promise<Se
   for (const raw of tokens.slice(0, 30)) {
     const token = normalizeLower(raw);
     if (!token) continue;
-    const candidates = await Promise.all([
-      ctx.db
+    // Most tokens are stable company ids or domains. Resolve in priority
+    // order and stop after the first hit instead of spending three indexed
+    // reads for every token on every reactive search.
+    const company =
+      (await ctx.db
         .query("companies")
         .withIndex("by_companyId", (q) => q.eq("companyId", token))
-        .unique(),
-      ctx.db
+        .unique()) ??
+      (await ctx.db
         .query("companies")
         .withIndex("by_canonicalDomain", (q) => q.eq("canonicalDomain", token))
-        .unique(),
-      ctx.db
+        .unique()) ??
+      (await ctx.db
         .query("companies")
         .withIndex("by_nameLower", (q) => q.eq("nameLower", token))
-        .unique(),
-    ]);
-    for (const company of candidates) {
-      if (company?._id) resolved.add(String(company._id));
-    }
+        .unique());
+    if (company?._id) resolved.add(String(company._id));
   }
   return resolved;
 }
@@ -531,80 +419,6 @@ export const search = query({
     const boundedNumItems = Math.min(Math.max(paginationOpts.numItems, 1), SEARCH_PAGE_MAX_ITEMS);
     const boundedPaginationOpts = { ...paginationOpts, numItems: boundedNumItems };
 
-    const applyPostFilters = (rows: any[]) => {
-      let filteredRows = rows;
-      if (viewerUserId) {
-        filteredRows = filteredRows.filter((row: any) => !(row.hidden ?? []).includes(viewerUserId));
-      }
-      if (companyDocIds.size >= 1) {
-        filteredRows = filteredRows.filter((row: any) => companyDocIds.has(String(row.companyId)));
-      }
-      if (workplaceTypes.length >= 1) {
-        const workplaceSet = new Set(workplaceTypes);
-        filteredRows = filteredRows.filter((row: any) => workplaceSet.has(normalizeLower(row.workplaceType ?? "")));
-      }
-      if (departments.length >= 1) {
-        const deptSet = new Set(departments);
-        filteredRows = filteredRows.filter((row: any) => deptSet.has(normalizeLower(row.department ?? "")));
-      }
-      if (currencies.length >= 1) {
-        const currencySet = new Set(currencies);
-        filteredRows = filteredRows.filter((row: any) => currencySet.has(normalizeLower(row.listedCompensationCurrency ?? "")));
-      }
-      if (frequencies.length >= 1) {
-        const frequencySet = new Set(frequencies);
-        filteredRows = filteredRows.filter((row: any) => frequencySet.has(normalizeLower(row.listedCompensationFrequency ?? "")));
-      }
-      if (companyProfit.length) {
-        const profitSet = new Set(companyProfit);
-        filteredRows = filteredRows.filter((row: any) => profitSet.has(normalizeLower(row.companyProfit ?? "")));
-      }
-      if (companyStage.length) {
-        const stageSet = new Set(companyStage);
-        filteredRows = filteredRows.filter((row: any) => stageSet.has(normalizeLower(row.companyStage ?? "")));
-      }
-      if (typeof normalizedFilters.postedAfterMillis === "number") {
-        filteredRows = filteredRows.filter((row: any) => {
-          const publishMillis = typeof row.sortPublishMillis === "number" ? row.sortPublishMillis : row.estimatedPublishDateMillis;
-          return (publishMillis ?? 0) >= normalizedFilters.postedAfterMillis!;
-        });
-      }
-      if (typeof normalizedFilters.minYearlyComp === "number") {
-        filteredRows = filteredRows.filter((row: any) => typeof row.yearlyMaxComp !== "number" || row.yearlyMaxComp >= normalizedFilters.minYearlyComp!);
-      }
-      if (typeof normalizedFilters.maxYearlyComp === "number") {
-        filteredRows = filteredRows.filter((row: any) => typeof row.yearlyMinComp !== "number" || row.yearlyMinComp <= normalizedFilters.maxYearlyComp!);
-      }
-      if (typeof normalizedFilters.minIcYoe === "number") {
-        filteredRows = filteredRows.filter((row: any) => typeof row.minIcYoe !== "number" || row.minIcYoe >= normalizedFilters.minIcYoe!);
-      }
-      if (typeof normalizedFilters.minMgmtYoe === "number") {
-        filteredRows = filteredRows.filter((row: any) => typeof row.minMgmtYoe !== "number" || row.minMgmtYoe >= normalizedFilters.minMgmtYoe!);
-      }
-      if (normalizedFilters.commitment?.length) {
-        const commitmentSet = new Set(normalizeStringList(normalizedFilters.commitment));
-        filteredRows = filteredRows.filter((row: any) => {
-          for (const commitment of row.commitment ?? []) {
-            if (commitmentSet.has(normalizeLower(commitment))) return true;
-          }
-          return false;
-        });
-      }
-      if (normalizedFilters.locationCountries?.length) {
-        const countrySet = new Set(normalizeStringList(normalizedFilters.locationCountries));
-        filteredRows = filteredRows.filter((row: any) => (row.workplaceCountries ?? []).some((c: string) => countrySet.has(normalizeLower(c))));
-      }
-      if (normalizedFilters.locationStates?.length) {
-        const stateSet = new Set(normalizeStringList(normalizedFilters.locationStates));
-        filteredRows = filteredRows.filter((row: any) => (row.workplaceStates ?? []).some((s: string) => stateSet.has(normalizeLower(s))));
-      }
-      if (normalizedFilters.locationCities?.length) {
-        const citySet = new Set(normalizeStringList(normalizedFilters.locationCities));
-        filteredRows = filteredRows.filter((row: any) => (row.workplaceCities ?? []).some((c: string) => citySet.has(normalizeLower(c))));
-      }
-      return filteredRows;
-    };
-
     const fetchSearchPage = async (cursor: string | null) => {
       const pageOpts = { ...boundedPaginationOpts, cursor };
       if (hasQuery) {
@@ -638,7 +452,7 @@ export const search = query({
       continueCursor = page.continueCursor;
       isDone = page.isDone;
 
-      const pageFiltered = applyPostFilters(page.page) as Doc<"jobCards">[];
+      const pageFiltered = applyPostFilters(page.page, normalizedFilters, viewerUserId, companyDocIds);
       filteredRows.push(...pageFiltered);
 
       if (filteredRows.length >= boundedNumItems || isDone) break;
@@ -842,35 +656,49 @@ export const byExternalIds = query({
           .unique()
       : null;
     const viewerUserId = viewerUser?._id ?? null;
-    const hiddenExternalIds = new Set<string>();
-    if (viewerUserId) {
-      const cards = await Promise.all(
-        ids.map((externalId) =>
-          ctx.db
-            .query("jobCards")
-            .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-            .unique()
-        )
-      );
-      for (const card of cards) {
-        if (!card) continue;
-        if ((card.hidden ?? []).includes(viewerUserId)) hiddenExternalIds.add(card.externalId);
-      }
-    }
-    const docs = await Promise.all(
+    // The tracker only needs the same card projection as the browse surface.
+    // Reading jobCards once per id avoids the previous card + canonical job +
+    // company fan-out (up to 1,200 reads for a 400-id request).
+    const cards = await Promise.all(
       ids.map((externalId) =>
+        ctx.db
+          .query("jobCards")
+          .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+          .unique()
+      )
+    );
+    const missingExternalIds: string[] = [];
+    const results: Array<ReturnType<typeof toCardResult> | { job: Doc<"jobs">; company: Doc<"companies"> | null }> = cards.flatMap((card, index) => {
+      if (!card) {
+        missingExternalIds.push(ids[index]);
+        return [];
+      }
+      if (viewerUserId && (card.hidden ?? []).includes(viewerUserId)) return [];
+      return [toCardResult(card)];
+    });
+
+    // Keep older deployments usable while jobCards backfill is incomplete.
+    // This fallback is normally empty and therefore does not add reads to the
+    // steady-state tracker path.
+    if (missingExternalIds.length === 0) return results;
+    const fallbackJobs = await Promise.all(
+      missingExternalIds.map((externalId) =>
         ctx.db
           .query("jobs")
           .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
           .unique()
       )
     );
-    const jobs = docs.filter((d): d is NonNullable<typeof d> => d !== null).filter((job) => !hiddenExternalIds.has(job.externalId));
-    const uniqCompanies = Array.from(new Set(jobs.map((j) => j.companyId)));
-    const companyDocs = await Promise.all(uniqCompanies.map((id) => ctx.db.get(id)));
-    const byId = new Map<string, Doc<"companies">>();
-    for (const c of companyDocs) if (c) byId.set(String(c._id), c);
-    return jobs.map((job) => ({ job, company: byId.get(String(job.companyId)) ?? null }));
+    const fallbackCompanyIds = Array.from(new Set(fallbackJobs.flatMap((job) => (job ? [job.companyId] : []))));
+    const fallbackCompanies = await Promise.all(fallbackCompanyIds.map((id) => ctx.db.get(id)));
+    const companiesById = new Map<string, Doc<"companies">>();
+    for (const company of fallbackCompanies) {
+      if (company) companiesById.set(String(company._id), company);
+    }
+    for (const job of fallbackJobs) {
+      if (job) results.push({ job, company: companiesById.get(String(job.companyId)) ?? null });
+    }
+    return results;
   },
 });
 

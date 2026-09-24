@@ -26,7 +26,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-import requests
 from convex_dotenv import (
     MISSING_CONVEX_URL_MESSAGE,
     get_convex_deployment_url,
@@ -34,6 +33,7 @@ from convex_dotenv import (
     with_ingest_admin_secret,
 )
 from convex_payload import strip_json_nones
+from convex_transport import post_mutation
 
 from scraper import (  # pyright: ignore[reportAttributeAccessIssue]
     SEARCH_STATE,
@@ -414,27 +414,6 @@ def _build_ingest_item(raw: dict, fallback_i: int) -> dict:
     return strip_json_nones(item)
 
 
-def _convex_mutation_url(convex_url: str) -> str:
-    convex_url = convex_url.rstrip("/")
-    return f"{convex_url}/api/mutation"
-
-
-def _post_mutation(convex_url: str, fn: str, args: dict, timeout_s: int = 120) -> Any:
-    args = strip_json_nones(args)
-    payload = json.dumps({"path": fn, "args": args, "format": "json"}, ensure_ascii=False)
-    r = requests.post(
-        _convex_mutation_url(convex_url),
-        data=payload.encode("utf-8"),
-        headers={"Content-Type": "application/json; charset=utf-8"},
-        timeout=timeout_s,
-    )
-    r.raise_for_status()
-    data = r.json()
-    if data.get("status") == "error":
-        raise RuntimeError(data.get("errorMessage") or "Convex mutation error")
-    return data.get("value")
-
-
 @dataclass
 class State:
     search_hash: str
@@ -566,7 +545,7 @@ def main() -> int:
                 BATCH = 100
                 for i in range(0, len(items), BATCH):
                     chunk = items[i : i + BATCH]
-                    _post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": chunk}))
+                    post_mutation(convex_url, "jobs:ingestBatch", with_ingest_admin_secret({"items": chunk}))
 
                 # Commit checkpoint only after Convex succeeds
                 st.committed_page = page
