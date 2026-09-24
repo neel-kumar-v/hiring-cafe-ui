@@ -14,7 +14,7 @@ type HoverSwapTextProps = {
 
 const HoverSwapText = ({ count, label, labelHoverWidthClassName, textClassName, isTransitioning }: HoverSwapTextProps) => {
   return (
-    <span className={cn("inline-flex items-center", textClassName, jobFadeClass(isTransitioning))}>
+    <span className={cn("inline-flex items-center ", textClassName, jobFadeClass(isTransitioning))}>
       <span
         className={cn(
           "tabular-nums inline-flex overflow-hidden whitespace-nowrap transition-[width,opacity,transform,padding] duration-300 ease-out",
@@ -85,24 +85,31 @@ const CardStatGroup = ({
       <UniversalTooltip content={savedTooltip} side="bottom">
         <button
           className={cn(
-            "group flex h-6 cursor-pointer items-center gap-1.5 rounded-full group-hover:px-2 py-1 leading-none transition-colors duration-300 ease-out",
+            "group/action flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out group-hover:pl-0 group-hover:px-1.5",
             "bg-transparent text-muted-foreground",
-            "group-hover:bg-primary group-hover:text-primary-foreground"
+            "group-hover:bg-primary group-hover:text-black!"
           )}
           onClick={handleBookmarkClick}
           type="button"
         >
           {isBookmarked ? (
-            <Bookmark className={cn("inline fill-current text-primary group-hover:text-primary-foreground", iconClassName)} />
+            <Bookmark
+              fill="currentColor"
+              className={cn(
+                "inline fill-current text-primary group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
+                iconClassName
+              )}
+              stroke="currentColor"
+            />
           ) : (
-            <Bookmark className={cn("inline text-muted-foreground group-hover:text-primary-foreground", iconClassName)} />
+            <Bookmark className={cn("inline text-muted-foreground group-hover:text-black! group-hover/action:text-black!", iconClassName)} fill="none" stroke="currentColor" />
           )}
 
           <HoverSwapText
             count={savedCount}
             label={isBookmarked ? "Saved" : "Save"}
             labelHoverWidthClassName={isBookmarked ? "group-hover:w-[5ch]" : "group-hover:w-[4ch]"}
-            textClassName={cn(textClassName, "group-hover:text-primary-foreground")}
+            textClassName={cn(textClassName, "group-hover:text-black!")}
             isTransitioning={isTransitioning}
           />
         </button>
@@ -111,9 +118,9 @@ const CardStatGroup = ({
       <UniversalTooltip content={appliedTooltip} side="bottom">
         <a
           className={cn(
-            "group flex h-6 cursor-pointer items-center gap-1.5 rounded-full group-hover:px-2 py-1 leading-none transition-colors duration-300 ease-out",
+            "group/action flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out group-hover:pl-0 group-hover:px-1.5",
             "bg-transparent text-muted-foreground",
-            "group-hover:bg-primary group-hover:text-primary-foreground"
+            "group-hover:bg-primary group-hover:text-black!"
           )}
           href={applyUrl}
           target="_blank"
@@ -121,16 +128,23 @@ const CardStatGroup = ({
           onClick={onApplyClick}
         >
           {isApplied ? (
-            <Send className={cn("inline fill-primary text-primary group-hover:fill-current group-hover:text-primary-foreground", iconClassName)} />
+            <Send
+              fill="currentColor"
+              className={cn(
+                "inline fill-current text-primary group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
+                iconClassName
+              )}
+              stroke="currentColor"
+            />
           ) : (
-            <Send className={cn("inline text-muted-foreground group-hover:text-primary-foreground", iconClassName)} />
+            <Send className={cn("inline text-muted-foreground group-hover:text-black! group-hover/action:text-black!", iconClassName)} fill="none" stroke="currentColor" />
           )}
 
           <HoverSwapText
             count={appliedCount}
             label={isApplied ? "Applied" : "Apply"}
             labelHoverWidthClassName={isApplied ? "group-hover:w-[7ch]" : "group-hover:w-[5ch]"}
-            textClassName={cn(textClassName, "group-hover:text-primary-foreground")}
+            textClassName={cn(textClassName, "group-hover:text-black!")}
             isTransitioning={isTransitioning}
           />
         </a>

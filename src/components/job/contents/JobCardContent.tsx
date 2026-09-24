@@ -52,7 +52,9 @@ const JobCardContent = memo(({ currentJob, company, isTransitioning }: JobCardCo
         />
       </div>
 
-      <CardCompanyInfo companyData={toUiCompany(company)} tagline={companySubtitle} />
+      <div className={jobFadeClass(isTransitioning)}>
+        <CardCompanyInfo companyData={toUiCompany(company)} tagline={companySubtitle} />
+      </div>
 
       <div className={jobFadeClass(isTransitioning)}>
         <CardJobDescription

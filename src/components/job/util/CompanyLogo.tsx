@@ -79,11 +79,17 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
       <>
         {showImage ? (
           <>
-            {!imageLoaded && <Skeleton className="h-full w-full" />}
-            <img alt={companyData.name} className={`${imageClassName} ${!imageLoaded ? "hidden" : ""}`} onError={handleImageError} onLoad={handleImageLoad} src={activeSrc} />
+            {!imageLoaded && <Skeleton className="aspect-square h-full min-w-full w-full" />}
+            <img
+              alt={companyData.name}
+              className={`${imageClassName} transition-opacity duration-200 ease-out ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+              onError={handleImageError}
+              onLoad={handleImageLoad}
+              src={activeSrc}
+            />
           </>
         ) : (
-          <span className={fallbackClassName}>{initialsContent}</span>
+          <span className={`${fallbackClassName} animate-in fade-in-0 duration-200`}>{initialsContent}</span>
         )}
       </>
     ),
@@ -104,10 +110,10 @@ interface CompanyLogoProps {
 
 const CompanyLogo = memo(({ companyData, size = "md", variant = "default", className = "" }: CompanyLogoProps) => {
   const sizeClasses = {
-    sm: "h-12",
-    md: "h-14",
-    lg: "h-24",
-    xl: "h-32",
+    sm: "size-12",
+    md: "size-14",
+    lg: "size-24",
+    xl: "size-32",
   };
 
   const textSizes = {

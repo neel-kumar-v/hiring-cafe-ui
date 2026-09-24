@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 import { formatCompanyWebsite } from "@/lib/company-info";
 import { Bookmark, CheckCheck, ChevronLeft, ChevronRight, ExternalLink, EyeOff, Link2, MessageSquareWarning, Send, Share2 } from "lucide-react";
+import { useEffect } from "react";
 
 export interface DialogFooterNavigationProps {
   currentJobIndex: number;
@@ -29,6 +30,25 @@ const DialogFooterNavigation = ({
   canGoPrevious = true,
   canGoNext = true,
 }: DialogFooterNavigationProps) => {
+  useEffect(() => {
+    const handleNavigationKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+
+      if (event.key === "ArrowUp" && canGoPrevious) {
+        event.preventDefault();
+        void onPrevious();
+      } else if (event.key === "ArrowDown" && canGoNext) {
+        event.preventDefault();
+        void onNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleNavigationKey);
+    return () => window.removeEventListener("keydown", handleNavigationKey);
+  }, [canGoNext, canGoPrevious, onNext, onPrevious]);
+
   return (
     <div className="absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
       <div className="flex items-center gap-1 rounded-md border border-border bg-background px-1.5 py-1 shadow-sm dark:bg-card">

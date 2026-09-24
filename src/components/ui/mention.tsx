@@ -23,7 +23,7 @@ function MentionInput({ className, ...props }: React.ComponentProps<typeof Menti
       data-slot="mention-input"
       className={cn(
         "flex w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
-        "text-transparent caret-foreground",
+        "text-foreground caret-foreground",
         className
       )}
       {...props}

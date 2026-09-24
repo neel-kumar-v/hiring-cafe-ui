@@ -74,7 +74,7 @@ const CardTechnicalTools = ({ technicalTools, variant = "card" }: { technicalToo
 
   return (
     <div className="flex min-w-0 grow flex-wrap items-center gap-1 pt-0.5">
-      <div className="scrollbar-none pointer-fine:max-h-25 pointer-fine:group-hover:max-h-54 pointer-fine:motion-reduce:max-h-40 flex min-w-0 flex-wrap gap-1 overflow-y-auto overflow-x-hidden transition-[max-height] duration-500 ease-out">
+      <div className="scrollbar-none pointer-fine:max-h-25 pointer-fine:group-hover:max-h-54 pointer-fine:motion-reduce:max-h-40 flex min-w-0 flex-wrap gap-1 overflow-y-auto overflow-x-hidden transition-[max-height] duration-[750ms] ease-in-out">
         {chips}
       </div>
     </div>

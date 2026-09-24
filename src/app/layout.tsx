@@ -3,6 +3,7 @@ import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { SearchUIProvider } from "@/contexts/SearchContext";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
+import { Agentation } from "agentation";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import { Suspense, lazy } from "react";
@@ -110,6 +111,7 @@ export default function RootLayout({
           </ConvexClientProvider>
         </DarkModeProvider>
         <Toaster />
+        {process.env.NODE_ENV === "development" && <Agentation />}
         {/* <PerformanceMonitorScript /> */}
       </body>
     </html>

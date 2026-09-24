@@ -126,6 +126,27 @@ const JobDialogContent = ({
   }, [details, dialogOpen, lookupId, onDetailsResolved]);
 
   useEffect(() => {
+    if (!dialogOpen || !outsideNavigation) return;
+
+    const handleNavigationKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+
+      if (event.key === "ArrowLeft" && outsideNavigation.canGoPrevious !== false) {
+        event.preventDefault();
+        void outsideNavigation.onPrevious();
+      } else if (event.key === "ArrowRight" && outsideNavigation.canGoNext !== false) {
+        event.preventDefault();
+        void outsideNavigation.onNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleNavigationKey);
+    return () => window.removeEventListener("keydown", handleNavigationKey);
+  }, [dialogOpen, outsideNavigation]);
+
+  useEffect(() => {
     if (!perfEnabled) return;
     if (!dialogOpen) {
       openedAtRef.current = null;
@@ -141,7 +162,6 @@ const JobDialogContent = ({
     if (!openedAtRef.current) return;
     const elapsed = performance.now() - openedAtRef.current;
     if (elapsed > 120) {
-       
       console.log(`[perf] getDetailsLite dialog ${elapsed.toFixed(1)}ms jobId=${lookupId}`);
     }
   }, [details, dialogOpen, lookupId, perfEnabled]);
