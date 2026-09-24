@@ -46,13 +46,13 @@ export default function Page() {
       <HomeSearchActions />
 
       <Suspense fallback={null}>
-        <LegacyFilters />
+        <LegacyFilters companyCount={companyCount} jobCount={jobCount} location={location} />
       </Suspense>
 
       <div className="h-full overflow-x-hidden">
         <div className="mx-auto max-w-full !pt-0 p-4 transition-[padding] duration-500 ease-in-out lg:p-8">
           <Suspense fallback={<LoadingFallback />}>
-            <JobBoard companyCount={companyCount} jobCount={jobCount} location={location} />
+            <JobBoard jobCount={jobCount} />
           </Suspense>
         </div>
       </div>

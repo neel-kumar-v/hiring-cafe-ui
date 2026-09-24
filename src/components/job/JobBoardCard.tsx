@@ -5,8 +5,9 @@ import { SpeedDial, SpeedDialAction, SpeedDialContent, SpeedDialItem, SpeedDialT
 import { useApp } from "@/contexts/AppContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
-import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
+import { JOB_FADE_DURATION_MS, jobFadeClass } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
+import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -120,7 +121,7 @@ const JobCard = memo(
                   <UniversalTooltip content={isApplied ? "Unmark applied" : "Mark applied"} side="top" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label={isApplied ? "Unmark applied" : "Mark applied"}
-                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-muted! active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onApplyToggle}
                     >
                       <CheckCheck className="size-4" />
@@ -131,7 +132,7 @@ const JobCard = memo(
                   <UniversalTooltip content="Share" side="top" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label="Share job"
-                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-muted! active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onShare}
                     >
                       <Share2 className="size-4" />
@@ -142,7 +143,7 @@ const JobCard = memo(
                   <UniversalTooltip content="Report" side="bottom" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label="Report job"
-                      className="border-destructive/30 bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-destructive/20! active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onReport}
                     >
                       <MessageSquareWarning className="size-4 text-destructive!" />
@@ -153,7 +154,7 @@ const JobCard = memo(
                   <UniversalTooltip content="Hide" side="bottom" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label="Hide job"
-                      className="border-destructive/30 bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-destructive/20! active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onHide}
                     >
                       <EyeOff className="size-4 text-destructive!" />
@@ -166,16 +167,18 @@ const JobCard = memo(
           <CardContent className="flex h-full flex-col p-4 py-3">
             <JobCardContent currentJob={currentJob} company={jobCollection.company} isTransitioning={isTransitioning} />
             <div className="mt-auto grid grid-cols-3 items-center">
-              <CardStats
-                appliedCount={currentJob.applies}
-                isApplied={isApplied}
-                isBookmarked={isBookmarked}
-                isInterviewing={isInterviewing}
-                onBookmarkToggle={onBookmarkToggle}
-                savedCount={currentJob.saves}
-                viewedCount={currentJob.views}
-                applyUrl={currentJob.applyUrl ?? ""}
-              />
+              <div className={jobFadeClass(isTransitioning)}>
+                <CardStats
+                  appliedCount={currentJob.applies}
+                  isApplied={isApplied}
+                  isBookmarked={isBookmarked}
+                  isInterviewing={isInterviewing}
+                  onBookmarkToggle={onBookmarkToggle}
+                  savedCount={currentJob.saves}
+                  viewedCount={currentJob.views}
+                  applyUrl={currentJob.applyUrl ?? ""}
+                />
+              </div>
               {jobCollection.jobs.length > 1 ? (
                 <CardNavigation
                   currentJobIndex={currentJobIndex}
@@ -188,7 +191,9 @@ const JobCard = memo(
                 <div className="col-span-1"></div>
               )}
               {/* <CardSkillMatch technicalTools={currentJob.skills} /> */}
-              <ScrapeTime postedAt={currentJob.estimatedPublishDate ?? ""} iconClassName="w-3 h-3" textClassName="text-xs" />
+              <div className={cn(jobFadeClass(isTransitioning), "justify-self-end")}>
+                <ScrapeTime postedAt={currentJob.estimatedPublishDate ?? ""} iconClassName="w-3 h-3" textClassName="text-xs" />
+              </div>
             </div>
           </CardContent>
         </Card>

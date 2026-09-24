@@ -2,54 +2,42 @@
 
 import { Button } from "@/components/ui/button";
 import { Hitbox } from "@/components/ui/hitbox";
+import { SignInDialog } from "@/components/auth/SignInDialog";
 import { useApp } from "@/contexts/AppContext";
 import { defaultSearchOptions, useSearchUI } from "@/contexts/SearchContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { getEditedTags } from "@/lib/edited-filters";
 import { cn } from "@/lib/utils";
-import { api } from "../../../convex/_generated/api";
-import { useMutation } from "convex/react";
 import { ChevronUp, Plus, RotateCcw } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export default function HomeSearchActions() {
-  const { user: convexUser } = useCurrentUser();
-  const createSavedSearch = useMutation(api.savedSearches.create);
-  const {
-    user,
-    searchOptions,
-    setSearchOptions,
-    setCurrentSavedSearchId,
-    setHasUnsavedChanges,
-  } = useApp();
+  const { searchOptions, setSearchOptions, setHasUnsavedChanges } = useApp();
+  const { convexUser, savedSearches, create } = useSavedSearches();
   const {
     showFilterRibbon,
     setShowFilterRibbon,
     jobBoardSelectionMode,
     setJobBoardSelectionMode,
   } = useSearchUI();
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const hasEditedFilters = useMemo(() => {
     return getEditedTags(searchOptions).size > 0;
   }, [searchOptions]);
 
-  const hasSavedSearches = user.savedSearches.length > 0;
+  const hasSavedSearches = (savedSearches ?? []).length > 0;
   const shouldShowSavedSearchArea = hasSavedSearches || hasEditedFilters;
 
   const handleSaveSearch = async () => {
     if (!convexUser) {
-      toast.error("Sign in first to save searches.");
+      setSignInOpen(true);
       return;
     }
 
     try {
-      await createSavedSearch({
-        userId: convexUser._id,
-        name: "New Search",
-        searchState: searchOptions,
-      });
-      toast.success("Search saved successfully.");
+      await create("New Search", searchOptions);
     } catch {
       toast.error("Unable to save search right now.");
     }
@@ -57,7 +45,6 @@ export default function HomeSearchActions() {
 
   const handleClearFilters = () => {
     setSearchOptions(defaultSearchOptions);
-    setCurrentSavedSearchId(null);
     setHasUnsavedChanges(false);
     toast.success("Filters cleared.");
   };
@@ -73,7 +60,8 @@ export default function HomeSearchActions() {
   }
 
   return (
-    <div>
+    <>
+      <SignInDialog onOpenChange={setSignInOpen} open={signInOpen} />
       <div className="mx-auto flex max-w-full flex-col gap-3 px-4 py-4 transition-[padding] duration-500 ease-in-out lg:px-8 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium text-foreground/80">
@@ -131,6 +119,6 @@ export default function HomeSearchActions() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -3,19 +3,19 @@ import { useMutation, usePaginatedQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActionBar, ActionBarGroup, ActionBarItem, ActionBarSelection, ActionBarSeparator } from "@/components/ui/action-bar";
-import { buildSharePayload, selectRangeIds } from "@/lib/jobs/selection";
+import { buildSharePayload } from "@/lib/jobs/selection";
 import { CheckCheck, EyeOff, Share2, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { getAuthEmail } from "../lib/local-auth";
 import { useApp } from "../contexts/AppContext";
 import { useSearchUI } from "../contexts/SearchContext";
+import { useJobBoardSelection } from "../hooks/useJobBoardSelection";
 import { JobPreviewOverlay, useJobPreviewChrome } from "../hooks/useJobPreview";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
   buildJobBoardDisplayedCollections,
   flattenJobBoardPositions,
-  formatJobBoardRoundedNumber,
   getJobBoardCollectionKey,
   jobBoardFadeCompanyChromeBetweenFlatNeighbors,
   jobBoardFadeCompanyChromeBetweenJobs,
@@ -33,25 +33,16 @@ const JobBoardCard = dynamic(() => import("./job/JobBoardCard"), {
   ssr: false,
 });
 
-const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number; jobCount?: number; location?: string }) => {
+// Keep bulk hides within the Convex mutation contract instead of retrying or
+// fanning out one mutation per selected card.
+const MAX_BULK_HIDE_JOBS = 200;
+
+const JobBoard = ({ jobCount }: { jobCount?: number }) => {
   const { boardSearchQuery, jobBoardSelectionMode, setJobBoardSelectionMode } = useSearchUI();
-  const { searchOptions } = useApp();
-  const { user, addJob, removeJob } = useApp();
+  const { searchOptions, user, addJob, removeJob } = useApp();
   const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
-  const {
-    isDesktop,
-    dialogOpen,
-    setDialogOpen,
-    drawerOpen,
-    setDrawerOpen,
-    isTransitioning,
-    fadeCompanyChrome,
-    prefetch,
-    prefetchNow,
-    openPreview,
-    closePreview,
-    runTransition,
-  } = useJobPreviewChrome({ delayMs: 140, maxInflight: 3, maxSeen: 600 });
+  const { isDesktop, dialogOpen, setDialogOpen, drawerOpen, setDrawerOpen, isTransitioning, fadeCompanyChrome, prefetch, prefetchNow, openPreview, closePreview, runTransition } =
+    useJobPreviewChrome({ delayMs: 140, maxInflight: 3, maxSeen: 600 });
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
@@ -77,8 +68,6 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   const [selectedPosition, setSelectedPosition] = useState<JobBoardSelectedPosition | null>(null);
   const [pendingGroupAdvance, setPendingGroupAdvance] = useState(false);
   const [pendingJobAdvance, setPendingJobAdvance] = useState(false);
-  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
-  const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const convexFilters = useMemo(() => toConvexJobSearchFilters(searchOptions), [searchOptions]);
@@ -227,6 +216,19 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
       })),
     [flattenedPositions]
   );
+  const {
+    selectedIds: selectedJobIds,
+    clear: clearSelectionMode,
+    handleCardClick: handleCardSelectionClick,
+  } = useJobBoardSelection({
+    orderedIds: flatSelectionOrder.map((item) => item.id),
+    selectionMode: jobBoardSelectionMode,
+    setSelectionMode: setJobBoardSelectionMode,
+    onOpen: (jobId) => {
+      const item = flatSelectionOrder.find((row) => row.id === jobId);
+      if (item) openJobDetails(item.collectionIndex, item.jobIndex);
+    },
+  });
   const selectedJobs = useMemo(() => {
     const selected = new Set(selectedJobIds);
     return flatSelectionOrder
@@ -249,84 +251,6 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   );
 
   const isInterviewing = useMemo(() => (selectedJob ? user.interviewing.includes(selectedJob.externalId) : false), [selectedJob, user.interviewing]);
-
-  const clearSelectionMode = useCallback(() => {
-    setJobBoardSelectionMode(false);
-    setSelectedJobIds(new Set());
-    setSelectionAnchorId(null);
-  }, [setJobBoardSelectionMode]);
-
-  const addToSelection = useCallback((jobId: string) => {
-    setSelectedJobIds((prev) => {
-      const next = new Set(prev);
-      next.add(jobId);
-      return next;
-    });
-  }, []);
-
-  const toggleSelection = useCallback((jobId: string) => {
-    setSelectedJobIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(jobId)) next.delete(jobId);
-      else next.add(jobId);
-      return next;
-    });
-  }, []);
-
-  const handleCardSelectionClick = useCallback(
-    (e: React.MouseEvent, jobId: string) => {
-      const isModifier = e.shiftKey || e.ctrlKey || e.metaKey;
-      if (isModifier && !jobBoardSelectionMode) {
-        setJobBoardSelectionMode(true);
-        setSelectedJobIds(new Set([jobId]));
-        setSelectionAnchorId(jobId);
-        return;
-      }
-
-      if (!jobBoardSelectionMode) {
-        const item = flatSelectionOrder.find((row) => row.id === jobId);
-        if (item) openJobDetails(item.collectionIndex, item.jobIndex);
-        return;
-      }
-
-      if (e.shiftKey) {
-        const anchor = selectionAnchorId ?? jobId;
-        const rangeIds = selectRangeIds(flatSelectionOrder, anchor, jobId);
-        setSelectedJobIds((prev) => {
-          const next = new Set(prev);
-          for (const id of rangeIds) next.add(id);
-          return next;
-        });
-        if (!selectionAnchorId) setSelectionAnchorId(jobId);
-        return;
-      }
-
-      if (e.ctrlKey || e.metaKey) {
-        toggleSelection(jobId);
-        if (!selectionAnchorId) setSelectionAnchorId(jobId);
-        return;
-      }
-
-      addToSelection(jobId);
-      if (!selectionAnchorId) setSelectionAnchorId(jobId);
-    },
-    [addToSelection, flatSelectionOrder, jobBoardSelectionMode, openJobDetails, selectionAnchorId, setJobBoardSelectionMode, toggleSelection]
-  );
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && jobBoardSelectionMode) {
-        clearSelectionMode();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [clearSelectionMode, jobBoardSelectionMode]);
-
-  useEffect(() => {
-    if (!jobBoardSelectionMode || selectedJobIds.size) return;
-    clearSelectionMode();
-  }, [clearSelectionMode, jobBoardSelectionMode, selectedJobIds.size]);
 
   const handleBookmarkToggle = useCallback(() => {
     if (!selectedJob) return;
@@ -387,8 +311,11 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   }, [selectedJobs]);
 
   const handleBulkHide = useCallback(async () => {
-    const externalIds = selectedJobs.map((job) => job.externalId);
+    const externalIds = selectedJobs.slice(0, MAX_BULK_HIDE_JOBS).map((job) => job.externalId);
     if (!externalIds.length) return;
+    if (selectedJobs.length > MAX_BULK_HIDE_JOBS) {
+      toast.info(`Only the first ${MAX_BULK_HIDE_JOBS} selected jobs will be hidden.`);
+    }
     const res = await hideForCurrentUser({ externalIds, viewerEmail: getAuthEmail() ?? undefined });
     if (!res.ok) {
       toast.error("Please sign in to hide jobs.");
@@ -591,15 +518,6 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
   if (status === "LoadingFirstPage") {
     return (
       <div className="space-y-6">
-        {jobCount !== undefined || companyCount !== undefined || location ? (
-          <div className="text-sm text-muted-foreground">
-            {jobCount !== undefined ? <span>{formatJobBoardRoundedNumber(jobCount, 3)} jobs</span> : null}
-            {jobCount !== undefined && companyCount !== undefined ? <span> - </span> : null}
-            {companyCount !== undefined ? <span>{formatJobBoardRoundedNumber(companyCount, 3)} companies</span> : null}
-            {(jobCount !== undefined || companyCount !== undefined) && location ? <span> - </span> : null}
-            {location ? <span>{location}</span> : null}
-          </div>
-        ) : null}
         <div className={gridClassName}>
           {Array.from({ length: skeletonCount }).map((_, i) => (
             <JobBoardCardSkeleton key={i} />
@@ -620,11 +538,7 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
       );
     }
     if (typeof jobCount === "number" && jobCount > 0) {
-      return (
-        <div className="col-span-full py-16 text-center text-text">
-          No jobs match the current filters. Clear or loosen filters to see results.
-        </div>
-      );
+      return <div className="col-span-full py-16 text-center text-text">No jobs match the current filters. Clear or loosen filters to see results.</div>;
     }
     return (
       <div className="col-span-full py-16 text-center text-text">
@@ -635,15 +549,6 @@ const JobBoard = ({ companyCount, jobCount, location }: { companyCount?: number;
 
   return (
     <>
-      {jobCount !== undefined || companyCount !== undefined || location ? (
-        <div className="my-2 text-sm text-muted-foreground">
-          {jobCount !== undefined ? <span>{formatJobBoardRoundedNumber(jobCount, 0)} jobs</span> : null}
-          {jobCount !== undefined && companyCount !== undefined ? <span> - </span> : null}
-          {companyCount !== undefined ? <span>{formatJobBoardRoundedNumber(companyCount, 0)} companies</span> : null}
-          {(jobCount !== undefined || companyCount !== undefined) && location ? <span> - </span> : null}
-          {location ? <span>{location}</span> : null}
-        </div>
-      ) : null}
       <div className="space-y-6">
         <div ref={containerRef} className={gridClassName}>
           {displayedCollections.map((collection, collectionIndex) => {

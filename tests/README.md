@@ -2,6 +2,9 @@
 
 This repo has a lightweight Playwright **perf** smoke (`tests/perf/`), not a full E2E suite.
 
+Pure policy tests live under `tests/unit/` and do not require a running Next.js
+or Convex deployment.
+
 ### Prereqs
 
 - App at `http://localhost:3000`
@@ -20,3 +23,9 @@ PERF_MAX_MS=1200 pnpm test:perf
 ```
 
 `pnpm test:e2e` runs the same Playwright project under `./tests`.
+
+### Unit policies
+
+```bash
+pnpm test:unit
+```
