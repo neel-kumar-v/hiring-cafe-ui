@@ -2,13 +2,14 @@
 
 import { JobStatus, User } from "@/types/app";
 import { SearchState } from "@/types/search";
-import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
 import { getAuthEmail, onAuthChanged } from "@/lib/local-auth";
 import { decodeSearchState, encodeSearchState } from "@/lib/url-search-state";
 
 interface AppContextType {
-  // User state
+  // Local workspace state. Server-owned identity and saved searches are
+  // accessed through useCurrentUser/useSavedSearches instead of this context.
   user: User;
   setUser: (user: User) => void;
 
@@ -19,11 +20,6 @@ interface AppContextType {
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: (hasChanges: boolean) => void;
   syncChanges: () => void;
-
-  // Combined functionality
-  currentSavedSearchId: string | null;
-  setCurrentSavedSearchId: (id: string | null) => void;
-  saveCurrentSearch: (name?: string) => string;
 
   // Job state
   addJob: (jobId: string, status: "saved" | "applied" | "interviewing" | "rejected" | "hidden") => void;
@@ -43,7 +39,6 @@ const defaultUser: User = {
   name: "Guest",
   email: "",
   skills: [],
-  savedSearches: [],
   saved: [],
   applied: [],
   interviewing: [],
@@ -84,7 +79,7 @@ const loadUserFromStorage = (email: string | null): User | null => {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  // User state - initialize from localStorage or use default
+  // Workspace state - initialize from localStorage or use default.
   const [user, setUser] = useState<User>(() => {
     if (typeof window !== "undefined") {
       const email = getAuthEmail();
@@ -97,7 +92,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Search state
   const [searchOptions, setSearchOptions] = useState<SearchState>(defaultSearchOptions);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [currentSavedSearchId, setCurrentSavedSearchId] = useState<string | null>(null);
 
   // Save user data to localStorage whenever it changes (but not on initial render)
   const isFirstRender = useRef(true);
@@ -136,7 +130,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       lastAppliedUrlStateRef.current = raw;
       lastWrittenUrlStateRef.current = raw;
-      setSearchOptions(decoded);
+      setSearchOptions({
+        ...defaultSearchOptions,
+        ...decoded,
+        activity_outcomes: decoded.activity_outcomes ?? defaultSearchOptions.activity_outcomes,
+      });
     };
 
     applyStateFromUrl();
@@ -171,75 +169,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const updateSearchOptions = (updates: Partial<SearchState>) => {
+  const updateSearchOptions = useCallback((updates: Partial<SearchState>) => {
     setSearchOptions((prev) => {
       const newOptions = { ...prev, ...updates };
-
-      // If we're editing a saved search, sync the changes
-      if (currentSavedSearchId) {
-        setUser((prevUser) => ({
-          ...prevUser,
-          savedSearches: prevUser.savedSearches.map((search) => (search.id === currentSavedSearchId ? { ...search, searchState: newOptions, modifiedAt: new Date() } : search)),
-        }));
-      }
 
       return newOptions;
     });
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
-  const syncChanges = () => {
+  const syncChanges = useCallback(() => {
     setHasUnsavedChanges(false);
-  };
+  }, []);
 
-  const saveCurrentSearch = (name: string = "New Search") => {
-    // If we're currently editing a saved search, first save any changes to it
-    if (currentSavedSearchId) {
-      setUser((prevUser) => ({
-        ...prevUser,
-        savedSearches: prevUser.savedSearches.map((search) =>
-          search.id === currentSavedSearchId ? { ...search, searchState: JSON.parse(JSON.stringify(searchOptions)), modifiedAt: new Date() } : search
-        ),
-      }));
-    }
-
-    // Create a new saved search
-    const newId = Date.now().toString();
-    setUser((prev) => {
-      const newSearch = {
-        id: newId,
-        name,
-        searchState: JSON.parse(JSON.stringify(searchOptions)),
-        modifiedAt: new Date(),
-      };
-      return {
-        ...prev,
-        savedSearches: [newSearch, ...prev.savedSearches],
-      };
-    });
-
-    // Switch to editing the new saved search
-    setCurrentSavedSearchId(newId);
-    setHasUnsavedChanges(false);
-
-    return newId;
-  };
-
-  const addJob = (jobId: string, status: JobStatus) => {
+  const addJob = useCallback((jobId: string, status: JobStatus) => {
     setUser((prev) => ({
       ...prev,
       [status]: [...prev[status], jobId],
     }));
-  };
+  }, []);
 
-  const removeJob = (jobId: string, status: JobStatus) => {
+  const removeJob = useCallback((jobId: string, status: JobStatus) => {
     setUser((prev) => ({
       ...prev,
       [status]: prev[status].filter((id) => id !== jobId),
     }));
-  };
+  }, []);
 
-  const moveJob = (jobId: string, fromStatus: JobStatus, toStatus: JobStatus) => {
+  const moveJob = useCallback((jobId: string, fromStatus: JobStatus, toStatus: JobStatus) => {
     setUser((prev) => {
       // If moving from same status to same status, just return current state
       if (fromStatus === toStatus) {
@@ -252,55 +209,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
         [toStatus]: [...prev[toStatus], jobId],
       };
     });
-  };
+  }, []);
 
-  const addSkill = (skill: string) => {
+  const addSkill = useCallback((skill: string) => {
     setUser((prev) => ({
       ...prev,
       skills: [...prev.skills, skill].filter((s, i, arr) => arr.indexOf(s) === i), // Remove duplicates
     }));
-  };
+  }, []);
 
-  const removeSkill = (skill: string) => {
+  const removeSkill = useCallback((skill: string) => {
     setUser((prev) => ({
       ...prev,
       skills: prev.skills.filter((s) => s !== skill),
     }));
-  };
+  }, []);
 
-  return (
-    <AppContext.Provider
-      value={{
-        // User state
-        user,
-        setUser,
-
-        // Search state
-        searchOptions,
-        setSearchOptions,
-        updateSearchOptions,
-        hasUnsavedChanges,
-        setHasUnsavedChanges,
-        syncChanges,
-
-        // Combined functionality
-        currentSavedSearchId,
-        setCurrentSavedSearchId,
-        saveCurrentSearch,
-
-        // Job state
-        addJob,
-        removeJob,
-        moveJob,
-
-        // Skill management
-        addSkill,
-        removeSkill,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+  const contextValue = useMemo<AppContextType>(
+    () => ({
+      user,
+      setUser,
+      searchOptions,
+      setSearchOptions,
+      updateSearchOptions,
+      hasUnsavedChanges,
+      setHasUnsavedChanges,
+      syncChanges,
+      addJob,
+      removeJob,
+      moveJob,
+      addSkill,
+      removeSkill,
+    }),
+    [addJob, addSkill, hasUnsavedChanges, moveJob, removeJob, removeSkill, searchOptions, syncChanges, updateSearchOptions, user]
   );
+
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {

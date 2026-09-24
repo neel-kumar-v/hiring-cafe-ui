@@ -3,10 +3,15 @@ import { api } from "../../convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useMemo } from "react";
 
+// These options are filtered locally by the controls. Keep the initial
+// reactive payload bounded so opening the search UI does not read thousands of
+// documents for every facet at once.
+const SEARCH_DATA_LIMIT = 250;
+
 export function useSearchData(type: string, uppercase: boolean = false) {
   const result = useQuery(api.autocomplete.getOptions, {
     type: type as AutocompleteType,
-    limit: 1000,
+    limit: SEARCH_DATA_LIMIT,
   });
 
   const loading = result === undefined;

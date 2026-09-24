@@ -1,6 +1,7 @@
 "use client";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import type { SearchState } from "@/types/search";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
@@ -42,7 +43,7 @@ export function useSavedSearches() {
     }
   };
 
-  const create = async (name: string, searchState: unknown) => {
+  const create = async (name: string, searchState: SearchState) => {
     if (!convexUser) {
       toast.error("Sign in first to save searches.");
       return null;

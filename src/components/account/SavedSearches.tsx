@@ -94,7 +94,15 @@ export default function SavedSearches() {
                 <button
                   className="inline-flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all hover:bg-accent"
                   onClick={() => {
-                    setSearchOptions(search.searchState as SearchState);
+                    setSearchOptions({
+                      ...(search.searchState as SearchState),
+                      activity_outcomes: (search.searchState as SearchState).activity_outcomes ?? {
+                        views: "All",
+                        applications: "All",
+                        saves: "All",
+                        reportedOutcomes: { interviews: false, offers: false, ghostProne: false, highRejection: false },
+                      },
+                    });
                     router.push("/");
                     toast.success("Loaded saved search.");
                   }}

@@ -19,7 +19,8 @@ function chunkIds(ids: string[], size: number): string[][] {
 
 export function useTrackedJobs(externalIds: string[]) {
   const viewerEmail = getAuthEmail() ?? undefined;
-  const chunks = useMemo(() => chunkIds(externalIds, CHUNK_SIZE), [externalIds]);
+  const uniqueExternalIds = useMemo(() => Array.from(new Set(externalIds.filter(Boolean))), [externalIds]);
+  const chunks = useMemo(() => chunkIds(uniqueExternalIds, CHUNK_SIZE), [uniqueExternalIds]);
 
   const queryMap = useMemo(() => {
     const map: Record<string, { query: typeof api.jobs.byExternalIds; args: { ids: string[]; viewerEmail?: string } }> = {};
