@@ -14,6 +14,20 @@ export type Exclusion = "Saved" | "Applied" | "Hidden" | "Viewed";
 
 export type ExclusionOptions = Exclusion[];
 
+export type ActivityMetric = "All" | "Few" | "Many";
+
+export interface ActivityOutcomeOptions {
+  views: ActivityMetric;
+  applications: ActivityMetric;
+  saves: ActivityMetric;
+  reportedOutcomes: {
+    interviews: boolean;
+    offers: boolean;
+    ghostProne: boolean;
+    highRejection: boolean;
+  };
+}
+
 export type Department =
   | "Engineering"
   | "Software Development"
@@ -245,6 +259,7 @@ export interface SearchState {
   date_range: DateRangeOptions;
   apply_form: ApplyForm;
   exclusion: ExclusionOptions;
+  activity_outcomes: ActivityOutcomeOptions;
   benefits: BenefitsOptions;
   encouraged: EncouragedOptions;
   department: DepartmentOptions;
@@ -404,6 +419,7 @@ export type CategoryId =
   | "sorting"
   | "apply-form"
   | "exclusion"
+  | "activity-outcomes"
   | "encouraged"
   | "salary"
   | "commitment"
@@ -965,6 +981,7 @@ export type CategoryId =
   | "sorting"
   | "apply-form"
   | "exclusion"
+  | "activity-outcomes"
   | "encouraged"
   | "salary"
   | "commitment"

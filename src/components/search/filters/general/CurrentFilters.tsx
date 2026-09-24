@@ -1,27 +1,24 @@
 "use client";
 
 import { useApp } from "@/contexts/AppContext";
+import { initialSearchState } from "@/lib/edited-filters";
+import { getFilterChips } from "@/lib/search/filter-chips";
 import { CategoryId } from "@/types/search";
-import { AllFilter } from "../util/AllFilter";
+import { clearChipFromState, clearChipGroupFromState, GroupedFilterChips } from "../util/FilterChips";
 import FilterContainer from "../util/FilterContainer";
 
-export default function CurrentFilters({handleCategoryClick}: {handleCategoryClick: (categoryType: CategoryId) => void}) {  
-  const { searchOptions, currentSavedSearchId, user } = useApp();
-
-  const currentSavedSearch = currentSavedSearchId 
-    ? user.savedSearches.find(search => search.id === currentSavedSearchId)
-    : null;
-
-  const title = currentSavedSearch 
-    ? `Current Filters - ${currentSavedSearch.name}` 
-    : "Current Filters";
+export default function CurrentFilters({ handleCategoryClick }: { handleCategoryClick: (categoryType: CategoryId) => void }) {
+  const { searchOptions, updateSearchOptions } = useApp();
+  const chips = getFilterChips(searchOptions, initialSearchState);
 
   return (
-    <FilterContainer categoryId="filters" title={title}>
-      <AllFilter 
-        handleCategoryClick={handleCategoryClick} 
-        searchOptions={searchOptions} 
+    <FilterContainer categoryId="filters" title="Current Filters">
+      <GroupedFilterChips
+        chips={chips}
+        onSelectCategory={(categoryId) => handleCategoryClick(categoryId as CategoryId)}
+        onClearChip={(chip) => updateSearchOptions(clearChipFromState(searchOptions, chip))}
+        onClearGroup={(group) => updateSearchOptions(clearChipGroupFromState(group))}
       />
     </FilterContainer>
   );
-} 
+}

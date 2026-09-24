@@ -15,7 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { AddressComponent, Location as SearchLocation, SearchState } from "@/types/search";
 import { cn } from "@/lib/utils";
-import jobTitlesJson from "@/data/job_titles.json";
+import { POPULAR_JOB_SEARCHES } from "@/lib/search/popular-job-searches";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -31,16 +31,6 @@ type LocationComponent = SearchLocation["address"]["components"][number];
 function findAddressComponent(components: LocationComponent[] | undefined, type: string) {
   return components?.find((component) => component.types.includes(type as AddressComponent["types"][number]));
 }
-
-const POPULAR_JOB_SEARCHES: string[] = (() => {
-  const raw = (jobTitlesJson as { suggestions?: unknown })?.suggestions;
-  const list = Array.isArray(raw) ? raw : [];
-  const normalized = list
-    .map((x) => (typeof x === "string" ? x.trim() : ""))
-    .filter(Boolean)
-    .map((t) => t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)));
-  return Array.from(new Set(normalized)).slice(0, 20);
-})();
 
 const getLocationLabel = (location: SearchLocation) => {
   if (!location) {
@@ -155,7 +145,7 @@ interface IconButtonsProps {
 
 function IconButtons({ variant, inputFocused, handleIconClick }: IconButtonsProps) {
   if (variant === "general") {
-    return <IconButton icon={SlidersHorizontal} label="General Filters" onClick={() => handleIconClick("filters")} dataIconType="filters" buttonClassName="w-9" />;
+    return <IconButton icon={SlidersHorizontal} label="General Filters" onClick={() => handleIconClick("filters")} dataIconType="filters" buttonClassName="size-9 p-0" />;
   }
 
   return (
@@ -362,7 +352,7 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
     const id = window.setTimeout(() => {
       const q = inputValue.trim();
       if (!q) {
-        setJobTitles(POPULAR_JOB_SEARCHES);
+        setJobTitles([...POPULAR_JOB_SEARCHES]);
         return;
       }
 
@@ -373,7 +363,7 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
           setJobTitles((titles ?? []).map((t) => t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))));
         })
         .catch(() => {
-          if (!cancelled) setJobTitles(POPULAR_JOB_SEARCHES);
+          if (!cancelled) setJobTitles([...POPULAR_JOB_SEARCHES]);
         });
     }, 200);
 

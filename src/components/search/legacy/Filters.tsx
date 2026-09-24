@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
@@ -17,8 +16,10 @@ import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { getEditedTags } from "@/lib/edited-filters";
 import { cn } from "@/lib/utils";
+import { formatJobBoardRoundedNumber } from "@/lib/jobs/jobBoard";
 import type { ApplyForm, Exclusion, SortOptions, TimeUnits } from "@/types/search";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
@@ -275,27 +276,28 @@ function DesktopMenuFrame({
   active = false,
   children,
   filterKey,
+  hidden = false,
   label,
-  menuLabel,
   onOpenChange,
   open,
 }: {
   active?: boolean;
   children: ReactNode;
   filterKey: QuickFilterKey;
+  hidden?: boolean;
   label: string;
-  menuLabel: string;
   onOpenChange: (filter: QuickFilterKey, open: boolean) => void;
   open: boolean;
 }) {
+  if (hidden) return null;
+
   return (
     <DropdownMenu open={open} onOpenChange={(nextOpen) => onOpenChange(filterKey, nextOpen)}>
       <DropdownMenuTrigger className={getTriggerClassName(active)}>
         <span className="whitespace-nowrap">{label}</span>
         <ChevronDown className="size-3.5 text-muted-foreground transition-colors group-hover:text-current" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[18rem] rounded-xl border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur">
-        <DropdownMenuLabel className="px-2.5 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{menuLabel}</DropdownMenuLabel>
+      <DropdownMenuContent align="start" className="w-[18rem] rounded-xl border-border bg-popover/95 p-1 shadow-xl backdrop-blur">
         {children}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -389,9 +391,10 @@ function getExclusionLabel(exclusions: Exclusion[]) {
   return `Exclude ${exclusions.length} job types`;
 }
 
-export default function Filters() {
-  const { user, searchOptions, updateSearchOptions } = useApp();
-  const { showLegacyFilters, showFilterRibbon, setShowFilterRibbon } = useSearchUI();
+export default function Filters({ companyCount, jobCount, location }: { companyCount?: number; jobCount?: number; location?: string }) {
+  const { searchOptions, updateSearchOptions } = useApp();
+  const { showLegacyFilters, showFilterRibbon, setShowFilterRibbon, jobBoardSelectionMode, setJobBoardSelectionMode } = useSearchUI();
+  const { savedSearches } = useSavedSearches();
   const { contentRef, containerProps } = useCollapsibleHeight(showLegacyFilters);
   const useDesktopMenus = useMediaQuery("(min-width: 769px)");
   const [desktopFilter, setDesktopFilter] = useState<QuickFilterKey | null>(null);
@@ -401,7 +404,7 @@ export default function Filters() {
     return getEditedTags(searchOptions).size > 0;
   }, [searchOptions]);
 
-  const hasSavedSearches = user.savedSearches.length > 0;
+  const hasSavedSearches = (savedSearches ?? []).length > 0;
   const isTrulyEmptySavedSearchArea = !hasSavedSearches && !hasEditedFilters;
 
   const currentSortValue = getSortValue(searchOptions.sort);
@@ -501,14 +504,14 @@ export default function Filters() {
         aria-hidden={!showLegacyFilters}
       >
         <div className="mx-auto max-w-full px-4 py-3 lg:px-8">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex flex-nowrap items-center gap-x-3 gap-y-2 overflow-hidden md:flex-wrap md:gap-x-6">
             {useDesktopMenus ? (
               <>
                 <DesktopMenuFrame
                   active={searchOptions.date_range.magnitude !== 6 || searchOptions.date_range.unit !== "Months"}
                   filterKey="date"
+                  hidden
                   label={getDateLabel(searchOptions.date_range.magnitude, searchOptions.date_range.unit)}
-                  menuLabel="Date range"
                   onOpenChange={handleDesktopMenuChange}
                   open={desktopFilter === "date"}
                 >
@@ -517,7 +520,7 @@ export default function Filters() {
                       <DropdownMenuRadioItem
                         key={option.value}
                         value={option.value}
-                        className="items-start rounded-lg pl-9 pr-2.5 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
+                        className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
                       >
                         <OptionText description={option.description} label={option.label} />
                       </DropdownMenuRadioItem>
@@ -529,7 +532,6 @@ export default function Filters() {
                   active={searchOptions.sort.by !== "Relevance" || searchOptions.sort.order !== "Most"}
                   filterKey="sort"
                   label={SORT_OPTIONS.find((option) => option.value === currentSortValue)?.label ?? "Relevance"}
-                  menuLabel="Sort jobs"
                   onOpenChange={handleDesktopMenuChange}
                   open={desktopFilter === "sort"}
                 >
@@ -538,7 +540,7 @@ export default function Filters() {
                       <DropdownMenuRadioItem
                         key={option.value}
                         value={option.value}
-                        className="items-start rounded-lg pl-9 pr-2.5 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
+                        className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
                       >
                         <OptionText description={option.description} label={option.label} />
                       </DropdownMenuRadioItem>
@@ -549,8 +551,8 @@ export default function Filters() {
                 <DesktopMenuFrame
                   active={searchOptions.apply_form !== "All"}
                   filterKey="apply"
+                  hidden
                   label={getApplyLabel(searchOptions.apply_form)}
-                  menuLabel="Apply type"
                   onOpenChange={handleDesktopMenuChange}
                   open={desktopFilter === "apply"}
                 >
@@ -559,7 +561,7 @@ export default function Filters() {
                       <DropdownMenuRadioItem
                         key={option.value}
                         value={option.value}
-                        className="items-start rounded-lg pl-9 pr-2.5 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
+                        className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
                       >
                         <OptionText description={option.description} label={option.label} />
                       </DropdownMenuRadioItem>
@@ -570,8 +572,8 @@ export default function Filters() {
                 <DesktopMenuFrame
                   active={searchOptions.exclusion.length > 0}
                   filterKey="exclusion"
+                  hidden
                   label={getExclusionLabel(searchOptions.exclusion)}
-                  menuLabel="Excluded jobs"
                   onOpenChange={handleDesktopMenuChange}
                   open={desktopFilter === "exclusion"}
                 >
@@ -589,24 +591,24 @@ export default function Filters() {
                 </DesktopMenuFrame>
               </>
             ) : (
-              <>
-                <QuickFilterTrigger
-                  active={searchOptions.date_range.magnitude !== 6 || searchOptions.date_range.unit !== "Months"}
-                  label={getDateLabel(searchOptions.date_range.magnitude, searchOptions.date_range.unit)}
-                  onClick={() => setMobileFilter("date")}
-                />
-                <QuickFilterTrigger
-                  active={searchOptions.sort.by !== "Relevance" || searchOptions.sort.order !== "Most"}
-                  label={SORT_OPTIONS.find((option) => option.value === currentSortValue)?.label ?? "Relevance"}
-                  onClick={() => setMobileFilter("sort")}
-                />
-                <QuickFilterTrigger active={searchOptions.apply_form !== "All"} label={getApplyLabel(searchOptions.apply_form)} onClick={() => setMobileFilter("apply")} />
-                <QuickFilterTrigger active={searchOptions.exclusion.length > 0} label={getExclusionLabel(searchOptions.exclusion)} onClick={() => setMobileFilter("exclusion")} />
-              </>
+              <QuickFilterTrigger
+                active={searchOptions.sort.by !== "Relevance" || searchOptions.sort.order !== "Most"}
+                label={SORT_OPTIONS.find((option) => option.value === currentSortValue)?.label ?? "Relevance"}
+                onClick={() => setMobileFilter("sort")}
+              />
             )}
 
+            {jobCount !== undefined || companyCount !== undefined || location ? (
+              <div className="scrollbar-none min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-sm text-muted-foreground md:flex-none md:overflow-visible">
+                {jobCount !== undefined ? <span>{formatJobBoardRoundedNumber(jobCount, 0)} jobs</span> : null}
+                {jobCount !== undefined && companyCount !== undefined ? <span> · </span> : null}
+                {companyCount !== undefined ? <span>{formatJobBoardRoundedNumber(companyCount, 0)} companies</span> : null}
+                {location ? <span> · {location}</span> : null}
+              </div>
+            ) : null}
+
             {isTrulyEmptySavedSearchArea ? (
-              <div className="hidden md:block md:ml-auto">
+              <div className="hidden items-center gap-3 md:ml-auto md:flex">
                 <Hitbox size="sm" radius="lg">
                   <Button
                     className="h-9 rounded-lg px-4 text-sm"
@@ -615,6 +617,15 @@ export default function Filters() {
                   >
                     <ChevronUp className={cn("size-4 transition-transform", !showFilterRibbon && "rotate-180")} />
                     {showFilterRibbon ? "Collapse filter ribbon" : "Expand filter ribbon"}
+                  </Button>
+                </Hitbox>
+                <Hitbox size="sm" radius="lg">
+                  <Button
+                    className="h-9 rounded-lg px-4 text-sm"
+                    onClick={() => setJobBoardSelectionMode(!jobBoardSelectionMode)}
+                    variant={jobBoardSelectionMode ? "default" : "outline"}
+                  >
+                    Select jobs
                   </Button>
                 </Hitbox>
               </div>

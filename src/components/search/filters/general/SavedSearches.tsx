@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { SignInDialog } from "@/components/auth/SignInDialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/contexts/AppContext";
 import { useSavedSearches } from "@/hooks/useSavedSearches";
@@ -14,10 +15,11 @@ import FilterContainer from "../util/FilterContainer";
 
 export default function SavedSearches() {
   const { searchOptions, setSearchOptions } = useApp();
-  const { convexUser, email, savedSearches, create, rename, remove } = useSavedSearches();
+  const { convexUser, savedSearches, create, rename, remove } = useSavedSearches();
 
   const [editingId, setEditingId] = useState<Id<"savedSearches"> | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [signInOpen, setSignInOpen] = useState(false);
   const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
 
   const hasEditedFilters = useMemo(() => {
@@ -52,7 +54,15 @@ export default function SavedSearches() {
   };
 
   const handleLoadSearch = (search: { searchState: SearchState }) => {
-    setSearchOptions(search.searchState);
+    setSearchOptions({
+      ...search.searchState,
+      activity_outcomes: search.searchState.activity_outcomes ?? {
+        views: "All",
+        applications: "All",
+        saves: "All",
+        reportedOutcomes: { interviews: false, offers: false, ghostProne: false, highRejection: false },
+      },
+    });
   };
 
   const handleCategoryClick: Parameters<typeof AllFilter>[0]["handleCategoryClick"] = () => {};
@@ -65,25 +75,30 @@ export default function SavedSearches() {
   };
 
   return (
-    <FilterContainer
-      categoryId="saved"
-      title="Saved Searches"
-      actions={
-        hasEditedFilters ? (
-          <Button size="sm" variant="outline" onClick={handleSaveSearch}>
-            <Plus className="size-4" /> Save Current Search
-          </Button>
-        ) : null
-      }
-    >
+    <>
+      <SignInDialog onOpenChange={setSignInOpen} open={signInOpen} />
+      <FilterContainer
+        categoryId="saved"
+        title="Saved Searches"
+        actions={
+          hasEditedFilters ? (
+            <Button size="sm" variant="outline" className="shrink-0 whitespace-nowrap" onClick={() => (convexUser ? handleSaveSearch() : setSignInOpen(true))}>
+              <Plus className="size-4" /> Save Current Search
+            </Button>
+          ) : null
+        }
+      >
       {!convexUser ? (
-        <p className="text-sm text-muted-foreground">
-          Sign in{email ? "" : " with an email"} to save searches.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-4 text-center">
+          <p className="font-medium text-foreground">No saved searches yet</p>
+          <Button size="sm" onClick={() => setSignInOpen(true)}>
+            Sign in
+          </Button>
+        </div>
       ) : (savedSearches ?? []).length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No saved searches yet. Create your first search to see it here.
-        </p>
+        <div className="py-4 text-center">
+          <p className="font-medium text-foreground">No saved searches yet</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {(savedSearches ?? []).map((search) => (
@@ -172,6 +187,7 @@ export default function SavedSearches() {
           ))}
         </div>
       )}
-    </FilterContainer>
+      </FilterContainer>
+    </>
   );
 }

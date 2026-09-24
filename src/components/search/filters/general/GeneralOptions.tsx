@@ -1,9 +1,8 @@
 "use client";
 
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
-import type { CategoryId } from "@/types/search";
 import ApplyForm from "./ApplyForm";
-import CurrentFilters from "./CurrentFilters";
+import ActivityOutcomes from "./ActivityOutcomes";
 import DateRange from "./DateRange";
 import Encouraged from "./Encouraged";
 import Exclusion from "./Exclusion";
@@ -14,11 +13,10 @@ interface GeneralOptionsProps {
   scrollToSection?: string;
   clearScrollToSection?: () => void;
   filterIds?: string[];
-  handleCategoryClick: (categoryType: CategoryId) => void;
 }
 
-export default function GeneralOptions({ scrollToSection, clearScrollToSection, filterIds, handleCategoryClick }: GeneralOptionsProps) {
-  const refs = createRefs(["filters", "saved", "date-range", "sorting", "apply-form", "exclusion", "encouraged"]);
+export default function GeneralOptions({ scrollToSection, clearScrollToSection, filterIds }: GeneralOptionsProps) {
+  const refs = createRefs(["saved", "date-range", "sorting", "apply-form", "exclusion", "activity-outcomes", "encouraged"]);
 
   useScrollToSection(scrollToSection, refs, clearScrollToSection);
 
@@ -26,12 +24,6 @@ export default function GeneralOptions({ scrollToSection, clearScrollToSection, 
 
   return (
     <div className="space-y-4">
-      {shouldShow("filters") ? (
-        <div className="scroll-mt-14" ref={refs.filters}>
-          <CurrentFilters handleCategoryClick={handleCategoryClick} />
-        </div>
-      ) : null}
-
       {shouldShow("saved") ? (
         <div className="scroll-mt-14" ref={refs.saved}>
           <SavedSearches />
@@ -62,16 +54,18 @@ export default function GeneralOptions({ scrollToSection, clearScrollToSection, 
         </div>
       ) : null}
 
+      {shouldShow("activity-outcomes") ? (
+        <div className="scroll-mt-14" ref={refs["activity-outcomes"]}>
+          <ActivityOutcomes />
+        </div>
+      ) : null}
+
       {shouldShow("encouraged") ? (
         <div className="scroll-mt-14" ref={refs.encouraged}>
           <Encouraged />
         </div>
       ) : null}
 
-      <br className="md:hidden" />
-      <br className="md:hidden" />
-      <br className="md:hidden" />
-      <br className="md:hidden" />
     </div>
   );
 }

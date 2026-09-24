@@ -67,7 +67,7 @@ export default function JobTitles() {
         href="https://en.wikipedia.org/wiki/Full-text_search#Boolean_queries"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex flex-row items-center gap-1 mb-2 -mt-3"
+        className="mb-2 -mt-2 flex flex-row items-center gap-1"
       >
         <span className="text-sm font-medium text-primary hover:underline">How does boolean search work?</span>
         <ArrowUpRight className="size-4 translate-y-px cursor-pointer text-primary" />
@@ -75,7 +75,7 @@ export default function JobTitles() {
       <div className="flex flex-col gap-6">
         {FIELDS.map(({ key, label, facetType, examples }) => (
           <div key={key} className="w-full">
-            <div className="mb-2 flex flex-col gap-1">
+            <div className="mb-2 flex flex-col gap-0.5">
               <span className="text-sm font-medium">{label}</span>
               {facetType ? (
                 <span className="text-xs text-muted-foreground">Use the @ symbol to search for available keywords</span>

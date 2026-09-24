@@ -52,9 +52,10 @@ export function FilterSection({ title, items, isExtended }: FilterSectionProps) 
   const itemValue = title.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <Accordion 
-      type="single" 
-      collapsible 
+    <Accordion
+      type="single"
+      collapsible
+      defaultValue={title === "General" ? itemValue : undefined}
       className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
     >
       <AccordionItem value={itemValue}>

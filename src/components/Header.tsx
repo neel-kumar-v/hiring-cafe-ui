@@ -10,18 +10,19 @@ import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import { BarChart3, Building, CircleUser, ExternalLink, Info, ListFilterPlus, Mail, User, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Clock } from "./Clock";
 import SearchBar from "./search/SearchBar";
 import SearchFilters from "./search/SearchFilters";
 
 function HomeSearchFiltersRibbon({ open, onIconClick }: { open: boolean; onIconClick: (category: string) => void }) {
   const { contentRef, containerProps } = useCollapsibleHeight(open);
+  const [isWrapped, setIsWrapped] = useState(false);
   return (
     <div {...containerProps}>
       <div ref={contentRef}>
         <div className="pb-4">
-          <SearchFilters onIconClick={onIconClick} />
+          <SearchFilters onIconClick={onIconClick} onWrapChange={setIsWrapped} className={isWrapped ? "justify-start" : "justify-center"} />
         </div>
       </div>
     </div>
@@ -55,7 +56,6 @@ export default function Header() {
 
           {/* Right Side */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <Clock />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="size-8 rounded-full p-0" size="sm" variant="default">

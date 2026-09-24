@@ -13,6 +13,7 @@ const categoryStateKeys: Record<string, (keyof SearchState)[]> = {
   sorting: ["sort"],
   "apply-form": ["apply_form"],
   exclusion: ["exclusion"],
+  "activity-outcomes": ["activity_outcomes"],
   encouraged: ["encouraged"],
   salary: ["salary"],
   commitment: ["commitment"],
@@ -61,4 +62,21 @@ export function getEditedTags(state: SearchState, initialState: SearchState = in
   }
 
   return edited;
+}
+
+function countChangedValues(current: unknown, initial: unknown): number {
+  if (isEqual(current, initial)) return 0;
+  if (Array.isArray(current)) return Math.max(current.length, 1);
+  if (Array.isArray(initial)) return Math.max(initial.length, 1);
+  if (current && initial && typeof current === "object" && typeof initial === "object") {
+    const keys = new Set([...Object.keys(current), ...Object.keys(initial)]);
+    return Array.from(keys).reduce((count, key) => count + countChangedValues((current as Record<string, unknown>)[key], (initial as Record<string, unknown>)[key]), 0);
+  }
+  return 1;
+}
+
+export function getCategoryEditCount(state: SearchState, initialState: SearchState = initialSearchState, categoryId: string): number {
+  const keys = categoryStateKeys[categoryId];
+  if (!keys?.length) return 0;
+  return keys.reduce((count, key) => count + countChangedValues(state[key], initialState[key]), 0);
 }

@@ -8,6 +8,17 @@ export const defaultSearchOptions: SearchState = {
   date_range: { magnitude: 6, unit: "Months" },
   apply_form: "All",
   exclusion: [],
+  activity_outcomes: {
+    views: "All",
+    applications: "All",
+    saves: "All",
+    reportedOutcomes: {
+      interviews: false,
+      offers: false,
+      ghostProne: false,
+      highRejection: false,
+    },
+  },
   department: "All",
   salary: {
     min_range: { min: 0, max: 0 },

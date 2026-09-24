@@ -21,7 +21,7 @@ export default function CompanyOptions({ scrollToSection, clearScrollToSection, 
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {shouldShow("company") ? (
         <div className="scroll-mt-14" ref={refs.company}>
           <Company />
@@ -52,8 +52,6 @@ export default function CompanyOptions({ scrollToSection, clearScrollToSection, 
         </div>
       ) : null}
 
-      <br className="md:hidden" />
-      <br className="md:hidden" />
     </div>
   );
 }

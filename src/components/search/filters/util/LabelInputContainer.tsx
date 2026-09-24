@@ -23,11 +23,11 @@ export default function LabelInputContainer({ children, midColCount = 2, lgColCo
   }[lgColCount] ?? "lg:grid-cols-4";
 
   return (
-    <>
-      {title && <p className="text-base font-semibold">{title}</p>}
+    <div className="space-y-2">
+      {title ? <p className="text-sm font-semibold md:text-base">{title}</p> : null}
       <div className={cn("grid grid-cols-1 gap-4", midCols, lgCols)}>
         {children}
       </div>
-    </>
+    </div>
   );
 }

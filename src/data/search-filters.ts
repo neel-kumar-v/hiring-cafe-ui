@@ -1,20 +1,24 @@
-import { SettingsCategory } from "@/types/search";
+import { CategoryType, SettingsCategory } from "@/types/search";
 
-const legacyFilterTags = [
-  "Encouraged to Apply",
-  "Salary",
-  "Commitment",
-  "Experience",
-  "Benefits & Perks",
-  "Departments",
-  "Job Titles & Keywords",
-  "Education",
-  "Licenses & Certifications",
-  "Security Clearance",
-  "Languages",
-  "Shifts & Schedules",
-  "Travel Requirement",
+const filterGroupOrder: Array<{ name: string; type: CategoryType }> = [
+  { name: "General", type: "general" },
+  { name: "Compensation & Levels", type: "compensation" },
+  { name: "Location", type: "location" },
+  { name: "Role & Department", type: "role-department" },
+  { name: "Qualifications", type: "qualifications" },
+  { name: "Availability", type: "availability" },
+  { name: "Company", type: "company" },
 ];
+
+const ribbonExcludedIds = new Set([
+  "filters",
+  "saved",
+  "date-range",
+  "sorting",
+  "apply-form",
+  "location",
+  "workplace-activity",
+]);
 
 const locationTags = ["Location", "Workplace Type", "Options"];
 
@@ -38,6 +42,7 @@ const filters: SettingsCategory[] = [
   { id: "sorting", name: "Sorting", type: "general" },
   { id: "apply-form", name: "Apply Form Type", type: "general" },
   { id: "exclusion", name: "Exclusion", type: "general" },
+  { id: "activity-outcomes", name: "Activity & Outcomes", type: "general" },
   { id: "encouraged", name: "Encouraged to Apply", type: "general" },
 
   // Compensation Levels
@@ -72,4 +77,27 @@ const filters: SettingsCategory[] = [
   { id: "founding", name: "Founding Year", type: "company" },
 ];
 
-export { availabilityTags, companyTags, compensationLevelsTags, legacyFilterTags, locationTags, miscellaneousTags, qualificationsTags, roleDepartmentTags, filters };
+const orderedFilterIds = filterGroupOrder.flatMap(({ type }) => filters.filter((filter) => filter.type === type).map((filter) => filter.id));
+
+const ribbonFilters: SettingsCategory[] = [];
+for (const id of orderedFilterIds) {
+  if (ribbonExcludedIds.has(id)) continue;
+  const filter = filters.find((item) => item.id === id);
+  if (filter) ribbonFilters.push(filter);
+}
+
+const legacyFilterTags = ribbonFilters.filter((filter) => filter.type !== "company").map((filter) => filter.name);
+
+export {
+  availabilityTags,
+  companyTags,
+  compensationLevelsTags,
+  filterGroupOrder,
+  filters,
+  legacyFilterTags,
+  locationTags,
+  miscellaneousTags,
+  orderedFilterIds,
+  qualificationsTags,
+  roleDepartmentTags,
+};

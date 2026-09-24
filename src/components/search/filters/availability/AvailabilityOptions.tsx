@@ -18,7 +18,7 @@ export default function AvailabilityOptions({ scrollToSection, clearScrollToSect
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {shouldShow("shifts") ? (
         <div className="scroll-mt-14" ref={refs.shifts}>
           <Shifts />
@@ -31,8 +31,6 @@ export default function AvailabilityOptions({ scrollToSection, clearScrollToSect
         </div>
       ) : null}
 
-      <br className="md:hidden" />
-      <br className="md:hidden" />
     </div>
   );
 }

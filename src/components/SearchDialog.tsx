@@ -19,8 +19,10 @@ export default function SearchDialog({ open, onOpenChange, from, isDarkMode }: S
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent
-        className={`border border-border/60 bg-background p-0 dark:border-border  ${
-          isMobile ? "h-[100dvh] max-h-[100dvh] w-full max-w-none rounded-none border-0" : "h-[90vh] w-[800px] min-w-[80vw] max-w-[90vw]"
+        className={`overflow-hidden border border-border/60 bg-background p-0 dark:border-border ${
+          isMobile
+            ? "h-[100dvh] max-h-[100dvh] w-full max-w-none rounded-none border-0"
+            : "h-[90vh] w-[800px] min-w-[min(80vw,100%-2rem)] max-w-[min(90vw,100%-2rem)]"
         } ${isDarkMode ? "dark" : ""}`}
       >
         <ResponsiveDialogTitle className="sr-only">Create your Job Search</ResponsiveDialogTitle>

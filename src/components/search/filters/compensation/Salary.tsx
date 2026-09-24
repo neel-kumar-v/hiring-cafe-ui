@@ -61,8 +61,6 @@ export default function Salary() {
 
   return (
     <FilterContainer categoryId="salary" title="Salary Range">
-      <p className="-mt-4 mb-2 text-xs text-muted-foreground">Enter salary amounts directly. Leave fields blank to remove that bound.</p>
-
       <div className="grid grid-cols-1 gap-4">
         <LabelCheckbox
           label="Hide Jobs with undisclosed salaries?"

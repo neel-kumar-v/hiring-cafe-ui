@@ -29,6 +29,8 @@ export {
   createLicenseCertificationHideRequiredHandler
 } from './qualifications';
 export { createEducationKeywordsHandler, createEducationPreferenceHandler, parseSearchExpression } from './role-department';
+export { applyFilterChipClear, formatQuotedSearchExpression, getFilterChips, groupFilterChips } from './filter-chips';
+export type { FilterChip, FilterChipGroup } from './filter-chips';
 export { isKeywordsItemSelected, isSelectItemSelected, isSelectWithNullItemSelected } from './util';
 
 // Export handler functions from handlers file

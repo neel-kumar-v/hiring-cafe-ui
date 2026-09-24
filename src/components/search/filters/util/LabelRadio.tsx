@@ -3,19 +3,34 @@ export interface LabelRadioProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   className?: string;
+  name?: string;
+  hint?: string;
 }
 
-export default function LabelRadio({ label, checked, onChange, className }: LabelRadioProps) {
+export default function LabelRadio({ label, checked, onChange, className, name, hint }: LabelRadioProps) {
   return (
-    <label className={`flex items-center gap-2 group ${className}`}>
-      <input 
-        type="radio" 
-        className="size-4 group-hover:scale-125 transition-all duration-300 ease-out appearance-none border-2 border-border/70 rounded-full checked:bg-primary checked:border-primary dark:border-border dark:checked:bg-primary dark:checked:border-primary [&:not(:checked)]:dark:bg-muted" 
-        checked={checked} 
-        onChange={() => onChange(!checked)} 
+    <label className={`group flex items-center gap-2 ${className ?? ""}`}>
+      <input
+        type="radio"
+        name={name}
+        className="size-4 appearance-none rounded-full border-2 border-border/70 transition-all duration-300 ease-out checked:border-primary checked:bg-primary group-hover:scale-125 dark:border-border dark:checked:border-primary dark:checked:bg-primary [&:not(:checked)]:dark:bg-muted"
+        checked={checked}
+        onChange={() => onChange(true)}
+        onClick={(event) => {
+          if (!checked) return;
+          event.preventDefault();
+          onChange(false);
+        }}
       />
-      <span className="text-base select-none cursor-default">{label}</span>
+      <span className="cursor-default select-none text-base">
+        {label}
+        {hint ? (
+          <>
+            {" "}
+            <span className="text-xs text-muted-foreground">{hint}</span>
+          </>
+        ) : null}
+      </span>
     </label>
   );
 }
-

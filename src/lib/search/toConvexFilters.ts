@@ -17,6 +17,12 @@ export type ConvexJobSearchFilters = {
 	minMgmtYoe?: number;
 	companyProfit?: string[];
 	companyStage?: string[];
+	minViews?: number;
+	maxViews?: number;
+	minApplies?: number;
+	maxApplies?: number;
+	minSaves?: number;
+	maxSaves?: number;
 };
 
 function asArray<T>(sel: Select<T>): T[] {
@@ -84,6 +90,7 @@ export function toConvexJobSearchFilters(state: SearchState): ConvexJobSearchFil
 	const minMgmtYoe = state.experience?.peopleManager?.min ?? undefined;
 	const companyProfit = Array.isArray(state.industry?.profit) ? state.industry.profit : [];
 	const companyStage = Array.isArray(state.stage_funding?.current) ? state.stage_funding.current : [];
+	const activity = state.activity_outcomes;
 
 	return {
 		workplaceTypes: workplaceTypes.length ? workplaceTypes : undefined,
@@ -102,6 +109,12 @@ export function toConvexJobSearchFilters(state: SearchState): ConvexJobSearchFil
 		minMgmtYoe,
 		companyProfit: companyProfit.length ? companyProfit : undefined,
 		companyStage: companyStage.length ? companyStage : undefined,
+		minViews: activity?.views === "Many" ? 10 : undefined,
+		maxViews: activity?.views === "Few" ? 4 : undefined,
+		minApplies: activity?.applications === "Many" ? 6 : undefined,
+		maxApplies: activity?.applications === "Few" ? 1 : undefined,
+		minSaves: activity?.saves === "Many" ? 8 : undefined,
+		maxSaves: activity?.saves === "Few" ? 2 : undefined,
 	};
 }
 

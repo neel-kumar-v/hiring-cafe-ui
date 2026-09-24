@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { filters } from "@/data/search-filters";
+import { filterGroupOrder, filters } from "@/data/search-filters";
 import type { CategoryId, CategoryType, SettingsCategory } from "@/types/search";
 import {
   AvailabilityOptions,
@@ -125,7 +125,6 @@ export function renderCategoryContent(
           scrollToSection={scrollToSection}
           clearScrollToSection={clearScrollToSection}
           filterIds={filterIds}
-          handleCategoryClick={handleCategoryClick as (categoryType: CategoryId) => void}
         />
       );
     case "compensation":
@@ -217,7 +216,7 @@ export function renderFilteredCategoriesContent(
   clearScrollToSection?: () => void
 ) {
   return (
-    <div className="space-y-10">
+    <div className="space-y-3 md:space-y-4">
       {filteredGroups.map((group) => {
         const header =
           group.categories.length === 1 ? group.categories[0].name : group.name;
@@ -229,7 +228,7 @@ export function renderFilteredCategoriesContent(
             id={group.type}
             className="scroll-mt-4 max-md:max-w-screen"
           >
-            <h2 className="mb-4 border-b border-border pb-1 text-sm font-semibold uppercase tracking-wide text-foreground/80">
+            <h2 className="mb-1 border-b border-border pb-1 text-[11px] font-semibold uppercase tracking-wide text-foreground/80 md:mb-2 md:text-sm">
               {header}
             </h2>
             {renderCategoryContent(group.type, handleCategoryClick, { name: header }, {
@@ -245,17 +244,7 @@ export function renderFilteredCategoriesContent(
 }
 
 export function getGroupedCategories(): FilteredGroup[] {
-  const groups: Array<{ name: string; type: CategoryType }> = [
-    { name: "General", type: "general" },
-    { name: "Compensation & Levels", type: "compensation" },
-    { name: "Location", type: "location" },
-    { name: "Role & Department", type: "role-department" },
-    { name: "Qualifications", type: "qualifications" },
-    { name: "Availability", type: "availability" },
-    { name: "Company", type: "company" },
-  ];
-
-  return groups.map((group) => ({
+  return filterGroupOrder.map((group) => ({
     ...group,
     categories: filters.filter((category) => category.type === group.type),
   }));
