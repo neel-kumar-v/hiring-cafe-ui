@@ -5,7 +5,8 @@
   "packageManager": "pnpm@11.1.2",
   "scripts": {
     "dev": "concurrently -k -n next,convex -c \"blue,red\" \"pnpm run dev:next\" \"pnpm run dev:convex\"",
-    "dev:next": "xport run next dev --turbopack",
+    "dev:next": "node scripts/dev.mjs next dev --turbopack",
+    "setup": "node scripts/dev.mjs --setup-only",
     "dev:convex": "node node_modules/convex/bin/main.js dev --cloud",
     "convex": "node node_modules/convex/bin/main.js",
     "build": "next build",
