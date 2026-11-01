@@ -1,18 +1,19 @@
 "use client";
 
-import { Building2, CalendarClock, ChevronDown, DollarSign, IdCard, type LucideIcon, MapPin, School, SlidersHorizontal } from "lucide-react";
+import { Building2, CalendarClock, ChevronDown, DollarSign, IdCard, type LucideIcon, MapPin, School, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 
 import Autocomplete from "./Autocomplete";
+import SearchModeToggle from "./SearchModeToggle";
 import { useApp } from "@/contexts/AppContext";
-import { useSearchUI } from "@/contexts/SearchContext";
+import { useSearchUI, type SearchMode } from "@/contexts/SearchContext";
 import { Hitbox } from "@/components/ui/hitbox";
 import { useConvex } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useQuantizedContainerWidth } from "@/hooks/useContainerWidth";
 import type { AddressComponent, Location as SearchLocation, SearchState } from "@/types/search";
 import { cn } from "@/lib/utils";
 import { POPULAR_JOB_SEARCHES } from "@/lib/search/popular-job-searches";
@@ -20,12 +21,18 @@ import { POPULAR_JOB_SEARCHES } from "@/lib/search/popular-job-searches";
 interface SearchBarProps {
   placeholder?: string;
   className?: string;
+  containerClassName?: string;
   onSearch?: (value: string) => void;
+  /** Called when the user explicitly submits (Enter or the search button), unlike `onSearch` which also fires while typing. */
+  onSubmit?: (value: string) => void;
   onIconClick?: (category: string) => void;
   value?: string;
 }
 
 const workplaceTypeOptions = ["Remote", "Hybrid", "Onsite"];
+// Progressive-collapse breakpoints for the bar's own measured width (<880
+// salary, <680 location, <980 compact icons) — also the quantization steps.
+const SEARCH_BAR_COLLAPSE_STEPS: readonly number[] = [680, 880, 980];
 type LocationComponent = SearchLocation["address"]["components"][number];
 
 function findAddressComponent(components: LocationComponent[] | undefined, type: string) {
@@ -221,13 +228,13 @@ function LocationButton({
     <FilterButton
       icon={MapPin}
       header={
-        <>
-          {locationDisplay.location}
-          <span className="ml-2 text-[12px] font-medium text-muted-foreground max-xs:hidden md:hidden lg:inline">{locationDisplay.workplaces}</span>
-        </>
+        <span className="inline-flex items-center gap-1.5 truncate">
+          <span className="truncate">{locationDisplay.location}</span>
+          {locationDisplay.workplaces ? <span className="text-[12px] font-medium text-muted-foreground truncate hidden 2xl:inline">{locationDisplay.workplaces}</span> : null}
+        </span>
       }
       onClick={() => handleIconClick("location")}
-      className="min-w-[30%] w-full lg:min-w-[300px]"
+      className="min-w-0 w-auto sm:max-w-[220px]"
     />
   );
 }
@@ -322,32 +329,63 @@ function SalaryButton({
       </>
     );
 
-  return <FilterButton icon={DollarSign} header={header} onClick={() => handleIconClick("salary")} className="min-w-[max(80px, fit-content)] lg:min-w-[200px]" />;
+  return <FilterButton icon={DollarSign} header={header} onClick={() => handleIconClick("salary")} className="min-w-0 w-auto sm:max-w-[160px]" />;
 }
 
-export default function SearchBar({ placeholder = "Search", className = "", onSearch, onIconClick, value: controlledValue }: SearchBarProps) {
+function SearchButton({ mode, onClick }: { mode: SearchMode; onClick: () => void }) {
+  const isAgent = mode === "talent-agent";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={isAgent ? "Ask Talent Agent" : "Search jobs"}
+      title={isAgent ? "Ask Talent Agent" : "Search jobs"}
+      className="flex size-8 sm:size-8.5 items-center justify-center rounded-full bg-neutral-900 text-primary shadow-xs transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-neutral-800 dark:hover:bg-neutral-700 shrink-0"
+    >
+      {isAgent ? <Sparkles className="size-4" /> : <Search className="size-4" />}
+    </button>
+  );
+}
+
+export default function SearchBar({ placeholder, className = "", containerClassName = "", onSearch, onSubmit, onIconClick, value: controlledValue }: SearchBarProps) {
   const pathname = usePathname();
+  const { searchMode, handleSearchIconClick, setChatOpen } = useSearchUI();
   const { searchOptions: currentSearchState } = useApp();
-  const { handleSearchIconClick } = useSearchUI();
 
   const [inputValue, setInputValue] = useState(controlledValue || "");
   const [inputFocused, setInputFocused] = useState(false);
 
   const convex = useConvex();
   const [jobTitles, setJobTitles] = useState<string[]>([]);
-
   const isMobile = useIsMobile(768);
-  const isLg = useMediaQuery("(min-width: 1024px)");
-  const isXl = useMediaQuery("(min-width: 1280px)");
+
+  // Collapse decisions follow the search bar's own width, not the viewport, so
+  // they stay correct wherever the bar is embedded (header, mobile top bar, or navbar with chat open).
+  // Quantized at the collapse breakpoints so drag-resizing the shell rails
+  // doesn't re-render the whole bar per frame — state updates only at crossings.
+  const barRef = useRef<HTMLDivElement>(null);
+  const barWidth = useQuantizedContainerWidth(barRef, SEARCH_BAR_COLLAPSE_STEPS);
 
   const handleIconClick = onIconClick || handleSearchIconClick;
-  const showFilterControls = pathname === "/";
+  // Full search chrome (mode toggle + location/salary/filter segments) is allowed
+  // on browse routes and the tracker, so the sticky header search always shows the
+  // whole search UI there, not a partial stub (Feedback: tracker search chrome).
+  const isRouteAllowed = pathname === "/" || Boolean(pathname?.startsWith("/search/")) || Boolean(pathname?.startsWith("/tracker"));
+  const isAgentMode = searchMode === "talent-agent";
+
+  // In talent-agent mode: HIDE location segment, salary/filter cluster, and filter ribbon
+  const showFilterControls = isRouteAllowed && !isAgentMode;
 
   useEffect(() => {
     if (controlledValue !== undefined) setInputValue(controlledValue);
   }, [controlledValue]);
 
   useEffect(() => {
+    if (isAgentMode) {
+      setJobTitles([]);
+      return;
+    }
+
     let cancelled = false;
     const id = window.setTimeout(() => {
       const q = inputValue.trim();
@@ -371,7 +409,7 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
       cancelled = true;
       window.clearTimeout(id);
     };
-  }, [convex, inputValue]);
+  }, [convex, inputValue, isAgentMode]);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
@@ -382,6 +420,14 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
     setInputValue("");
     setInputFocused(false);
     if (onSearch) onSearch("");
+  };
+
+  const handleSubmit = () => {
+    if (onSearch) onSearch(inputValue);
+    onSubmit?.(inputValue);
+    if (isAgentMode) {
+      setChatOpen(true);
+    }
   };
 
   const locationDisplay = useMemo(() => {
@@ -395,10 +441,18 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
     };
   }, [currentSearchState]);
 
-  const showFullIconGroup = showFilterControls && !isLg;
-  const showGeneralIconOnly = showFilterControls && isLg;
-  const showLocation = showFilterControls && (isMobile || isLg);
-  const showSalary = showFilterControls && (isMobile || isXl);
+  // Progressive segment collapse based on search bar container width:
+  // When unmeasured (0, e.g. SSR / pre-mount), default to generous layout to prevent flash.
+  // When space narrows (e.g. chat dock opens, taking ~400px via --shell-right):
+  // 1. Salary collapses first (< 880px)
+  // 2. Location collapses next (< 680px)
+  // 3. Icon cluster uses the single compact general-filters icon ("SlidersHorizontal")
+  //    whenever chips are shown or width is constrained (< 980px)
+  const isMeasured = barWidth > 0;
+  const showSalary = showFilterControls && (isMobile || !isMeasured || barWidth >= 880);
+  const showLocation = showFilterControls && (isMobile || !isMeasured || barWidth >= 680);
+  const showGeneralIconOnly = showFilterControls && (showLocation || !isMeasured || barWidth < 980);
+  const showFullIconGroup = showFilterControls && !showGeneralIconOnly;
 
   const iconButtons = showFullIconGroup ? (
     <IconButtons variant="full" inputFocused={inputFocused} handleIconClick={handleIconClick} />
@@ -410,20 +464,29 @@ export default function SearchBar({ placeholder = "Search", className = "", onSe
 
   const salaryButton = showSalary ? <SalaryButton currentSearchState={currentSearchState} handleIconClick={handleIconClick} showFilterControls={showFilterControls} /> : null;
 
+  const effectivePlaceholder = placeholder ?? (isAgentMode ? "Describe what you're looking for, or ask the AI agent..." : "Search by role, company, or keyword...");
+
+  const searchButton = <SearchButton mode={searchMode} onClick={handleSubmit} />;
+  const toggleSize = isMeasured && barWidth < 520 ? "xs" : "sm";
+  const modeToggle = <SearchModeToggle size={toggleSize} />;
+
   return (
-    <div className="relative flex-1 sm:px-4">
+    <div ref={barRef} className={cn("relative flex-1 min-w-0 @container", containerClassName)}>
       <Autocomplete
         className={className}
         iconButtons={iconButtons}
         locationButton={locationButton}
+        modeToggle={modeToggle}
         onBlur={() => setInputFocused(false)}
         onChange={handleInputChange}
         onClear={handleClear}
         onFocus={() => setInputFocused(true)}
-        options={jobTitles}
-        placeholder={placeholder}
+        onSubmit={handleSubmit}
+        options={isAgentMode ? [] : jobTitles}
+        placeholder={effectivePlaceholder}
         salaryButton={salaryButton}
-        showClearButton={showFilterControls && !!inputValue}
+        searchButton={searchButton}
+        showClearButton={!!inputValue}
         value={inputValue}
       />
     </div>
