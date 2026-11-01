@@ -40,20 +40,24 @@ test("formatCountedList formats below N1 with conjunction and oxford comma", () 
   assert.equal(formatCountedList(["Applied", "Viewed", "Saved"], { conjunction: "or" }), "Applied, Viewed, or Saved");
 });
 
-test("formatCountedList compacts above N1 showing first N2 then + {remaining} more", () => {
+test("formatCountedList compacts above N1 showing N2 shortest then + {remaining} more", () => {
   const items = ["A", "B", "C", "D", "E"];
 
-  // Default N1=3, N2=3 -> 5 items > 3, shows first 3 + 2 more
+  // Equal lengths → stable by selection order (same as former “first N2”)
   assert.equal(formatCountedList(items), "A, B, C + 2 more");
-
-  // Custom N1=2, N2=1 -> 5 items > 2, shows first 1 + 4 more
   assert.equal(formatCountedList(items, { n1: 2, n2: 1 }), "A + 4 more");
-
-  // Custom N1=4, N2=2 -> 5 items > 4, shows first 2 + 3 more
   assert.equal(formatCountedList(items, { n1: 4, n2: 2 }), "A, B + 3 more");
-
-  // Works with shortListLimit/compactListLimit aliases
   assert.equal(formatCountedList(items, { shortListLimit: 4, compactListLimit: 2 }), "A, B + 3 more");
+});
+
+test("formatCountedList prefers shortest labels when compacting", () => {
+  const items = ["private equity", "corporate round", "debt financing", "seed", "angel", "ipo", "grant", "debt", "safe"];
+
+  // N1=3, N2=3 → nine items; show three shortest in original order: seed, ipo, debt
+  assert.equal(formatCountedList(items), "seed, ipo, debt + 6 more");
+
+  // n2=2 → seed + ipo (ipo before debt by length tie? seed=4, ipo=3, debt=4, safe=4 — shortest are ipo(3), then seed/debt/safe/angel/grant by index)
+  assert.equal(formatCountedList(items, { n1: 3, n2: 2 }), "seed, ipo + 7 more");
 });
 
 test("formatCountedList supports custom moreText formatter", () => {
@@ -183,3 +187,145 @@ test("formatExperienceYearSentence formats role experience years", () => {
   assert.equal(formatExperienceYearSentence(3, 3, "people manager"), "Must have 3 years of people manager experience");
   assert.equal(formatExperienceYearSentence(0, 0, "individual contributor"), null);
 });
+
+// ---------------------------------------------------------------------------
+// 8. Split sentence queries (Industry & Stage)
+// ---------------------------------------------------------------------------
+
+test("getIndustryTitle splits activity sentence and industry sentence", async () => {
+  const { getIndustryTitle } = await import("../../src/components/search/filters/company/Industry");
+  const defaultTitle = getIndustryTitle();
+  assert.equal(defaultTitle, "Company can have any profit type. Active in any activity excluding none. In any industry excluding none. OK to include jobs from USAJobs.gov");
+
+  const customTitle = getIndustryTitle({
+    profit: ["For-Profit"],
+    activities: { include: ["Fintech"], exclude: "None" },
+    industry: { include: ["Banking"], exclude: "None" },
+    usa_jobs: "Only",
+  });
+  assert.equal(customTitle, "Company can have for-profit profit type. Active in Fintech excluding none. In Banking excluding none. Include only jobs from USAJobs.gov");
+});
+
+test("getStageTitle splits round, round amount, round type, and investor sentences", async () => {
+  const { getStageTitle } = await import("../../src/components/search/filters/company/Stage");
+  const defaultTitle = getStageTitle();
+  assert.equal(
+    defaultTitle,
+    "Company stage is any. Latest round any year. Latest round amount any amount. Latest round type any round type excluding none. Backed by any investor excluding none."
+  );
+
+  const customTitle = getStageTitle({
+    current: ["Private"],
+    latest_round: { min: 2020, max: 2024 },
+    latest_round_amount: { min: 1000000, max: 5000000 },
+    latest_round_type: { include: ["Series A"], exclude: "None" },
+    investors: { include: ["Sequoia"], exclude: "None" },
+  });
+  assert.equal(
+    customTitle,
+    "Company stage is private. Latest round between 2020 – 2024. Latest round amount between 1m – 5m. Latest round type Series A excluding none. Backed by Sequoia excluding none."
+  );
+});
+
+test("getActivityOutcomesTitle splits views, applications, saves, and outcomes sentences", async () => {
+  const { getActivityOutcomesTitle } = await import("../../src/components/search/filters/general/ActivityOutcomes");
+  const defaultTitle = getActivityOutcomesTitle();
+  assert.equal(
+    defaultTitle,
+    "Show jobs with any amount of views. Show jobs with any amount of applications. Show jobs with any amount of saves. Show jobs with any reported outcomes"
+  );
+
+  const customTitle = getActivityOutcomesTitle({
+    views: ["Few"],
+    applications: ["Few", "Many"],
+    saves: ["Many"],
+    reportedOutcomes: {
+      interviews: true,
+      offers: false,
+      ghostProne: false,
+      highRejection: false,
+    },
+  });
+  assert.equal(
+    customTitle,
+    "Show jobs with few views. Show jobs with few applications or lots of applications. Show jobs with lots of saves. Show jobs with interviews reported"
+  );
+});
+
+test("getTravelTitle splits air travel and land travel sentences", async () => {
+  const { getTravelTitle } = await import("../../src/components/search/filters/availability/Travel");
+  const defaultTitle = getTravelTitle();
+  assert.equal(
+    defaultTitle,
+    "Show jobs with any amount of air travel. Show jobs with any amount of land travel"
+  );
+
+  const customTitle = getTravelTitle({
+    air: ["None"],
+    land: ["Moderate", "Extensive"],
+  });
+  assert.equal(
+    customTitle,
+    "Show jobs with None air travel. Show jobs with Moderate or Extensive land travel"
+  );
+});
+
+test("getExclusionTitle treats empty selection as don't exclude any", async () => {
+  const { getExclusionTitle } = await import("../../src/components/search/filters/general/Exclusion");
+  assert.equal(getExclusionTitle(), "Don't exclude any jobs");
+  assert.equal(getExclusionTitle([]), "Don't exclude any jobs");
+  assert.equal(
+    getExclusionTitle(["Applied", "Viewed", "Saved", "Hidden"]),
+    "Exclude jobs you have applied to, viewed, saved, or hidden"
+  );
+  assert.equal(
+    getExclusionTitle(["Applied", "Viewed", "Saved"]),
+    "Exclude jobs you have applied to, viewed, or saved"
+  );
+  assert.equal(
+    getExclusionTitle(["Applied", "Saved"]),
+    "Exclude jobs you have applied to or saved"
+  );
+});
+
+// ---------------------------------------------------------------------------
+// 9. Currency symbols and options
+// ---------------------------------------------------------------------------
+
+test("getCurrencySymbol normalizes uppercase and lowercase currency codes", async () => {
+  const { getCurrencySymbol } = await import("../../src/components/search/filters/compensation/Salary");
+  assert.equal(getCurrencySymbol("usd"), "$");
+  assert.equal(getCurrencySymbol("USD"), "$");
+  assert.equal(getCurrencySymbol("eur"), "€");
+  assert.equal(getCurrencySymbol("EUR"), "€");
+  assert.equal(getCurrencySymbol("gbp"), "£");
+  assert.equal(getCurrencySymbol("cad"), "C$");
+  assert.equal(getCurrencySymbol("jpy"), "¥");
+  assert.equal(getCurrencySymbol("chf"), "CHF");
+  assert.equal(getCurrencySymbol("xyz"), "XYZ");
+});
+
+test("CURRENCY_BLANK_OPTIONS contains expanded, deduplicated uppercase options", async () => {
+  const { CURRENCY_BLANK_OPTIONS, toCurrencyOption } = await import("../../src/components/search/filters/compensation/Salary");
+  assert.ok(CURRENCY_BLANK_OPTIONS.length >= 20, "Should have expanded list of currencies");
+
+  const values = CURRENCY_BLANK_OPTIONS.map((o) => o.value);
+  const labels = CURRENCY_BLANK_OPTIONS.map((o) => o.label);
+
+  // All uppercase
+  assert.ok(values.every((v) => /^[A-Z]{3}$/.test(v)));
+  assert.ok(labels.every((l) => /^[A-Z]{3}$/.test(l)));
+
+  // Deduplicated
+  const uniqueValues = new Set(values);
+  assert.equal(uniqueValues.size, values.length, "Currency options should have no duplicates");
+
+  // Single USD option
+  assert.equal(values.filter((v) => v === "USD").length, 1);
+
+  // toCurrencyOption formats uppercase code and phrase
+  const opt = toCurrencyOption("eur");
+  assert.deepEqual(opt, { value: "EUR", label: "EUR", phrase: "€ EUR" });
+});
+
+

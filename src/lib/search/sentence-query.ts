@@ -24,9 +24,9 @@ export interface CountedListOptions {
   n1?: number;
   shortListLimit?: number;
   /**
-   * `N2` threshold: when a selection is compacted, only this many items are shown
-   * before the `+ {remaining} more` summary, where `remaining = count - N2`.
-   * Default: 3.
+   * `N2` threshold: when a selection is compacted, this many **shortest** labels
+   * are shown (ties keep earlier selection order) before `+ {remaining} more`,
+   * where `remaining = count - N2`. Default: 3.
    */
   n2?: number;
   compactListLimit?: number;
@@ -75,8 +75,9 @@ function formatNaturalList(items: readonly string[], conjunction: CountedListCon
  * - If `conjunction` is omitted: joins with ", "
  *
  * Above N1 threshold:
- * - Shows the first N2 (`n2` / `compactListLimit`, default 3) items joined with ", "
- *   followed by `+ {remaining} more` (or custom `moreText`).
+ * - Picks the N2 (`n2` / `compactListLimit`, default 3) shortest labels (stable on
+ *   ties), renders those in original selection order joined with ", ", then
+ *   `+ {remaining} more` (or custom `moreText`).
  *
  * Special cases:
  * - Empty selection returns `noneText` (default "").
@@ -99,8 +100,15 @@ export function formatCountedList(items: readonly string[], options: CountedList
     return formatNaturalList(selected, conjunction, oxford);
   }
 
-  const shownCount = Math.max(1, effectiveN2);
-  const joined = selected.slice(0, shownCount).join(", ");
+  const shownCount = Math.max(1, Math.min(effectiveN2, selected.length));
+  // Prefer the shortest labels so the compact chip packs more meaning before "+ N more".
+  const shown = selected
+    .map((item, index) => ({ item, index, len: item.length }))
+    .sort((a, b) => a.len - b.len || a.index - b.index)
+    .slice(0, shownCount)
+    .sort((a, b) => a.index - b.index)
+    .map((entry) => entry.item);
+  const joined = shown.join(", ");
   const remaining = selected.length - shownCount;
   if (remaining <= 0) return joined;
   return `${joined} + ${moreText(remaining)}`;

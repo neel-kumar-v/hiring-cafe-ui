@@ -17,20 +17,70 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   INR: "₹",
   JPY: "¥",
   CHF: "CHF",
+  CNY: "¥",
+  NZD: "NZ$",
+  SGD: "S$",
+  HKD: "HK$",
+  SEK: "kr",
+  NOK: "kr",
+  DKK: "kr",
+  PLN: "zł",
+  MXN: "Mex$",
+  BRL: "R$",
+  ZAR: "R",
+  KRW: "₩",
+  TRY: "₺",
+  ILS: "₪",
+  TWD: "NT$",
+  THB: "฿",
+  PHP: "₱",
+  IDR: "Rp",
+  MYR: "RM",
+  VND: "₫",
+  AED: "AED",
+  SAR: "SAR",
+  CZK: "Kč",
+  HUF: "Ft",
+  RON: "lei",
+  BGN: "лв",
+  COP: "Col$",
+  CLP: "CLP$",
+  ARS: "Arg$",
+  PEN: "S/",
+  EGP: "E£",
+  PKR: "₨",
+  NGN: "₦",
+  UAH: "₴",
+  QAR: "QR",
+  KWD: "KD",
+  BHD: "BD",
+  OMR: "OMR",
 };
 
 export const getCurrencySymbol = (currency: string): string => {
-  return CURRENCY_SYMBOLS[currency] || currency;
+  const upper = (currency ?? "").trim().toUpperCase();
+  return CURRENCY_SYMBOLS[upper] || upper;
 };
 
-const CURRENCY_BLANK_OPTIONS = [
-  { value: "USD", label: "USD", phrase: "$ USD" },
-  { value: "EUR", label: "EUR", phrase: "€ EUR" },
-  { value: "GBP", label: "GBP", phrase: "£ GBP" },
-  { value: "CAD", label: "CAD", phrase: "C$ CAD" },
-  { value: "AUD", label: "AUD", phrase: "A$ AUD" },
-  { value: "INR", label: "INR", phrase: "₹ INR" },
-];
+export const toCurrencyOption = (value: string, label = value) => {
+  const code = (value ?? "").trim().toUpperCase();
+  const symbol = getCurrencySymbol(code);
+  const displayLabel = (label ?? code).trim().toUpperCase();
+  return {
+    value: code,
+    label: displayLabel,
+    phrase: symbol && symbol !== code ? `${symbol} ${code}` : code,
+  };
+};
+
+export const DEFAULT_CURRENCY_CODES = [
+  "USD", "EUR", "CAD", "GBP", "INR", "AUD", "MXN", "CHF", "BRL", "SGD",
+  "PHP", "PLN", "MYR", "JPY", "CNY", "AED", "ZAR", "NZD", "IDR", "HKD",
+  "TWD", "THB", "SAR", "SEK", "DKK", "EGP", "NGN", "CZK", "COP", "VND",
+  "KRW", "PKR", "CLP", "HUF", "RON", "NOK", "TRY", "ILS", "PEN", "ARS",
+] as const;
+
+export const CURRENCY_BLANK_OPTIONS = DEFAULT_CURRENCY_CODES.map((code) => toCurrencyOption(code));
 
 const FREQUENCY_BLANK_OPTIONS = [
   { value: "Yearly", label: "Yearly", phrase: "yearly" },
@@ -72,7 +122,7 @@ export function getSalaryTitle(salary: SalaryOptions): string {
   return formatSalarySentence({
     min,
     max,
-    currency: salary?.currency?.trim() || "USD",
+    currency: (salary?.currency ?? "").trim().toUpperCase() || "USD",
     unit: salary?.unit,
     undisclosed: salary?.undisclosed,
   });
@@ -121,20 +171,27 @@ export default function Salary() {
     });
   };
 
-  const toCurrencyOption = (value: string, label = value) => {
-    const symbol = getCurrencySymbol(value);
-    return {
-      value,
-      label,
-      phrase: symbol && symbol !== value ? `${symbol} ${value}` : value,
-    };
-  };
-
   const dynamicCurrencyOptions = (() => {
-    const base = currencyItems?.length ? currencyItems.slice(0, 10).map((c: { value: string; label: string }) => toCurrencyOption(c.value, c.label)) : CURRENCY_BLANK_OPTIONS;
-    const current = salary.currency || "USD";
-    if (base.some((option) => option.value === current)) return base;
-    return [toCurrencyOption(current), ...base];
+    const rawItems = currencyItems?.length ? currencyItems : CURRENCY_BLANK_OPTIONS;
+    const seen = new Set<string>();
+    const base: Array<{ value: string; label: string; phrase: string }> = [];
+
+    for (const item of rawItems) {
+      const raw = item?.value ?? item?.label;
+      if (!raw || typeof raw !== "string") continue;
+      const code = raw.trim().toUpperCase();
+      if (!code || seen.has(code)) continue;
+      if (!/^[A-Z]{3}$/.test(code)) continue;
+      seen.add(code);
+      base.push(toCurrencyOption(code));
+    }
+
+    const current = (salary.currency || "USD").trim().toUpperCase();
+    if (current && !seen.has(current)) {
+      base.unshift(toCurrencyOption(current));
+    }
+
+    return base.length > 0 ? base : CURRENCY_BLANK_OPTIONS;
   })();
 
   const formatAmountBlank = (raw: string) => {
@@ -164,8 +221,8 @@ export default function Salary() {
       />
       <SentenceBlankSelect
         ariaLabel="Salary currency"
-        value={salary.currency || "USD"}
-        onChange={(curr) => updateSearchOptions({ salary: { ...salary, currency: curr } })}
+        value={(salary.currency || "USD").trim().toUpperCase()}
+        onChange={(curr) => updateSearchOptions({ salary: { ...salary, currency: curr.trim().toUpperCase() } })}
         options={dynamicCurrencyOptions}
       />
       <SentenceBlankSelect

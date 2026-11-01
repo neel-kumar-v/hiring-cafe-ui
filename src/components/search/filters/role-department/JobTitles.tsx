@@ -52,11 +52,7 @@ export default function JobTitles() {
   const { searchOptions, updateSearchOptions } = useApp();
 
   return (
-    <FilterContainer
-      categoryId="job-titles"
-      title="Job Titles & Keywords"
-      help="Setup a boolean search for job keywords. e.g. 'software engineer AND NOT (react OR angular)' searches for software engineers that don't have react or angular in their job title."
-    >
+    <FilterContainer categoryId="job-titles" chrome="stream">
       <Link href="https://en.wikipedia.org/wiki/Full-text_search#Boolean_queries" target="_blank" rel="noopener noreferrer" className="mb-2 inline-flex w-fit items-center gap-1">
         <span className="text-sm font-medium text-primary hover:underline">How does boolean search work?</span>
         <ArrowUpRight className="size-4 shrink-0 translate-y-px cursor-pointer text-primary" />
@@ -82,6 +78,7 @@ export default function JobTitles() {
                 placeholder={``}
                 facet_type={facetType}
                 examples={examples}
+                rows={3}
               />
             </div>
           </div>

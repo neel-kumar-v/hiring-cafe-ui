@@ -87,7 +87,7 @@ export function getIndustryTitle(industry?: IndustryOptions): string {
 
   const usaPhrase = USA_JOBS_BLANK_OPTIONS.find((option) => option.value === value.usa_jobs)?.phrase ?? "OK to include";
 
-  return `Company profit type is ${formatProfitPhrase(value.profit)} with activities ${formatKeywordPair(value.activities, "any activity")} in ${formatKeywordPair(value.industry, "any industry")}. ${usaPhrase} jobs from USAJobs.gov`;
+  return `Company can have ${formatProfitPhrase(value.profit)} profit type. Active in ${formatKeywordPair(value.activities, "any activity")}. In ${formatKeywordPair(value.industry, "any industry")}. ${usaPhrase} jobs from USAJobs.gov`;
 }
 
 export default function Industry() {
@@ -113,7 +113,7 @@ export default function Industry() {
 
   const title = (
     <SentenceText>
-      Company profit type is
+      Company can have
       <SentenceBlankMultiSelect
         ariaLabel="Company profit type"
         options={PROFIT_BLANK_OPTIONS}
@@ -127,6 +127,7 @@ export default function Industry() {
           total: PROFIT_OPTIONS.length,
         }}
       />
+      profit type
     </SentenceText>
   );
 

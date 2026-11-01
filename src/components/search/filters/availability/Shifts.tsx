@@ -17,14 +17,14 @@ const SHIFT_BLANK_OPTIONS = SHIFT_TYPES.map((value) => ({
 
 const AVAILABILITY_BLANK_OPTIONS = AVAILABILITY_TYPES.map((value) => ({
   value,
-  label: value,
-  phrase: value.toLowerCase(),
+  label: value === "None" ? "No" : value,
+  phrase: value === "None" ? "no" : value.toLowerCase(),
 }));
 
 const ONCALL_BLANK_OPTIONS = ONCALL_TYPES.map((value) => ({
   value,
-  label: value,
-  phrase: value.toLowerCase(),
+  label: value === "None" ? "No" : value,
+  phrase: value === "None" ? "no" : value.toLowerCase(),
 }));
 
 type DayShiftKey = "morning" | "afternoon" | "night";
@@ -77,7 +77,7 @@ export default function Shifts() {
   const oncallIsAll = prefs.oncall === "All" || oncallValues.length === ONCALL_TYPES.length;
 
   return (
-    <FilterContainer categoryId="shifts" title="Shifts & Schedules">
+    <FilterContainer categoryId="shifts" chrome="stream">
       <div className="flex flex-col gap-2">
         <SentenceText>
           The job can have

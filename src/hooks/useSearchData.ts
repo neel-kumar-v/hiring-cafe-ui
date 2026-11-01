@@ -18,8 +18,21 @@ export function useSearchData(type: string, uppercase: boolean = false) {
 
   const rawStrings = useMemo(() => {
     if (!result?.suggestions) return [];
+    if (type === "currencies") {
+      const seen = new Set<string>();
+      const list: string[] = [];
+      for (const item of result.suggestions) {
+        if (typeof item !== "string") continue;
+        const code = item.trim().toUpperCase();
+        if (code && /^[A-Z]{3}$/.test(code) && !seen.has(code)) {
+          seen.add(code);
+          list.push(code);
+        }
+      }
+      return list;
+    }
     return result.suggestions.map((item) => (uppercase ? item.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)) : item));
-  }, [result, uppercase]);
+  }, [result, uppercase, type]);
 
   const options = useMemo(() => rawStrings.map((s) => ({ label: s, value: s })), [rawStrings]);
 

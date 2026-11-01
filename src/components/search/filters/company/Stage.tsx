@@ -105,7 +105,7 @@ export function getStageTitle(stageFunding?: FundingOptions): string {
     latest_round_amount: { min: 0, max: 0 },
   };
 
-  return `Company stage is ${formatStagePhrase(value.current)} with latest round ${formatLatestRoundYear(value.latest_round.min, value.latest_round.max)} ${formatLatestRoundAmount(value.latest_round_amount.min, value.latest_round_amount.max)}, type ${formatKeywordPair(value.latest_round_type, "any round type")}, backed by ${formatKeywordPair(value.investors, "any investor")}`;
+  return `Company stage is ${formatStagePhrase(value.current)}. Latest round ${formatLatestRoundYear(value.latest_round.min, value.latest_round.max)}. Latest round amount ${formatLatestRoundAmount(value.latest_round_amount.min, value.latest_round_amount.max)}. Latest round type ${formatKeywordPair(value.latest_round_type, "any round type")}. Backed by ${formatKeywordPair(value.investors, "any investor")}.`;
 }
 
 export default function Stage() {

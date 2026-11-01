@@ -127,8 +127,9 @@ export const seedBatch = mutation({
     for (const raw of slice) {
       processed++;
       if (typeof raw !== "string") continue;
-      const value = normalize(raw);
+      const value = type === "currencies" ? raw.trim().toUpperCase() : normalize(raw);
       if (!value) continue;
+      if (type === "currencies" && !/^[A-Z]{3}$/.test(value)) continue;
       if (seen.has(value)) continue;
       seen.add(value);
 

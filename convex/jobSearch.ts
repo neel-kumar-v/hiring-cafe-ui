@@ -211,6 +211,7 @@ export function toCardResult(card: SearchRow) {
     company: {
       _id: card.companyId,
       companyId: card.companySlug,
+      canonicalDomain: card.companySlug.includes(".") ? card.companySlug : undefined,
       name: card.companyName,
       homepageUri: card.companyHomepageUri,
       imageUrl: card.companyImageUrl,

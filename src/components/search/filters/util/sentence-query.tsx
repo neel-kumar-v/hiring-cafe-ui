@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,8 @@ import MinMax from "./MinMax";
 // Shared shell used by every sentence-query title
 // ---------------------------------------------------------------------------
 
-const sentenceTextDefaultClasses = "inline-flex flex-wrap items-center gap-x-1 font-normal text-foreground opacity-80";
+// Full-opacity foreground — opacity washes out badly in light mode.
+const sentenceTextDefaultClasses = "inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[15px] font-normal leading-relaxed text-foreground";
 
 /** Wraps the plain parts of a sentence-query title ("Show jobs from", "Sort jobs by", …). */
 export function SentenceText({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -21,7 +22,7 @@ export function SentenceText({ children, className }: { children: React.ReactNod
 
 /** Styling shared by every sentence-query blank trigger (dotted underline + chevron). */
 export const sentenceBlankTriggerClasses =
-  "inline-flex shrink-0 items-center gap-0.5 font-semibold text-foreground opacity-100 underline decoration-dotted decoration-foreground/50 underline-offset-[3px] hover:text-primary hover:decoration-primary cursor-pointer";
+  "inline-flex shrink-0 items-center gap-0.5 font-semibold text-foreground underline decoration-dotted decoration-foreground/40 underline-offset-[3px] hover:text-primary hover:decoration-primary cursor-pointer";
 
 /** Empty sentence blanks must read as this word — never a bare hyphen/en/em dash. */
 export const UNSPECIFIED_BLANK = "unspecified";
@@ -38,6 +39,148 @@ export function isDashBlank(value: string | null | undefined): boolean {
 /** Coerce empty/dash placeholders to `unspecified` (or an explicit non-dash fallback). */
 export function unspecifiedBlank(value: string | null | undefined, fallback: string = UNSPECIFIED_BLANK): string {
   return isDashBlank(value) ? fallback : value!.trim();
+}
+
+// ---------------------------------------------------------------------------
+// Shared search/filter helpers for sentence blank dropdowns
+// ---------------------------------------------------------------------------
+
+/** Option count threshold to automatically show the inline search input at the top of the menu. */
+export const SENTENCE_BLANK_SEARCH_THRESHOLD = 8;
+
+export interface SentenceBlankSearchInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+  placeholder?: string;
+  ariaLabel?: string;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+}
+
+/**
+ * Compact inline search input pinned to the top of sentence blank dropdown menus.
+ * Mimics CommandInput styling and intercepts keys to avoid Radix menu typeahead collisions.
+ */
+export function SentenceBlankSearchInput({
+  value,
+  onChange,
+  inputRef,
+  placeholder = "Search...",
+  ariaLabel = "Search options",
+  onKeyDown,
+}: SentenceBlankSearchInputProps) {
+  return (
+    <div
+      className="sticky -top-1 z-10 -mx-1 -mt-1 mb-1 flex h-8 items-center gap-1.5 border-b border-border/60 bg-popover px-2"
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      <Search className="size-3.5 shrink-0 text-muted-foreground opacity-50" />
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        className="flex h-full w-full min-w-0 bg-transparent text-sm text-foreground outline-hidden placeholder:text-muted-foreground"
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" || event.key === "Tab") {
+            return;
+          }
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            const content = event.currentTarget.closest('[data-slot="dropdown-menu-content"]');
+            const firstItem = content?.querySelector<HTMLElement>(
+              '[data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-checkbox-item"], [role="menuitem"], [role="menuitemcheckbox"]'
+            );
+            firstItem?.focus();
+            return;
+          }
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.stopPropagation();
+            const content = event.currentTarget.closest('[data-slot="dropdown-menu-content"]');
+            const firstItem = content?.querySelector<HTMLElement>(
+              '[data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-checkbox-item"], [role="menuitem"], [role="menuitemcheckbox"]'
+            );
+            firstItem?.click();
+            return;
+          }
+          event.stopPropagation();
+          onKeyDown?.(event);
+        }}
+      />
+      {value ? (
+        <button
+          type="button"
+          aria-label="Clear search"
+          onClick={(event) => {
+            event.stopPropagation();
+            onChange("");
+            inputRef?.current?.focus();
+          }}
+          className="cursor-pointer rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
+        >
+          <X className="size-3.5" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export interface UseSentenceBlankSearchOptions<T extends { label: string; phrase?: string }> {
+  options: ReadonlyArray<T>;
+  searchable?: boolean;
+  searchThreshold?: number;
+}
+
+export function useSentenceBlankSearch<T extends { label: string; phrase?: string }>({
+  options,
+  searchable,
+  searchThreshold = SENTENCE_BLANK_SEARCH_THRESHOLD,
+}: UseSentenceBlankSearchOptions<T>) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isSearchable = searchable ?? options.length >= searchThreshold;
+
+  const filteredOptions = useMemo(() => {
+    if (!isSearchable || !searchQuery.trim()) return options;
+    const query = searchQuery.trim().toLowerCase();
+    return options.filter((option) => {
+      const labelMatch = option.label.toLowerCase().includes(query);
+      const phraseMatch = option.phrase ? option.phrase.toLowerCase().includes(query) : false;
+      return labelMatch || phraseMatch;
+    });
+  }, [options, isSearchable, searchQuery]);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setSearchQuery("");
+    }
+  }, []);
+
+  const handleOpenAutoFocus = useCallback(
+    (event: Event) => {
+      if (isSearchable) {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    },
+    [isSearchable]
+  );
+
+  return {
+    isSearchable,
+    searchQuery,
+    setSearchQuery,
+    filteredOptions,
+    inputRef,
+    handleOpenChange,
+    handleOpenAutoFocus,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -64,6 +207,12 @@ export interface SentenceBlankSelectProps<T> {
   /** Extra classes for the wrapping sentence container. */
   className?: string;
   contentClassName?: string;
+  /** Explicitly enable/disable the search filter input. Defaults to true when options.length >= searchThreshold. */
+  searchable?: boolean;
+  /** Option count threshold to automatically enable search. Defaults to 8. */
+  searchThreshold?: number;
+  /** Placeholder text for the search input. Defaults to "Search...". */
+  searchPlaceholder?: string;
 }
 
 /**
@@ -80,27 +229,71 @@ export function SentenceBlankSelect<T extends string | number>({
   placeholder = UNSPECIFIED_BLANK,
   className,
   contentClassName,
+  searchable,
+  searchThreshold,
+  searchPlaceholder,
 }: SentenceBlankSelectProps<T>) {
   const selected = options.find((option) => option.value === value);
   const effectivePlaceholder = unspecifiedBlank(placeholder);
   const rawTrigger = selected?.phrase ?? selected?.label ?? effectivePlaceholder;
   const triggerText = unspecifiedBlank(rawTrigger, effectivePlaceholder);
 
+  const {
+    isSearchable,
+    searchQuery,
+    setSearchQuery,
+    filteredOptions,
+    inputRef,
+    handleOpenChange,
+    handleOpenAutoFocus,
+  } = useSentenceBlankSearch({
+    options,
+    searchable,
+    searchThreshold,
+  });
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button type="button" aria-label={ariaLabel} className={cn(sentenceBlankTriggerClasses, className)} onClick={(event) => event.stopPropagation()}>
           <span>{triggerText}</span>
           <ChevronDown className="size-3.5 shrink-0" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className={cn("w-48 p-1", contentClassName)} onClick={(event) => event.stopPropagation()}>
-        {options.map((option) => (
-          <DropdownMenuItem key={String(option.value)} onSelect={() => onChange(option.value)}>
-            <Check className={cn("mr-1 size-4", option.value === value ? "opacity-100" : "opacity-0")} />
-            {option.label}
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent
+        align="start"
+        className={cn(isSearchable ? "w-56 max-h-64" : "w-48", "p-1", contentClassName)}
+        onClick={(event) => event.stopPropagation()}
+        onOpenAutoFocus={handleOpenAutoFocus}
+      >
+        {isSearchable ? (
+          <SentenceBlankSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            inputRef={inputRef}
+            placeholder={searchPlaceholder ?? "Search..."}
+            ariaLabel={`Search ${ariaLabel}`}
+          />
+        ) : null}
+        {filteredOptions.length === 0 ? (
+          <div className="py-4 text-center text-xs text-muted-foreground select-none">No options found</div>
+        ) : (
+          filteredOptions.map((option, index) => (
+            <DropdownMenuItem
+              key={String(option.value)}
+              onSelect={() => onChange(option.value)}
+              onKeyDown={(event) => {
+                if (isSearchable && index === 0 && event.key === "ArrowUp") {
+                  event.preventDefault();
+                  inputRef.current?.focus();
+                }
+              }}
+            >
+              <Check className={cn("mr-1 size-4", option.value === value ? "opacity-100" : "opacity-0")} />
+              {option.label}
+            </DropdownMenuItem>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -131,6 +324,12 @@ export interface SentenceBlankMultiSelectProps<T> {
   formatOptions?: CountedListOptions;
   className?: string;
   contentClassName?: string;
+  /** Explicitly enable/disable the search filter input. Defaults to true when options.length >= searchThreshold. */
+  searchable?: boolean;
+  /** Option count threshold to automatically enable search. Defaults to 8. */
+  searchThreshold?: number;
+  /** Placeholder text for the search input. Defaults to "Search...". */
+  searchPlaceholder?: string;
 }
 
 /**
@@ -147,6 +346,9 @@ export function SentenceBlankMultiSelect<T extends string | number>({
   formatOptions,
   className,
   contentClassName,
+  searchable,
+  searchThreshold,
+  searchPlaceholder,
 }: SentenceBlankMultiSelectProps<T>) {
   const selectedOptions = options.filter((option) => values.includes(option.value));
   const selectedPhrases = selectedOptions.map((option) => option.phrase ?? option.label);
@@ -170,30 +372,68 @@ export function SentenceBlankMultiSelect<T extends string | number>({
     onChange(nextValues);
   };
 
+  const {
+    isSearchable,
+    searchQuery,
+    setSearchQuery,
+    filteredOptions,
+    inputRef,
+    handleOpenChange,
+    handleOpenAutoFocus,
+  } = useSentenceBlankSearch({
+    options,
+    searchable,
+    searchThreshold,
+  });
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button type="button" aria-label={ariaLabel} className={cn(sentenceBlankTriggerClasses, className)} onClick={(event) => event.stopPropagation()}>
           <span>{triggerText}</span>
           <ChevronDown className="size-3.5 shrink-0" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className={cn("w-56 p-1", contentClassName)} onClick={(event) => event.stopPropagation()}>
-        {options.map((option) => {
-          const isChecked = values.includes(option.value);
-          return (
-            <DropdownMenuCheckboxItem
-              key={String(option.value)}
-              checked={isChecked}
-              onSelect={(event) => {
-                event.preventDefault();
-                handleToggle(option.value);
-              }}
-            >
-              {option.label}
-            </DropdownMenuCheckboxItem>
-          );
-        })}
+      <DropdownMenuContent
+        align="start"
+        className={cn(isSearchable ? "w-56 max-h-64" : "w-56", "p-1", contentClassName)}
+        onClick={(event) => event.stopPropagation()}
+        onOpenAutoFocus={handleOpenAutoFocus}
+      >
+        {isSearchable ? (
+          <SentenceBlankSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            inputRef={inputRef}
+            placeholder={searchPlaceholder ?? "Search..."}
+            ariaLabel={`Search ${ariaLabel}`}
+          />
+        ) : null}
+        {filteredOptions.length === 0 ? (
+          <div className="py-4 text-center text-xs text-muted-foreground select-none">No options found</div>
+        ) : (
+          filteredOptions.map((option, index) => {
+            const isChecked = values.includes(option.value);
+            return (
+              <DropdownMenuCheckboxItem
+                key={String(option.value)}
+                checked={isChecked}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  handleToggle(option.value);
+                }}
+                onKeyDown={(event) => {
+                  if (isSearchable && index === 0 && event.key === "ArrowUp") {
+                    event.preventDefault();
+                    inputRef.current?.focus();
+                  }
+                }}
+              >
+                {option.label}
+              </DropdownMenuCheckboxItem>
+            );
+          })
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -265,7 +505,7 @@ export function SentenceInlineNumberInput({
       inputMode="numeric"
       aria-label={ariaLabel}
       className={cn(
-        "rounded-sm border border-dashed border-border bg-transparent px-1 py-0.5 text-center text-sm font-semibold text-foreground opacity-100 outline-none placeholder:font-normal placeholder:text-muted-foreground focus:border-primary focus:bg-accent [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden",
+        "rounded-sm border border-dashed border-border bg-transparent px-1 py-0.5 text-center text-sm font-semibold text-foreground opacity-100 outline-none placeholder:font-semibold placeholder:text-muted-foreground focus:border-primary focus:bg-accent [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden",
         widthClassName,
         className
       )}
@@ -388,7 +628,7 @@ export function SentenceNumberBlank({
       }}
     >
       <PopoverTrigger asChild>
-        <button type="button" aria-label={ariaLabel} className={cn(sentenceBlankTriggerClasses, isEmpty && "font-normal", className)} onClick={(event) => event.stopPropagation()}>
+        <button type="button" aria-label={ariaLabel} className={cn(sentenceBlankTriggerClasses, className)} onClick={(event) => event.stopPropagation()}>
           <span>{triggerText}</span>
         </button>
       </PopoverTrigger>
@@ -546,7 +786,7 @@ export function SentenceRangeBlank({
           onChange={handleChangeMin}
           onCommit={(committed) => commitRange("min", committed)}
         />
-        <span aria-hidden="true" className="select-none text-foreground opacity-100">
+        <span aria-hidden="true" className="select-none font-normal text-foreground opacity-100">
           {rangeSeparator}
         </span>
         <SentenceInlineNumberInput
@@ -578,7 +818,7 @@ export function SentenceRangeBlank({
         variant={inputVariant}
         currencySymbol={currencySymbol}
       />
-      <span aria-hidden="true" className="select-none text-foreground opacity-100">
+      <span aria-hidden="true" className="select-none font-normal text-foreground opacity-100">
         {rangeSeparator}
       </span>
       <SentenceNumberBlank

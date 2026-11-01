@@ -80,7 +80,7 @@ export default function WorkplaceActivity() {
   };
 
   return (
-    <FilterContainer categoryId="workplace-activity" title="Workplace Activity">
+    <FilterContainer categoryId="workplace-activity" chrome="stream">
       <div className="flex flex-col gap-2">
         <SentenceText>
           Show

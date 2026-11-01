@@ -25,7 +25,7 @@ function getMentionQuery(value: string) {
 }
 
 function normalizeExpressionText(value: string) {
-  return value.replace(/@/g, "");
+  return value.replace(/@/g, "").replace(/\r?\n/g, " ");
 }
 
 function emptyExpression(): SearchExpression<string> {
@@ -50,12 +50,16 @@ export function BooleanTextbox({
   placeholder,
   facet_type,
   examples,
+  rows = 3,
+  className,
 }: {
   value: SearchExpression<string>;
   onChange: (expr: SearchExpression<string>) => void;
   placeholder?: string;
   facet_type?: string;
   examples?: Record<string, string>;
+  rows?: number;
+  className?: string;
 }) {
   const [text, setText] = useState<string>(() => decodeSearchExpression(value) ?? "");
   const [warmOptions, setWarmOptions] = useState<string[]>([]);
@@ -190,6 +194,11 @@ export function BooleanTextbox({
   };
 
   const exampleEntries = examples ? Object.entries(examples) : [];
+  const textareaClassName = cn(
+    "w-full min-h-20 resize-y bg-card",
+    (undoPayload || text.trim()) && "pr-10",
+    className
+  );
 
   return (
     <div className="space-y-2">
@@ -207,12 +216,21 @@ export function BooleanTextbox({
             className="**:data-tag:bg-transparent **:data-tag:text-inherit **:data-tag:rounded-none **:data-tag:p-0"
           >
             <MentionInput
-              className={cn("h-11 w-full bg-card", undoPayload && "pr-10")}
+              asChild
+              className={textareaClassName}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onBlur={() => window.setTimeout(commit, 150)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !showMentionMenu) {
+                  e.preventDefault();
+                  commit();
+                }
+              }}
               placeholder={placeholder}
-            />
+            >
+              <Textarea rows={rows} />
+            </MentionInput>
             {showMentionMenu ? (
               <MentionContent>
                 {isLoading && displayedOptions.length === 0 ? (
@@ -230,10 +248,17 @@ export function BooleanTextbox({
           </Mention>
         ) : (
           <Textarea
-            className={cn("w-full min-h-16 bg-card", undoPayload && "pr-10")}
+            rows={rows}
+            className={textareaClassName}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onBlur={() => window.setTimeout(commit, 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                commit();
+              }
+            }}
             placeholder={placeholder}
           />
         )}
@@ -243,7 +268,7 @@ export function BooleanTextbox({
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute bottom-1.5 right-1.5 z-20 h-7 w-7 text-muted-foreground opacity-70 hover:bg-muted/60 hover:opacity-100"
+            className="absolute top-1.5 right-1.5 z-20 h-7 w-7 text-muted-foreground opacity-70 hover:bg-muted/60 hover:opacity-100"
             onClick={undo}
             title="Undo example"
             aria-label="Undo example replace"
@@ -255,7 +280,7 @@ export function BooleanTextbox({
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute bottom-1.5 right-1.5 z-20 h-7 w-7 text-muted-foreground opacity-70 hover:bg-muted/60 hover:opacity-100"
+            className="absolute top-1.5 right-1.5 z-20 h-7 w-7 text-muted-foreground opacity-70 hover:bg-muted/60 hover:opacity-100"
             onClick={clear}
             title="Clear"
             aria-label="Clear input"
