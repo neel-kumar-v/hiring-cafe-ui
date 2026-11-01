@@ -3,13 +3,13 @@ import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { SearchUIProvider } from "@/contexts/SearchContext";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
-import { Agentation } from "agentation";
+import AppShell from "@/components/shell/AppShell";
+import { AgentationDev } from "@/components/dev/AgentationDev";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import { Suspense, lazy } from "react";
 import "./globals.css";
 
-const Header = lazy(() => import("@/components/Header"));
 const SearchDialogWrapper = lazy(() => import("@/components/SearchDialog").then((module) => ({ default: module.SearchDialogWrapper })));
 
 const geistSans = Geist({
@@ -93,17 +93,12 @@ export default function RootLayout({
               <AppProvider>
                 <SearchUIProvider>
                   <div className="min-h-screen transition-colors duration-300">
-                    <div className="min-h-screen bg-background-body">
-                      <Suspense fallback={null}>
-                        <Header />
-                      </Suspense>
-
+                    <AppShell>
                       <Suspense fallback={null}>
                         <SearchDialogWrapper />
                       </Suspense>
-
                       {children}
-                    </div>
+                    </AppShell>
                   </div>
                 </SearchUIProvider>
               </AppProvider>
@@ -111,7 +106,7 @@ export default function RootLayout({
           </ConvexClientProvider>
         </DarkModeProvider>
         <Toaster />
-        {process.env.NODE_ENV === "development" && <Agentation />}
+        {process.env.NODE_ENV === "development" && <AgentationDev />}
         {/* <PerformanceMonitorScript /> */}
       </body>
     </html>
