@@ -22,6 +22,12 @@ const generalStreamIds = new Set(["date-range", "sorting", "apply-form", "exclus
 /** Multi-control General subsections that keep their own section chrome + sidebar entry. */
 const generalSectionIds = new Set(["activity-outcomes"]);
 
+/**
+ * Nested under a parent subsection in content (Salary→benefits, Experience→commitment,
+ * Size→stage/founding). Hidden as separate left-rail rows; parent row still scrolls to them.
+ */
+const sidebarNavExcludedIds = new Set(["benefits", "commitment", "stage", "founding", "industry"]);
+
 const ribbonExcludedIds = new Set(["filters", "saved", "date-range", "sorting", "apply-form", "location", "workplace-activity"]);
 
 const locationTags = ["Location", "Workplace Type", "Options"];
@@ -107,4 +113,5 @@ export {
   orderedFilterIds,
   qualificationsTags,
   roleDepartmentTags,
+  sidebarNavExcludedIds,
 };

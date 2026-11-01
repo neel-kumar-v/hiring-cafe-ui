@@ -3,6 +3,7 @@
 import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import Shifts from "./Shifts";
 import Travel from "./Travel";
+import { FilterSubsection } from "../util/FilterSubsection";
 
 interface AvailabilityOptionsProps {
   scrollToSection?: string;
@@ -18,17 +19,21 @@ export default function AvailabilityOptions({ scrollToSection, clearScrollToSect
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {shouldShow("shifts") ? (
-        <div className="scroll-mt-14" ref={refs.shifts}>
-          <Shifts />
-        </div>
+        <FilterSubsection title="Shifts & Schedules">
+          <div className="scroll-mt-14" ref={refs.shifts}>
+            <Shifts />
+          </div>
+        </FilterSubsection>
       ) : null}
 
       {shouldShow("travel") ? (
-        <div className="scroll-mt-14" ref={refs.travel}>
-          <Travel />
-        </div>
+        <FilterSubsection title="Travel Requirement">
+          <div className="scroll-mt-14" ref={refs.travel}>
+            <Travel />
+          </div>
+        </FilterSubsection>
       ) : null}
     </div>
   );

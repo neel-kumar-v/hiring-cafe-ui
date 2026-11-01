@@ -46,7 +46,7 @@ function selectedOutcomeKeys(outcomes: ActivityOutcomeOptions["reportedOutcomes"
 
 function metricPhrase(type: MetricKey, value: ActivityMetric): string {
   const levels = normalizeActivityMetric(value);
-  const anyText = `any ${METRIC_LABELS[type].noun}`;
+  const anyText = `any amount of ${METRIC_LABELS[type].noun}`;
   if (levels.length === 0) return anyText;
 
   const phrases = metricBlankOptions(type)
@@ -60,26 +60,47 @@ function metricPhrase(type: MetricKey, value: ActivityMetric): string {
   });
 }
 
-function outcomePhrases(outcomes: ActivityOutcomeOptions["reportedOutcomes"]): string[] {
+function outcomePhrases(outcomes?: ActivityOutcomeOptions["reportedOutcomes"]): string[] {
+  if (!outcomes) return [];
   return OUTCOME_CHOICES.filter((choice) => outcomes[choice.key]).map((choice) => choice.phrase);
 }
 
+function outcomesPhrase(outcomes?: ActivityOutcomeOptions["reportedOutcomes"]): string {
+  const phrases = outcomePhrases(outcomes);
+  return formatCountedList(phrases, {
+    conjunction: "and",
+    noneText: "any reported outcomes",
+    n1: 3,
+    total: OUTCOME_BLANK_OPTIONS.length,
+  });
+}
+
 /** Complete sentence title for a given activity/outcomes state. */
-export function getActivityOutcomesTitle(options: ActivityOutcomesState): string {
-  const parts = [...METRIC_KEYS.map((key) => metricPhrase(key, options[key])), ...outcomePhrases(options.reportedOutcomes)];
-  const allDefault = METRIC_KEYS.every((key) => normalizeActivityMetric(options[key]).length === 0) && outcomePhrases(options.reportedOutcomes).length === 0;
+export function getActivityOutcomesTitle(options?: ActivityOutcomesState): string {
+  const value = options ?? {
+    views: [],
+    applications: [],
+    saves: [],
+    reportedOutcomes: {
+      interviews: false,
+      offers: false,
+      ghostProne: false,
+      highRejection: false,
+    },
+  };
 
-  if (allDefault) {
-    return "Show jobs with any views and any applications and any saves and any reported outcomes";
-  }
+  const viewsSentence = `Show jobs with ${metricPhrase("views", value.views)}`;
+  const applicationsSentence = `Show jobs with ${metricPhrase("applications", value.applications)}`;
+  const savesSentence = `Show jobs with ${metricPhrase("saves", value.saves)}`;
+  const outcomesSentence = `Show jobs with ${outcomesPhrase(value.reportedOutcomes)}`;
 
-  return `Show jobs with ${formatCountedList(parts, { conjunction: "and", n1: 4 })}`;
+  return [viewsSentence, applicationsSentence, savesSentence, outcomesSentence].join(". ");
 }
 
 function MetricBlank({ type, value, onChange }: { type: MetricKey; value: ActivityMetric; onChange: (value: ActivityMetric) => void }) {
   const options = metricBlankOptions(type);
   const selected = normalizeActivityMetric(value);
-  const anyText = `any ${METRIC_LABELS[type].noun}`;
+  const anyText = `any amount of ${METRIC_LABELS[type].noun}`;
 
   return (
     <SentenceBlankMultiSelect
@@ -107,46 +128,49 @@ export default function ActivityOutcomes() {
 
   const selectedOutcomes = selectedOutcomeKeys(options.reportedOutcomes);
 
-  const title = (
-    <SentenceText>
-      Show jobs with
-      <MetricBlank type="views" value={options.views} onChange={(views) => update({ views })} />
-      and
-      <MetricBlank type="applications" value={options.applications} onChange={(applications) => update({ applications })} />
-      and
-      <MetricBlank type="saves" value={options.saves} onChange={(saves) => update({ saves })} />
-      and
-      <SentenceBlankMultiSelect
-        ariaLabel="Reported outcomes"
-        options={OUTCOME_BLANK_OPTIONS}
-        values={selectedOutcomes}
-        onChange={(next) => {
-          const nextSet = new Set(next);
-          update({
-            reportedOutcomes: {
-              interviews: nextSet.has("interviews"),
-              offers: nextSet.has("offers"),
-              ghostProne: nextSet.has("ghostProne"),
-              highRejection: nextSet.has("highRejection"),
-            },
-          });
-        }}
-        placeholder="any reported outcomes"
-        formatOptions={{
-          conjunction: "and",
-          n1: 3,
-          noneText: "any reported outcomes",
-          total: OUTCOME_BLANK_OPTIONS.length,
-        }}
-      />
-    </SentenceText>
-  );
-
-  // Section chrome (not stream): multi-control filter keeps its own sticky header +
-  // a dedicated sidebar nav row under the General category header.
+  // Parent `FilterSubsection` owns the small "Activity & Outcomes" header.
+  // All four sentences are body children so FilterContainer’s column stack
+  // keeps each on its own row (inline-flex siblings otherwise share a line).
   return (
-    <FilterContainer categoryId="activity-outcomes" title="Activity & Outcomes" chrome="section" defaultCollapsed>
-      <div className="px-1">{title}</div>
+    <FilterContainer categoryId="activity-outcomes" chrome="stream">
+      <SentenceText>
+        Show jobs with
+        <MetricBlank type="views" value={options.views} onChange={(views) => update({ views })} />
+      </SentenceText>
+      <SentenceText>
+        Show jobs with
+        <MetricBlank type="applications" value={options.applications} onChange={(applications) => update({ applications })} />
+      </SentenceText>
+      <SentenceText>
+        Show jobs with
+        <MetricBlank type="saves" value={options.saves} onChange={(saves) => update({ saves })} />
+      </SentenceText>
+      <SentenceText>
+        Show jobs with
+        <SentenceBlankMultiSelect
+          ariaLabel="Reported outcomes"
+          options={OUTCOME_BLANK_OPTIONS}
+          values={selectedOutcomes}
+          onChange={(next) => {
+            const nextSet = new Set(next);
+            update({
+              reportedOutcomes: {
+                interviews: nextSet.has("interviews"),
+                offers: nextSet.has("offers"),
+                ghostProne: nextSet.has("ghostProne"),
+                highRejection: nextSet.has("highRejection"),
+              },
+            });
+          }}
+          placeholder="any reported outcomes"
+          formatOptions={{
+            conjunction: "and",
+            n1: 3,
+            noneText: "any reported outcomes",
+            total: OUTCOME_BLANK_OPTIONS.length,
+          }}
+        />
+      </SentenceText>
     </FilterContainer>
   );
 }

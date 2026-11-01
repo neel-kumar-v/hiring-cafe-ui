@@ -32,7 +32,7 @@ export function formatTravelList(items: string[]): string {
 
 function formatTravelModePhrase(value: Select<TravelRequirements> | undefined, mode: "air" | "land"): string {
   if (isTravelSelectAll(value)) {
-    return `any ${mode} travel`;
+    return `any amount of ${mode} travel`;
   }
 
   const selected = selectedTravelLevels(value);
@@ -42,7 +42,9 @@ function formatTravelModePhrase(value: Select<TravelRequirements> | undefined, m
 export function getTravelTitle(travel?: TravelRequirementsOptions): string {
   const air = travel?.air;
   const land = travel?.land;
-  return `Show jobs with ${formatTravelModePhrase(air, "air")} and ${formatTravelModePhrase(land, "land")}`;
+  const airSentence = `Show jobs with ${formatTravelModePhrase(air, "air")}`;
+  const landSentence = `Show jobs with ${formatTravelModePhrase(land, "land")}`;
+  return [airSentence, landSentence].join(". ");
 }
 
 export default function Travel() {
@@ -55,48 +57,51 @@ export default function Travel() {
   const formatOptions = {
     conjunction: "or" as const,
     n1: 4,
-    noneText: "any",
-    allText: "any",
+    noneText: "any amount of",
+    allText: "any amount of",
     total: allTravelRequirements.length,
   };
 
-  const title = (
-    <SentenceText>
-      Show jobs with
-      <SentenceBlankMultiSelect
-        ariaLabel="Air travel requirements"
-        options={TRAVEL_BLANK_OPTIONS}
-        values={airSelected}
-        onChange={(next) => {
-          updateSearchOptions({
-            travel_requirements: {
-              ...travel,
-              air: toTravelSelect(next),
-            },
-          });
-        }}
-        placeholder="any"
-        formatOptions={formatOptions}
-      />
-      air travel and
-      <SentenceBlankMultiSelect
-        ariaLabel="Land travel requirements"
-        options={TRAVEL_BLANK_OPTIONS}
-        values={landSelected}
-        onChange={(next) => {
-          updateSearchOptions({
-            travel_requirements: {
-              ...travel,
-              land: toTravelSelect(next),
-            },
-          });
-        }}
-        placeholder="any"
-        formatOptions={formatOptions}
-      />
-      land travel
-    </SentenceText>
+  return (
+    <FilterContainer categoryId="travel" chrome="stream">
+      <SentenceText>
+        Show jobs with
+        <SentenceBlankMultiSelect
+          ariaLabel="Air travel requirements"
+          options={TRAVEL_BLANK_OPTIONS}
+          values={airSelected}
+          onChange={(next) => {
+            updateSearchOptions({
+              travel_requirements: {
+                ...travel,
+                air: toTravelSelect(next),
+              },
+            });
+          }}
+          placeholder="any amount of"
+          formatOptions={formatOptions}
+        />
+        air travel
+      </SentenceText>
+      <SentenceText>
+        Show jobs with
+        <SentenceBlankMultiSelect
+          ariaLabel="Land travel requirements"
+          options={TRAVEL_BLANK_OPTIONS}
+          values={landSelected}
+          onChange={(next) => {
+            updateSearchOptions({
+              travel_requirements: {
+                ...travel,
+                land: toTravelSelect(next),
+              },
+            });
+          }}
+          placeholder="any amount of"
+          formatOptions={formatOptions}
+        />
+        land travel
+      </SentenceText>
+    </FilterContainer>
   );
-
-  return <FilterContainer categoryId="travel" title={title} chrome="stream" />;
 }

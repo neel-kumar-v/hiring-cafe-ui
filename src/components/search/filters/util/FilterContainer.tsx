@@ -28,10 +28,10 @@ function FilterContainerInner({
   actions,
   categoryId,
   chrome = "section",
-  defaultCollapsed = true,
+  defaultCollapsed = false,
 }: {
   children?: React.ReactNode;
-  title: React.ReactNode;
+  title?: React.ReactNode;
   help?: string;
   containerClasses?: string;
   actions?: React.ReactNode;
@@ -39,14 +39,13 @@ function FilterContainerInner({
   /** `section` = sticky header + divider; `stream` = inline row under a parent group (no chrome). */
   chrome?: FilterContainerChrome;
   /**
-   * When true (default), the body starts collapsed on every breakpoint and the header
-   * toggles it. Sections with active edits (or the focused filter) reveal themselves.
+   * When true, the body starts collapsed and the header toggles it.
+   * Default is false (sections start open and are not collapsible).
    */
   defaultCollapsed?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [bodyOpen, setBodyOpen] = useState(false);
-  const [bodyMounted, setBodyMounted] = useState(false);
   const isMobile = useIsMobile(768);
   const fallbackId = useId();
   const containerId = categoryId ?? fallbackId;
@@ -59,12 +58,17 @@ function FilterContainerInner({
   // `null`/`false` children count as no body so callers can omit or pass null equivalently.
   const showBody = children != null && children !== false;
   const isStream = chrome === "stream" || !showBody;
-  const collapsible = !isStream && (defaultCollapsed || isMobile);
-  const contentOpen = isStream || searching || (defaultCollapsed ? bodyOpen : !isMobile || bodyOpen);
+  const collapsible = !isStream && defaultCollapsed;
+  const [bodyMounted, setBodyMounted] = useState(!collapsible);
+  const contentOpen = isStream || !collapsible || searching || (defaultCollapsed ? bodyOpen : !isMobile || bodyOpen);
 
   const isFocused = Boolean(categoryId) && focusedFilterId === categoryId;
   const edited = useMemo(() => (categoryId ? isCategoryEdited(searchOptions, initialSearchState, categoryId) : false), [categoryId, searchOptions]);
   const editCount = useMemo(() => (categoryId ? getCategoryEditCount(searchOptions, initialSearchState, categoryId) : 0), [categoryId, searchOptions]);
+  const hasTitle = title != null && title !== "";
+  const hasHeader = isStream
+    ? Boolean(hasTitle || help || actions)
+    : Boolean(hasTitle || help || actions || (edited && categoryId) || editCount > 0);
 
   const handleClearAll = () => {
     if (!categoryId) return;
@@ -78,10 +82,10 @@ function FilterContainerInner({
   }, [edited, isFocused, searching]);
 
   useEffect(() => {
-    if (!showBody || bodyMounted || searching || edited || isFocused || isStream) {
+    if (!showBody || bodyMounted || searching || edited || isFocused || isStream || !collapsible) {
       setBodyMounted(true);
     }
-  }, [bodyMounted, edited, isFocused, isStream, searching, showBody]);
+  }, [bodyMounted, collapsible, edited, isFocused, isStream, searching, showBody]);
 
   useEffect(() => {
     if (!showBody || bodyMounted) return;
@@ -121,56 +125,13 @@ function FilterContainerInner({
           sibling FilterContainers — with no extra vertical padding that would
           make #general / #compensation (and peers) look uneven.
         */
-        <div className="space-y-4 px-1">
-          <div className="flex flex-row items-center gap-2 bg-background">
-            <div className={cn("flex min-w-0 flex-1 items-center gap-1", titleClasses)}>
-              <span className="flex min-w-0 items-center gap-2">
-                <span className="[&>span]:font-bold [&>span]:text-foreground" title={typeof title === "string" ? title : undefined}>
-                  {title}
-                </span>
-                {editCount > 0 ? (
-                  <span className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-md bg-primary/15 px-1.5 text-xs font-semibold leading-5 text-primary">
-                    {editCount}
-                  </span>
-                ) : null}
-              </span>
-              {help ? (
-                <CircleHelp
-                  className="size-3.5 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground md:size-4"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setIsOpen((open) => !open);
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className="ml-auto flex shrink-0 items-center gap-1" onClick={(event) => event.stopPropagation()}>
-              {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
-              {edited && categoryId ? (
-                <Button type="button" variant="ghost" size="sm" onClick={handleClearAll} className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground">
-                  <X className="size-3.5" />
-                  Clear
-                </Button>
-              ) : null}
-            </div>
-          </div>
-          {help ? (
-            <p className={cn("px-3 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-12 opacity-100" : "my-0 max-h-0 overflow-hidden opacity-0")}>{help}</p>
-          ) : null}
-          {showBody && bodyMounted ? children : null}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <div
-            className="border-b border-border/80 bg-background px-1 py-1.5 md:sticky md:-top-4 md:z-20 md:shadow-[0_8px_16px_-12px_hsl(var(--background))]"
-            onClick={() => {
-              if (collapsible && !searching) setBodyOpen((open) => !open);
-            }}
-          >
-            <div className="flex flex-row items-center gap-2">
-              <div className={cn("flex min-w-0 flex-1 items-center gap-1", titleClasses)}>
+        <div className="space-y-3 px-1">
+          {hasHeader ? (
+            <div className="flex flex-row items-center gap-2 bg-background">
+              <div className={cn("flex min-w-0 flex-1 items-center gap-1", typeof title === "string" ? titleClasses : "min-w-0 text-foreground")}>
                 <span className="flex min-w-0 items-center gap-2">
-                  <span className="truncate [&>span]:font-bold [&>span]:text-foreground" title={typeof title === "string" ? title : undefined}>
+                  {/* Never force-bold SentenceText/static sentence copy — only string section titles use titleClasses. */}
+                  <span className="min-w-0 text-foreground" title={typeof title === "string" ? title : undefined}>
                     {title}
                   </span>
                   {editCount > 0 ? (
@@ -197,18 +158,76 @@ function FilterContainerInner({
                     Clear
                   </Button>
                 ) : null}
-                {collapsible ? (
-                  <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-out", !contentOpen && "-rotate-90")} />
-                ) : null}
               </div>
             </div>
-          </div>
+          ) : null}
+          {help ? (
+            <p className={cn("px-1 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-24 opacity-100 pb-1.5" : "my-0 max-h-0 overflow-hidden opacity-0")}>{help}</p>
+          ) : null}
+          {showBody && bodyMounted ? <div className="flex flex-col gap-3">{children}</div> : null}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {hasHeader ? (
+            <div
+              className={cn(
+                "sticky top-10 z-20 flex h-10 items-center border-b border-border/80 bg-background px-1",
+                collapsible && "cursor-pointer"
+              )}
+              onClick={() => {
+                if (collapsible && !searching) setBodyOpen((open) => !open);
+              }}
+            >
+              <div className="flex w-full flex-row items-center gap-2">
+                <div className={cn("flex min-w-0 flex-1 items-center gap-1", typeof title === "string" ? titleClasses : "min-w-0 text-foreground")}>
+                  <span className="flex min-w-0 items-center gap-2">
+                    {/* Never force-bold SentenceText/static sentence copy — only string section titles use titleClasses. */}
+                    {typeof title === "string" ? (
+                      <h3 className={cn("truncate", titleClasses)} title={title}>
+                        {title}
+                      </h3>
+                    ) : (
+                      <span className="min-w-0 text-foreground">
+                        {title}
+                      </span>
+                    )}
+                    {editCount > 0 ? (
+                      <span className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-md bg-primary/15 px-1.5 text-xs font-semibold leading-5 text-primary">
+                        {editCount}
+                      </span>
+                    ) : null}
+                  </span>
+                  {help ? (
+                    <CircleHelp
+                      className="size-3.5 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground md:size-4"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setIsOpen((open) => !open);
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className="ml-auto flex shrink-0 items-center gap-1" onClick={(event) => event.stopPropagation()}>
+                  {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+                  {edited && categoryId ? (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleClearAll} className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground">
+                      <X className="size-3.5" />
+                      Clear
+                    </Button>
+                  ) : null}
+                  {collapsible ? (
+                    <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-out", !contentOpen && "-rotate-90")} />
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {showBody || help ? (
-            <div className={cn("grid transition-[grid-template-rows] duration-300 ease-out", contentOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-              <div className="min-h-0 overflow-hidden">
+            <div className={cn(collapsible && "grid transition-[grid-template-rows] duration-300 ease-out", collapsible ? (contentOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]") : "")}>
+              <div className={cn("min-h-0", collapsible ? (contentOpen ? "overflow-visible" : "overflow-hidden") : "")}>
                 {help ? (
-                  <p className={cn("px-4 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-12 opacity-100" : "my-0 max-h-0 overflow-hidden opacity-0")}>
+                  <p className={cn("px-1 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-24 opacity-100 pb-2" : "my-0 max-h-0 overflow-hidden opacity-0")}>
                     {help}
                   </p>
                 ) : null}

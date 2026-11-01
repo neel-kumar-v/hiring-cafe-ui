@@ -1,16 +1,19 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { filterGroupOrder, filters, generalContentExcludedIds, generalStreamIds } from "@/data/search-filters";
+import { filterGroupOrder, filters, generalContentExcludedIds, generalStreamIds, sidebarNavExcludedIds } from "@/data/search-filters";
 import type { CategoryId, CategoryType, SettingsCategory } from "@/types/search";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/contexts/AppContext";
+import { getCategoryEditCount, getInitialPatchForCategory, initialSearchState, isCategoryEdited } from "@/lib/edited-filters";
 import { AvailabilityOptions, CompanyOptions, CompensationOptions, GeneralOptions, LocationOptions, QualificationsOptions, RoleDepartmentOptions } from "../filters";
+import { FilterCategoryHeader } from "../filters/util/FilterSubsection";
 
 /** Omitted from General content entirely (live elsewhere). */
 export const GENERAL_CONTENT_EXCLUDED = generalContentExcludedIds;
 
-/** Single-control stream filters + content-excluded — no dedicated sidebar nav rows. */
-export const GENERAL_NAV_EXCLUDED = new Set([...generalContentExcludedIds, ...generalStreamIds]);
+/** Stream / nested filters + content-excluded — no dedicated sidebar nav rows. */
+export const GENERAL_NAV_EXCLUDED = new Set([...generalContentExcludedIds, ...generalStreamIds, ...sidebarNavExcludedIds]);
 
 export function findCategoryByFrom(from?: string): SettingsCategory | undefined {
   if (!from) return undefined;
@@ -69,7 +72,7 @@ export function useCategoryState(from?: string, open?: boolean, defaultCategory:
 
   const handleHeaderClick = useCallback((categoryType: CategoryType) => {
     setSelectedCategory(categoryType);
-    const firstId = filters.find((category) => category.type === categoryType && !GENERAL_CONTENT_EXCLUDED.has(category.id))?.id;
+    const firstId = filters.find((category) => category.type === categoryType && !GENERAL_NAV_EXCLUDED.has(category.id))?.id;
     setScrollToSection(firstId ?? undefined);
   }, []);
 
@@ -184,19 +187,30 @@ export const FilteredCategoriesContent = memo(function FilteredCategoriesContent
   handleCategoryClick: (categoryId: CategoryId | string) => void;
   clearScrollToSection?: () => void;
 }) {
+  const { searchOptions, updateSearchOptions } = useApp();
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-7">
       {filteredGroups.map((group) => {
         const header = group.name;
         const filterIds = group.categories.map((category) => category.id);
         const forceMount = Boolean(scrollToSection && filterIds.includes(scrollToSection));
         const isHidden = group.type === "qualifications";
 
+        const isLocation = group.type === "location";
+        const locationEdited = isLocation && isCategoryEdited(searchOptions, initialSearchState, "location");
+        const locationEditCount = isLocation ? getCategoryEditCount(searchOptions, initialSearchState, "location") : 0;
+        const handleLocationClear = isLocation
+          ? () => updateSearchOptions(getInitialPatchForCategory("location", initialSearchState))
+          : undefined;
+
         return (
-          <section key={group.type} id={group.type} className={cn("scroll-mt-4 max-md:max-w-screen", isHidden && "hidden")}>
-            {/* Same header treatment as the app sidebar group headers (AppSidebar `GroupSection`)
-                and the filter section titles: 15px bold foreground text. */}
-            <h2 className="mb-1.5 border-b border-border/60 pb-1.5 text-[15px] font-bold leading-tight text-foreground md:mb-2 md:pb-2">{header}</h2>
+          <section key={group.type} id={group.type} className={cn("scroll-mt-4 space-y-2 max-md:max-w-screen", isHidden && "hidden")}>
+            <FilterCategoryHeader
+              title={header}
+              editCount={locationEditCount}
+              onClear={locationEdited ? handleLocationClear : undefined}
+            />
             <LazyCategorySection force={forceMount}>
               {renderCategoryContent(
                 group.type,

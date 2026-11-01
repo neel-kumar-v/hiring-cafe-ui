@@ -156,6 +156,17 @@ function LocationAccordion({ location, locationIndex }: LocationAccordionProps) 
   const currentRadius = getCurrentRadius(location);
   const expansions = computeLocationExpansions(location);
 
+  const handleDeleteLocation = (event: React.MouseEvent | React.KeyboardEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    updateSearchOptions({
+      location: {
+        ...searchOptions.location,
+        location: searchOptions.location.location.filter((_, index) => index !== locationIndex),
+      },
+    });
+  };
+
   return (
     <Accordion type="multiple" defaultValue={[location.id]} className="mx-2 border-b border-b-foreground/15 transition-all duration-700 ease-in-out hover:border-b-foreground/45">
       <AccordionItem value={location.id} className="w-full">
@@ -163,23 +174,20 @@ function LocationAccordion({ location, locationIndex }: LocationAccordionProps) 
           <div className="flex w-full items-center gap-2">
             <MapPin size={16} className="text-primary" />
             <span className="flex-1 truncate">{location.address.formatted.split(",")[0]}</span>
-            <button
-              type="button"
+            <span
+              role="button"
+              tabIndex={0}
               aria-label="Delete location"
               className="rounded p-1 transition-colors hover:bg-destructive/10"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                updateSearchOptions({
-                  location: {
-                    ...searchOptions.location,
-                    location: searchOptions.location.location.filter((_, index) => index !== locationIndex),
-                  },
-                });
+              onClick={handleDeleteLocation}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  handleDeleteLocation(event);
+                }
               }}
             >
               <Trash2 size={16} className="text-destructive" />
-            </button>
+            </span>
           </div>
         </AccordionTrigger>
         <AccordionContent className="space-y-4 p-4 pt-0">
@@ -261,7 +269,7 @@ export default function LocationFilter() {
   const visibleSuggestions = showAllSuggestions ? suggestedLocations : suggestedLocations.slice(0, MAX_SUGGESTIONS_INLINE);
 
   return (
-    <FilterContainer categoryId="location" title="Location">
+    <FilterContainer categoryId="location" chrome="stream">
       <div className="space-y-4">
         <MultiLocationPicker
           locations={locations}
@@ -303,7 +311,7 @@ export default function LocationFilter() {
               </button>
             ))}
             {suggestedLocations.length > MAX_SUGGESTIONS_INLINE ? (
-              <button type="button" onClick={() => setShowAllSuggestions((value) => !value)} className="text-xs font-bold text-primary underline hover:no-underline">
+              <button type="button" onClick={() => setShowAllSuggestions((value) => !value)} className="text-xs font-medium text-primary underline hover:no-underline">
                 {showAllSuggestions ? "Show fewer suggested regions" : `Show ${suggestedLocations.length} suggested regions`}
               </button>
             ) : null}

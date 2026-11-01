@@ -8,6 +8,7 @@ import DateRange from "./DateRange";
 import Encouraged from "./Encouraged";
 import Exclusion from "./Exclusion";
 import Sorting from "./Sorting";
+import { FilterSubsection } from "../util/FilterSubsection";
 
 interface GeneralOptionsProps {
   scrollToSection?: string;
@@ -27,10 +28,9 @@ export default function GeneralOptions({ scrollToSection, clearScrollToSection, 
   if (!showStream && !showSections) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {showStream ? (
-        // Same `space-y-4` row rhythm as every other category body (Compensation, Company, …).
-        <div className="space-y-4">
+        <div className="space-y-3">
           {shouldShow("date-range") ? (
             <div className="scroll-mt-14" ref={refs["date-range"]}>
               <DateRange />
@@ -63,11 +63,12 @@ export default function GeneralOptions({ scrollToSection, clearScrollToSection, 
         </div>
       ) : null}
 
-      {/* Multi-control subsections keep their own chrome + a sidebar nav row under General. */}
       {showSections && shouldShow("activity-outcomes") ? (
-        <div className="scroll-mt-14" ref={refs["activity-outcomes"]}>
-          <ActivityOutcomes />
-        </div>
+        <FilterSubsection title="Activity & Outcomes">
+          <div className="scroll-mt-14" ref={refs["activity-outcomes"]}>
+            <ActivityOutcomes />
+          </div>
+        </FilterSubsection>
       ) : null}
     </div>
   );

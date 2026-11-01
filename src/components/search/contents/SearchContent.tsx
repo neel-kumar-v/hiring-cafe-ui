@@ -13,7 +13,7 @@ import { getFilterChips } from "@/lib/search/filter-chips";
 import type { CategoryType } from "@/types/search";
 import { filters } from "@/data/search-filters";
 import { clearChipFromState, FilterChipButton } from "../filters/util/FilterChips";
-import { GENERAL_CONTENT_EXCLUDED, GENERAL_NAV_EXCLUDED, FilteredCategoriesContent, getGroupedCategories, type FilteredGroup, useCategoryState } from ".";
+import { GENERAL_NAV_EXCLUDED, FilteredCategoriesContent, getGroupedCategories, type FilteredGroup, useCategoryState } from ".";
 
 export type SearchContentVariant = "sidebar" | "tabs";
 
@@ -30,12 +30,16 @@ const ScrollVignette = memo(function ScrollVignette({
   className,
   viewportClassName,
   viewportRef,
+  disableStart = false,
+  startClassName,
 }: {
   axis: "x" | "y";
   children: React.ReactNode;
   className?: string;
   viewportClassName?: string;
   viewportRef?: React.RefObject<HTMLDivElement | null>;
+  disableStart?: boolean;
+  startClassName?: string;
 }) {
   const internalViewportRef = useRef<HTMLDivElement>(null);
   const activeViewportRef = viewportRef ?? internalViewportRef;
@@ -51,21 +55,38 @@ const ScrollVignette = memo(function ScrollVignette({
       frameId = requestAnimationFrame(() => {
         frameId = null;
         const start = axis === "y" ? viewport.scrollTop > 1 : viewport.scrollLeft > 1;
-        const end = axis === "y" ? viewport.scrollTop + viewport.clientHeight < viewport.scrollHeight - 1 : viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1;
+        const hasOverflow =
+          axis === "y"
+            ? viewport.scrollHeight > viewport.clientHeight + 1
+            : viewport.scrollWidth > viewport.clientWidth + 1;
+        const end =
+          hasOverflow &&
+          (axis === "y"
+            ? viewport.scrollTop + viewport.clientHeight < viewport.scrollHeight - 1
+            : viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1);
         setEdges((previous) => (previous.start === start && previous.end === end ? previous : { start, end }));
       });
     };
 
     const resizeObserver = new ResizeObserver(scheduleUpdate);
     resizeObserver.observe(viewport);
-    const content = viewport.firstElementChild;
-    if (content instanceof Element) {
-      resizeObserver.observe(content);
+    for (const child of viewport.children) {
+      resizeObserver.observe(child);
     }
+
+    const mutationObserver = new MutationObserver(() => {
+      for (const child of viewport.children) {
+        resizeObserver.observe(child);
+      }
+      scheduleUpdate();
+    });
+    mutationObserver.observe(viewport, { childList: true, subtree: true });
+
     viewport.addEventListener("scroll", scheduleUpdate, { passive: true });
     scheduleUpdate();
     return () => {
       resizeObserver.disconnect();
+      mutationObserver.disconnect();
       viewport.removeEventListener("scroll", scheduleUpdate);
       if (frameId !== null) cancelAnimationFrame(frameId);
     };
@@ -76,12 +97,13 @@ const ScrollVignette = memo(function ScrollVignette({
       <div ref={activeViewportRef} className={cn(axis === "y" ? "h-full min-w-0 overflow-y-auto" : "min-w-0 overflow-x-auto overscroll-x-contain", viewportClassName)}>
         {children}
       </div>
-      {edges.start ? (
+      {!disableStart && edges.start ? (
         <span
           aria-hidden="true"
           className={cn(
             "pointer-events-none absolute z-10",
-            axis === "y" ? "inset-x-0 top-0 h-6 bg-gradient-to-b from-background to-transparent" : "bottom-0 left-0 top-0 w-6 bg-gradient-to-r from-background to-transparent"
+            axis === "y" ? "inset-x-0 top-0 h-6 bg-gradient-to-b from-background to-transparent" : "bottom-0 left-0 top-0 w-6 bg-gradient-to-r from-background to-transparent",
+            startClassName
           )}
         />
       ) : null}
@@ -89,8 +111,8 @@ const ScrollVignette = memo(function ScrollVignette({
         <span
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute z-10",
-            axis === "y" ? "inset-x-0 bottom-0 h-6 bg-gradient-to-t from-background to-transparent" : "bottom-0 right-0 top-0 w-6 bg-gradient-to-l from-background to-transparent"
+            "pointer-events-none absolute z-30",
+            axis === "y" ? "inset-x-0 bottom-0 h-8 bg-gradient-to-t from-background to-transparent" : "bottom-0 right-0 top-0 w-8 bg-gradient-to-l from-background to-transparent"
           )}
         />
       ) : null}
@@ -134,39 +156,33 @@ const CurrentFiltersFooter = memo(function CurrentFiltersFooter({
 
 const SearchSidebarNav = memo(function SearchSidebarNav({
   filteredCategories,
-  selectedCategory,
   focusedFilterId,
-  inViewFilterIds,
   editCounts,
   onHeaderClick,
   onFilterClick,
+  revealNested,
 }: {
   filteredCategories: FilteredGroup[];
-  selectedCategory: CategoryType;
   focusedFilterId: string | null;
-  inViewFilterIds: Set<string>;
   editCounts: Readonly<Record<string, number>>;
   onHeaderClick: (categoryType: CategoryType) => void;
   onFilterClick: (categoryId: string) => void;
+  /** When the sidebar search is active, surface nested filters (benefits, stage, …). */
+  revealNested?: boolean;
 }) {
   return (
     <div className="space-y-2 p-2 pt-0">
       {filteredCategories.map((category) => {
-        const isSelected = selectedCategory === category.type;
-        // Stream-only General filters stay out of the rail; section filters (e.g. Activity &
-        // Outcomes) remain so the General category header always has a real nav group.
-        const subcategories = category.type === "general" ? category.categories.filter((item) => !GENERAL_NAV_EXCLUDED.has(item.id)) : category.categories;
+        // Stream / nested filters stay out of the rail unless the user is searching for them.
+        const subcategories = category.categories.filter((item) => revealNested || !GENERAL_NAV_EXCLUDED.has(item.id));
 
         const isHidden = category.type === "qualifications";
 
         return (
           <div key={category.name} className={cn("mt-1 gap-y-1 first-of-type:mt-0", isHidden && "hidden")}>
-            {/* Always render the category header — never drop General when stream filters are nav-excluded. */}
+            {/* Category labels scroll to the section — no hover/selected chrome. */}
             <Button
-              className={cn(
-                "h-auto w-full justify-start rounded-none border-l-2 border-transparent p-2 text-left text-foreground transition-colors duration-150 ease-out hover:border-primary hover:bg-muted hover:transition-none",
-                isSelected && "border-primary bg-muted text-foreground"
-              )}
+              className="h-auto w-full justify-start rounded-none border-0 bg-transparent px-0 py-2 text-left text-foreground shadow-none hover:bg-transparent hover:text-foreground focus-visible:bg-transparent active:bg-transparent"
               onClick={() => onHeaderClick(category.type)}
               variant="ghost"
             >
@@ -181,8 +197,7 @@ const SearchSidebarNav = memo(function SearchSidebarNav({
                   key={item.id}
                   className={cn(
                     "group h-auto w-full justify-start rounded-none border-l-2 border-border px-2 py-1 text-left text-muted-foreground transition-colors duration-150 ease-out hover:border-primary hover:bg-muted hover:text-foreground hover:transition-none",
-                    isFocused && "border-primary bg-muted text-foreground",
-                    !isFocused && inViewFilterIds.has(item.id) && "border-primary/40 bg-muted/40 text-foreground"
+                    isFocused && "border-primary bg-muted text-foreground"
                   )}
                   onClick={() => onFilterClick(item.id)}
                   variant="ghost"
@@ -240,8 +255,6 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
   const { focusedFilterId, setFocusedFilterId } = useFocusedFilterId();
   const clearScrollToSection = useCallback(() => setScrollToSection(undefined), [setScrollToSection]);
   const [sidebarSearch, setSidebarSearch] = useState("");
-  const [inViewFilterIds, setInViewFilterIds] = useState<Set<string>>(() => new Set());
-  const contentScrollRef = useRef<HTMLDivElement>(null);
   const selectedFilters = useMemo(() => getFilterChips(deferredSearchOptions, initialSearchState), [deferredSearchOptions]);
   const filterSearchQueryValue = useMemo(
     () => ({
@@ -279,99 +292,6 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
     if (scrollToSection) setFocusedFilterId(scrollToSection);
   }, [scrollToSection, setFocusedFilterId]);
 
-  useEffect(() => {
-    const root = contentScrollRef.current;
-    if (!root || variant !== "sidebar") return;
-
-    const filterElements = Array.from(root.querySelectorAll<HTMLElement>("[data-filter-container-id]"));
-
-    // IntersectionObserver drives visible-filter tracking off the scroll path entirely: no
-    // getBoundingClientRect reads while scrolling and state only flips when a container actually
-    // enters/leaves the viewport (rAF-coalesced). The previous rect-probing debounce forced layout
-    // and re-rendered the sidebar nav mid-scroll, fighting the programmatic section scroll animation.
-    const visible = new Set<string>();
-    let frameId: number | null = null;
-
-    const flush = () => {
-      frameId = null;
-      setInViewFilterIds((previous) => {
-        if (previous.size === visible.size && Array.from(previous).every((id) => visible.has(id))) {
-          return previous;
-        }
-        return new Set(visible);
-      });
-    };
-
-    const scheduleFlush = () => {
-      if (frameId === null) frameId = requestAnimationFrame(flush);
-    };
-
-    if (typeof IntersectionObserver === "undefined") {
-      // Legacy fallback (browsers without IntersectionObserver): original rect-probing debounce.
-      let timeoutId: number | null = null;
-
-      const updateVisibleFilters = () => {
-        const rootRect = root.getBoundingClientRect();
-        const next = new Set<string>();
-        filterElements.forEach((element) => {
-          const rect = element.getBoundingClientRect();
-          const visibleHeight = Math.min(rect.bottom, rootRect.bottom) - Math.max(rect.top, rootRect.top);
-          if (visibleHeight > 0) {
-            const id = element.dataset.filterContainerId;
-            if (id) next.add(id);
-          }
-        });
-        setInViewFilterIds((previous) => {
-          if (previous.size === next.size && Array.from(previous).every((id) => next.has(id))) {
-            return previous;
-          }
-          return next;
-        });
-      };
-
-      const handleScroll = () => {
-        if (timeoutId !== null) window.clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(() => {
-          timeoutId = null;
-          updateVisibleFilters();
-        }, 120);
-      };
-
-      root.addEventListener("scroll", handleScroll, { passive: true });
-      updateVisibleFilters();
-      return () => {
-        root.removeEventListener("scroll", handleScroll);
-        if (timeoutId !== null) window.clearTimeout(timeoutId);
-        if (frameId !== null) cancelAnimationFrame(frameId);
-      };
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let changed = false;
-        for (const entry of entries) {
-          const id = (entry.target as HTMLElement).dataset.filterContainerId;
-          if (!id) continue;
-          if (entry.isIntersecting) {
-            if (!visible.has(id)) {
-              visible.add(id);
-              changed = true;
-            }
-          } else if (visible.delete(id)) {
-            changed = true;
-          }
-        }
-        if (changed) scheduleFlush();
-      },
-      { root }
-    );
-    filterElements.forEach((element) => observer.observe(element));
-    return () => {
-      observer.disconnect();
-      if (frameId !== null) cancelAnimationFrame(frameId);
-    };
-  }, [filteredCategories, variant]);
-
   const handleFilterClickWithScroll = useCallback(
     (categoryId: string) => {
       handleFilterSelectWithScroll(categoryId);
@@ -383,7 +303,7 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
   const handleHeaderClickWithScroll = useCallback(
     (categoryType: CategoryType) => {
       // Skip the filters that are not rendered in the rail (e.g. "Current Filters" / "Saved Searches").
-      const firstFilterId = filters.find((category) => category.type === categoryType && !GENERAL_CONTENT_EXCLUDED.has(category.id))?.id ?? null;
+      const firstFilterId = filters.find((category) => category.type === categoryType && !GENERAL_NAV_EXCLUDED.has(category.id))?.id ?? null;
       setFocusedFilterId(firstFilterId);
       handleHeaderClick(categoryType);
     },
@@ -456,7 +376,7 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
           </div>
         </div>
 
-        <ScrollVignette axis="y" className="min-h-0 flex-1" viewportClassName="px-4 pb-8 pt-4">
+        <ScrollVignette axis="y" className="min-h-0 flex-1" viewportClassName="px-4 pb-8" disableStart>
           {filterCategoriesBody}
         </ScrollVignette>
         {footer}
@@ -485,12 +405,11 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
           <ScrollVignette axis="y" className="min-h-0 flex-1" viewportClassName="pt-1 overflow-x-hidden overscroll-y-contain [scrollbar-width:thin]">
             <SearchSidebarNav
               filteredCategories={filteredCategories}
-              selectedCategory={selectedCategory}
               focusedFilterId={focusedFilterId}
-              inViewFilterIds={inViewFilterIds}
               editCounts={sidebarEditCounts}
               onHeaderClick={handleHeaderClickWithScroll}
               onFilterClick={handleFilterClickWithScroll}
+              revealNested={sidebarSearch.trim().length > 0}
             />
           </ScrollVignette>
         </div>
@@ -499,7 +418,12 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-r-md bg-background">
           {/* Extra bottom padding keeps the last filter (e.g. the boolean-search help link) clear of the scroll cutoff. */}
-          <ScrollVignette axis="y" className="min-h-0 flex-1" viewportClassName="px-6 pb-10 pt-4 pr-10 overscroll-y-contain [scrollbar-width:thin]" viewportRef={contentScrollRef}>
+          <ScrollVignette
+            axis="y"
+            className="min-h-0 flex-1"
+            viewportClassName="px-6 pb-10 pr-10 overscroll-y-contain [scrollbar-width:thin]"
+            disableStart
+          >
             {filterCategoriesBody}
           </ScrollVignette>
         </div>
