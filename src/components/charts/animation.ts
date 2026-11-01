@@ -23,10 +23,7 @@ export function clipRevealTransition(enterTransition?: Transition): Transition {
     };
   }
 
-  const duration =
-    typeof enterTransition?.duration === "number"
-      ? enterTransition.duration
-      : DEFAULT_ANIMATION_DURATION_MS / 1000;
+  const duration = typeof enterTransition?.duration === "number" ? enterTransition.duration : DEFAULT_ANIMATION_DURATION_MS / 1000;
 
   return {
     type: "tween",

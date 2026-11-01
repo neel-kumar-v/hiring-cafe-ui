@@ -1,51 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { filterGroupOrder, filters } from "@/data/search-filters";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { filterGroupOrder, filters, generalContentExcludedIds, generalStreamIds } from "@/data/search-filters";
 import type { CategoryId, CategoryType, SettingsCategory } from "@/types/search";
-import {
-  AvailabilityOptions,
-  CompanyOptions,
-  CompensationOptions,
-  GeneralOptions,
-  LocationOptions,
-  QualificationsOptions,
-  RoleDepartmentOptions,
-} from "../filters";
+import { cn } from "@/lib/utils";
+import { AvailabilityOptions, CompanyOptions, CompensationOptions, GeneralOptions, LocationOptions, QualificationsOptions, RoleDepartmentOptions } from "../filters";
+
+/** Omitted from General content entirely (live elsewhere). */
+export const GENERAL_CONTENT_EXCLUDED = generalContentExcludedIds;
+
+/** Single-control stream filters + content-excluded — no dedicated sidebar nav rows. */
+export const GENERAL_NAV_EXCLUDED = new Set([...generalContentExcludedIds, ...generalStreamIds]);
 
 export function findCategoryByFrom(from?: string): SettingsCategory | undefined {
   if (!from) return undefined;
 
   return filters.find(
     (category) =>
-      category.name.toLowerCase().includes(from.toLowerCase()) ||
-      category.id.toLowerCase().includes(from.toLowerCase()) ||
-      category.type.toLowerCase() === from.toLowerCase()
+      category.name.toLowerCase().includes(from.toLowerCase()) || category.id.toLowerCase().includes(from.toLowerCase()) || category.type.toLowerCase() === from.toLowerCase()
   );
 }
 
-export function getInitialCategory(
-  from?: string,
-  defaultCategory: CategoryType = "general"
-): CategoryType {
+export function getInitialCategory(from?: string, defaultCategory: CategoryType = "general"): CategoryType {
   if (!from) return defaultCategory;
 
   return (findCategoryByFrom(from)?.type as CategoryType) ?? defaultCategory;
 }
 
-export function useCategoryState(
-  from?: string,
-  open?: boolean,
-  defaultCategory: CategoryType = "general"
-) {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType>(() =>
-    getInitialCategory(from, defaultCategory)
-  );
+export function useCategoryState(from?: string, open?: boolean, defaultCategory: CategoryType = "general") {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>(() => getInitialCategory(from, defaultCategory));
   const [scrollToSection, setScrollToSection] = useState<string | undefined>();
 
-  const selectedCategoryData = filters.find(
-    (category) => category.type === selectedCategory
-  );
+  const selectedCategoryData = useMemo(() => filters.find((category) => category.type === selectedCategory), [selectedCategory]);
 
   useEffect(() => {
     if (!open || !from) return;
@@ -57,7 +43,7 @@ export function useCategoryState(
     setScrollToSection(category.id);
   }, [from, open]);
 
-  const handleFilterSelectWithScroll = (categoryId: CategoryId | string) => {
+  const handleFilterSelectWithScroll = useCallback((categoryId: CategoryId | string) => {
     const category = filters.find((item) => item.id === categoryId);
 
     if (category?.type) {
@@ -68,9 +54,9 @@ export function useCategoryState(
 
     setSelectedCategory(categoryId as CategoryType);
     setScrollToSection(undefined);
-  };
+  }, []);
 
-  const handleFilterSelectNoScroll = (categoryId: CategoryId | string) => {
+  const handleFilterSelectNoScroll = useCallback((categoryId: CategoryId | string) => {
     const category = filters.find((item) => item.id === categoryId);
 
     if (category?.type) {
@@ -79,13 +65,13 @@ export function useCategoryState(
     }
 
     setSelectedCategory(categoryId as CategoryType);
-  };
+  }, []);
 
-  const handleHeaderClick = (categoryType: CategoryType) => {
+  const handleHeaderClick = useCallback((categoryType: CategoryType) => {
     setSelectedCategory(categoryType);
-    const firstId = filters.find((category) => category.type === categoryType)?.id;
+    const firstId = filters.find((category) => category.type === categoryType && !GENERAL_CONTENT_EXCLUDED.has(category.id))?.id;
     setScrollToSection(firstId ?? undefined);
-  };
+  }, []);
 
   return {
     selectedCategory,
@@ -120,94 +106,115 @@ export function renderCategoryContent(
 
   switch (selectedCategory) {
     case "general":
-      return (
-        <GeneralOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <GeneralOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     case "compensation":
-      return (
-        <CompensationOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <CompensationOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     case "role-department":
-      return (
-        <RoleDepartmentOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <RoleDepartmentOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     case "qualifications":
-      return (
-        <QualificationsOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <QualificationsOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     case "availability":
-      return (
-        <AvailabilityOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <AvailabilityOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     case "location":
-      return (
-        <LocationOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <LocationOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     case "company":
-      return (
-        <CompanyOptions
-          scrollToSection={scrollToSection}
-          clearScrollToSection={clearScrollToSection}
-          filterIds={filterIds}
-        />
-      );
+      return <CompanyOptions scrollToSection={scrollToSection} clearScrollToSection={clearScrollToSection} filterIds={filterIds} />;
     default:
       return (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">
-            {selectedCategoryData?.name || "Unknown"}
-          </h3>
-          <p className="text-muted-foreground">
-            Settings for {selectedCategoryData?.name.toLowerCase()} will be implemented here.
-          </p>
+          <h3 className="text-lg font-semibold">{selectedCategoryData?.name || "Unknown"}</h3>
+          <p className="text-muted-foreground">Settings for {selectedCategoryData?.name.toLowerCase()} will be implemented here.</p>
           <div className="rounded-lg border-2 border-dashed border-border/70 p-8 text-center dark:border-border">
-            <p className="text-muted-foreground">
-              Content for {selectedCategoryData?.name} will be added later
-            </p>
+            <p className="text-muted-foreground">Content for {selectedCategoryData?.name} will be added later</p>
           </div>
         </div>
       );
   }
 }
 
-export function renderAllCategoriesContent(
-  scrollToSection: string | undefined,
-  handleCategoryClick: (categoryId: CategoryId | string) => void,
-  clearScrollToSection?: () => void
-) {
+export function renderAllCategoriesContent(scrollToSection: string | undefined, handleCategoryClick: (categoryId: CategoryId | string) => void, clearScrollToSection?: () => void) {
   const grouped = getGroupedCategories();
 
-  return renderFilteredCategoriesContent(
-    grouped,
-    scrollToSection,
-    handleCategoryClick,
-    clearScrollToSection
-  );
+  return renderFilteredCategoriesContent(grouped, scrollToSection, handleCategoryClick, clearScrollToSection);
 }
+
+function LazyCategorySection({ children, force }: { children: React.ReactNode; force?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(force ?? false);
+
+  useEffect(() => {
+    if (force) {
+      setMounted(true);
+      return;
+    }
+
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setMounted(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setMounted(true);
+        }
+      },
+      { rootMargin: "160px 0px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [force]);
+
+  if (mounted) {
+    return <div className="[content-visibility:auto] [contain-intrinsic-size:0_180px]">{children}</div>;
+  }
+
+  return <div ref={ref} aria-hidden="true" className="min-h-[180px] [content-visibility:auto] [contain-intrinsic-size:0_180px]" />;
+}
+
+export const FilteredCategoriesContent = memo(function FilteredCategoriesContent({
+  filteredGroups,
+  scrollToSection,
+  handleCategoryClick,
+  clearScrollToSection,
+}: {
+  filteredGroups: FilteredGroup[];
+  scrollToSection: string | undefined;
+  handleCategoryClick: (categoryId: CategoryId | string) => void;
+  clearScrollToSection?: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {filteredGroups.map((group) => {
+        const header = group.name;
+        const filterIds = group.categories.map((category) => category.id);
+        const forceMount = Boolean(scrollToSection && filterIds.includes(scrollToSection));
+        const isHidden = group.type === "qualifications";
+
+        return (
+          <section key={group.type} id={group.type} className={cn("scroll-mt-4 max-md:max-w-screen", isHidden && "hidden")}>
+            {/* Same header treatment as the app sidebar group headers (AppSidebar `GroupSection`)
+                and the filter section titles: 15px bold foreground text. */}
+            <h2 className="mb-1.5 border-b border-border/60 pb-1.5 text-[15px] font-bold leading-tight text-foreground md:mb-2 md:pb-2">{header}</h2>
+            <LazyCategorySection force={forceMount}>
+              {renderCategoryContent(
+                group.type,
+                handleCategoryClick,
+                { name: header },
+                {
+                  scrollToSection,
+                  clearScrollToSection,
+                  filterIds,
+                }
+              )}
+            </LazyCategorySection>
+          </section>
+        );
+      })}
+    </div>
+  );
+});
 
 export function renderFilteredCategoriesContent(
   filteredGroups: FilteredGroup[],
@@ -216,38 +223,40 @@ export function renderFilteredCategoriesContent(
   clearScrollToSection?: () => void
 ) {
   return (
-    <div className="space-y-3 md:space-y-4">
-      {filteredGroups.map((group) => {
-        const header =
-          group.categories.length === 1 ? group.categories[0].name : group.name;
-        const filterIds = group.categories.map((category) => category.id);
-
-        return (
-          <section
-            key={group.type}
-            id={group.type}
-            className="scroll-mt-4 max-md:max-w-screen"
-          >
-            <h2 className="mb-1 border-b border-border pb-1 text-[11px] font-semibold uppercase tracking-wide text-foreground/80 md:mb-2 md:text-sm">
-              {header}
-            </h2>
-            {renderCategoryContent(group.type, handleCategoryClick, { name: header }, {
-              scrollToSection,
-              clearScrollToSection,
-              filterIds,
-            })}
-          </section>
-        );
-      })}
-    </div>
+    <FilteredCategoriesContent
+      filteredGroups={filteredGroups}
+      scrollToSection={scrollToSection}
+      handleCategoryClick={handleCategoryClick}
+      clearScrollToSection={clearScrollToSection}
+    />
   );
 }
 
 export function getGroupedCategories(): FilteredGroup[] {
-  return filterGroupOrder.map((group) => ({
+  const groups = filterGroupOrder.map((group) => ({
     ...group,
     categories: filters.filter((category) => category.type === group.type),
   }));
+
+  const quickIndex = groups.findIndex((group) => group.name === "Quick");
+  const generalIndex = groups.findIndex((group) => group.type === "general");
+  if (quickIndex >= 0 && generalIndex >= 0 && quickIndex !== generalIndex) {
+    const quick = groups[quickIndex];
+    groups[generalIndex] = {
+      ...groups[generalIndex],
+      categories: [...quick.categories, ...groups[generalIndex].categories],
+    };
+    groups.splice(quickIndex, 1);
+  }
+
+  return groups.map((group) =>
+    group.type === "general"
+      ? {
+          ...group,
+          categories: group.categories.filter((category) => !GENERAL_CONTENT_EXCLUDED.has(category.id)),
+        }
+      : group
+  );
 }
 
 export { default as SearchContent } from "./SearchContent";

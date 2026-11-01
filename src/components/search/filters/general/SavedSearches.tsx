@@ -88,105 +88,86 @@ export default function SavedSearches() {
           ) : null
         }
       >
-      {!convexUser ? (
-        <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-medium text-foreground">No saved searches yet</p>
-          <Button size="sm" onClick={() => setSignInOpen(true)}>
-            Sign in
-          </Button>
-        </div>
-      ) : (savedSearches ?? []).length === 0 ? (
-        <div className="py-4 text-center">
-          <p className="font-medium text-foreground">No saved searches yet</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {(savedSearches ?? []).map((search) => (
-            <div
-              key={String(search._id)}
-              className="group mt-3 flex items-center justify-between border-b border-border/20 last-of-type:border-b-0"
-            >
-              <div className="min-w-0 flex-1">
-                {editingId === search._id ? (
-                  <input
-                    type="text"
-                    value={editingName}
-                    ref={(el) => {
-                      inputRefs.current[String(search._id)] = el;
-                      return;
-                    }}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, search._id)}
-                    onBlur={() => handleEditSave(search._id)}
-                    className="w-full border-none bg-transparent font-medium text-text outline-none"
-                  />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="cursor-pointer font-medium text-text transition-colors hover:underline"
-                      onClick={() => handleEditStart(search._id, search.name)}
-                    >
-                      {search.name}
-                    </span>
-                    <button
-                      onClick={() => handleEditStart(search._id, search.name)}
-                      className="rounded p-1 opacity-0 transition-opacity duration-200 hover:bg-accent group-hover:opacity-100"
-                    >
-                      <Edit className="size-3 text-muted-foreground hover:text-text" />
-                    </button>
-                  </div>
-                )}
-                <p className="mt-1 flex items-center text-xs text-muted-foreground">
-                  <Calendar className="mr-1 size-3" />
-                  {new Date(search.updatedAt).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="ml-4 flex items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="pointer-none:hidden flex items-center gap-1 max-sm:hidden"
-                    >
-                      <Eye className="size-3" />
-                      View Search
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" align="start" className="max-h-none w-80 overflow-y-auto p-0">
-                    <div className="p-4">
-                      <AllFilter
-                        handleCategoryClick={handleCategoryClick}
-                        searchOptions={search.searchState}
-                        showButton={false}
-                      />
+        {!convexUser ? (
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
+            <p className="font-medium text-foreground">No saved searches yet</p>
+            <Button size="sm" onClick={() => setSignInOpen(true)}>
+              Sign in
+            </Button>
+          </div>
+        ) : (savedSearches ?? []).length === 0 ? (
+          <div className="py-4 text-center">
+            <p className="font-medium text-foreground">No saved searches yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {(savedSearches ?? []).map((search) => (
+              <div key={String(search._id)} className="group mt-3 flex items-center justify-between border-b border-border/20 last-of-type:border-b-0">
+                <div className="min-w-0 flex-1">
+                  {editingId === search._id ? (
+                    <input
+                      type="text"
+                      value={editingName}
+                      ref={(el) => {
+                        inputRefs.current[String(search._id)] = el;
+                        return;
+                      }}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, search._id)}
+                      onBlur={() => handleEditSave(search._id)}
+                      className="w-full border-none bg-transparent font-medium text-text outline-none"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="cursor-pointer font-medium text-text transition-colors hover:underline" onClick={() => handleEditStart(search._id, search.name)}>
+                        {search.name}
+                      </span>
+                      <button
+                        onClick={() => handleEditStart(search._id, search.name)}
+                        className="rounded p-1 opacity-0 transition-opacity duration-200 hover:bg-accent group-hover:opacity-100"
+                      >
+                        <Edit className="size-3 text-muted-foreground hover:text-text" />
+                      </button>
                     </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleLoadSearch(search)}
-                  className="flex items-center gap-1"
-                >
-                  <Search className="size-3" />
-                  Load Search
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    void remove(search._id);
-                  }}
-                  className="flex items-center gap-1 text-destructive"
-                >
-                  Delete
-                </Button>
+                  )}
+                  <p className="mt-1 flex items-center text-xs text-muted-foreground">
+                    <Calendar className="mr-1 size-3" />
+                    {new Date(search.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="ml-4 flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button size="sm" variant="ghost" className="pointer-none:hidden flex items-center gap-1 max-sm:hidden">
+                        <Eye className="size-3" />
+                        View Search
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" align="start" className="max-h-none w-80 overflow-y-auto p-0">
+                      <div className="p-4">
+                        <AllFilter handleCategoryClick={handleCategoryClick} searchOptions={search.searchState} showButton={false} />
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Button size="sm" variant="ghost" onClick={() => handleLoadSearch(search)} className="flex items-center gap-1">
+                    <Search className="size-3" />
+                    Load Search
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      void remove(search._id);
+                    }}
+                    className="flex items-center gap-1 text-destructive"
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
       </FilterContainer>
     </>
   );

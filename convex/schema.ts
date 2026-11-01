@@ -274,6 +274,10 @@ export default defineSchema({
     sortOrder: v.number(),
     updatedAt: v.number(),
     isPublic: v.boolean(),
+    /** "classic" for user-composed searches, "chat" for talent-agent run searches. Omitted rows read as classic (zero migration). */
+    kind: v.optional(v.union(v.literal("classic"), v.literal("chat"))),
+    /** Whether the user asked for daily email alerts on this search (demo flag for now — no emails are sent). */
+    alertsEnabled: v.optional(v.boolean()),
   })
     .index("by_user_sortOrder", ["userId", "sortOrder"])
     .index("by_user_updatedAt", ["userId", "updatedAt"])

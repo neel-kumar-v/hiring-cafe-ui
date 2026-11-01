@@ -8,15 +8,7 @@ export type LoadingStyle = "pulse" | "sweep";
  * Internal visual lifecycle phase. Forward and reverse transitions add
  * intermediate phases in later stack branches.
  */
-export type ChartPhase =
-  | "loading"
-  | "exiting"
-  | "gridTweenReady"
-  | "revealing"
-  | "ready"
-  | "exitingReady"
-  | "gridTweenLoading"
-  | "revealingLoading";
+export type ChartPhase = "loading" | "exiting" | "gridTweenReady" | "revealing" | "ready" | "exitingReady" | "gridTweenLoading" | "revealingLoading";
 
 export const DEFAULT_CHART_STATUS: ChartStatus = "ready";
 

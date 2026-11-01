@@ -12,7 +12,8 @@ import type { JobCategory } from "@/types/tracker";
 import { api } from "../../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { CheckCheck, Copy, EyeOff, MoveHorizontal, Share2, X } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useContainerWidth } from "@/hooks/useContainerWidth";
 import { getAuthEmail } from "@/lib/local-auth";
 import { toast } from "sonner";
 
@@ -30,9 +31,30 @@ type KanbanColumn = {
   count: number;
 };
 
+/** Matches `min-w-[280px]` on kanban columns; keep in sync with `KanbanBoard` in ui/kanban. */
+const MIN_KANBAN_COLUMN_WIDTH = 280;
+/** Matches `gap-4` on the kanban provider grid. */
+const KANBAN_COLUMN_GAP = 16;
+/** Priority when fitting a subset of columns on narrower board widths. */
+const KANBAN_CATEGORY_PRIORITY: readonly JobCategory[] = ["saved", "applied", "interviewing", "rejected", "hidden"];
+const DEFAULT_VISIBLE_CATEGORIES: Record<JobCategory, boolean> = {
+  saved: true,
+  applied: true,
+  interviewing: true,
+  rejected: true,
+  hidden: false,
+};
+
+function maxKanbanColumnsForWidth(width: number): number {
+  // n * minWidth + (n - 1) * gap <= width
+  return Math.max(1, Math.floor((width + KANBAN_COLUMN_GAP) / (MIN_KANBAN_COLUMN_WIDTH + KANBAN_COLUMN_GAP)));
+}
+
 const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = false, onSelectionModeChange }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
   const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerWidth = useContainerWidth(containerRef);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [anchorId, setAnchorId] = useState<string | null>(null);
@@ -62,26 +84,38 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
   }, [jobs, user]);
 
   const columns: KanbanColumn[] = useMemo(() => {
-    const savedCount = kanbanData.filter((item) => item.column === "saved").length;
-    const appliedCount = kanbanData.filter((item) => item.column === "applied").length;
-    const interviewingCount = kanbanData.filter((item) => item.column === "interviewing").length;
-    const rejectedCount = kanbanData.filter((item) => item.column === "rejected").length;
-    const hiddenCount = kanbanData.filter((item) => item.column === "hidden").length;
-
-    const allColumns = [
-      { id: "saved", name: "Saved", count: savedCount },
-      { id: "applied", name: "Applied", count: appliedCount },
-      { id: "interviewing", name: "Interviewing", count: interviewingCount },
-      { id: "rejected", name: "Rejected", count: rejectedCount },
-      { id: "hidden", name: "Hidden", count: hiddenCount },
-    ];
-
-    if (visibleCategories) {
-      return allColumns.filter((column) => visibleCategories[column.id as JobCategory]);
+    const counts: Record<JobCategory, number> = {
+      saved: 0,
+      applied: 0,
+      interviewing: 0,
+      rejected: 0,
+      hidden: 0,
+    };
+    for (const item of kanbanData) {
+      const key = item.column as JobCategory;
+      if (key in counts) counts[key] += 1;
     }
 
-    return allColumns;
-  }, [kanbanData, visibleCategories]);
+    const labels: Record<JobCategory, string> = {
+      saved: "Saved",
+      applied: "Applied",
+      interviewing: "Interviewing",
+      rejected: "Rejected",
+      hidden: "Hidden",
+    };
+
+    const visibility = visibleCategories ?? DEFAULT_VISIBLE_CATEGORIES;
+    const available = KANBAN_CATEGORY_PRIORITY.filter((id) => visibility[id]).map((id) => ({
+      id,
+      name: labels[id],
+      count: counts[id],
+    }));
+
+    // On narrower screens (before list mode) keep only the highest-priority
+    // columns that still fit at card width.
+    const effectiveWidth = containerWidth > 0 ? containerWidth : MIN_KANBAN_COLUMN_WIDTH * 4 + KANBAN_COLUMN_GAP * 3;
+    return available.slice(0, maxKanbanColumnsForWidth(effectiveWidth));
+  }, [kanbanData, visibleCategories, containerWidth]);
   const columnOrder = useMemo(() => columns.map((column) => column.id), [columns]);
   const orderedItems = useMemo(() => {
     const byColumn = new Map<string, { id: string }[]>();
@@ -372,7 +406,7 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
   );
 
   return (
-    <div className={`h-full w-full ${className}`}>
+    <div ref={containerRef} className={`h-full w-full ${className}`}>
       <KanbanProvider
         columns={columns}
         data={kanbanData}
@@ -428,7 +462,11 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
         )}
       </KanbanProvider>
 
-      <ActionBar open={selectionMode} onOpenChange={(open) => (!open ? clearSelectionMode() : onSelectionModeChange?.(open))}>
+      <ActionBar
+        open={selectionMode}
+        onOpenChange={(open) => (!open ? clearSelectionMode() : onSelectionModeChange?.(open))}
+        className="border border-border/60 bg-background shadow-xl dark:border-border"
+      >
         <ActionBarSelection>
           Selection mode
           <ActionBarSeparator />

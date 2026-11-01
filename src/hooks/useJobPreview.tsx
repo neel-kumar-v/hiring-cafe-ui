@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
+import { shouldOpenJobFromUserClick } from "@/lib/jobs/agentationJobOpenGate";
 import { JOB_FADE_DURATION_MS } from "@/lib/jobs/fadeTransition";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import { stableCompanyKey } from "@/lib/jobs/stableCompanyKey";
@@ -48,6 +49,7 @@ export function useJobPreviewChrome(prefetchOptions?: PrefetchOptions) {
   }, [isDesktop]);
 
   const openPreview = useCallback(() => {
+    if (!shouldOpenJobFromUserClick()) return;
     if (isDesktop) setDialogOpen(true);
     else setDrawerOpen(true);
   }, [isDesktop]);
@@ -108,10 +110,7 @@ export function useJobPreviewSequence({
   const chrome = useJobPreviewChrome(prefetchOptions);
   const { prefetch, prefetchNow, openPreview, runTransition, closePreview } = chrome;
 
-  const selectedIndex = useMemo(
-    () => (selectedId ? sequence.findIndex((row) => row.job.externalId === selectedId) : -1),
-    [selectedId, sequence]
-  );
+  const selectedIndex = useMemo(() => (selectedId ? sequence.findIndex((row) => row.job.externalId === selectedId) : -1), [selectedId, sequence]);
   const selectedRow = selectedIndex >= 0 ? (sequence[selectedIndex] ?? null) : null;
   const canNavigate = sequence.length > 1;
 
@@ -136,6 +135,7 @@ export function useJobPreviewSequence({
 
   const openJob = useCallback(
     (externalId: string) => {
+      if (!shouldOpenJobFromUserClick()) return;
       onSelectId(externalId);
       openPreview();
     },

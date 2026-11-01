@@ -42,6 +42,17 @@ export const rename = mutation({
   },
 });
 
+export const setAlertsEnabled = mutation({
+  args: { id: v.id("savedSearches"), userId: v.id("users"), alertsEnabled: v.boolean() },
+  handler: async (ctx, { id, userId, alertsEnabled }) => {
+    const doc = await ctx.db.get(id);
+    if (!doc) throw new Error("Saved search not found");
+    if (doc.userId !== userId) throw new Error("Not authorized to update this saved search");
+    // Toggling alerts is configuration, not a search-content change: don't bump updatedAt.
+    await ctx.db.patch(id, { alertsEnabled });
+  },
+});
+
 export const remove = mutation({
   args: { id: v.id("savedSearches"), userId: v.id("users") },
   handler: async (ctx, { id, userId }) => {

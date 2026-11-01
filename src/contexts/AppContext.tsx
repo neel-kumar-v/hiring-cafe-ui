@@ -15,7 +15,7 @@ interface AppContextType {
 
   // Search state
   searchOptions: SearchState;
-  setSearchOptions: (options: SearchState) => void;
+  setSearchOptions: React.Dispatch<React.SetStateAction<SearchState>>;
   updateSearchOptions: (updates: Partial<SearchState>) => void;
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: (hasChanges: boolean) => void;

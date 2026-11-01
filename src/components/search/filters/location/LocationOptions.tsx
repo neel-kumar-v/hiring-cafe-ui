@@ -18,7 +18,7 @@ export default function LocationOptions({ scrollToSection, clearScrollToSection,
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-4 md:space-y-8">
+    <div className="space-y-4">
       {shouldShow("location") ? (
         <div className="scroll-mt-14" ref={refs.location}>
           <Location />
@@ -30,7 +30,6 @@ export default function LocationOptions({ scrollToSection, clearScrollToSection,
           <WorkplaceActivity />
         </div>
       ) : null}
-
     </div>
   );
 }

@@ -2,10 +2,20 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { decodeKeywords, decodeLocations, decodeRangeString, decodeSearchExpression, decodeSelectString, formatValue } from "@/lib/search";
-import { CategoryId, DegreePreferencesOptions, ExperienceLevelOptions, FundingOptions, IndustryOptions, InfiniteRange, SalaryOptions, SearchState, Select, ShiftPreferencesOptions } from "@/types/search";
+import { NO_SELECTION_DISPLAY, decodeKeywords, decodeLocations, decodeRangeString, decodeSearchExpression, decodeSelectString, formatValue } from "@/lib/search";
+import {
+  CategoryId,
+  DegreePreferencesOptions,
+  ExperienceLevelOptions,
+  FundingOptions,
+  IndustryOptions,
+  InfiniteRange,
+  SalaryOptions,
+  SearchState,
+  Select,
+  ShiftPreferencesOptions,
+} from "@/types/search";
 import { useState } from "react";
-
 
 interface FilterItemProps {
   label: string;
@@ -16,8 +26,18 @@ interface FilterItemProps {
   handleCategoryClick: (categoryType: CategoryId) => void;
 }
 
+/**
+ * Formats a value for display. The search state keeps the literal "None"
+ * sentinel for empty selections, so it is translated into the summary wording
+ * here - the sentinel is never written back into the state.
+ */
+function displayValue(value: string | null | undefined): string {
+  if (!value || value === "None") return NO_SELECTION_DISPLAY;
+  return value;
+}
+
 function shouldShowFilterItem(value: string | null, isExtended: boolean, isImportant: boolean = false): boolean {
-  const exclude = ["All", "None", "", " No", "1800 - 2025"];
+  const exclude = ["All", "None", "No", "", " No", "1800 - 2025"];
   return isImportant || isExtended || !exclude.includes(value || "");
 }
 
@@ -26,11 +46,12 @@ function FilterItem({ label, value, categoryId, isExtended, isImportant = false,
 
   return (
     <p>
-      {label}: <span 
-        onClick={() => handleCategoryClick(categoryId)} 
+      {label}:{" "}
+      <span
+        onClick={() => handleCategoryClick(categoryId)}
         className="cursor-pointer font-semibold dark:hover:text-primary hover:text-primary transition-all duration-300 ease-in-out"
       >
-        {value || "None"}
+        {displayValue(value)}
       </span>
     </p>
   );
@@ -43,13 +64,11 @@ interface FilterSectionProps {
 }
 
 export function FilterSection({ title, items, isExtended }: FilterSectionProps) {
-  const visibleItems = items.filter(item => 
-    shouldShowFilterItem(item.value, isExtended, item.isImportant)
-  );
-  
+  const visibleItems = items.filter((item) => shouldShowFilterItem(item.value, isExtended, item.isImportant));
+
   if (visibleItems.length === 0) return null;
 
-  const itemValue = title.toLowerCase().replace(/\s+/g, '-');
+  const itemValue = title.toLowerCase().replace(/\s+/g, "-");
 
   return (
     <Accordion
@@ -59,9 +78,7 @@ export function FilterSection({ title, items, isExtended }: FilterSectionProps) 
       className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
     >
       <AccordionItem value={itemValue}>
-        <AccordionTrigger className="text-md font-semibold pt-0 pb-1 ">
-          {title}
-        </AccordionTrigger>
+        <AccordionTrigger className="text-md font-semibold pt-0 pb-1 ">{title}</AccordionTrigger>
         <AccordionContent className="p-2">
           <div className="flex flex-col gap-2">
             {visibleItems.map((item, index) => (
@@ -74,13 +91,12 @@ export function FilterSection({ title, items, isExtended }: FilterSectionProps) 
   );
 }
 
-
 export interface AllFiltersProps {
   handleCategoryClick: (categoryType: CategoryId) => void;
   searchOptions: SearchState;
   showButton?: boolean;
 }
-export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true}: AllFiltersProps) => {
+export const AllFilter = ({ handleCategoryClick, searchOptions, showButton = true }: AllFiltersProps) => {
   const [extended, setExtended] = useState(false);
 
   const stringifySalary = (salary: SalaryOptions) => {
@@ -90,65 +106,114 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     if (minRange.min === 0 && minRange.max === 0 && maxRange.min === 0 && maxRange.max === 0) return "All";
     if (minRange.min === 0 && minRange.max === 0) return `Max: ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
     if (maxRange.min === 0 && maxRange.max === 0) return `Min: ${formatValue(minRange.min, salary.currency)} ${salary.unit}`;
-    if (minRange.min === minRange.max && maxRange.min === maxRange.max) return `${formatValue(minRange.min, salary.currency)} - ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
+    if (minRange.min === minRange.max && maxRange.min === maxRange.max)
+      return `${formatValue(minRange.min, salary.currency)} - ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
     return `Min: ${formatValue(minRange.min, salary.currency)}, Max: ${formatValue(maxRange.max, salary.currency)} ${salary.unit}`;
-  }
+  };
 
   const stringifyDegreePreferences = (degree: DegreePreferencesOptions) => {
-    if (!degree) return { associate: { preferences: "None", include: "None", exclude: "None" }, bachelor: { preferences: "None", include: "None", exclude: "None" }, master: { preferences: "None", include: "None", exclude: "None" }, doctorate: { preferences: "None", include: "None", exclude: "None" } };
+    if (!degree)
+      return {
+        associate: { preferences: NO_SELECTION_DISPLAY, include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        bachelor: { preferences: NO_SELECTION_DISPLAY, include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        master: { preferences: NO_SELECTION_DISPLAY, include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        doctorate: { preferences: NO_SELECTION_DISPLAY, include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+      };
     const associate = {
-      preferences: degree.associate?.preferences === null ? "None" : Array.isArray(degree.associate?.preferences) ? degree.associate.preferences.join(", ") : degree.associate?.preferences || "None",
+      preferences:
+        degree.associate?.preferences === null
+          ? NO_SELECTION_DISPLAY
+          : Array.isArray(degree.associate?.preferences)
+            ? degree.associate.preferences.join(", ")
+            : displayValue(degree.associate?.preferences),
       include: decodeKeywords(degree.associate?.keywords || { include: [], exclude: "None" }).include,
-      exclude: decodeKeywords(degree.associate?.keywords || { include: [], exclude: "None" }).exclude
+      exclude: decodeKeywords(degree.associate?.keywords || { include: [], exclude: "None" }).exclude,
     };
     const bachelor = {
-      preferences: degree.bachelor?.preferences === null ? "None" : Array.isArray(degree.bachelor?.preferences) ? degree.bachelor.preferences.join(", ") : degree.bachelor?.preferences || "None",
+      preferences:
+        degree.bachelor?.preferences === null
+          ? NO_SELECTION_DISPLAY
+          : Array.isArray(degree.bachelor?.preferences)
+            ? degree.bachelor.preferences.join(", ")
+            : displayValue(degree.bachelor?.preferences),
       include: decodeKeywords(degree.bachelor?.keywords || { include: [], exclude: "None" }).include,
-      exclude: decodeKeywords(degree.bachelor?.keywords || { include: [], exclude: "None" }).exclude
+      exclude: decodeKeywords(degree.bachelor?.keywords || { include: [], exclude: "None" }).exclude,
     };
     const master = {
-      preferences: degree.master?.preferences === null ? "None" : Array.isArray(degree.master?.preferences) ? degree.master.preferences.join(", ") : degree.master?.preferences || "None",
+      preferences:
+        degree.master?.preferences === null
+          ? NO_SELECTION_DISPLAY
+          : Array.isArray(degree.master?.preferences)
+            ? degree.master.preferences.join(", ")
+            : displayValue(degree.master?.preferences),
       include: decodeKeywords(degree.master?.keywords || { include: [], exclude: "None" }).include,
-      exclude: decodeKeywords(degree.master?.keywords || { include: [], exclude: "None" }).exclude
+      exclude: decodeKeywords(degree.master?.keywords || { include: [], exclude: "None" }).exclude,
     };
     const doctorate = {
-      preferences: degree.doctorate?.preferences === null ? "None" : Array.isArray(degree.doctorate?.preferences) ? degree.doctorate.preferences.join(", ") : degree.doctorate?.preferences || "None",
+      preferences:
+        degree.doctorate?.preferences === null
+          ? NO_SELECTION_DISPLAY
+          : Array.isArray(degree.doctorate?.preferences)
+            ? degree.doctorate.preferences.join(", ")
+            : displayValue(degree.doctorate?.preferences),
       include: decodeKeywords(degree.doctorate?.keywords || { include: [], exclude: "None" }).include,
-      exclude: decodeKeywords(degree.doctorate?.keywords || { include: [], exclude: "None" }).exclude
+      exclude: decodeKeywords(degree.doctorate?.keywords || { include: [], exclude: "None" }).exclude,
     };
     return { associate, bachelor, master, doctorate };
-  }
+  };
 
   const stringifyShiftPreferences = (shifts: ShiftPreferencesOptions) => {
-    if (!shifts) return { morning: "None", afternoon: "None", night: "None", weekend: "None", holiday: "None", overtime: "None", oncall: "None" };
-    const morning = shifts.morning === null ? "None" : decodeSelectString(shifts.morning);
-    const afternoon = shifts.afternoon === null ? "None" : decodeSelectString(shifts.afternoon);
-    const night = shifts.night === null ? "None" : decodeSelectString(shifts.night);
-    const weekend = shifts.weekend === null ? "None" : decodeSelectString(shifts.weekend);
-    const holiday = shifts.holiday === null ? "None" : decodeSelectString(shifts.holiday);
-    const overtime = shifts.overtime === null ? "None" : decodeSelectString(shifts.overtime);
-    const oncall = shifts.oncall === null ? "None" : decodeSelectString(shifts.oncall);
+    if (!shifts)
+      return {
+        morning: NO_SELECTION_DISPLAY,
+        afternoon: NO_SELECTION_DISPLAY,
+        night: NO_SELECTION_DISPLAY,
+        weekend: NO_SELECTION_DISPLAY,
+        holiday: NO_SELECTION_DISPLAY,
+        overtime: NO_SELECTION_DISPLAY,
+        oncall: NO_SELECTION_DISPLAY,
+      };
+    const morning = shifts.morning === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.morning);
+    const afternoon = shifts.afternoon === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.afternoon);
+    const night = shifts.night === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.night);
+    const weekend = shifts.weekend === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.weekend);
+    const holiday = shifts.holiday === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.holiday);
+    const overtime = shifts.overtime === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.overtime);
+    const oncall = shifts.oncall === null ? NO_SELECTION_DISPLAY : decodeSelectString(shifts.oncall);
     return { morning, afternoon, night, weekend, holiday, overtime, oncall };
-  }
+  };
 
   const stringifyIndustryOptions = (industry: IndustryOptions) => {
-    if (!industry) return { profit: "All", activities: { include: "None", exclude: "None" }, decoded_industry: { include: "None", exclude: "None" }, usa_jobs: "All" };
+    if (!industry)
+      return {
+        profit: "All",
+        activities: { include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        decoded_industry: { include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        usa_jobs: "All",
+      };
     const profit = industry.profit === "All" ? "All" : decodeSelectString(industry.profit);
     const activities = decodeKeywords(industry.activities || { include: [], exclude: "None" });
     const decoded_industry = decodeKeywords(industry.industry || { include: [], exclude: "None" });
     const usa_jobs = industry.usa_jobs === "All" ? "All" : decodeSelectString(industry.usa_jobs);
     return { profit, activities, decoded_industry, usa_jobs };
-  }
+  };
 
   const stringifyFundingOptions = (funding: FundingOptions) => {
-    if (!funding) return { current: "All", investors: { include: "None", exclude: "None" }, latest_round: "All", latest_round_type: { include: "None", exclude: "None" }, latest_round_amount: "All" };
+    if (!funding)
+      return {
+        current: "All",
+        investors: { include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        latest_round: "All",
+        latest_round_type: { include: NO_SELECTION_DISPLAY, exclude: NO_SELECTION_DISPLAY },
+        latest_round_amount: "All",
+      };
     const current = funding.current === "All" ? "All" : decodeSelectString(funding.current);
     const investors = decodeKeywords(funding.investors || { include: [], exclude: "None" });
     const latest_round = decodeRangeString(funding.latest_round || { min: 0, max: 0 }, false);
     const latest_round_type = decodeKeywords(funding.latest_round_type || { include: [], exclude: "None" });
     const latest_round_amount = decodeRangeString(funding.latest_round_amount || { min: 0, max: 0 });
     return { current, investors, latest_round, latest_round_type, latest_round_amount };
-  }
+  };
 
   const stringifySizeOptions = (size: Select<InfiniteRange, "All">) => {
     if (size === "All") return "All";
@@ -164,44 +229,40 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       return `${size.length} ranges selected`;
     }
     return "All";
-  }
+  };
 
   const stringifyExperienceOptions = (experience: ExperienceLevelOptions | undefined) => {
-    if (!experience) return { level: "All", role: "All", individualContributor: "None", peopleManager: "None" };
-    
+    if (!experience) return { level: "All", role: "All", individualContributor: NO_SELECTION_DISPLAY, peopleManager: NO_SELECTION_DISPLAY };
+
     const level = decodeSelectString(experience.level || "All");
     const role = decodeSelectString(experience.role || "All");
-    
-    const individualContributor = experience.individualContributor 
-      ? `${experience.individualContributor.min}-${experience.individualContributor.max} years`
-      : "None";
-    
-    const peopleManager = experience.peopleManager 
-      ? `${experience.peopleManager.min}-${experience.peopleManager.max} years`
-      : "None";
-    
+
+    const individualContributor = experience.individualContributor ? `${experience.individualContributor.min}-${experience.individualContributor.max} years` : NO_SELECTION_DISPLAY;
+
+    const peopleManager = experience.peopleManager ? `${experience.peopleManager.min}-${experience.peopleManager.max} years` : NO_SELECTION_DISPLAY;
+
     return { level, role, individualContributor, peopleManager };
-  }
+  };
 
   const stringifiedState = {
     date_range: searchOptions?.date_range ? `${searchOptions.date_range.magnitude} ${searchOptions.date_range.unit}` : "All",
     sort: searchOptions?.sort ? `${searchOptions.sort.order} ${searchOptions.sort.by}` : "Most Relevance",
     apply_form: searchOptions?.apply_form || "All",
-    exclusion: searchOptions?.exclusion && searchOptions.exclusion.length > 0 ? searchOptions.exclusion.join(", ") : "None",
-    encouraged: searchOptions?.encouraged && searchOptions.encouraged.length > 0 ? searchOptions.encouraged.join(", ") : "None",
+    exclusion: searchOptions?.exclusion && searchOptions.exclusion.length > 0 ? searchOptions.exclusion.join(", ") : NO_SELECTION_DISPLAY,
+    encouraged: searchOptions?.encouraged && searchOptions.encouraged.length > 0 ? searchOptions.encouraged.join(", ") : NO_SELECTION_DISPLAY,
     departments: decodeSelectString(searchOptions?.department || "All"),
     salary: searchOptions?.salary ? stringifySalary(searchOptions.salary) + (searchOptions.salary.undisclosed ? " (hide undisclosed salaries)" : "") : "All",
     commitment: decodeSelectString(searchOptions?.commitment || "All"),
     experience: stringifyExperienceOptions(searchOptions?.experience),
-    job_titles: searchOptions?.job_titles?.title ? decodeSearchExpression(searchOptions.job_titles.title) : "None",
-    job_keywords: searchOptions?.job_titles?.technical ? decodeSearchExpression(searchOptions.job_titles.technical) : "None",
-    job_description: searchOptions?.job_titles?.description ? decodeSearchExpression(searchOptions.job_titles.description) : "None",
-    job_requirements: searchOptions?.job_titles?.requirements ? decodeSearchExpression(searchOptions.job_titles.requirements) : "None",
+    job_titles: searchOptions?.job_titles?.title ? decodeSearchExpression(searchOptions.job_titles.title) : NO_SELECTION_DISPLAY,
+    job_keywords: searchOptions?.job_titles?.technical ? decodeSearchExpression(searchOptions.job_titles.technical) : NO_SELECTION_DISPLAY,
+    job_description: searchOptions?.job_titles?.description ? decodeSearchExpression(searchOptions.job_titles.description) : NO_SELECTION_DISPLAY,
+    job_requirements: searchOptions?.job_titles?.requirements ? decodeSearchExpression(searchOptions.job_titles.requirements) : NO_SELECTION_DISPLAY,
     benefits: decodeSelectString(searchOptions?.benefits || "All"),
     education: stringifyDegreePreferences(searchOptions?.education),
     license: decodeKeywords(searchOptions?.license_certification?.keywords || { include: [], exclude: "None" }),
     language: decodeKeywords(searchOptions?.language || { include: [], exclude: "None" }),
-    hide_required: (searchOptions?.license_certification?.hide_required ? " Yes" : " No"),
+    hide_required: searchOptions?.license_certification?.hide_required ? " Yes" : " No",
     security: decodeSelectString(searchOptions?.security_clearance || "All"),
     shifts: stringifyShiftPreferences(searchOptions?.shift_preferences),
     air_travel: decodeSelectString(searchOptions?.travel_requirements?.air || "All"),
@@ -219,8 +280,8 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     stage_funding: stringifyFundingOptions(searchOptions?.stage_funding),
     size: stringifySizeOptions(searchOptions?.size),
     founding_year: decodeRangeString(searchOptions?.founding_year || { min: 0, max: 0 }, false),
-  }
-  
+  };
+
   const generalItems: FilterItemProps[] = [
     {
       label: "Jobs from the past",
@@ -228,7 +289,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       categoryId: "date-range" as CategoryId,
       isExtended: extended,
       isImportant: true,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Sort by",
@@ -236,7 +297,7 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       categoryId: "sorting" as CategoryId,
       isExtended: extended,
       isImportant: true,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Apply Form Type",
@@ -244,22 +305,22 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       categoryId: "apply-form" as CategoryId,
       isExtended: extended,
       isImportant: true,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluding",
       value: stringifiedState.exclusion,
       categoryId: "exclusion" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Encouraged to Apply",
       value: stringifiedState.encouraged,
       categoryId: "encouraged" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const compensationItems: FilterItemProps[] = [
@@ -268,50 +329,50 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       value: stringifiedState.salary,
       categoryId: "salary" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Commitment",
       value: stringifiedState.commitment,
       categoryId: "commitment" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Experience Level",
       value: stringifiedState.experience.level,
       categoryId: "experience" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Role Type",
       value: stringifiedState.experience.role,
       categoryId: "experience" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Years of Experience",
       value: stringifiedState.experience.individualContributor,
       categoryId: "experience" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Years of Management Experience",
       value: stringifiedState.experience.peopleManager,
       categoryId: "experience" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Benefits & Perks",
-      value: stringifiedState.benefits || "None",
+      value: stringifiedState.benefits || NO_SELECTION_DISPLAY,
       categoryId: "benefits" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const roleDepartmentItems: FilterItemProps[] = [
@@ -320,36 +381,36 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       value: stringifiedState.departments,
       categoryId: "departments" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Job Title Keywords",
-      value: stringifiedState.job_titles || "None",
+      value: stringifiedState.job_titles || NO_SELECTION_DISPLAY,
       categoryId: "job-titles" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Job Technical Keywords",
-      value: stringifiedState.job_keywords || "None",
+      value: stringifiedState.job_keywords || NO_SELECTION_DISPLAY,
       categoryId: "job-titles" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Job Description Keywords",
-      value: stringifiedState.job_description || "None",
+      value: stringifiedState.job_description || NO_SELECTION_DISPLAY,
       categoryId: "job-titles" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Job Requirements Keywords",
-      value: stringifiedState.job_requirements || "None",
+      value: stringifiedState.job_requirements || NO_SELECTION_DISPLAY,
       categoryId: "job-titles" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const qualificationsItems: FilterItemProps[] = [
@@ -358,127 +419,127 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       value: stringifiedState.education.associate.preferences,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Associate Degree Keywords",
       value: stringifiedState.education.associate.include,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Associate Degree Keywords",
       value: stringifiedState.education.associate.exclude,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Bachelor Degree Preferences",
       value: stringifiedState.education.bachelor.preferences,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Bachelor Degree Keywords",
       value: stringifiedState.education.bachelor.include,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Bachelor Degree Keywords",
       value: stringifiedState.education.bachelor.exclude,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Master Degree Preferences",
       value: stringifiedState.education.master.preferences,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Master Degree Keywords",
       value: stringifiedState.education.master.include,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Master Degree Keywords",
       value: stringifiedState.education.master.exclude,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Doctorate Degree Preferences",
       value: stringifiedState.education.doctorate.preferences,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Doctorate Degree Keywords",
       value: stringifiedState.education.doctorate.include,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Doctorate Degree Keywords",
       value: stringifiedState.education.doctorate.exclude,
       categoryId: "education" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included License Keywords",
       value: stringifiedState.license.include,
       categoryId: "licenses" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded License Keywords",
       value: stringifiedState.license.exclude,
       categoryId: "licenses" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Hide Required Licenses",
       value: stringifiedState.hide_required,
       categoryId: "licenses" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Security Clearance",
       value: stringifiedState.security,
       categoryId: "security" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Language Keywords",
       value: stringifiedState.language.include,
       categoryId: "languages" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Language Keywords",
       value: stringifiedState.language.exclude,
       categoryId: "languages" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const availabilityItems: FilterItemProps[] = [
@@ -487,64 +548,64 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       value: stringifiedState.shifts.morning,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Afternoon Shift Preferences",
       value: stringifiedState.shifts.afternoon,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Evening Shift Preferences",
       value: stringifiedState.shifts.night,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Weekend Shift Preferences",
       value: stringifiedState.shifts.weekend,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Holiday Shift Preferences",
       value: stringifiedState.shifts.holiday,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Overtime Shift Preferences",
       value: stringifiedState.shifts.overtime,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "On-Call Shift Preferences",
       value: stringifiedState.shifts.oncall,
       categoryId: "shifts" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Air Travel Preferences",
       value: stringifiedState.air_travel,
       categoryId: "travel" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Land Travel Preferences",
       value: stringifiedState.land_travel,
       categoryId: "travel" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const locationItems: FilterItemProps[] = [
@@ -553,74 +614,76 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       value: stringifiedState.location.addresses,
       categoryId: "location" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     // Only show detailed breakdown for single locations
-    ...(stringifiedState.location.isMultiple ? [] : [
-      {
-        label: "Radius",
-        value: stringifiedState.location.radius,
-        categoryId: "location" as CategoryId,
-        isExtended: extended,
-        handleCategoryClick: handleCategoryClick
-      },
-      {
-        label: "Include remote jobs in",
-        value: stringifiedState.location.flexibleRegions,
-        categoryId: "location" as CategoryId,
-        isExtended: extended,
-        handleCategoryClick: handleCategoryClick
-      },
-      {
-        label: "Workplace type",
-        value: stringifiedState.location.workplaceTypes,
-        categoryId: "workplace-activity" as CategoryId,
-        isExtended: extended,
-        handleCategoryClick: handleCategoryClick
-      }
-    ]),
+    ...(stringifiedState.location.isMultiple
+      ? []
+      : [
+          {
+            label: "Radius",
+            value: stringifiedState.location.radius,
+            categoryId: "location" as CategoryId,
+            isExtended: extended,
+            handleCategoryClick: handleCategoryClick,
+          },
+          {
+            label: "Include remote jobs in",
+            value: stringifiedState.location.flexibleRegions,
+            categoryId: "location" as CategoryId,
+            isExtended: extended,
+            handleCategoryClick: handleCategoryClick,
+          },
+          {
+            label: "Workplace type",
+            value: stringifiedState.location.workplaceTypes,
+            categoryId: "workplace-activity" as CategoryId,
+            isExtended: extended,
+            handleCategoryClick: handleCategoryClick,
+          },
+        ]),
     {
       label: "Workplace Environment",
       value: stringifiedState.environment,
       categoryId: "workplace-activity" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Mobility Requirements",
       value: stringifiedState.mobility,
       categoryId: "location" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Physical Intensity Requirements",
       value: stringifiedState.physical_intensity,
       categoryId: "location" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Cognitive Intensity Requirements",
       value: stringifiedState.cognitive_intensity,
       categoryId: "location" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Computer Usage Requirements",
       value: stringifiedState.computer_usage,
       categoryId: "location" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Oral Communication Requirements",
       value: stringifiedState.oral_communication,
       categoryId: "location" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const companyItems: FilterItemProps[] = [
@@ -629,113 +692,113 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
       value: stringifiedState.company.include,
       categoryId: "company" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Company Keywords",
       value: stringifiedState.company.exclude,
       categoryId: "company" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Industry Keywords",
       value: stringifiedState.industry.decoded_industry.include,
       categoryId: "industry" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Industry Keywords",
       value: stringifiedState.industry.decoded_industry.exclude,
       categoryId: "industry" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Industry Activities",
       value: stringifiedState.industry.activities.include,
       categoryId: "industry" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Industry Activities",
       value: stringifiedState.industry.activities.exclude,
       categoryId: "industry" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Show USA Jobs",
       value: stringifiedState.industry.usa_jobs,
       categoryId: "industry" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Current Stage",
       value: stringifiedState.stage_funding.current,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Investors",
       value: stringifiedState.stage_funding.investors.include,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Investors",
       value: stringifiedState.stage_funding.investors.exclude,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Latest Round",
       value: stringifiedState.stage_funding.latest_round,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Included Latest Round Type",
       value: stringifiedState.stage_funding.latest_round_type.include,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Excluded Latest Round Type",
       value: stringifiedState.stage_funding.latest_round_type.exclude,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Latest Round Amount",
       value: stringifiedState.stage_funding.latest_round_amount,
       categoryId: "stage" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
+      handleCategoryClick: handleCategoryClick,
     },
     {
       label: "Size",
       value: stringifiedState.size,
       categoryId: "size" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    },  
+      handleCategoryClick: handleCategoryClick,
+    },
     {
       label: "Founding Year",
       value: stringifiedState.founding_year,
       categoryId: "founding" as CategoryId,
       isExtended: extended,
-      handleCategoryClick: handleCategoryClick
-    }
+      handleCategoryClick: handleCategoryClick,
+    },
   ];
 
   const sections = [
@@ -745,38 +808,30 @@ export const AllFilter = ({handleCategoryClick, searchOptions, showButton = true
     { title: "Qualifications", items: qualificationsItems, isExtended: extended },
     { title: "Availability", items: availabilityItems, isExtended: extended },
     { title: "Location", items: locationItems, isExtended: extended },
-    { title: "Company", items: companyItems, isExtended: extended }
+    { title: "Company", items: companyItems, isExtended: extended },
   ];
 
-  const visibleSections = sections.filter(section => {
-    const visibleItems = section.items.filter(item => 
-      shouldShowFilterItem(item.value, section.isExtended, item.isImportant)
-    );
+  const visibleSections = sections.filter((section) => {
+    const visibleItems = section.items.filter((item) => shouldShowFilterItem(item.value, section.isExtended, item.isImportant));
     return visibleItems.length > 0;
   });
 
   return (
     <div>
       <div className="flex flex-col gap-4 relative rounded-md ">
-      
-        {visibleSections.map(section => (
+        {visibleSections.map((section) => (
           <FilterSection key={section.title} title={section.title} items={section.items} isExtended={section.isExtended} />
         ))}
-      
       </div>
       {showButton && (
         <>
           <div className="sticky bottom-4 right-4 flex justify-end z-20">
-            <Button
-              onClick={() => setExtended(!extended)}
-              className="w-fit"
-              variant="outline"
-            >
+            <Button onClick={() => setExtended(!extended)} className="w-fit" variant="outline">
               {extended ? "Hide unchanged filters" : "Show unchanged filters"}
             </Button>
           </div>
         </>
       )}
     </div>
-  )
-}
+  );
+};

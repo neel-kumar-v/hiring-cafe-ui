@@ -1,121 +1,177 @@
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
-import { createWorkplaceActivityHandler } from "@/lib/search";
+import type { Environment, Intensity, Mobility, SearchState, Select, WorkplaceActivityOptions } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
-import LabelInputContainer from "../util/LabelInputContainer";
+import { SentenceBlankMultiSelect, SentenceText } from "../util/sentence-query";
+
+const MOBILITY_OPTIONS = ["Sitting", "Active"] as const satisfies readonly Mobility[];
+const ENVIRONMENT_OPTIONS = ["Office", "Outdoor", "Vehicle", "Industrial"] as const satisfies readonly Environment[];
+const INTENSITY_OPTIONS = ["Low", "Medium", "High"] as const satisfies readonly Intensity[];
+
+const MOBILITY_BLANK_OPTIONS = [
+  { value: "Sitting" as const, label: "Sitting / Desk Jobs", phrase: "desk" },
+  { value: "Active" as const, label: "Active", phrase: "active" },
+];
+
+const ENVIRONMENT_BLANK_OPTIONS = ENVIRONMENT_OPTIONS.map((value) => ({
+  value,
+  label: value,
+  phrase: value.toLowerCase(),
+}));
+
+const INTENSITY_BLANK_OPTIONS = INTENSITY_OPTIONS.map((value) => ({
+  value,
+  label: value,
+  phrase: value.toLowerCase(),
+}));
+
+function isSelectAll<T extends string>(value: Select<T> | undefined, all: readonly T[]): boolean {
+  if (!value || value === "All") return true;
+  if (!Array.isArray(value)) return true;
+  return value.length === 0 || value.length === all.length;
+}
+
+function selectedValues<T extends string>(value: Select<T> | undefined, all: readonly T[]): T[] {
+  if (!Array.isArray(value) || isSelectAll(value, all)) return [];
+  return all.filter((item) => value.includes(item));
+}
+
+function toSelectValue<T extends string>(next: T[], all: readonly T[]): Select<T> {
+  return next.length === 0 || next.length === all.length ? "All" : next;
+}
+
+function patchWorkplaceActivity(
+  location: SearchState["location"],
+  activity: WorkplaceActivityOptions,
+  updateSearchOptions: (updates: Partial<SearchState>) => void,
+  patch: Partial<WorkplaceActivityOptions>
+) {
+  updateSearchOptions({
+    location: {
+      ...location,
+      workplace_activity: {
+        ...activity,
+        ...patch,
+      },
+    },
+  });
+}
 
 export default function WorkplaceActivity() {
   const { searchOptions, updateSearchOptions } = useApp();
+  const { location } = searchOptions;
+  const activity = location.workplace_activity;
 
-  const handleWorkplaceActivityChange = createWorkplaceActivityHandler(
-    searchOptions.location,
-    updateSearchOptions
-  );
+  const mobilitySelected = selectedValues(activity.mobility, MOBILITY_OPTIONS);
+  const environmentSelected = selectedValues(activity.environment, ENVIRONMENT_OPTIONS);
+  const physicalSelected = selectedValues(activity.physical_intensity, INTENSITY_OPTIONS);
+  const cognitiveSelected = selectedValues(activity.cognitive_intensity, INTENSITY_OPTIONS);
+  const computerSelected = selectedValues(activity.computer_usage, INTENSITY_OPTIONS);
+  const oralSelected = selectedValues(activity.oral_communication, INTENSITY_OPTIONS);
+
+  const patch = (next: Partial<WorkplaceActivityOptions>) => patchWorkplaceActivity(location, activity, updateSearchOptions, next);
+
+  const intensityFormat = {
+    conjunction: "or" as const,
+    noneText: "any",
+    allText: "any",
+    total: INTENSITY_OPTIONS.length,
+  };
 
   return (
     <FilterContainer categoryId="workplace-activity" title="Workplace Activity">
-      <LabelInputContainer title="Physical Position" midColCount={2} lgColCount={2}>
-        <LabelCheckbox 
-          label="Sitting / Desk Jobs" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.mobility) ? searchOptions.location.workplace_activity.mobility.includes("Sitting") : searchOptions.location.workplace_activity.mobility === "All"} 
-          onChange={() => handleWorkplaceActivityChange("mobility", "Sitting")}
-        />
-        <LabelCheckbox 
-          label="Active" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.mobility) ? searchOptions.location.workplace_activity.mobility.includes("Active") : searchOptions.location.workplace_activity.mobility === "All"} 
-          onChange={() => handleWorkplaceActivityChange("mobility", "Active")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Environment" midColCount={4}>
-        <LabelCheckbox 
-          label="Office" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.environment) ? searchOptions.location.workplace_activity.environment.includes("Office") : searchOptions.location.workplace_activity.environment === "All"} 
-          onChange={() => handleWorkplaceActivityChange("environment", "Office")}
-        />
-        <LabelCheckbox 
-          label="Outdoor" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.environment) ? searchOptions.location.workplace_activity.environment.includes("Outdoor") : searchOptions.location.workplace_activity.environment === "All"} 
-          onChange={() => handleWorkplaceActivityChange("environment", "Outdoor")}
-        />  
-        <LabelCheckbox 
-          label="Vehicle" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.environment) ? searchOptions.location.workplace_activity.environment.includes("Vehicle") : searchOptions.location.workplace_activity.environment === "All"} 
-          onChange={() => handleWorkplaceActivityChange("environment", "Vehicle")}
-        />
-        <LabelCheckbox 
-          label="Industrial" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.environment) ? searchOptions.location.workplace_activity.environment.includes("Industrial") : searchOptions.location.workplace_activity.environment === "All"} 
-          onChange={() => handleWorkplaceActivityChange("environment", "Industrial")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Physical Intensity" midColCount={3}>
-        <LabelCheckbox 
-          label="Low" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.physical_intensity) ? searchOptions.location.workplace_activity.physical_intensity.includes("Low") : searchOptions.location.workplace_activity.physical_intensity === "All"} 
-          onChange={() => handleWorkplaceActivityChange("physical_intensity", "Low")}
-        />
-        <LabelCheckbox 
-          label="Medium" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.physical_intensity) ? searchOptions.location.workplace_activity.physical_intensity.includes("Medium") : searchOptions.location.workplace_activity.physical_intensity === "All"} 
-          onChange={() => handleWorkplaceActivityChange("physical_intensity", "Medium")}
-        />
-        <LabelCheckbox 
-          label="High" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.physical_intensity) ? searchOptions.location.workplace_activity.physical_intensity.includes("High") : searchOptions.location.workplace_activity.physical_intensity === "All"} 
-          onChange={() => handleWorkplaceActivityChange("physical_intensity", "High")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Cognitive Intensity" midColCount={3}>
-        <LabelCheckbox 
-          label="Low" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.cognitive_intensity) ? searchOptions.location.workplace_activity.cognitive_intensity.includes("Low") : searchOptions.location.workplace_activity.cognitive_intensity === "All"} 
-          onChange={() => handleWorkplaceActivityChange("cognitive_intensity", "Low")}
-        />
-        <LabelCheckbox 
-          label="Medium" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.cognitive_intensity) ? searchOptions.location.workplace_activity.cognitive_intensity.includes("Medium") : searchOptions.location.workplace_activity.cognitive_intensity === "All"} 
-          onChange={() => handleWorkplaceActivityChange("cognitive_intensity", "Medium")}
-        />
-        <LabelCheckbox 
-          label="High" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.cognitive_intensity) ? searchOptions.location.workplace_activity.cognitive_intensity.includes("High") : searchOptions.location.workplace_activity.cognitive_intensity === "All"} 
-          onChange={() => handleWorkplaceActivityChange("cognitive_intensity", "High")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Computer Usage" midColCount={3}>
-        <LabelCheckbox 
-          label="Low" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.computer_usage) ? searchOptions.location.workplace_activity.computer_usage.includes("Low") : searchOptions.location.workplace_activity.computer_usage === "All"} 
-          onChange={() => handleWorkplaceActivityChange("computer_usage", "Low")}
-        />
-        <LabelCheckbox 
-          label="Medium" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.computer_usage) ? searchOptions.location.workplace_activity.computer_usage.includes("Medium") : searchOptions.location.workplace_activity.computer_usage === "All"} 
-          onChange={() => handleWorkplaceActivityChange("computer_usage", "Medium")}
-        />
-        <LabelCheckbox 
-          label="High" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.computer_usage) ? searchOptions.location.workplace_activity.computer_usage.includes("High") : searchOptions.location.workplace_activity.computer_usage === "All"} 
-          onChange={() => handleWorkplaceActivityChange("computer_usage", "High")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Oral Communication" midColCount={3}>
-        <LabelCheckbox 
-          label="Low" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.oral_communication) ? searchOptions.location.workplace_activity.oral_communication.includes("Low") : searchOptions.location.workplace_activity.oral_communication === "All"} 
-          onChange={() => handleWorkplaceActivityChange("oral_communication", "Low")}
-        />
-        <LabelCheckbox 
-          label="Medium" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.oral_communication) ? searchOptions.location.workplace_activity.oral_communication.includes("Medium") : searchOptions.location.workplace_activity.oral_communication === "All"} 
-          onChange={() => handleWorkplaceActivityChange("oral_communication", "Medium")}
-        />
-        <LabelCheckbox 
-          label="High" 
-          checked={Array.isArray(searchOptions.location.workplace_activity.oral_communication) ? searchOptions.location.workplace_activity.oral_communication.includes("High") : searchOptions.location.workplace_activity.oral_communication === "All"} 
-          onChange={() => handleWorkplaceActivityChange("oral_communication", "High")}
-        />
-      </LabelInputContainer>
+      <div className="flex flex-col gap-2">
+        <SentenceText>
+          Show
+          <SentenceBlankMultiSelect
+            ariaLabel="Physical position"
+            options={MOBILITY_BLANK_OPTIONS}
+            values={mobilitySelected}
+            onChange={(next) => patch({ mobility: toSelectValue(next, MOBILITY_OPTIONS) })}
+            placeholder="desk & active"
+            formatOptions={{
+              conjunction: "and",
+              noneText: "desk & active",
+              allText: "desk & active",
+              total: MOBILITY_OPTIONS.length,
+              n1: 2,
+            }}
+          />
+          jobs
+        </SentenceText>
+
+        <SentenceText>
+          Show jobs in
+          <SentenceBlankMultiSelect
+            ariaLabel="Work environments"
+            options={ENVIRONMENT_BLANK_OPTIONS}
+            values={environmentSelected}
+            onChange={(next) => patch({ environment: toSelectValue(next, ENVIRONMENT_OPTIONS) })}
+            placeholder="all"
+            formatOptions={{
+              conjunction: "or",
+              noneText: "all",
+              allText: "all",
+              total: ENVIRONMENT_OPTIONS.length,
+              n1: 4,
+            }}
+          />
+          environments
+        </SentenceText>
+
+        <SentenceText>
+          Show jobs with
+          <SentenceBlankMultiSelect
+            ariaLabel="Physical intensity"
+            options={INTENSITY_BLANK_OPTIONS}
+            values={physicalSelected}
+            onChange={(next) => patch({ physical_intensity: toSelectValue(next, INTENSITY_OPTIONS) })}
+            placeholder="any"
+            formatOptions={intensityFormat}
+          />
+          physical intensity
+        </SentenceText>
+
+        <SentenceText>
+          Show jobs with
+          <SentenceBlankMultiSelect
+            ariaLabel="Cognitive intensity"
+            options={INTENSITY_BLANK_OPTIONS}
+            values={cognitiveSelected}
+            onChange={(next) => patch({ cognitive_intensity: toSelectValue(next, INTENSITY_OPTIONS) })}
+            placeholder="any"
+            formatOptions={intensityFormat}
+          />
+          cognitive intensity
+        </SentenceText>
+
+        <SentenceText>
+          Show jobs with
+          <SentenceBlankMultiSelect
+            ariaLabel="Computer usage"
+            options={INTENSITY_BLANK_OPTIONS}
+            values={computerSelected}
+            onChange={(next) => patch({ computer_usage: toSelectValue(next, INTENSITY_OPTIONS) })}
+            placeholder="any"
+            formatOptions={intensityFormat}
+          />
+          computer usage
+        </SentenceText>
+
+        <SentenceText>
+          Show jobs with
+          <SentenceBlankMultiSelect
+            ariaLabel="Oral communication"
+            options={INTENSITY_BLANK_OPTIONS}
+            values={oralSelected}
+            onChange={(next) => patch({ oral_communication: toSelectValue(next, INTENSITY_OPTIONS) })}
+            placeholder="any"
+            formatOptions={intensityFormat}
+          />
+          oral communication
+        </SentenceText>
+      </div>
     </FilterContainer>
   );
-} 
+}

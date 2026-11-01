@@ -79,7 +79,12 @@ function getSectionValue(title: string) {
 }
 
 function getSectionValuesWithChecked(selectedDepartments: Select<Department>) {
-  const selected = selectedDepartments === "All" ? allDepartments : selectedDepartments;
+  // Collapsed by default: only expand sections that contain explicitly selected
+  // departments. The default "All" state leaves every section collapsed.
+  if (selectedDepartments === "All" || !Array.isArray(selectedDepartments) || selectedDepartments.length === 0) {
+    return new Set<string>();
+  }
+  const selected = selectedDepartments;
   const open = new Set<string>();
 
   for (const section of departmentSections) {
@@ -132,8 +137,7 @@ function FilterSection({ title, items, handleCheckboxChange, setDepartmentsForSe
   const itemValue = getSectionValue(title);
 
   const currentDepartments = Array.isArray(searchOptions.department) ? searchOptions.department : [];
-  const selectedInSection =
-    searchOptions.department === "All" ? items : currentDepartments.filter((item) => items.includes(item));
+  const selectedInSection = searchOptions.department === "All" ? items : currentDepartments.filter((item) => items.includes(item));
 
   const allChecked = selectedInSection.length === items.length;
   const someChecked = selectedInSection.length > 0 && selectedInSection.length < items.length;
@@ -153,16 +157,12 @@ function FilterSection({ title, items, handleCheckboxChange, setDepartmentsForSe
     >
       <AccordionItem value={itemValue}>
         <AccordionPrimitive.Header className="flex w-full items-start gap-2">
-          <Checkbox
-            className={cn(sectionCheckboxClassName, "mt-1 shrink-0")}
-            checked={checked}
-            onCheckedChange={() => handleTitleChange()}
-          />
+          <Checkbox className={cn(sectionCheckboxClassName, "mt-1 shrink-0")} checked={checked} onCheckedChange={() => handleTitleChange()} />
           <AccordionPrimitive.Trigger
             data-slot="accordion-trigger"
             className={cn(
               "focus-visible:border-ring focus-visible:ring-ring/50 group flex flex-1 items-start justify-between gap-4 rounded-md py-0 text-left text-sm font-medium transition-all duration-300 ease-out outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 cursor-pointer",
-              "text-md font-[600] pt-0 pb-1",
+              "text-md font-[600] pt-0 pb-1"
             )}
           >
             <span className="text-base select-none">{title}</span>
@@ -172,12 +172,7 @@ function FilterSection({ title, items, handleCheckboxChange, setDepartmentsForSe
         <AccordionContent className="p-2">
           <div className="flex flex-col gap-2">
             {items.map((item) => (
-              <LabelCheckbox
-                key={item}
-                label={item}
-                checked={searchOptions.department === "All" || selectedInSection.includes(item)}
-                onChange={() => handleCheckboxChange(item)}
-              />
+              <LabelCheckbox key={item} label={item} checked={searchOptions.department === "All" || selectedInSection.includes(item)} onChange={() => handleCheckboxChange(item)} />
             ))}
           </div>
         </AccordionContent>
@@ -251,48 +246,29 @@ export default function Departments() {
   };
 
   return (
-    <FilterContainer
-      categoryId="departments"
-      title="Departments"
-      actions={
-        <>
-          <div className="relative flex-1 grow min-w-0 md:max-w-[240px]">
-            <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Search departments"
-              className="h-9 grow pl-8"
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search departments..."
-              type="search"
-              value={searchQuery}
-            />
-          </div>
-          <Button
-            aria-label="Open all sections"
-            onClick={() => setOpenSections(new Set(sectionValues))}
-            title="Open all"
-            type="button"
-            variant="outline"
-            disabled={!!searchQuery}
-          >
-            <span className="hidden lg:block">Expand All</span>
-            <ChevronDownIcon className="size-4" />
-          </Button>
-          <Button
-            aria-label="Collapse all sections"
-            onClick={() => setOpenSections(new Set())}
-            title="Collapse all"
-            type="button"
-            variant="outline"
-            disabled={!!searchQuery}
-          >
-            <span className="hidden lg:block">Collapse All</span>
-            <ChevronUpIcon className="size-4" />
-          </Button>
-    
-        </>
-      }
-    >
+    <FilterContainer categoryId="departments" title="Departments" defaultCollapsed>
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            aria-label="Search departments"
+            className="h-9 grow pl-8"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search departments..."
+            type="search"
+            value={searchQuery}
+          />
+        </div>
+        <Button aria-label="Open all sections" onClick={() => setOpenSections(new Set(sectionValues))} title="Open all" type="button" variant="outline" disabled={!!searchQuery}>
+          <span className="hidden lg:block">Expand All</span>
+          <ChevronDownIcon className="size-4" />
+        </Button>
+        <Button aria-label="Collapse all sections" onClick={() => setOpenSections(new Set())} title="Collapse all" type="button" variant="outline" disabled={!!searchQuery}>
+          <span className="hidden lg:block">Collapse All</span>
+          <ChevronUpIcon className="size-4" />
+        </Button>
+      </div>
+
       {filteredSections.map((section) => {
         const sectionValue = getSectionValue(section.title);
         return (

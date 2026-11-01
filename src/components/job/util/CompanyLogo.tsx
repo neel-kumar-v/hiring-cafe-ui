@@ -15,6 +15,7 @@ import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect"
 import { cn } from "@/lib/utils";
 
 type LogoSize = "sm" | "md" | "list" | "lg" | "xl";
+type LogoVariant = "default" | "dialog" | "card" | "inbox";
 
 interface CompanyLogoInnerProps {
   companyData: ProcessedCompanyData;
@@ -24,9 +25,10 @@ interface CompanyLogoInnerProps {
   fallbackClassName: string;
   imageAlt: string;
   size: LogoSize;
+  transparentBackground?: boolean;
 }
 
-const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName, imageAlt, size }: CompanyLogoInnerProps) => {
+const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName, imageAlt, size, transparentBackground = false }: CompanyLogoInnerProps) => {
   const srcChain = useMemo(() => {
     // For list slots, do not include low-res tiny favicon fallbacks.
     // If a high-res logo isn't available, fall back cleanly to the initials monogram UI.
@@ -126,10 +128,11 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
 
   const backgroundClass = useMemo(() => {
     if (!showImage) return "bg-brand-soft/50";
+    if (transparentBackground) return "";
     if (backgroundType === "light") return "dark:bg-card";
     if (backgroundType === "dark") return "dark:bg-background";
     return "";
-  }, [showImage, backgroundType]);
+  }, [showImage, backgroundType, transparentBackground]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [squareStyle, setSquareStyle] = useState<React.CSSProperties | undefined>(undefined);
@@ -202,9 +205,11 @@ CompanyLogoInner.displayName = "CompanyLogoInner";
 
 interface CompanyLogoProps {
   companyData: ProcessedCompanyData;
-  size?: "sm" | "md" | "list" | "lg" | "xl";
-  variant?: "default" | "dialog" | "card";
+  size?: LogoSize;
+  variant?: LogoVariant;
   className?: string;
+  imageClassName?: string;
+  faviconSizePx?: number;
   /**
    * Accessible name of the logo image. Defaults to an empty alt, which renders the logo as decorative because every
    * consumer renders the company name as adjacent text. Pass a name only when the logo is the sole carrier of it.
@@ -212,84 +217,102 @@ interface CompanyLogoProps {
   alt?: string;
 }
 
-const CompanyLogo = memo(({ companyData, size = "md", variant = "default", className = "", alt = "" }: CompanyLogoProps) => {
-  const sizeClasses = {
-    sm: "size-12",
-    md: "size-14",
-    /** List-row logos: sized to match the company and job title header row height. */
-    list: "aspect-square size-14 shrink-0",
-    lg: "size-24",
-    xl: "size-32",
-  };
+const CompanyLogo = memo(
+  ({
+    companyData,
+    size = "md",
+    variant = "default",
+    className = "",
+    imageClassName = "",
+    faviconSizePx: customFaviconSizePx,
+    alt = "",
+  }: CompanyLogoProps) => {
+    const sizeClasses = {
+      sm: "size-12",
+      md: "size-14",
+      /** List-row logos: sized to match the company and job title header row height. */
+      list: "aspect-square size-14 shrink-0",
+      lg: "size-24",
+      xl: "size-32",
+    };
 
-  const textSizes = {
-    sm: "text-sm",
-    md: "text-md",
-    list: "text-md font-semibold",
-    lg: "text-3xl",
-    xl: "text-3xl",
-  };
+    const textSizes = {
+      sm: "text-sm",
+      md: "text-md",
+      list: "text-md font-semibold",
+      lg: "text-3xl",
+      xl: "text-3xl",
+    };
 
-  const paddingClasses = {
-    sm: "p-0.5",
-    md: "p-0.75",
-    list: "p-0.75",
-    lg: "",
-    xl: "",
-  };
+    const paddingClasses = {
+      sm: "p-0.5",
+      md: "p-0.75",
+      list: "p-0.75",
+      lg: "",
+      xl: "",
+    };
 
-  const roundedClasses = {
-    sm: "rounded",
-    md: "rounded-[6px]",
-    list: "rounded-[6px]",
-    lg: "rounded-xl",
-    xl: "rounded-xl",
-  };
+    const roundedClasses = {
+      sm: "rounded",
+      md: "rounded-[6px]",
+      list: "rounded-[6px]",
+      lg: "rounded-xl",
+      xl: "rounded-xl",
+    };
 
-  const containerClasses = useMemo(() => {
-    return cn(
-      "relative flex aspect-square flex-shrink-0 items-center justify-center overflow-hidden",
-      sizeClasses[size],
-      roundedClasses[size],
-      variant === "dialog" && "self-start",
-      className
+    const containerClasses = useMemo(() => {
+      return cn(
+        "relative flex aspect-square flex-shrink-0 items-center justify-center overflow-hidden bg-transparent",
+        variant === "inbox" ? "size-10 rounded-md" : sizeClasses[size],
+        variant === "inbox" ? "rounded-md" : roundedClasses[size],
+        variant === "dialog" && "self-start",
+        className
+      );
+    }, [size, variant, className]);
+
+    const imageClasses = useMemo(() => {
+      const padding = variant === "inbox" ? "p-0" : paddingClasses[size];
+      const baseClasses = cn(
+        "h-full w-full object-contain",
+        variant === "inbox" ? "rounded-md" : roundedClasses[size],
+        padding,
+        imageClassName
+      );
+
+      if (variant === "dialog") {
+        return `${baseClasses} drop-shadow-lg`;
+      }
+
+      return baseClasses;
+    }, [size, variant, imageClassName]);
+
+    const fallbackClasses = useMemo(() => {
+      const baseClasses = `font-semibold text-primary ${textSizes[size]}`;
+
+      if (variant === "dialog") {
+        return `flex h-full w-full select-none items-center justify-center ${baseClasses}`;
+      }
+
+      return baseClasses;
+    }, [size, variant]);
+
+    const defaultFaviconSizePx = variant === "inbox" ? 256 : { sm: 128, md: 128, list: 128, lg: 256, xl: 256 }[size];
+    const faviconSizePx = customFaviconSizePx ?? defaultFaviconSizePx;
+
+    return (
+      <CompanyLogoInner
+        companyData={companyData}
+        size={size}
+        faviconSizePx={faviconSizePx}
+        containerClassName={containerClasses}
+        imageClassName={imageClasses}
+        fallbackClassName={fallbackClasses}
+        imageAlt={alt}
+        transparentBackground={variant === "inbox"}
+      />
     );
-  }, [size, variant, className]);
-
-  const imageClasses = useMemo(() => {
-    const baseClasses = `h-full w-full object-contain ${roundedClasses[size]} ${paddingClasses[size]}`;
-
-    if (variant === "dialog") {
-      return `${baseClasses} drop-shadow-lg`;
-    }
-
-    return baseClasses;
-  }, [size, variant]);
-
-  const fallbackClasses = useMemo(() => {
-    const baseClasses = `font-semibold text-primary ${textSizes[size]}`;
-
-    if (variant === "dialog") {
-      return `flex h-full w-full select-none items-center justify-center ${baseClasses}`;
-    }
-
-    return baseClasses;
-  }, [size, variant]);
-
-  const faviconSizePx = { sm: 128, md: 128, list: 128, lg: 256, xl: 256 }[size];
-
-  return (
-    <CompanyLogoInner
-      companyData={companyData}
-      size={size}
-      faviconSizePx={faviconSizePx}
-      containerClassName={containerClasses}
-      imageClassName={imageClasses}
-      fallbackClassName={fallbackClasses}
-      imageAlt={alt}
-    />
-  );
-});
+  }
+);
 
 CompanyLogo.displayName = "CompanyLogo";
 

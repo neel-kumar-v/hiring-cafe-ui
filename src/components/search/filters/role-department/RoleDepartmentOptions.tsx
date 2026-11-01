@@ -18,7 +18,7 @@ export default function RoleDepartmentOptions({ scrollToSection, clearScrollToSe
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-4 md:space-y-8">
+    <div className="space-y-4">
       {shouldShow("departments") ? (
         <div className="scroll-mt-14" ref={refs.departments}>
           <Departments />
@@ -30,7 +30,6 @@ export default function RoleDepartmentOptions({ scrollToSection, clearScrollToSe
           <JobTitles />
         </div>
       ) : null}
-
     </div>
   );
 }

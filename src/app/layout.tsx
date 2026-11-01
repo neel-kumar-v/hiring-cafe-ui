@@ -15,16 +15,19 @@ const SearchDialogWrapper = lazy(() => import("@/components/SearchDialog").then(
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -86,7 +89,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased ${geistSans.variable} ${geistMono.variable} ${montserrat.variable}`}>
+      <body className={`antialiased font-sans ${geistSans.variable} ${montserrat.variable} ${geistMono.variable}`}>
         <DarkModeProvider>
           <ConvexClientProvider>
             <Suspense fallback={null}>
@@ -107,22 +110,7 @@ export default function RootLayout({
         </DarkModeProvider>
         <Toaster />
         {process.env.NODE_ENV === "development" && <AgentationDev />}
-        {/* <PerformanceMonitorScript /> */}
       </body>
     </html>
   );
 }
-
-// function PerformanceMonitorScript() {
-//   if (typeof window !== 'undefined') {
-//     const monitor = PerformanceMonitor.getInstance();
-//     monitor.startMonitoring();
-
-//     window.addEventListener('load', () => {
-//       setTimeout(() => {
-//         monitor.logSummary();
-//       }, 1000);
-//     });
-//   }
-//   return null;
-// }

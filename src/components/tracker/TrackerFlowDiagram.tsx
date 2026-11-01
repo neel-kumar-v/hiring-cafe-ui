@@ -50,18 +50,19 @@ export default function TrackerFlowDiagram({ counts }: TrackerFlowDiagramProps) 
   if (total === 0) {
     return (
       <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="mb-1 text-lg font-semibold text-foreground">Job flow</div>
-        <p className="text-sm text-muted-foreground">Save or apply to a job to see it move through your tracker.</p>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold text-foreground">Job flow</h2>
+          <span className="rounded-md bg-brand-soft px-2 py-1 text-sm font-medium text-brand-soft-foreground">0 total</span>
+        </div>
       </section>
     );
   }
 
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
-      <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Job flow</h2>
-          <p className="text-sm text-muted-foreground">Your tracked jobs by current stage.</p>
         </div>
         <span className="rounded-md bg-brand-soft px-2 py-1 text-sm font-medium text-brand-soft-foreground">{formatValue(total)} total</span>
       </div>

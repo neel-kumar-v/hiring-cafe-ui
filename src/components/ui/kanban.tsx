@@ -53,7 +53,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
   return (
     <div
       className={cn(
-        "flex size-full min-h-40 flex-col overflow-hidden rounded-md border border-input bg-input/25 text-xs shadow-sm ring-2 transition-all",
+        "flex size-full min-h-40 min-w-[280px] flex-col overflow-hidden rounded-md border border-input bg-input/25 text-xs shadow-sm ring-2 transition-all",
         isOver ? "ring-primary" : "ring-transparent",
         className
       )}
@@ -321,7 +321,7 @@ export const KanbanProvider = <T extends KanbanItemProps = KanbanItemProps, C ex
         sensors={sensors}
         {...props}
       >
-        <div className={cn("grid size-full auto-cols-fr grid-flow-col gap-4", className)}>{columns.map((column) => children(column))}</div>
+        <div className={cn("grid size-full auto-cols-[minmax(280px,1fr)] grid-flow-col gap-4", className)}>{columns.map((column) => children(column))}</div>
         {typeof window !== "undefined" &&
           createPortal(
             <DragOverlay>

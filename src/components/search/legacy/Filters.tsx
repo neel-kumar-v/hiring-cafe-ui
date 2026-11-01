@@ -8,22 +8,21 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useSavedSearches } from "@/hooks/useSavedSearches";
-import { getEditedTags } from "@/lib/edited-filters";
 import { cn } from "@/lib/utils";
-import { formatJobBoardRoundedNumber } from "@/lib/jobs/jobBoard";
 import type { ApplyForm, Exclusion, SortOptions, TimeUnits } from "@/types/search";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 type QuickFilterKey = "date" | "sort" | "apply" | "exclusion";
 
@@ -46,211 +45,230 @@ type ApplyOption = RadioOption & {
   applyForm: ApplyForm;
 };
 
-type ExclusionOption = {
+type ExclusionOption = RadioOption & {
   value: Exclusion;
-  label: string;
-  description?: string;
 };
 
 const SORT_OPTIONS: SortOption[] = [
   {
-    value: "relevance-most",
+    description: "Best match for your query and preferences.",
     label: "Relevance",
-    // description: "Default ranking across the strongest matches first.",
     sort: { by: "Relevance", order: "Most" },
+    value: "relevance-most",
   },
   {
-    value: "recency-most",
+    description: "Freshly discovered jobs appear first.",
     label: "Most recent",
-    // description: "Show the newest job posts first.",
     sort: { by: "Recency", order: "Most" },
+    value: "recency-most",
   },
   {
-    value: "recency-least",
+    description: "Oldest matching postings appear first.",
     label: "Oldest",
-    // description: "Show the oldest job posts first.",
     sort: { by: "Recency", order: "Least" },
+    value: "recency-least",
   },
   {
-    value: "salary-most",
+    description: "Highest compensation surfaced first.",
     label: "Highest salary",
-    // description: "Prioritize roles with the highest compensation.",
     sort: { by: "Salary", order: "Most" },
+    value: "salary-most",
   },
   {
-    value: "salary-least",
+    description: "Lowest compensation surfaced first.",
     label: "Lowest salary",
-    // description: "Prioritize roles with the lowest compensation.",
     sort: { by: "Salary", order: "Least" },
+    value: "salary-least",
   },
   {
-    value: "experience-most",
+    description: "Senior and executive roles prioritized.",
     label: "Most experience",
-    // description: "Show roles asking for the most experience first.",
     sort: { by: "Experience", order: "Most" },
+    value: "experience-most",
   },
   {
-    value: "experience-least",
+    description: "Junior and entry roles prioritized.",
     label: "Least experience",
-    // description: "Show roles asking for the least experience first.",
     sort: { by: "Experience", order: "Least" },
+    value: "experience-least",
   },
 ];
 
 const DATE_OPTIONS: DateOption[] = [
   {
-    value: "all-time",
-    label: "All time",
-    // description: "Include the full available posting history.",
-    magnitude: 10,
-    unit: "Years",
-  },
-  {
-    value: "24-hours",
+    description: "Show jobs posted within the last 24 hours.",
     label: "Past 24 hours",
-    // description: "Only jobs posted within the last day.",
     magnitude: 24,
     unit: "Hours",
+    value: "24-hours",
   },
   {
-    value: "3-days",
-    label: "3 days",
-    // description: "Only jobs posted in the last three days.",
+    description: "Show jobs posted within the last 3 days.",
+    label: "Past 3 days",
     magnitude: 3,
     unit: "Days",
+    value: "3-days",
   },
   {
+    description: "Show jobs posted within the last week.",
+    label: "Past week",
+    magnitude: 1,
+    unit: "Weeks",
     value: "1-week",
-    label: "1 week",
-    // description: "Only jobs posted in the last week.",
-    magnitude: 1,
-    unit: "Weeks",
   },
   {
+    description: "Show jobs posted within the last 2 weeks.",
+    label: "Past 2 weeks",
+    magnitude: 2,
+    unit: "Weeks",
     value: "2-weeks",
-    label: "2 weeks",
-    // description: "Only jobs posted in the last two weeks.",
-    magnitude: 2,
-    unit: "Weeks",
   },
   {
-    value: "3-weeks",
-    label: "3 weeks",
-    // description: "Only jobs posted in the last three weeks.",
+    description: "Show jobs posted within the last 3 weeks.",
+    label: "Past 3 weeks",
     magnitude: 3,
     unit: "Weeks",
+    value: "3-weeks",
   },
   {
-    value: "1-month",
-    label: "1 month",
-    // description: "Only jobs posted in the last month.",
+    description: "Show jobs posted within the last month.",
+    label: "Past month",
     magnitude: 1,
     unit: "Months",
+    value: "1-month",
   },
   {
-    value: "2-months",
-    label: "2 months",
-    // description: "Only jobs posted in the last two months.",
+    description: "Show jobs posted within the last 2 months.",
+    label: "Past 2 months",
     magnitude: 2,
     unit: "Months",
+    value: "2-months",
   },
   {
-    value: "3-months",
-    label: "3 months",
-    // description: "Only jobs posted in the last three months.",
+    description: "Show jobs posted within the last 3 months.",
+    label: "Past 3 months",
     magnitude: 3,
     unit: "Months",
+    value: "3-months",
   },
   {
-    value: "6-months",
-    label: "6 months",
-    // description: "Only jobs posted in the last six months.",
+    description: "Show jobs posted within the last 4 months.",
+    label: "Past 4 months",
+    magnitude: 4,
+    unit: "Months",
+    value: "4-months",
+  },
+  {
+    description: "Show jobs posted within the last 5 months.",
+    label: "Past 5 months",
+    magnitude: 5,
+    unit: "Months",
+    value: "5-months",
+  },
+  {
+    description: "Show jobs posted within the last 6 months.",
+    label: "Past 6 months",
     magnitude: 6,
     unit: "Months",
+    value: "6-months",
   },
   {
-    value: "1-year",
-    label: "1 year",
-    // description: "Only jobs posted in the last year.",
+    description: "Show jobs posted within the last year.",
+    label: "Past year",
     magnitude: 1,
     unit: "Years",
+    value: "1-year",
+  },
+  {
+    description: "Show jobs posted within the last 2 years.",
+    label: "Past 2 years",
+    magnitude: 2,
+    unit: "Years",
+    value: "2-years",
+  },
+  {
+    description: "Show jobs posted within the last 3 years.",
+    label: "Past 3 years",
+    magnitude: 3,
+    unit: "Years",
+    value: "3-years",
+  },
+  {
+    description: "Include all discovered postings without recency limits.",
+    label: "All time",
+    magnitude: 10,
+    unit: "Years",
+    value: "10-years",
   },
 ];
 
 const APPLY_OPTIONS: ApplyOption[] = [
   {
-    value: "all",
-    label: "Easy or lengthy apply",
-    description: "Include both simple and time-consuming application flows.",
     applyForm: "All",
+    description: "Include every application process style.",
+    label: "Easy or lengthy apply",
+    value: "all",
   },
   {
-    value: "fast",
-    label: "Easy apply only",
-    description: "Prioritize faster application forms.",
     applyForm: "Fast",
+    description: "Surface jobs with quick or single-page applications.",
+    label: "Easy apply only",
+    value: "simple",
   },
   {
-    value: "slow",
-    label: "Lengthy apply only",
-    description: "Only include more involved application flows.",
     applyForm: "Slow",
+    description: "Include positions that require detailed questionnaires or Workday-like flows.",
+    label: "Lengthy apply only",
+    value: "time-consuming",
   },
 ];
 
 const EXCLUSION_OPTIONS: ExclusionOption[] = [
   {
-    value: "Applied",
+    description: "Filter out roles you have already applied to.",
     label: "Applied",
-    // description: "Hide jobs you have already applied to.",
+    value: "Applied",
   },
   {
-    value: "Viewed",
+    description: "Filter out jobs you already opened and reviewed.",
     label: "Viewed",
-    // description: "Hide jobs you have already opened.",
+    value: "Viewed",
   },
   {
-    value: "Saved",
+    description: "Filter out jobs already in your saved shortlist.",
     label: "Saved",
-    // description: "Hide jobs already saved to your list.",
+    value: "Saved",
   },
   {
-    value: "Hidden",
+    description: "Filter out jobs you explicitly dismissed.",
     label: "Hidden",
-    // description: "Hide jobs you already hid.",
+    value: "Hidden",
   },
 ];
 
-const DRAWER_META: Record<
-  QuickFilterKey,
-  {
-    title: string;
-    description: string;
-  }
-> = {
-  date: {
-    title: "Date range",
-    description: "Limit results to recently posted jobs.",
-  },
-  sort: {
-    title: "Sort jobs",
-    description: "Choose how the job list should be ordered.",
-  },
+const DRAWER_META: Record<QuickFilterKey, { description: string; title: string }> = {
   apply: {
-    title: "Apply type",
-    description: "Filter by how simple or lengthy the apply flow is.",
+    description: "Pick whether you prefer quick-apply postings or are open to longer applications.",
+    title: "Application process",
+  },
+  date: {
+    description: "Filter jobs by when they were posted or refreshed by the source.",
+    title: "Date posted",
   },
   exclusion: {
-    title: "Excluded jobs",
-    description: "Hide jobs you have already interacted with.",
+    description: "Filter out jobs by status or application type.",
+    title: "Job Exclusions & Apply",
+  },
+  sort: {
+    description: "Reorder results to prioritize recency, salary, or experience levels.",
+    title: "Sort jobs",
   },
 };
 
-function getTriggerClassName(active = false, className?: string) {
+function getTriggerClassName(active: boolean) {
   return cn(
-    "group inline-flex items-center gap-1 py-0.5 text-left text-sm font-semibold leading-none transition-colors",
-    active ? "text-primary" : "text-foreground hover:text-primary",
-    className
+    "group flex h-9 items-center gap-2 rounded-xl border px-3 text-xs font-medium transition-colors",
+    active ? "border-primary/40 bg-accent text-primary shadow-xs" : "border-border/80 bg-background text-foreground/90 hover:border-border hover:bg-accent/60 hover:text-foreground"
   );
 }
 
@@ -258,14 +276,13 @@ function QuickFilterTrigger({
   active = false,
   className,
   label,
-  type = "button",
   ...props
 }: ComponentProps<"button"> & {
   active?: boolean;
   label: string;
 }) {
   return (
-    <button type={type} className={getTriggerClassName(active, className)} {...props}>
+    <button type="button" className={cn(getTriggerClassName(active), className)} {...props}>
       <span className="whitespace-nowrap">{label}</span>
       <ChevronDown className="size-3.5 text-muted-foreground transition-colors group-hover:text-current" />
     </button>
@@ -323,14 +340,7 @@ function RadioIndicator({ selected }: { selected: boolean }) {
 
 function MobileChoiceButton({ description, label, onClick, selected }: { description?: string; label: string; onClick: () => void; selected: boolean }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors bg-transparent"
-        // selected ? "bg-brand-soft text-primary" : "hover:bg-secondary/60"
-      )}
-    >
+    <button type="button" onClick={onClick} className={cn("flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors bg-transparent")}>
       <RadioIndicator selected={selected} />
       <OptionText description={description} label={label} />
     </button>
@@ -339,14 +349,7 @@ function MobileChoiceButton({ description, label, onClick, selected }: { descrip
 
 function MobileCheckboxButton({ checked, description, label, onClick }: { checked: boolean; description?: string; label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors bg-transparent"
-        // checked ? "bg-brand-soft" : "hover:bg-secondary/60"
-      )}
-    >
+    <button type="button" onClick={onClick} className={cn("flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors bg-transparent")}>
       <Checkbox
         checked={checked}
         className="mt-0.5 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary not-data-[state=checked]:dark:bg-card"
@@ -368,21 +371,8 @@ function getDateValue(magnitude: number, unit: TimeUnits) {
   return current?.value ?? `${magnitude}-${unit.toLowerCase()}`;
 }
 
-function getDateLabel(magnitude: number, unit: TimeUnits) {
-  const current = DATE_OPTIONS.find((option) => option.magnitude === magnitude && option.unit === unit);
-  if (current) return current.label;
-
-  const normalizedUnit = unit.toLowerCase();
-  const singularUnit = normalizedUnit.endsWith("s") ? normalizedUnit.slice(0, -1) : normalizedUnit;
-  return `${magnitude} ${magnitude === 1 ? singularUnit : normalizedUnit}`;
-}
-
 function getApplyValue(applyForm: ApplyForm) {
   return APPLY_OPTIONS.find((option) => option.applyForm === applyForm)?.value ?? "all";
-}
-
-function getApplyLabel(applyForm: ApplyForm) {
-  return APPLY_OPTIONS.find((option) => option.applyForm === applyForm)?.label ?? "Easy or lengthy apply";
 }
 
 function getExclusionLabel(exclusions: Exclusion[]) {
@@ -393,19 +383,11 @@ function getExclusionLabel(exclusions: Exclusion[]) {
 
 export default function Filters({ companyCount, jobCount, location }: { companyCount?: number; jobCount?: number; location?: string }) {
   const { searchOptions, updateSearchOptions } = useApp();
-  const { showLegacyFilters, showFilterRibbon, setShowFilterRibbon, jobBoardSelectionMode, setJobBoardSelectionMode } = useSearchUI();
-  const { savedSearches } = useSavedSearches();
+  const { showLegacyFilters, jobBoardSelectionMode, setJobBoardSelectionMode } = useSearchUI();
   const { contentRef, containerProps } = useCollapsibleHeight(showLegacyFilters);
   const useDesktopMenus = useMediaQuery("(min-width: 769px)");
   const [desktopFilter, setDesktopFilter] = useState<QuickFilterKey | null>(null);
   const [mobileFilter, setMobileFilter] = useState<QuickFilterKey | null>(null);
-
-  const hasEditedFilters = useMemo(() => {
-    return getEditedTags(searchOptions).size > 0;
-  }, [searchOptions]);
-
-  const hasSavedSearches = (savedSearches ?? []).length > 0;
-  const isTrulyEmptySavedSearchArea = !hasSavedSearches && !hasEditedFilters;
 
   const currentSortValue = getSortValue(searchOptions.sort);
   const currentDateValue = getDateValue(searchOptions.date_range.magnitude, searchOptions.date_range.unit);
@@ -485,150 +467,77 @@ export default function Filters({ companyCount, jobCount, location }: { companyC
       ));
     }
 
-    return EXCLUSION_OPTIONS.map((option) => (
-      <MobileCheckboxButton
-        key={option.value}
-        checked={searchOptions.exclusion.includes(option.value)}
-        description={option.description}
-        label={option.label}
-        onClick={() => toggleExclusion(option.value)}
-      />
-    ));
+    return (
+      <div className="space-y-4">
+        <div>
+          <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Exclude jobs</div>
+          {EXCLUSION_OPTIONS.map((option) => (
+            <MobileCheckboxButton
+              key={option.value}
+              checked={searchOptions.exclusion.includes(option.value)}
+              description={option.description}
+              label={option.label}
+              onClick={() => toggleExclusion(option.value)}
+            />
+          ))}
+        </div>
+        <div>
+          <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Application type</div>
+          {APPLY_OPTIONS.map((option) => (
+            <MobileChoiceButton
+              key={option.value}
+              description={option.description}
+              label={option.label}
+              onClick={() => applyApplyForm(option.value)}
+              selected={option.value === currentApplyValue}
+            />
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div {...containerProps}>
-      <div
-        ref={contentRef}
-        // className="bg-background/95 backdrop-blur"
-        aria-hidden={!showLegacyFilters}
-      >
+      <div ref={contentRef} aria-hidden={!showLegacyFilters}>
         <div className="mx-auto max-w-full px-4 py-3 lg:px-8">
           <div className="flex flex-nowrap items-center gap-x-3 gap-y-2 overflow-hidden md:flex-wrap md:gap-x-6">
             {useDesktopMenus ? (
-              <>
-                <DesktopMenuFrame
-                  active={searchOptions.date_range.magnitude !== 6 || searchOptions.date_range.unit !== "Months"}
-                  filterKey="date"
-                  hidden
-                  label={getDateLabel(searchOptions.date_range.magnitude, searchOptions.date_range.unit)}
-                  onOpenChange={handleDesktopMenuChange}
-                  open={desktopFilter === "date"}
-                >
-                  <DropdownMenuRadioGroup value={currentDateValue} onValueChange={applyDate}>
-                    {DATE_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                        className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
-                      >
-                        <OptionText description={option.description} label={option.label} />
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DesktopMenuFrame>
-
-                <DesktopMenuFrame
-                  active={searchOptions.sort.by !== "Relevance" || searchOptions.sort.order !== "Most"}
-                  filterKey="sort"
-                  label={SORT_OPTIONS.find((option) => option.value === currentSortValue)?.label ?? "Relevance"}
-                  onOpenChange={handleDesktopMenuChange}
-                  open={desktopFilter === "sort"}
-                >
-                  <DropdownMenuRadioGroup value={currentSortValue} onValueChange={applySort}>
-                    {SORT_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                        className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
-                      >
-                        <OptionText description={option.description} label={option.label} />
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DesktopMenuFrame>
-
-                <DesktopMenuFrame
-                  active={searchOptions.apply_form !== "All"}
-                  filterKey="apply"
-                  hidden
-                  label={getApplyLabel(searchOptions.apply_form)}
-                  onOpenChange={handleDesktopMenuChange}
-                  open={desktopFilter === "apply"}
-                >
-                  <DropdownMenuRadioGroup value={currentApplyValue} onValueChange={applyApplyForm}>
-                    {APPLY_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                        className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
-                      >
-                        <OptionText description={option.description} label={option.label} />
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DesktopMenuFrame>
-
-                <DesktopMenuFrame
-                  active={searchOptions.exclusion.length > 0}
-                  filterKey="exclusion"
-                  hidden
-                  label={getExclusionLabel(searchOptions.exclusion)}
-                  onOpenChange={handleDesktopMenuChange}
-                  open={desktopFilter === "exclusion"}
-                >
-                  {EXCLUSION_OPTIONS.map((option) => (
-                    <DropdownMenuCheckboxItem
+              /* Apply folded into Exclusion dropdown (_1o) */
+              <DesktopMenuFrame
+                active={searchOptions.exclusion.length > 0 || searchOptions.apply_form !== "All"}
+                filterKey="exclusion"
+                hidden
+                label={getExclusionLabel(searchOptions.exclusion)}
+                onOpenChange={handleDesktopMenuChange}
+                open={desktopFilter === "exclusion"}
+              >
+                <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Exclude jobs</div>
+                {EXCLUSION_OPTIONS.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={searchOptions.exclusion.includes(option.value)}
+                    onCheckedChange={() => toggleExclusion(option.value)}
+                    onSelect={(event) => event.preventDefault()}
+                    className="items-start rounded-lg pl-9 pr-2.5 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
+                  >
+                    <OptionText description={option.description} label={option.label} />
+                  </DropdownMenuCheckboxItem>
+                ))}
+                <DropdownMenuSeparator className="my-1" />
+                <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Application type</div>
+                <DropdownMenuRadioGroup value={currentApplyValue} onValueChange={applyApplyForm}>
+                  {APPLY_OPTIONS.map((option) => (
+                    <DropdownMenuRadioItem
                       key={option.value}
-                      checked={searchOptions.exclusion.includes(option.value)}
-                      onCheckedChange={() => toggleExclusion(option.value)}
-                      onSelect={(event) => event.preventDefault()}
-                      className="items-start rounded-lg pl-9 pr-2.5 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
+                      value={option.value}
+                      className="items-start rounded-lg pl-2 pr-8 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
                     >
                       <OptionText description={option.description} label={option.label} />
-                    </DropdownMenuCheckboxItem>
+                    </DropdownMenuRadioItem>
                   ))}
-                </DesktopMenuFrame>
-              </>
-            ) : (
-              <QuickFilterTrigger
-                active={searchOptions.sort.by !== "Relevance" || searchOptions.sort.order !== "Most"}
-                label={SORT_OPTIONS.find((option) => option.value === currentSortValue)?.label ?? "Relevance"}
-                onClick={() => setMobileFilter("sort")}
-              />
-            )}
-
-            {jobCount !== undefined || companyCount !== undefined || location ? (
-              <div className="scrollbar-none min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-sm text-muted-foreground md:flex-none md:overflow-visible">
-                {jobCount !== undefined ? <span>{formatJobBoardRoundedNumber(jobCount, 0)} jobs</span> : null}
-                {jobCount !== undefined && companyCount !== undefined ? <span> · </span> : null}
-                {companyCount !== undefined ? <span>{formatJobBoardRoundedNumber(companyCount, 0)} companies</span> : null}
-                {location ? <span> · {location}</span> : null}
-              </div>
-            ) : null}
-
-            {isTrulyEmptySavedSearchArea ? (
-              <div className="hidden items-center gap-3 md:ml-auto md:flex">
-                <Hitbox size="sm" radius="lg">
-                  <Button
-                    className="h-9 rounded-lg px-4 text-sm"
-                    onClick={() => setShowFilterRibbon(!showFilterRibbon)}
-                    variant="outline"
-                  >
-                    <ChevronUp className={cn("size-4 transition-transform", !showFilterRibbon && "rotate-180")} />
-                    {showFilterRibbon ? "Collapse filter ribbon" : "Expand filter ribbon"}
-                  </Button>
-                </Hitbox>
-                <Hitbox size="sm" radius="lg">
-                  <Button
-                    className="h-9 rounded-lg px-4 text-sm"
-                    onClick={() => setJobBoardSelectionMode(!jobBoardSelectionMode)}
-                    variant={jobBoardSelectionMode ? "default" : "outline"}
-                  >
-                    Select jobs
-                  </Button>
-                </Hitbox>
-              </div>
+                </DropdownMenuRadioGroup>
+              </DesktopMenuFrame>
             ) : null}
           </div>
         </div>
@@ -643,13 +552,15 @@ export default function Filters({ companyCount, jobCount, location }: { companyC
           <DrawerContent className="border-border bg-background">
             <DrawerHeader className="border-b border-border px-4 pb-4">
               <DrawerTitle>{mobileFilter ? DRAWER_META[mobileFilter].title : ""}</DrawerTitle>
-              <DrawerDescription>{mobileFilter ? DRAWER_META[mobileFilter].description : ""}</DrawerDescription>
+              <DrawerDescription className="sr-only">{mobileFilter ? DRAWER_META[mobileFilter].description : ""}</DrawerDescription>
             </DrawerHeader>
-            <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto px-4 py-4">{renderMobileBody()}</div>
-            <DrawerFooter className="border-t border-border">
+
+            <div className="max-h-[60vh] space-y-1 overflow-y-auto p-4">{renderMobileBody()}</div>
+
+            <DrawerFooter className="border-t border-border p-4">
               <DrawerClose asChild>
-                <Button className="rounded-xl" variant="outline">
-                  Done
+                <Button className="w-full" variant="outline">
+                  Close
                 </Button>
               </DrawerClose>
             </DrawerFooter>

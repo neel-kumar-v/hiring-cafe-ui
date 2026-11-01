@@ -4,11 +4,7 @@ import { motion, useSpring } from "motion/react";
 import { useEffect } from "react";
 import { type SpringConfig, useChartConfig } from "../chart-config-context";
 import { chartCssVars } from "../chart-context";
-import {
-  type IndicatorFadeEdges,
-  indicatorFadeGradientStops,
-  resolveVerticalFadeSides,
-} from "../indicator-fade";
+import { type IndicatorFadeEdges, indicatorFadeGradientStops, resolveVerticalFadeSides } from "../indicator-fade";
 
 export type IndicatorWidth =
   | number // Pixel width
@@ -100,10 +96,7 @@ function TooltipIndicatorInner({
   const { tooltipSpring } = useChartConfig();
   const effectiveSpring = springConfig ?? tooltipSpring;
 
-  const pixelWidth =
-    span !== undefined && columnWidth !== undefined
-      ? span * columnWidth
-      : resolveWidth(width);
+  const pixelWidth = span !== undefined && columnWidth !== undefined ? span * columnWidth : resolveWidth(width);
 
   const rectX = x - pixelWidth / 2;
   const lineX = x;
@@ -128,45 +121,17 @@ function TooltipIndicatorInner({
   if (dashed) {
     const strokeWidth = Math.max(1, pixelWidth);
     return animate ? (
-      <motion.line
-        stroke={indicatorFill}
-        strokeDasharray={strokeDasharray}
-        strokeWidth={strokeWidth}
-        x1={animatedLineX}
-        x2={animatedLineX}
-        y1={0}
-        y2={height}
-      />
+      <motion.line stroke={indicatorFill} strokeDasharray={strokeDasharray} strokeWidth={strokeWidth} x1={animatedLineX} x2={animatedLineX} y1={0} y2={height} />
     ) : (
-      <line
-        stroke={indicatorFill}
-        strokeDasharray={strokeDasharray}
-        strokeWidth={strokeWidth}
-        x1={lineX}
-        x2={lineX}
-        y1={0}
-        y2={height}
-      />
+      <line stroke={indicatorFill} strokeDasharray={strokeDasharray} strokeWidth={strokeWidth} x1={lineX} x2={lineX} y1={0} y2={height} />
     );
   }
 
   if (!fadeSides.any) {
     return animate ? (
-      <motion.rect
-        fill={indicatorFill}
-        height={height}
-        width={pixelWidth}
-        x={animatedX}
-        y={0}
-      />
+      <motion.rect fill={indicatorFill} height={height} width={pixelWidth} x={animatedX} y={0} />
     ) : (
-      <rect
-        fill={indicatorFill}
-        height={height}
-        width={pixelWidth}
-        x={rectX}
-        y={0}
-      />
+      <rect fill={indicatorFill} height={height} width={pixelWidth} x={rectX} y={0} />
     );
   }
 
@@ -177,30 +142,14 @@ function TooltipIndicatorInner({
       <defs>
         <linearGradient id={gradientId} x1="0%" x2="0%" y1="0%" y2="100%">
           {fadeStops.map((stop) => (
-            <stop
-              key={stop.offset}
-              offset={stop.offset}
-              style={{ stopColor: indicatorFill, stopOpacity: stop.opacity }}
-            />
+            <stop key={stop.offset} offset={stop.offset} style={{ stopColor: indicatorFill, stopOpacity: stop.opacity }} />
           ))}
         </linearGradient>
       </defs>
       {animate ? (
-        <motion.rect
-          fill={`url(#${gradientId})`}
-          height={height}
-          width={pixelWidth}
-          x={animatedX}
-          y={0}
-        />
+        <motion.rect fill={`url(#${gradientId})`} height={height} width={pixelWidth} x={animatedX} y={0} />
       ) : (
-        <rect
-          fill={`url(#${gradientId})`}
-          height={height}
-          width={pixelWidth}
-          x={rectX}
-          y={0}
-        />
+        <rect fill={`url(#${gradientId})`} height={height} width={pixelWidth} x={rectX} y={0} />
       )}
     </g>
   );

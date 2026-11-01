@@ -7,10 +7,7 @@ import { useSearchData } from "@/hooks/useSearchData";
 export default function Languages() {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleLanguagesChange = createKeywordsHandler(
-    updateSearchOptions,
-    "language"
-  );
+  const handleLanguagesChange = createKeywordsHandler(updateSearchOptions, "language");
 
   const { options: languages, loading } = useSearchData("languages", true);
 
@@ -30,4 +27,4 @@ export default function Languages() {
       )}
     </FilterContainer>
   );
-} 
+}

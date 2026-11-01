@@ -31,7 +31,7 @@ const CategoryToggle = ({ category, isActive, onToggle, icon }: CategoryTogglePr
   return (
     <Toggle pressed={isActive} onPressedChange={() => onToggle(category)} variant="category" size="md">
       {icon}
-      <span className="hidden min-[500px]:inline">{getCategoryLabel(category)}</span>
+      <span className="hidden @min-[640px]:inline">{getCategoryLabel(category)}</span>
     </Toggle>
   );
 };

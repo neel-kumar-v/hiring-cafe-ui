@@ -20,15 +20,24 @@ Path alias: `@/*` → `src/*`.
 
 ## Commands
 
-| Command                       | Purpose                                                                                                       |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `pnpm run typecheck`          | TypeScript only (`tsc --noEmit`). **Use this for type errors — do not use `pnpm run build` as a substitute.** |
-| `pnpm run lint`               | ESLint                                                                                                        |
-| `pnpm run lint:fix`           | ESLint with fixes                                                                                             |
-| `pnpm run format`             | Prettier                                                                                                      |
-| `pnpm run build`              | Production build (slow; not for routine type checking)                                                        |
-| `pnpm run start`              | Serve production build                                                                                        |
-| `pnpm run import-jobs-convex` | Live scrape to Convex (`scraper/scrape_to_convex.py`)                                                         |
+| Command                           | Purpose                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm run typecheck`              | TypeScript only (`tsc --noEmit`). **Use this for type errors — do not use `pnpm run build` as a substitute.** |
+| `pnpm run lint` / `vp lint`       | Lint (Oxlint via Vite+; migrated from ESLint `eslint-config-next`)                                            |
+| `pnpm run lint:fix`               | Lint with fixes (`vp lint . --fix`)                                                                           |
+| `pnpm run format` / `vp fmt`      | Format (Oxfmt via Vite+; migrated from Prettier, same options incl. `printWidth: 180`)                        |
+| `pnpm run check` / `vp check`     | Format + lint in one pass (type-check NOT included; `tsc` stays the type gate)                                |
+| `pnpm run build`                  | Production build (slow; not for routine type checking)                                                        |
+| `pnpm run start`                  | Serve production build                                                                                        |
+| `pnpm run test:unit`              | Unit tests (node:test via tsx). `vp test` is a green no-op until the suite converts to Vitest                 |
+| `pnpm run test:e2e` / `test:perf` | Playwright (unchanged)                                                                                        |
+| `pnpm run import-jobs-convex`     | Live scrape to Convex (`scraper/scrape_to_convex.py`)                                                         |
+
+Vite+ (`vp v1.3.0`, local `vite-plus` dep) owns package mgmt + lint + format.
+`pnpm run dev` / `dev:next` / `dev:convex` / `build` / `codegen` stay
+Next + Convex + xport — do NOT use `vp dev`/`vp build` for the app (they are
+Vite built-ins; this is a Next.js app). Any project script can also be run as
+`vp run <script>`.
 
 Do **not** run `pnpm run dev` unless the user asks (redundant for agents).
 
@@ -39,6 +48,15 @@ Do **not** delete local convex state unless explicitly asked.
 - Prefer `pnpm run typecheck` in a loop while editing; avoid `build` for that.
 - Identity is localStorage email (`src/lib/local-auth.ts`), not Convex Auth.
 - `convex/_generated` is tracked in git (required for Vercel). Keep regenerating via `pnpm run build` / `convex codegen`; do not delete it casually.
+
+## Agentation annotations
+
+The Agentation toolbar (`src/app/layout.tsx`, dev only, endpoint `http://localhost:4747`) lets the user annotate the page; annotations reach agents through the `agentation` MCP server (`npx -y agentation-mcp server`, configured in `.cursor/mcp.json` and `opencode.json`).
+
+- To receive feedback: call `agentation_watch_annotations` (blocks for new ones) or `agentation_get_all_pending`.
+- Per annotation: `agentation_acknowledge` → fix the code → `agentation_resolve` (with summary), then watch again.
+- `agentation_get_all_pending` returns **only** `pending`. Annotations left in `acknowledged` (child died mid-fix) are invisible to that call — scan `GET /sessions/:id` for `status=acknowledged` and finish/resolve those too. Also rehydrate `feedback-annotations-*` from browser localStorage when MCP pending is empty.
+- If annotations seem missing: `npx -y agentation-mcp doctor`, restart the MCP server, and confirm the browser session appears via `agentation_list_sessions`.
 
 <!-- convex-ai-start -->
 

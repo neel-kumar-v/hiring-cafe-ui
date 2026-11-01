@@ -11,12 +11,7 @@ export interface ScheduledTooltipControls<T> {
 }
 
 function defaultDedupeKey<T>(tooltip: T): string {
-  if (
-    typeof tooltip === "object" &&
-    tooltip !== null &&
-    "index" in tooltip &&
-    typeof (tooltip as { index: unknown }).index === "number"
-  ) {
+  if (typeof tooltip === "object" && tooltip !== null && "index" in tooltip && typeof (tooltip as { index: unknown }).index === "number") {
     const { index, x } = tooltip as { index: number; x?: number };
     if (typeof x === "number") {
       return `${index}:${Math.round(x)}`;

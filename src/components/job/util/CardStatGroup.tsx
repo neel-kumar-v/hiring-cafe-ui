@@ -10,9 +10,18 @@ type HoverSwapTextProps = {
   labelHoverWidthClassName: string;
   textClassName: string;
   isTransitioning: boolean;
+  quiet?: boolean;
 };
 
-const HoverSwapText = ({ count, label, labelHoverWidthClassName, textClassName, isTransitioning }: HoverSwapTextProps) => {
+const HoverSwapText = ({ count, label, labelHoverWidthClassName, textClassName, isTransitioning, quiet = false }: HoverSwapTextProps) => {
+  if (quiet) {
+    return (
+      <span className={cn("inline-flex items-center", textClassName, jobFadeClass(isTransitioning))}>
+        <span className="tabular-nums inline-flex">{count}</span>
+      </span>
+    );
+  }
+
   return (
     <span className={cn("inline-flex items-center ", textClassName, jobFadeClass(isTransitioning))}>
       <span
@@ -49,6 +58,7 @@ const CardStatGroup = ({
   textClassName = "text-sm",
   isTransitioning = false,
   onApplyClick,
+  quiet = false,
 }: {
   viewedCount: number;
   savedCount: number;
@@ -62,6 +72,7 @@ const CardStatGroup = ({
   textClassName?: string;
   isTransitioning?: boolean;
   onApplyClick?: (e: React.MouseEvent) => void;
+  quiet?: boolean;
 }) => {
   const savedTooltip = savedCount === 0 && !isBookmarked ? "Be the first to save this job" : isBookmarked ? "You have saved this job" : `Saved by ${savedCount} users`;
 
@@ -73,21 +84,31 @@ const CardStatGroup = ({
 
   return (
     <>
-      <StatIcon
-        count={viewedCount}
-        icon={Eye}
-        tooltipText={viewedCount === 1 ? "Only viewed by you" : `Viewed by ${viewedCount} users`}
-        iconClassName={iconClassName}
-        isTransitioning={isTransitioning}
-        textClassName={textClassName}
-      />
+      {quiet ? (
+        <UniversalTooltip content={viewedCount === 1 ? "Only viewed by you" : `Viewed by ${viewedCount} users`} side="bottom">
+          <span className="flex items-center space-x-1 leading-none">
+            <Eye className={cn("inline shrink-0 text-muted-foreground", iconClassName)} />
+            <span className={cn(textClassName, "leading-none tabular-nums", jobFadeClass(isTransitioning))}>{viewedCount}</span>
+          </span>
+        </UniversalTooltip>
+      ) : (
+        <StatIcon
+          count={viewedCount}
+          icon={Eye}
+          tooltipText={viewedCount === 1 ? "Only viewed by you" : `Viewed by ${viewedCount} users`}
+          iconClassName={iconClassName}
+          isTransitioning={isTransitioning}
+          textClassName={textClassName}
+        />
+      )}
 
       <UniversalTooltip content={savedTooltip} side="bottom">
         <button
           className={cn(
-            "group/action flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out group-hover:pl-0 group-hover:px-1.5",
-            "bg-transparent text-muted-foreground",
-            "group-hover:bg-primary group-hover:text-black!"
+            "flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out",
+            quiet
+              ? "bg-transparent text-muted-foreground hover:text-foreground"
+              : "group/action group-hover:pl-0 group-hover:px-1.5 bg-transparent text-muted-foreground group-hover:bg-primary group-hover:text-black!"
           )}
           onClick={handleBookmarkClick}
           type="button"
@@ -96,21 +117,31 @@ const CardStatGroup = ({
             <Bookmark
               fill="currentColor"
               className={cn(
-                "inline fill-current text-primary group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
+                "inline fill-current text-primary",
+                !quiet && "group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
                 iconClassName
               )}
               stroke="currentColor"
             />
           ) : (
-            <Bookmark className={cn("inline text-muted-foreground group-hover:text-black! group-hover/action:text-black!", iconClassName)} fill="none" stroke="currentColor" />
+            <Bookmark
+              className={cn(
+                "inline text-muted-foreground",
+                !quiet && "group-hover:text-black! group-hover/action:text-black!",
+                iconClassName
+              )}
+              fill="none"
+              stroke="currentColor"
+            />
           )}
 
           <HoverSwapText
             count={savedCount}
             label={isBookmarked ? "Saved" : "Save"}
             labelHoverWidthClassName={isBookmarked ? "group-hover:w-[5ch]" : "group-hover:w-[4ch]"}
-            textClassName={cn(textClassName, "group-hover:text-black!")}
+            textClassName={cn(textClassName, !quiet && "group-hover:text-black!")}
             isTransitioning={isTransitioning}
+            quiet={quiet}
           />
         </button>
       </UniversalTooltip>
@@ -118,9 +149,10 @@ const CardStatGroup = ({
       <UniversalTooltip content={appliedTooltip} side="bottom">
         <a
           className={cn(
-            "group/action flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out group-hover:pl-0 group-hover:px-1.5",
-            "bg-transparent text-muted-foreground",
-            "group-hover:bg-primary group-hover:text-black!"
+            "flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out",
+            quiet
+              ? "bg-transparent text-muted-foreground hover:text-foreground"
+              : "group/action group-hover:pl-0 group-hover:px-1.5 bg-transparent text-muted-foreground group-hover:bg-primary group-hover:text-black!"
           )}
           href={applyUrl}
           target="_blank"
@@ -131,21 +163,31 @@ const CardStatGroup = ({
             <Send
               fill="currentColor"
               className={cn(
-                "inline fill-current text-primary group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
+                "inline fill-current text-primary",
+                !quiet && "group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
                 iconClassName
               )}
               stroke="currentColor"
             />
           ) : (
-            <Send className={cn("inline text-muted-foreground group-hover:text-black! group-hover/action:text-black!", iconClassName)} fill="none" stroke="currentColor" />
+            <Send
+              className={cn(
+                "inline text-muted-foreground",
+                !quiet && "group-hover:text-black! group-hover/action:text-black!",
+                iconClassName
+              )}
+              fill="none"
+              stroke="currentColor"
+            />
           )}
 
           <HoverSwapText
             count={appliedCount}
             label={isApplied ? "Applied" : "Apply"}
             labelHoverWidthClassName={isApplied ? "group-hover:w-[7ch]" : "group-hover:w-[5ch]"}
-            textClassName={cn(textClassName, "group-hover:text-black!")}
+            textClassName={cn(textClassName, !quiet && "group-hover:text-black!")}
             isTransitioning={isTransitioning}
+            quiet={quiet}
           />
         </a>
       </UniversalTooltip>
@@ -154,7 +196,7 @@ const CardStatGroup = ({
         <UniversalTooltip content="You are interviewing for this job" side="bottom">
           <span className="flex items-center space-x-1">
             <PhoneOutgoingIcon className={cn("inline fill-primary text-primary", iconClassName)} />
-            <span className={cn(textClassName, jobFadeClass(isTransitioning))}>1</span>
+            <span className={cn(textClassName, "tabular-nums", jobFadeClass(isTransitioning))}>1</span>
           </span>
         </UniversalTooltip>
       )}

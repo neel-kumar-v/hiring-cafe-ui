@@ -202,7 +202,7 @@ function GroupSection({
 
 /** Brand-pink new-count counter-pill. */
 export function NewCountBadge({ count }: { count: number }) {
-  return <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold leading-4 text-primary-foreground">{count}</span>;
+  return <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 font-mono text-[10px] font-semibold tabular-nums leading-4 text-primary-foreground">{count}</span>;
 }
 
 /**
@@ -598,35 +598,6 @@ function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSaved
             <TooltipContent side="right">Inbox</TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <a
-                href="https://tally.so/r/n9rv4p"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Employers"
-                className="flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <Building className="size-5" />
-              </a>
-            </TooltipTrigger>
-            <TooltipContent side="right">Employers</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label="About Us"
-                onClick={() => toast.info("HiringCafe — Transparent job search.")}
-                className="flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <Info className="size-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">About Us</TooltipContent>
-          </Tooltip>
-
           <hr className="my-2 w-8 border-border" />
 
           <Tooltip>
@@ -680,6 +651,35 @@ function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSaved
         </div>
 
         <div className="flex w-full flex-col items-center gap-1 pb-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href="https://tally.so/r/n9rv4p"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Employers"
+                className="flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <Building className="size-5" />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="right">Employers</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="About Us"
+                onClick={() => toast.info("HiringCafe — Transparent job search.")}
+                className="flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <Info className="size-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">About Us</TooltipContent>
+          </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <a
@@ -750,10 +750,10 @@ export default function AppSidebar({ className, collapsed: forcedCollapsed }: { 
         <IconRibbon activeSavedId={activeSavedId} activeChatId={activeChatId} onSelectChat={openChat} />
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto pt-1 pb-2">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-2">
             <NavigationOptions />
             <hr className="my-1 border-border" />
-            <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent">
+            <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent" headerHoverBg={false}>
               <AgentChatItems activeChatId={activeChatId} onSelect={openChat} />
             </GroupSection>
             <hr className="my-2 border-border" />

@@ -1,13 +1,27 @@
 import type { Doc, Id } from "./_generated/dataModel";
+import { parsePublishTimeMillis } from "../src/lib/relative-time";
 
 function toNumberOrZero(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-export function toSortPublishMillis(job: Pick<Doc<"jobs">, "estimatedPublishDateMillis" | "updatedAt" | "_creationTime">): number {
-  if (typeof job.estimatedPublishDateMillis === "number") return job.estimatedPublishDateMillis;
+export function toSortPublishMillis(job: Pick<Doc<"jobs">, "estimatedPublishDateMillis" | "estimatedPublishDate" | "updatedAt" | "_creationTime">): number {
+  if (typeof job.estimatedPublishDateMillis === "number" && job.estimatedPublishDateMillis > 0) {
+    return job.estimatedPublishDateMillis;
+  }
+  if (typeof job.estimatedPublishDate === "string") {
+    const baseTime = job._creationTime ?? job.updatedAt ?? Date.now();
+    const parsed = parsePublishTimeMillis(job.estimatedPublishDate, null, baseTime, baseTime);
+    if (typeof parsed === "number" && parsed > 0) {
+      return parsed;
+    }
+  }
+  // Prefer _creationTime (initial scrape time) over updatedAt (mutation/touch time)
+  if (typeof job._creationTime === "number" && job._creationTime > 0) {
+    return job._creationTime;
+  }
   if (typeof job.updatedAt === "number") return job.updatedAt;
-  return job._creationTime;
+  return 0;
 }
 
 function buildSearchTextFallback(job: Doc<"jobs">, company: Doc<"companies">): string {

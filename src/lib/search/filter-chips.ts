@@ -1,7 +1,8 @@
 import { orderedFilterIds } from "@/data/search-filters";
 import { initialSearchState } from "@/lib/edited-filters";
+import { normalizeActivityMetric, toActivityMetric } from "@/lib/search/general";
 import type {
-  ActivityMetric,
+  ActivityMetricLevel,
   CategoryId,
   DegreePreferences,
   DegreePreferencesOptions,
@@ -133,7 +134,7 @@ function addKeywordChips(
     excludePrefix?: string;
     idPrefix?: string;
     replace: (state: SearchState, next: Keywords) => Partial<SearchState>;
-  },
+  }
 ) {
   const prefix = options.idPrefix ?? group.id;
   formatKeywordsList(keywords.include).forEach((value) => {
@@ -199,7 +200,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "date-range",
         label: `${state.date_range.magnitude} ${singularizeUnit(state.date_range.magnitude, state.date_range.unit)}`,
         clear: () => ({ date_range: initial.date_range }),
-      },
+      }
     );
   }
 
@@ -211,7 +212,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "sorting",
         label: `${state.sort.order} ${state.sort.by}`,
         clear: () => ({ sort: initial.sort }),
-      },
+      }
     );
   }
 
@@ -223,7 +224,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "apply-form",
         label: applyFormLabels[state.apply_form] ?? state.apply_form,
         clear: () => ({ apply_form: initial.apply_form }),
-      },
+      }
     );
   }
 
@@ -237,24 +238,28 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         clear: (current) => ({
           exclusion: current.exclusion.filter((item) => item !== value),
         }),
-      },
+      }
     );
   });
 
   (["views", "applications", "saves"] as const).forEach((metric) => {
-    const value = state.activity_outcomes[metric];
-    if (value === "All" || value === initial.activity_outcomes[metric]) return;
-    addChip(
-      chips,
-      { id: "activity-outcomes", label: "Activity & Outcomes", categoryId: "activity-outcomes" },
-      {
-        id: `activity-${metric}`,
-        label: value === "Few" ? metricLabels[metric].few : metricLabels[metric].many,
-        clear: (current) => ({
-          activity_outcomes: { ...current.activity_outcomes, [metric]: "All" as ActivityMetric },
-        }),
-      },
-    );
+    const levels = normalizeActivityMetric(state.activity_outcomes[metric]);
+    levels.forEach((level: ActivityMetricLevel) => {
+      addChip(
+        chips,
+        { id: "activity-outcomes", label: "Activity & Outcomes", categoryId: "activity-outcomes" },
+        {
+          id: `activity-${metric}-${level}`,
+          label: level === "Few" ? metricLabels[metric].few : metricLabels[metric].many,
+          clear: (current) => {
+            const remaining = normalizeActivityMetric(current.activity_outcomes[metric]).filter((item) => item !== level);
+            return {
+              activity_outcomes: { ...current.activity_outcomes, [metric]: toActivityMetric(remaining) },
+            };
+          },
+        }
+      );
+    });
   });
 
   (
@@ -278,7 +283,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             reportedOutcomes: { ...current.activity_outcomes.reportedOutcomes, [key]: false },
           },
         }),
-      },
+      }
     );
   });
 
@@ -293,7 +298,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.encouraged).filter((item) => item !== value);
           return { encouraged: next.length ? next : initial.encouraged };
         },
-      },
+      }
     );
   });
 
@@ -308,7 +313,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.department).filter((item) => item !== value);
           return { department: next.length ? next : "All" };
         },
-      },
+      }
     );
   });
 
@@ -326,7 +331,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         clear: (current) => ({
           job_titles: { ...current.job_titles, [field]: {} },
         }),
-      },
+      }
     );
   });
 
@@ -404,7 +409,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.commitment).filter((item) => item !== value);
           return { commitment: next.length ? next : "All" };
         },
-      },
+      }
     );
   });
 
@@ -419,7 +424,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.experience.level).filter((item) => item !== value);
           return { experience: { ...current.experience, level: next.length ? next : "All" } };
         },
-      },
+      }
     );
   });
 
@@ -434,7 +439,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.experience.role).filter((item) => item !== value);
           return { experience: { ...current.experience, role: next.length ? next : "All" } };
         },
-      },
+      }
     );
   });
 
@@ -447,7 +452,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "experience-ic-years",
         label: `IC experience: ${range.min}–${range.max} years`,
         clear: (current) => ({ experience: { ...current.experience, individualContributor: null } }),
-      },
+      }
     );
   }
 
@@ -460,7 +465,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "experience-pm-years",
         label: `Manager experience: ${range.min}–${range.max} years`,
         clear: (current) => ({ experience: { ...current.experience, peopleManager: null } }),
-      },
+      }
     );
   }
 
@@ -475,7 +480,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.benefits).filter((item) => item !== value);
           return { benefits: next.length ? next : initial.benefits };
         },
-      },
+      }
     );
   });
 
@@ -495,7 +500,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
               [degree]: { ...currentState.education[degree], preferences: null },
             },
           }),
-        },
+        }
       );
     }
 
@@ -521,7 +526,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
       replace: (current, next) => ({
         license_certification: { ...current.license_certification, keywords: next },
       }),
-    },
+    }
   );
 
   if (state.license_certification.hide_required) {
@@ -534,7 +539,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         clear: (current) => ({
           license_certification: { ...current.license_certification, hide_required: false },
         }),
-      },
+      }
     );
   }
 
@@ -549,7 +554,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.security_clearance).filter((item) => item !== value);
           return { security_clearance: next.length ? next : "All" };
         },
-      },
+      }
     );
   });
 
@@ -581,7 +586,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         clear: (current) => ({
           shift_preferences: { ...current.shift_preferences, [key]: initialValue },
         }),
-      },
+      }
     );
   });
 
@@ -597,7 +602,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             const next = asList(current.travel_requirements.air).filter((item) => item !== value);
             return { travel_requirements: { ...current.travel_requirements, air: next.length ? next : "All" } };
           },
-        },
+        }
       );
     });
   }
@@ -614,7 +619,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             const next = asList(current.travel_requirements.land).filter((item) => item !== value);
             return { travel_requirements: { ...current.travel_requirements, land: next.length ? next : "All" } };
           },
-        },
+        }
       );
     });
   }
@@ -634,7 +639,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             location: current.location.location.filter((item) => item.id !== location.id && item.address.formatted !== label),
           },
         }),
-      },
+      }
     );
   });
 
@@ -649,7 +654,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
           const next = asList(current.location.workplace_type).filter((item) => item !== value);
           return { location: { ...current.location, workplace_type: next.length ? next : "All" } };
         },
-      },
+      }
     );
   });
 
@@ -685,7 +690,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
               },
             };
           },
-        },
+        }
       );
     });
   });
@@ -706,34 +711,22 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             const next = asList(current.industry.profit).filter((item) => item !== value);
             return { industry: { ...current.industry, profit: next.length ? next : "All" } };
           },
-        },
+        }
       );
     });
   }
 
-  addKeywordChips(
-    chips,
-    { id: "industry", label: "Industry", categoryId: "industry" },
-    state.industry.industry,
-    initial.industry.industry,
-    {
-      idPrefix: "industry-name",
-      replace: (current, next) => ({ industry: { ...current.industry, industry: next } }),
-    },
-  );
+  addKeywordChips(chips, { id: "industry", label: "Industry", categoryId: "industry" }, state.industry.industry, initial.industry.industry, {
+    idPrefix: "industry-name",
+    replace: (current, next) => ({ industry: { ...current.industry, industry: next } }),
+  });
 
-  addKeywordChips(
-    chips,
-    { id: "industry", label: "Industry", categoryId: "industry" },
-    state.industry.activities,
-    initial.industry.activities,
-    {
-      idPrefix: "industry-activity",
-      includePrefix: "Activity: ",
-      excludePrefix: "Exclude activity: ",
-      replace: (current, next) => ({ industry: { ...current.industry, activities: next } }),
-    },
-  );
+  addKeywordChips(chips, { id: "industry", label: "Industry", categoryId: "industry" }, state.industry.activities, initial.industry.activities, {
+    idPrefix: "industry-activity",
+    includePrefix: "Activity: ",
+    excludePrefix: "Exclude activity: ",
+    replace: (current, next) => ({ industry: { ...current.industry, activities: next } }),
+  });
 
   if (state.industry.usa_jobs !== "All") {
     addChip(
@@ -743,7 +736,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "industry-usa-jobs",
         label: state.industry.usa_jobs === "Only" ? "USAJobs only" : "Hide USAJobs",
         clear: (current) => ({ industry: { ...current.industry, usa_jobs: "All" } }),
-      },
+      }
     );
   }
 
@@ -759,22 +752,16 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             const next = asList(current.stage_funding.current).filter((item) => item !== value);
             return { stage_funding: { ...current.stage_funding, current: next.length ? next : "All" } };
           },
-        },
+        }
       );
     });
   }
 
-  addKeywordChips(
-    chips,
-    { id: "stage", label: "Stage & Funding", categoryId: "stage" },
-    state.stage_funding.investors,
-    initial.stage_funding.investors,
-    {
-      includePrefix: "Investor: ",
-      excludePrefix: "Exclude investor: ",
-      replace: (current, next) => ({ stage_funding: { ...current.stage_funding, investors: next } }),
-    },
-  );
+  addKeywordChips(chips, { id: "stage", label: "Stage & Funding", categoryId: "stage" }, state.stage_funding.investors, initial.stage_funding.investors, {
+    includePrefix: "Investor: ",
+    excludePrefix: "Exclude investor: ",
+    replace: (current, next) => ({ stage_funding: { ...current.stage_funding, investors: next } }),
+  });
 
   if (hasRangeValue(state.stage_funding.latest_round)) {
     addChip(
@@ -784,7 +771,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "stage-latest-round",
         label: `Latest round: ${state.stage_funding.latest_round.min}–${state.stage_funding.latest_round.max}`,
         clear: (current) => ({ stage_funding: { ...current.stage_funding, latest_round: initial.stage_funding.latest_round } }),
-      },
+      }
     );
   }
 
@@ -801,7 +788,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
             const next = current.size.filter((_, itemIndex) => itemIndex !== index);
             return { size: next.length ? next : "All" };
           },
-        },
+        }
       );
     });
   }
@@ -816,7 +803,7 @@ export function getFilterChips(state: SearchState, initial: SearchState = initia
         id: "founding-year",
         label,
         clear: () => ({ founding_year: initial.founding_year }),
-      },
+      }
     );
   }
 

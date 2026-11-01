@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type TransitionEvent } from "react";
 
 const DURATION_MS = 300;
@@ -10,9 +11,9 @@ const DURATION_MS = 300;
  */
 export function useCollapsibleHeight(open: boolean) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const prevOpen = useRef<boolean | undefined>(undefined);
+  const prevOpen = useRef<boolean>(open);
   const [hasMounted, setHasMounted] = useState(false);
-  const [height, setHeight] = useState<number | "auto">(0);
+  const [height, setHeight] = useState<number | "auto">(open ? "auto" : 0);
 
   useEffect(() => {
     setHasMounted(true);
@@ -23,12 +24,6 @@ export function useCollapsibleHeight(open: boolean) {
 
     const node = contentRef.current;
     if (!node) return;
-
-    if (prevOpen.current === undefined) {
-      prevOpen.current = open;
-      setHeight(open ? "auto" : 0);
-      return;
-    }
 
     if (prevOpen.current === open) {
       return;
@@ -44,14 +39,17 @@ export function useCollapsibleHeight(open: boolean) {
     }
 
     if (open) {
+      const parent = node.parentElement;
+      const currentHeight = parent ? parent.getBoundingClientRect().height : 0;
       const target = node.scrollHeight;
-      setHeight(0);
+      setHeight(currentHeight);
       const id = requestAnimationFrame(() => setHeight(target));
       return () => cancelAnimationFrame(id);
     }
 
-    const target = node.scrollHeight;
-    setHeight(target);
+    const parent = node.parentElement;
+    const currentHeight = parent ? parent.getBoundingClientRect().height : node.scrollHeight;
+    setHeight(currentHeight);
     const id = requestAnimationFrame(() => setHeight(0));
     return () => cancelAnimationFrame(id);
   }, [hasMounted, open]);
@@ -72,7 +70,7 @@ export function useCollapsibleHeight(open: boolean) {
   return {
     contentRef,
     containerProps: {
-      className: "overflow-hidden transition-[height] ease-in-out",
+      className: cn("transition-[height] ease-in-out", height !== "auto" ? "overflow-hidden" : "overflow-visible"),
       style: containerStyle,
       onTransitionEnd,
     },

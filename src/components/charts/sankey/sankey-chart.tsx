@@ -4,23 +4,9 @@ import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
 import { sankey, sankeyCenter, sankeyLinkHorizontal } from "@visx/sankey";
 import type { Transition } from "motion/react";
-import {
-  memo,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { memo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import {
-  type Margin,
-  type SankeyLinkDatum,
-  type SankeyNodeDatum,
-  SankeyProvider,
-  type SankeyTooltipData,
-} from "./sankey-context";
+import { type Margin, type SankeyLinkDatum, type SankeyNodeDatum, SankeyProvider, type SankeyTooltipData } from "./sankey-context";
 
 export interface SankeyData {
   nodes: SankeyNodeDatum[];
@@ -98,13 +84,9 @@ const SankeyChartCore = memo(function SankeyChartCore({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [revealEpoch, setRevealEpoch] = useState(0);
-  const [internalHoveredNodeIndex, setInternalHoveredNodeIndex] = useState<
-    number | null
-  >(null);
+  const [internalHoveredNodeIndex, setInternalHoveredNodeIndex] = useState<number | null>(null);
   const isNodeHoverControlled = hoveredNodeIndexProp !== undefined;
-  const hoveredNodeIndex = isNodeHoverControlled
-    ? hoveredNodeIndexProp
-    : internalHoveredNodeIndex;
+  const hoveredNodeIndex = isNodeHoverControlled ? hoveredNodeIndexProp : internalHoveredNodeIndex;
   const setHoveredNodeIndex = useCallback(
     (index: number | null) => {
       if (isNodeHoverControlled) {
@@ -116,12 +98,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
     [isNodeHoverControlled, onNodeHoverChange]
   );
   const [hoveredLinkIndex, setHoveredLinkIndex] = useState<number | null>(null);
-  const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(
-    null
-  );
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
-    null
-  );
+  const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -209,16 +187,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
   return (
     <SankeyProvider value={contextValue}>
       <div className="relative h-full w-full" ref={containerRef}>
-        <svg
-          aria-hidden="true"
-          height={height}
-          onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
-          width={width}
-        >
-          <g transform={`translate(${margin.left},${margin.top})`}>
-            {children}
-          </g>
+        <svg aria-hidden="true" height={height} onMouseLeave={handleMouseLeave} onMouseMove={handleMouseMove} width={width}>
+          <g transform={`translate(${margin.left},${margin.top})`}>{children}</g>
         </svg>
       </div>
     </SankeyProvider>

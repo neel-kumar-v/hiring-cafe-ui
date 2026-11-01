@@ -22,20 +22,14 @@ const FIELDS: readonly FieldConfig[] = [
     label: "Title Keywords",
     facetType: "job_title",
     examples: {
-      "Strategy & Operations":
-        '("strategy" AND ("operations" OR "transformation") OR ("business strategy" OR "business planning"))',
-      "Nurse Practitioner":
-        '("nurse practitioner" OR "advanced practice nurse") AND NOT "registered nurse"',
-      "Data Scientist":
-        '("data scientist" OR ("machine learning" AND (engineer OR scientist))) AND NOT "data analyst"',
-      "Construction Project Manager":
-        '(construction AND ("project manager" OR "site manager"))',
-      "iOS Developer": '(ios AND (developer OR engineer)) AND NOT android',
+      "Strategy & Operations": '("strategy" AND ("operations" OR "transformation") OR ("business strategy" OR "business planning"))',
+      "Nurse Practitioner": '("nurse practitioner" OR "advanced practice nurse") AND NOT "registered nurse"',
+      "Data Scientist": '("data scientist" OR ("machine learning" AND (engineer OR scientist))) AND NOT "data analyst"',
+      "Construction Project Manager": '(construction AND ("project manager" OR "site manager"))',
+      "iOS Developer": "(ios AND (developer OR engineer)) AND NOT android",
       "Human Resources Generalist": '("human resources" OR "hr") AND generalist',
-      "Elementary School Teacher":
-        '("elementary school" AND teacher) AND NOT ("high school" OR "middle school")',
-      "Restaurant Manager":
-        '("restaurant manager" OR "food service manager") AND NOT "assistant"',
+      "Elementary School Teacher": '("elementary school" AND teacher) AND NOT ("high school" OR "middle school")',
+      "Restaurant Manager": '("restaurant manager" OR "food service manager") AND NOT "assistant"',
       "Mechanical Engineer": "(mechanical AND engineer) AND NOT civil",
     },
   },
@@ -45,9 +39,9 @@ const FIELDS: readonly FieldConfig[] = [
     facetType: "technology_keywords",
     examples: {
       "No Microsoft": "NOT (excel OR outlook OR office)",
-      "AWS or Azure": "\"AWS\" OR \"Azure\"",
-      "Modern Frontend": "\"React\" AND \"Next.js\" AND \"Tailwind\" AND \"TypeScript\"",
-      "JS Full-Stack": "(\"react\" OR \"vue\") AND NOT (\"django\" OR \"flask\")",
+      "AWS or Azure": '"AWS" OR "Azure"',
+      "Modern Frontend": '"React" AND "Next.js" AND "Tailwind" AND "TypeScript"',
+      "JS Full-Stack": '("react" OR "vue") AND NOT ("django" OR "flask")',
     },
   },
   { key: "description", label: "Description Keywords", facetType: undefined },
@@ -63,23 +57,16 @@ export default function JobTitles() {
       title="Job Titles & Keywords"
       help="Setup a boolean search for job keywords. e.g. 'software engineer AND NOT (react OR angular)' searches for software engineers that don't have react or angular in their job title."
     >
-      <Link
-        href="https://en.wikipedia.org/wiki/Full-text_search#Boolean_queries"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mb-2 -mt-2 flex flex-row items-center gap-1"
-      >
+      <Link href="https://en.wikipedia.org/wiki/Full-text_search#Boolean_queries" target="_blank" rel="noopener noreferrer" className="mb-2 inline-flex w-fit items-center gap-1">
         <span className="text-sm font-medium text-primary hover:underline">How does boolean search work?</span>
-        <ArrowUpRight className="size-4 translate-y-px cursor-pointer text-primary" />
+        <ArrowUpRight className="size-4 shrink-0 translate-y-px cursor-pointer text-primary" />
       </Link>
       <div className="flex flex-col gap-6">
         {FIELDS.map(({ key, label, facetType, examples }) => (
           <div key={key} className="w-full">
             <div className="mb-2 flex flex-col gap-0.5">
               <span className="text-sm font-medium">{label}</span>
-              {facetType ? (
-                <span className="text-xs text-muted-foreground">Use the @ symbol to search for available keywords</span>
-              ) : null}
+              {facetType ? <span className="text-xs text-muted-foreground">Use the @ symbol to search for available keywords</span> : null}
             </div>
             <div className="mt-1 w-full">
               <BooleanTextbox

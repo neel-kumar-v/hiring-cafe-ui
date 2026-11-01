@@ -20,7 +20,7 @@ export default function CompensationOptions({ scrollToSection, clearScrollToSect
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-4 md:space-y-8">
+    <div className="space-y-4">
       {shouldShow("salary") ? (
         <div className="scroll-mt-14" ref={refs.salary}>
           <Salary />
@@ -44,7 +44,6 @@ export default function CompensationOptions({ scrollToSection, clearScrollToSect
           <Benefits />
         </div>
       ) : null}
-
     </div>
   );
 }

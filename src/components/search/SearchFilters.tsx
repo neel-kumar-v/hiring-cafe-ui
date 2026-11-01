@@ -65,7 +65,7 @@ export default function SearchFilters({ onIconClick, onWrapChange, className }: 
       {legacyFilterTags.map((tag, index) => (
         <Badge
           className={cn(
-            "cursor-pointer rounded-sm border-border/70 bg-background text-foreground/80 transition-all duration-300 hover:bg-secondary lg:text-md dark:border-border dark:bg-secondary dark:text-foreground/80 dark:hover:bg-accent",
+            "cursor-pointer rounded-sm border border-primary/20 bg-brand-soft text-brand-soft-foreground transition-all duration-300 hover:bg-brand-soft/80 lg:text-md dark:text-primary",
             editCount(tag) > 0 && "border-primary/50 bg-primary/10 text-primary dark:bg-primary/20"
           )}
           key={index}
@@ -73,7 +73,11 @@ export default function SearchFilters({ onIconClick, onWrapChange, className }: 
           variant="outline"
         >
           {tag}
-          {editCount(tag) > 0 ? <span className="ml-1 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 text-primary-foreground">{editCount(tag)}</span> : null}
+          {editCount(tag) > 0 ? (
+            <span className="ml-1 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 text-primary-foreground">
+              {editCount(tag)}
+            </span>
+          ) : null}
         </Badge>
       ))}
       {/* <span className="text-muted-foreground/25 dark:text-muted-foreground/25 text-2xl h-min leading-none">
@@ -82,7 +86,7 @@ export default function SearchFilters({ onIconClick, onWrapChange, className }: 
       {companyTags.map((tag, index) => (
         <Badge
           className={cn(
-            "cursor-pointer rounded-sm border-warning/30 bg-warning-soft text-warning-soft-foreground transition-all duration-300 hover:bg-warning-soft/80 lg:text-md",
+            "cursor-pointer rounded-sm border border-primary/20 bg-brand-soft text-brand-soft-foreground transition-all duration-300 hover:bg-brand-soft/80 lg:text-md dark:text-primary",
             editCount(tag) > 0 && "border-primary/50 bg-primary/10 text-primary"
           )}
           key={index}
@@ -90,7 +94,11 @@ export default function SearchFilters({ onIconClick, onWrapChange, className }: 
           variant="outline"
         >
           {tag}
-          {editCount(tag) > 0 ? <span className="ml-1 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 text-primary-foreground">{editCount(tag)}</span> : null}
+          {editCount(tag) > 0 ? (
+            <span className="ml-1 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 text-primary-foreground">
+              {editCount(tag)}
+            </span>
+          ) : null}
         </Badge>
       ))}
     </div>

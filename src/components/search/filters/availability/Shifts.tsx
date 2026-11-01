@@ -1,152 +1,189 @@
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
-import { createAvailabilityRadioHandler, createOncallCheckboxHandler, createShiftCheckboxHandler } from "@/lib/search";
+import type { AvailabilityPreferences, OncallPreferences, ShiftPreferences, ShiftPreferencesOptions } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
-import LabelInputContainer from "../util/LabelInputContainer";
-import LabelRadio from "../util/LabelRadio";
+import { SentenceBlankMultiSelect, SentenceBlankSelect, SentenceText } from "../util/sentence-query";
+
+const SHIFT_TYPES = ["Required", "Optional", "Not Indicated"] as const satisfies readonly ShiftPreferences[];
+const AVAILABILITY_TYPES = ["Required", "Not Indicated", "None"] as const satisfies readonly AvailabilityPreferences[];
+const ONCALL_TYPES = ["Regular", "Occasional", "None"] as const satisfies readonly OncallPreferences[];
+
+const SHIFT_BLANK_OPTIONS = SHIFT_TYPES.map((value) => ({
+  value,
+  label: value,
+  phrase: value.toLowerCase(),
+}));
+
+const AVAILABILITY_BLANK_OPTIONS = AVAILABILITY_TYPES.map((value) => ({
+  value,
+  label: value,
+  phrase: value.toLowerCase(),
+}));
+
+const ONCALL_BLANK_OPTIONS = ONCALL_TYPES.map((value) => ({
+  value,
+  label: value,
+  phrase: value.toLowerCase(),
+}));
+
+type DayShiftKey = "morning" | "afternoon" | "night";
+
+function getDayShiftValues(prefs: ShiftPreferencesOptions, key: DayShiftKey): ShiftPreferences[] {
+  const current = prefs[key];
+  return Array.isArray(current) ? current : [...SHIFT_TYPES];
+}
+
+function toDayShiftValue(next: ShiftPreferences[]): ShiftPreferences[] | null {
+  if (next.length === 0 || next.length === SHIFT_TYPES.length) return null;
+  return next;
+}
+
+function getOncallValues(prefs: ShiftPreferencesOptions): OncallPreferences[] {
+  const current = prefs.oncall;
+  return Array.isArray(current) ? current : [...ONCALL_TYPES];
+}
+
+function toOncallValue(next: OncallPreferences[]): OncallPreferences[] | "All" {
+  if (next.length === 0 || next.length === ONCALL_TYPES.length) return "All";
+  return next;
+}
+
+function updateShiftPreferences(
+  current: ShiftPreferencesOptions,
+  updateSearchOptions: (updates: { shift_preferences: ShiftPreferencesOptions }) => void,
+  patch: Partial<ShiftPreferencesOptions>
+) {
+  updateSearchOptions({
+    shift_preferences: {
+      ...current,
+      ...patch,
+    },
+  });
+}
 
 export default function Shifts() {
   const { searchOptions, updateSearchOptions } = useApp();
+  const prefs = searchOptions.shift_preferences;
 
-  const handleShiftCheckboxChange = createShiftCheckboxHandler(
-    searchOptions.shift_preferences,
-    updateSearchOptions
-  );
+  const morningValues = getDayShiftValues(prefs, "morning");
+  const afternoonValues = getDayShiftValues(prefs, "afternoon");
+  const nightValues = getDayShiftValues(prefs, "night");
+  const oncallValues = getOncallValues(prefs);
 
-  const handleAvailabilityRadioChange = createAvailabilityRadioHandler(
-    searchOptions.shift_preferences,
-    updateSearchOptions
-  );
-
-  const handleOncallCheckboxChange = createOncallCheckboxHandler(
-    searchOptions.shift_preferences,
-    updateSearchOptions
-  );
+  const morningIsAll = !Array.isArray(prefs.morning);
+  const afternoonIsAll = !Array.isArray(prefs.afternoon);
+  const nightIsAll = !Array.isArray(prefs.night);
+  const oncallIsAll = prefs.oncall === "All" || oncallValues.length === ONCALL_TYPES.length;
 
   return (
     <FilterContainer categoryId="shifts" title="Shifts & Schedules">
-      <LabelInputContainer title="Morning / Day / First Shift" midColCount={3}>
-        <LabelCheckbox 
-          label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Required") : true} 
-          onChange={() => handleShiftCheckboxChange("morning", "Required")}
-        />
-        <LabelCheckbox 
-          label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Optional") : true} 
-          onChange={() => handleShiftCheckboxChange("morning", "Optional")}
-        />
-        <LabelCheckbox 
-          label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.morning) ? searchOptions.shift_preferences.morning.includes("Not Indicated") : true} 
-          onChange={() => handleShiftCheckboxChange("morning", "Not Indicated")}
-          className="lg:col-span-2"
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Afternoon / Evening / Second Shift" midColCount={3}>
-        <LabelCheckbox 
-          label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Required") : true} 
-          onChange={() => handleShiftCheckboxChange("afternoon", "Required")}
-        />
-        <LabelCheckbox 
-          label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Optional") : true} 
-          onChange={() => handleShiftCheckboxChange("afternoon", "Optional")}
-        />
-        <LabelCheckbox 
-          label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.afternoon) ? searchOptions.shift_preferences.afternoon.includes("Not Indicated") : true} 
-          onChange={() => handleShiftCheckboxChange("afternoon", "Not Indicated")}
-          className="lg:col-span-2"
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Overnight / Graveyard / Third Shift" midColCount={3}>
-        <LabelCheckbox 
-          label="Required" 
-          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Required") : true} 
-          onChange={() => handleShiftCheckboxChange("night", "Required")}
-        />
-        <LabelCheckbox 
-          label="Optional" 
-          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Optional") : true} 
-          onChange={() => handleShiftCheckboxChange("night", "Optional")}
-        />
-        <LabelCheckbox 
-          label="Not Indicated" 
-          checked={Array.isArray(searchOptions.shift_preferences.night) ? searchOptions.shift_preferences.night.includes("Not Indicated") : true} 
-          onChange={() => handleShiftCheckboxChange("night", "Not Indicated")}
-          className="lg:col-span-2"
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Weekend" midColCount={3}>
-        <LabelRadio 
-          label="Required" 
-          checked={searchOptions.shift_preferences.weekend === "Required"} 
-          onChange={() => handleAvailabilityRadioChange("weekend", "Required")}
-        />
-        <LabelRadio 
-          label="Not Indicated" 
-          checked={searchOptions.shift_preferences.weekend === "Not Indicated"} 
-          onChange={() => handleAvailabilityRadioChange("weekend", "Not Indicated")}
-        />
-        <LabelRadio 
-          label="None" 
-          checked={searchOptions.shift_preferences.weekend === "None"} 
-          onChange={() => handleAvailabilityRadioChange("weekend", "None")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Holiday" midColCount={3}>
-        <LabelRadio 
-          label="Required" 
-          checked={searchOptions.shift_preferences.holiday === "Required"} 
-          onChange={() => handleAvailabilityRadioChange("holiday", "Required")}
-        />
-        <LabelRadio 
-          label="Not Indicated" 
-          checked={searchOptions.shift_preferences.holiday === "Not Indicated"} 
-          onChange={() => handleAvailabilityRadioChange("holiday", "Not Indicated")}
-        />
-        <LabelRadio 
-          label="None" 
-          checked={searchOptions.shift_preferences.holiday === "None"} 
-          onChange={() => handleAvailabilityRadioChange("holiday", "None")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Overtime" midColCount={3}>
-        <LabelRadio 
-          label="Required" 
-          checked={searchOptions.shift_preferences.overtime === "Required"} 
-          onChange={() => handleAvailabilityRadioChange("overtime", "Required")}
-        />
-        <LabelRadio 
-          label="Not Indicated" 
-          checked={searchOptions.shift_preferences.overtime === "Not Indicated"} 
-          onChange={() => handleAvailabilityRadioChange("overtime", "Not Indicated")}
-        />
-        <LabelRadio 
-          label="None" 
-          checked={searchOptions.shift_preferences.overtime === "None"} 
-          onChange={() => handleAvailabilityRadioChange("overtime", "None")}
-        />
-      </LabelInputContainer>
-      <LabelInputContainer title="Oncall" midColCount={3}>
-        <LabelCheckbox 
-          label="Regular" 
-          checked={Array.isArray(searchOptions.shift_preferences.oncall) ? searchOptions.shift_preferences.oncall.includes("Regular") : searchOptions.shift_preferences.oncall === "All"} 
-          onChange={() => handleOncallCheckboxChange("Regular")}
-        />
-        <LabelCheckbox 
-          label="Occasional" 
-          checked={Array.isArray(searchOptions.shift_preferences.oncall) ? searchOptions.shift_preferences.oncall.includes("Occasional") : searchOptions.shift_preferences.oncall === "All"} 
-          onChange={() => handleOncallCheckboxChange("Occasional")}
-        />
-        <LabelCheckbox 
-          label="None" 
-          checked={Array.isArray(searchOptions.shift_preferences.oncall) ? searchOptions.shift_preferences.oncall.includes("None") : searchOptions.shift_preferences.oncall === "All"} 
-          onChange={() => handleOncallCheckboxChange("None")}
-        />
-      </LabelInputContainer>
+      <div className="flex flex-col gap-2">
+        <SentenceText>
+          The job can have
+          <SentenceBlankMultiSelect
+            ariaLabel="Morning shift preferences"
+            options={SHIFT_BLANK_OPTIONS}
+            values={morningIsAll ? [] : morningValues}
+            onChange={(next) => updateShiftPreferences(prefs, updateSearchOptions, { morning: toDayShiftValue(next) })}
+            placeholder="any"
+            formatOptions={{
+              conjunction: "or",
+              noneText: "any",
+              allText: "any",
+              total: SHIFT_TYPES.length,
+            }}
+          />
+          morning / day shifts
+        </SentenceText>
+
+        <SentenceText>
+          The job can have
+          <SentenceBlankMultiSelect
+            ariaLabel="Afternoon shift preferences"
+            options={SHIFT_BLANK_OPTIONS}
+            values={afternoonIsAll ? [] : afternoonValues}
+            onChange={(next) => updateShiftPreferences(prefs, updateSearchOptions, { afternoon: toDayShiftValue(next) })}
+            placeholder="any"
+            formatOptions={{
+              conjunction: "or",
+              noneText: "any",
+              allText: "any",
+              total: SHIFT_TYPES.length,
+            }}
+          />
+          afternoon / evening shifts
+        </SentenceText>
+
+        <SentenceText>
+          The job can have
+          <SentenceBlankMultiSelect
+            ariaLabel="Night shift preferences"
+            options={SHIFT_BLANK_OPTIONS}
+            values={nightIsAll ? [] : nightValues}
+            onChange={(next) => updateShiftPreferences(prefs, updateSearchOptions, { night: toDayShiftValue(next) })}
+            placeholder="any"
+            formatOptions={{
+              conjunction: "or",
+              noneText: "any",
+              allText: "any",
+              total: SHIFT_TYPES.length,
+            }}
+          />
+          overnight / graveyard shifts
+        </SentenceText>
+
+        <SentenceText>
+          The job can have
+          <SentenceBlankSelect
+            ariaLabel="Weekend preference"
+            options={AVAILABILITY_BLANK_OPTIONS}
+            value={prefs.weekend}
+            onChange={(weekend) => updateShiftPreferences(prefs, updateSearchOptions, { weekend })}
+          />
+          weekend work
+        </SentenceText>
+
+        <SentenceText>
+          The job can have
+          <SentenceBlankSelect
+            ariaLabel="Holiday preference"
+            options={AVAILABILITY_BLANK_OPTIONS}
+            value={prefs.holiday}
+            onChange={(holiday) => updateShiftPreferences(prefs, updateSearchOptions, { holiday })}
+          />
+          holiday work
+        </SentenceText>
+
+        <SentenceText>
+          The job can have
+          <SentenceBlankSelect
+            ariaLabel="Overtime preference"
+            options={AVAILABILITY_BLANK_OPTIONS}
+            value={prefs.overtime}
+            onChange={(overtime) => updateShiftPreferences(prefs, updateSearchOptions, { overtime })}
+          />
+          overtime
+        </SentenceText>
+
+        <SentenceText>
+          The job can have
+          <SentenceBlankMultiSelect
+            ariaLabel="On-call preferences"
+            options={ONCALL_BLANK_OPTIONS}
+            values={oncallIsAll ? [] : oncallValues}
+            onChange={(next) => updateShiftPreferences(prefs, updateSearchOptions, { oncall: toOncallValue(next) })}
+            placeholder="any"
+            formatOptions={{
+              conjunction: "or",
+              noneText: "any",
+              allText: "any",
+              total: ONCALL_TYPES.length,
+            }}
+          />
+          on-call
+        </SentenceText>
+      </div>
     </FilterContainer>
   );
-} 
+}

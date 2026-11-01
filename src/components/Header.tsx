@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearchUI } from "@/contexts/SearchContext";
-import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import { BarChart3, Building, CircleUser, ExternalLink, Info, ListFilterPlus, Mail, User, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,16 +14,11 @@ import { cn } from "@/lib/utils";
 import SearchBar from "./search/SearchBar";
 import SearchFilters from "./search/SearchFilters";
 
-function HomeSearchFiltersRibbon({ open, onIconClick }: { open: boolean; onIconClick: (category: string) => void }) {
-  const { contentRef, containerProps } = useCollapsibleHeight(open);
+function HomeSearchFiltersRibbon({ onIconClick }: { onIconClick: (category: string) => void }) {
   const [isWrapped, setIsWrapped] = useState(false);
   return (
-    <div {...containerProps}>
-      <div ref={contentRef}>
-        <div className="pb-4">
-          <SearchFilters onIconClick={onIconClick} onWrapChange={setIsWrapped} className={isWrapped ? "justify-start" : "justify-center"} />
-        </div>
-      </div>
+    <div className="pb-4">
+      <SearchFilters onIconClick={onIconClick} onWrapChange={setIsWrapped} className={isWrapped ? "justify-start" : "justify-center"} />
     </div>
   );
 }
@@ -32,7 +26,7 @@ function HomeSearchFiltersRibbon({ open, onIconClick }: { open: boolean; onIconC
 export default function Header() {
   const pathname = usePathname();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { showFilterRibbon, showLegacyFilters, setShowLegacyFilters, handleSearchIconClick, boardSearchQuery, setBoardSearchQuery } = useSearchUI();
+  const { showLegacyFilters, setShowLegacyFilters, handleSearchIconClick, boardSearchQuery, setBoardSearchQuery } = useSearchUI();
 
   const handleSearch = (value: string) => {
     setBoardSearchQuery(value);
@@ -86,9 +80,11 @@ export default function Header() {
                   <Mail className="mr-2 size-4" />
                   Inbox
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Building className="mr-2 size-4" />
-                  Employers
+                <DropdownMenuItem asChild>
+                  <a href="https://tally.so/r/n9rv4p" target="_blank" rel="noopener noreferrer">
+                    <Building className="mr-2 size-4" />
+                    Employers
+                  </a>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
@@ -117,7 +113,7 @@ export default function Header() {
           </div>
         </div>
 
-        {pathname === "/" ? <HomeSearchFiltersRibbon open={showFilterRibbon} onIconClick={handleSearchIconClick} /> : null}
+        {pathname === "/" ? <HomeSearchFiltersRibbon onIconClick={handleSearchIconClick} /> : null}
       </div>
     </header>
   );

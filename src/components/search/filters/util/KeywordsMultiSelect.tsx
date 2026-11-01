@@ -41,14 +41,10 @@ export function KeywordsMultiSelect({
   const [showExcludeOptions, setShowExcludeOptions] = useState(excludeOptions);
 
   useEffect(() => {
-    const filteredIncludeOptions = includeOptions.filter(
-      option => !value.exclude.includes(option.value)
-    );
+    const filteredIncludeOptions = includeOptions.filter((option) => !value.exclude.includes(option.value));
     setShowIncludeOptions(filteredIncludeOptions);
 
-    const filteredExcludeOptions = excludeOptions.filter(
-      option => !value.include.includes(option.value)
-    );
+    const filteredExcludeOptions = excludeOptions.filter((option) => !value.include.includes(option.value));
     setShowExcludeOptions(filteredExcludeOptions);
   }, [includeOptions, excludeOptions, value.include, value.exclude]);
 
@@ -63,7 +59,7 @@ export function KeywordsMultiSelect({
           className="w-full"
         />
       </div>
-      
+
       <div className="space-y-2">
         <MultiSelect
           options={showExcludeOptions}
@@ -75,4 +71,4 @@ export function KeywordsMultiSelect({
       </div>
     </div>
   );
-} 
+}

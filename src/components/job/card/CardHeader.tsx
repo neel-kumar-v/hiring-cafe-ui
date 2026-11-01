@@ -92,7 +92,7 @@ const CardHeader = ({
       <div className="flex flex-row items-start justify-between gap-2">
         {/* Type scale follows the card's own width (container query), so a card
             in a narrow column or the mobile shell still reads correctly. */}
-        <div className="line-clamp-2 min-w-0 flex-1 text-base font-semibold text-foreground @min-[360px]/card:text-lg">
+        <div className="line-clamp-2 min-w-0 flex-1 font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground @min-[360px]/card:text-[1.0625rem]">
           {getCleanJobTitle(jobTitle, companyName, locationForTitle, tools)}
         </div>
         {/* <div className="-translate-y-0.5 flex shrink-0 items-center space-x-1">
@@ -118,7 +118,7 @@ const CardHeader = ({
           )}
           {salaryLabel ? (
             <div className="flex flex-wrap">
-              <span className="bg-primary/20 text-foreground flex items-center gap-1 rounded-md px-2 py-0.5 text-xs">
+              <span className="bg-primary/20 text-foreground flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-xs tabular-nums">
                 <DollarSign className="h-3 w-3 shrink-0" />
                 {salaryLabel}
               </span>

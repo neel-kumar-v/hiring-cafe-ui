@@ -1,17 +1,10 @@
 "use client";
 
-import type {
-  SankeyLink as SankeyLinkType,
-  SankeyNode as SankeyNodeType,
-} from "d3-sankey";
+import type { SankeyLink as SankeyLinkType, SankeyNode as SankeyNodeType } from "d3-sankey";
 import { motion, useTransform } from "motion/react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useMountProgress } from "../use-mount-progress";
-import {
-  type SankeyLinkDatum,
-  type SankeyNodeDatum,
-  useSankey,
-} from "./sankey-context";
+import { type SankeyLinkDatum, type SankeyNodeDatum, useSankey } from "./sankey-context";
 
 // Helper to get node index from link source/target
 type NodeOrIndex = SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | number;
@@ -23,9 +16,7 @@ function getNodeIndex(nodeOrIndex: NodeOrIndex): number | undefined {
   return nodeOrIndex.index;
 }
 
-function getNodeObject(
-  nodeOrIndex: NodeOrIndex
-): SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | null {
+function getNodeObject(nodeOrIndex: NodeOrIndex): SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | null {
   if (typeof nodeOrIndex === "number") {
     return null;
   }
@@ -33,17 +24,9 @@ function getNodeObject(
 }
 
 // Default node color palette using CSS variables
-const defaultColors = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
+const defaultColors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
-function getDefaultNodeColor(
-  node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>
-): string {
+function getDefaultNodeColor(node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>): string {
   const index = node.index ?? 0;
   return defaultColors[index % defaultColors.length] ?? "var(--chart-1)";
 }
@@ -58,22 +41,13 @@ export interface SankeyLinkProps {
   /** Use gradient from source to target color. Default: true */
   useGradient?: boolean;
   /** Custom function to get node color (for gradient) */
-  getNodeColor?: (
-    node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string;
+  getNodeColor?: (node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>, index: number) => string;
   /** Custom link color function (overrides gradient) */
-  getLinkColor?: (
-    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string;
+  getLinkColor?: (link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>, index: number) => string;
   /** Pattern definitions to render in defs. Use @visx/pattern components (PatternLines, PatternCircles, etc.) */
   patterns?: React.ReactNode;
   /** Return pattern ID for a link, or null/undefined to use gradient/solid color */
-  getLinkPattern?: (
-    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string | null | undefined;
+  getLinkPattern?: (link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>, index: number) => string | null | undefined;
 }
 
 interface AnimatedLinkProps {
@@ -112,8 +86,7 @@ function AnimatedLink({
   // Links animate during the last 80% of total duration, starting at 20%
   const linkStartDelay = animationDuration * 0.2;
   const linkAnimDuration = animationDuration * 0.8;
-  const staggerDelaySeconds =
-    (linkStartDelay + (index / totalLinks) * linkAnimDuration * 0.4) / 1000;
+  const staggerDelaySeconds = (linkStartDelay + (index / totalLinks) * linkAnimDuration * 0.4) / 1000;
 
   useLayoutEffect(() => {
     if (pathRef.current) {
@@ -122,11 +95,7 @@ function AnimatedLink({
     }
   });
 
-  const progress = useMountProgress(
-    enterTransition,
-    staggerDelaySeconds,
-    `${revealEpoch}-${index}`
-  );
+  const progress = useMountProgress(enterTransition, staggerDelaySeconds, `${revealEpoch}-${index}`);
   const strokeDashoffset = useTransform(progress, [0, 1], [pathLength, 0]);
 
   // Calculate target opacity
@@ -169,25 +138,8 @@ function AnimatedLink({
   );
 }
 
-export function SankeyLink({
-  stroke,
-  strokeOpacity = 0.5,
-  fadedOpacity = 0.1,
-  useGradient = true,
-  getNodeColor,
-  getLinkColor,
-  patterns,
-  getLinkPattern,
-}: SankeyLinkProps) {
-  const {
-    links,
-    hoveredNodeIndex,
-    hoveredLinkIndex,
-    setHoveredLinkIndex,
-    setTooltipData,
-    animationDuration,
-    createPath,
-  } = useSankey();
+export function SankeyLink({ stroke, strokeOpacity = 0.5, fadedOpacity = 0.1, useGradient = true, getNodeColor, getLinkColor, patterns, getLinkPattern }: SankeyLinkProps) {
+  const { links, hoveredNodeIndex, hoveredLinkIndex, setHoveredLinkIndex, setTooltipData, animationDuration, createPath } = useSankey();
 
   // Get color for a node (for gradients)
   const getNodeColorFn = useCallback(
@@ -226,12 +178,8 @@ export function SankeyLink({
 
       // Always define a gradient so `url(#...)` never points to a missing id.
       // Use fallback colors if nodes can't be resolved
-      const sourceColor = sourceNode
-        ? getNodeColorFn(sourceNode)
-        : "var(--chart-1)";
-      const targetColor = targetNode
-        ? getNodeColorFn(targetNode)
-        : "var(--chart-1)";
+      const sourceColor = sourceNode ? getNodeColorFn(sourceNode) : "var(--chart-1)";
+      const targetColor = targetNode ? getNodeColorFn(targetNode) : "var(--chart-1)";
       const gradientId = `link-gradient-${index}`;
 
       // Get absolute x positions for gradient
@@ -240,15 +188,7 @@ export function SankeyLink({
       const x2 = targetNode?.x0 ?? 100;
 
       return (
-        <linearGradient
-          gradientUnits="userSpaceOnUse"
-          id={gradientId}
-          key={gradientId}
-          x1={x1}
-          x2={x2}
-          y1="0"
-          y2="0"
-        >
+        <linearGradient gradientUnits="userSpaceOnUse" id={gradientId} key={gradientId} x1={x1} x2={x2} y1="0" y2="0">
           <stop offset="0%" stopColor={sourceColor} stopOpacity={1} />
           <stop offset="100%" stopColor={targetColor} stopOpacity={1} />
         </linearGradient>
@@ -278,15 +218,10 @@ export function SankeyLink({
         const tIdx = getNodeIndex(link.target as NodeOrIndex);
 
         // Use fallback indices if we can't resolve
-        const sourceIdx =
-          sIdx ?? (typeof link.source === "number" ? link.source : -1);
-        const targetIdx =
-          tIdx ?? (typeof link.target === "number" ? link.target : -1);
+        const sourceIdx = sIdx ?? (typeof link.source === "number" ? link.source : -1);
+        const targetIdx = tIdx ?? (typeof link.target === "number" ? link.target : -1);
 
-        const isHighlighted =
-          hoveredLinkIndex === index ||
-          hoveredNodeIndex === sourceIdx ||
-          hoveredNodeIndex === targetIdx;
+        const isHighlighted = hoveredLinkIndex === index || hoveredNodeIndex === sourceIdx || hoveredNodeIndex === targetIdx;
         const isFaded = isAnyHovered && !isHighlighted;
 
         const handleMouseEnter = () => {

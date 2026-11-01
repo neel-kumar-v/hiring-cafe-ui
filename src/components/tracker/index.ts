@@ -1,3 +1,4 @@
+export { default as CategoryFilter } from "./CategoryFilter";
 export { default as CategoryToggle } from "./CategoryToggle";
 export { default as KanbanBoard } from "./KanbanBoard";
 export { default as ListView } from "./ListView";

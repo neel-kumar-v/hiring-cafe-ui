@@ -1,4 +1,4 @@
-import { AddressComponent, Environment, Intensity, Location, LocationOptions, LocationType, Mobility, SearchState, Select, Workplace } from '../../types/search';
+import { AddressComponent, Environment, Intensity, Location, LocationOptions, LocationType, Mobility, SearchState, Select, Workplace } from "../../types/search";
 
 export function isWorkplaceTypeSelected(location: Location, workplaceType: Workplace): boolean {
   if (location.workplace_type === "All") return false;
@@ -13,7 +13,7 @@ export function isFlexibleRegionSelected(location: Location, region: LocationTyp
 }
 
 export function getCurrentRadius(location: Location): number {
-  return location.options?.ignore_radius ? 0 : (location.options?.radius || 25);
+  return location.options?.ignore_radius ? 0 : location.options?.radius || 25;
 }
 
 export function getRadiusUnit(location: Location): "Miles" | "Kilometers" {
@@ -29,27 +29,27 @@ export function formatRadiusLabel(value: number | undefined, location: Location)
 export function getLocationLabels(location: Location): { city: string; state: string; country: string; continent: string } {
   const address = location.address;
   const components = address.components || [];
-  
-  let city = '';
-  let state = '';
-  let country = '';
-  let continent = '';
-  
+
+  let city = "";
+  let state = "";
+  let country = "";
+  let continent = "";
+
   components.forEach((component: AddressComponent) => {
-    if (component.types.includes('Locality' as LocationType)) {
+    if (component.types.includes("Locality" as LocationType)) {
       city = component.long_name;
-    } else if (component.types.includes('Administrative Area Level 1' as LocationType)) {
+    } else if (component.types.includes("Administrative Area Level 1" as LocationType)) {
       state = component.long_name;
-    } else if (component.types.includes('Country' as LocationType)) {
+    } else if (component.types.includes("Country" as LocationType)) {
       country = component.long_name;
-    } else if (component.types.includes('Continent' as LocationType)) {
+    } else if (component.types.includes("Continent" as LocationType)) {
       continent = component.long_name;
     }
   });
 
   // Fallback to parsing from formatted address if components not available
   if (!city && !state && !country) {
-    const parts = address.formatted.split(', ');
+    const parts = address.formatted.split(", ");
     if (parts.length >= 2) {
       city = parts[0];
       state = parts[1];
@@ -61,12 +61,12 @@ export function getLocationLabels(location: Location): { city: string; state: st
 
   // If we still don't have a city, try to get it from the formatted address
   if (!city) {
-    const parts = address.formatted.split(', ');
+    const parts = address.formatted.split(", ");
     // Look for the first part that's not a state or country
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i].trim();
       // Skip if it looks like a state abbreviation or country
-      if (part.length <= 3 || part.includes('United States') || part.includes('USA')) {
+      if (part.length <= 3 || part.includes("United States") || part.includes("USA")) {
         continue;
       }
       // Skip if it contains numbers (like zip codes)
@@ -80,12 +80,12 @@ export function getLocationLabels(location: Location): { city: string; state: st
 
   // Set continent based on country if not found
   if (!continent && country) {
-    if (country === 'United States' || country === 'Canada' || country === 'Mexico') {
-      continent = 'North America';
-    } else if (country === 'United Kingdom' || country === 'Germany' || country === 'France') {
-      continent = 'Europe';
-    } else if (country === 'China' || country === 'Japan' || country === 'India') {
-      continent = 'Asia';
+    if (country === "United States" || country === "Canada" || country === "Mexico") {
+      continent = "North America";
+    } else if (country === "United Kingdom" || country === "Germany" || country === "France") {
+      continent = "Europe";
+    } else if (country === "China" || country === "Japan" || country === "India") {
+      continent = "Asia";
     }
     // Add more continent mappings as needed
   }
@@ -93,44 +93,39 @@ export function getLocationLabels(location: Location): { city: string; state: st
   return { city, state, country, continent };
 }
 
-export function createWorkplaceActivityHandler(
-  currentLocation: LocationOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (activityType: 'mobility' | 'physical_intensity' | 'cognitive_intensity' | 'computer_usage' | 'oral_communication' | 'environment', value: Mobility | Intensity | Environment) => {
+const ALL_MOBILITY: Mobility[] = ["Sitting", "Active"];
+const ALL_ENVIRONMENTS: Environment[] = ["Office", "Outdoor", "Vehicle", "Industrial"];
+const ALL_INTENSITIES: Intensity[] = ["Low", "Medium", "High"];
+
+function toggleSelectValue<T extends string>(current: Select<T>, value: T, allValues: readonly T[]): Select<T> {
+  if (!Array.isArray(current)) {
+    const remaining = allValues.filter((item) => item !== value);
+    return remaining.length === 0 || remaining.length === allValues.length ? "All" : remaining;
+  }
+
+  if (current.includes(value)) {
+    const filtered = current.filter((item) => item !== value);
+    return filtered.length === 0 ? "All" : filtered;
+  }
+
+  const next = [...current, value];
+  return next.length === allValues.length ? "All" : next;
+}
+
+export function createWorkplaceActivityHandler(currentLocation: LocationOptions, updateSearchOptions: (updates: Partial<SearchState>) => void) {
+  return (
+    activityType: "mobility" | "physical_intensity" | "cognitive_intensity" | "computer_usage" | "oral_communication" | "environment",
+    value: Mobility | Intensity | Environment
+  ) => {
     const currentActivity = currentLocation.workplace_activity[activityType];
     let newActivity: Select<Mobility | Intensity | Environment>;
 
-    if (activityType === 'mobility') {
-      const allMobilityValues: Mobility[] = ["Sitting", "Active"];
-      if (!Array.isArray(currentActivity)) {
-        const allExceptSelected = allMobilityValues.filter(item => item !== value);
-        newActivity = allExceptSelected;
-      } else {
-        const currentArray = currentActivity as Mobility[];
-        if (currentArray.includes(value as Mobility)) {
-          const filtered = currentArray.filter(item => item !== value);
-          newActivity = filtered.length === 0 ? "All" : filtered;
-        } else {
-          newActivity = [...currentArray, value];
-          if (newActivity.length === allMobilityValues.length) newActivity = "All";
-        }
-      }
+    if (activityType === "mobility") {
+      newActivity = toggleSelectValue(currentActivity as Select<Mobility>, value as Mobility, ALL_MOBILITY);
+    } else if (activityType === "environment") {
+      newActivity = toggleSelectValue(currentActivity as Select<Environment>, value as Environment, ALL_ENVIRONMENTS);
     } else {
-      const allIntensityValues: Intensity[] = ["Low", "Medium", "High"];
-      if (!Array.isArray(currentActivity)) {
-        const allExceptSelected = allIntensityValues.filter(item => item !== value);
-        newActivity = allExceptSelected;
-      } else {
-        const currentArray = currentActivity as Intensity[];
-        if (currentArray.includes(value as Intensity)) {
-          const filtered = currentArray.filter(item => item !== value);
-          newActivity = filtered.length === 0 ? "All" : filtered;
-        } else {
-          newActivity = [...currentArray, value];
-          if (newActivity.length === allIntensityValues.length) newActivity = "All";
-        }
-      }
+      newActivity = toggleSelectValue(currentActivity as Select<Intensity>, value as Intensity, ALL_INTENSITIES);
     }
 
     updateSearchOptions({
@@ -138,9 +133,9 @@ export function createWorkplaceActivityHandler(
         ...currentLocation,
         workplace_activity: {
           ...currentLocation.workplace_activity,
-          [activityType]: newActivity
-        }
-      }
+          [activityType]: newActivity,
+        },
+      },
     });
   };
 }
@@ -159,17 +154,15 @@ export function createLocationRadiusHandler(
         radius: radius,
         radius_unit: currentLocation.options?.radius_unit || "Miles",
         ignore_radius: radius === 0,
-        flexible_regions: currentLocation.options?.flexible_regions || []
-      }
+        flexible_regions: currentLocation.options?.flexible_regions || [],
+      },
     };
-    
+
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
+        location: searchState.location.location.map((loc: Location, index: number) => (index === locationIndex ? updatedLocation : loc)),
+      },
     });
   };
 }
@@ -188,17 +181,15 @@ export function createLocationRadiusUnitHandler(
         radius: currentLocation.options?.radius || 25,
         radius_unit: unit,
         ignore_radius: currentLocation.options?.ignore_radius || false,
-        flexible_regions: currentLocation.options?.flexible_regions || []
-      }
+        flexible_regions: currentLocation.options?.flexible_regions || [],
+      },
     };
-    
+
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
+        location: searchState.location.location.map((loc: Location, index: number) => (index === locationIndex ? updatedLocation : loc)),
+      },
     });
   };
 }
@@ -214,20 +205,18 @@ export function createLocationIgnoreRadiusHandler(
       ...currentLocation,
       options: {
         ...currentLocation.options,
-        radius: ignore ? 0 : (currentLocation.options?.radius || 25),
+        radius: ignore ? 0 : currentLocation.options?.radius || 25,
         radius_unit: currentLocation.options?.radius_unit || "Miles",
         ignore_radius: ignore,
-        flexible_regions: currentLocation.options?.flexible_regions || []
-      }
+        flexible_regions: currentLocation.options?.flexible_regions || [],
+      },
     };
-    
+
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
+        location: searchState.location.location.map((loc: Location, index: number) => (index === locationIndex ? updatedLocation : loc)),
+      },
     });
   };
 }
@@ -240,29 +229,32 @@ export function createLocationWorkplaceTypeHandler(
 ) {
   return (workplaceType: Workplace) => {
     let newWorkplaceType: Workplace[] | "All";
-    
-    const currentTypes = Array.isArray(currentLocation.workplace_type) ? currentLocation.workplace_type : 
-      (currentLocation.workplace_type === "All" ? [] : (currentLocation.workplace_type ? [currentLocation.workplace_type as Workplace] : []));
-    
+
+    const currentTypes = Array.isArray(currentLocation.workplace_type)
+      ? currentLocation.workplace_type
+      : currentLocation.workplace_type === "All"
+        ? []
+        : currentLocation.workplace_type
+          ? [currentLocation.workplace_type as Workplace]
+          : [];
+
     if (currentTypes.includes(workplaceType)) {
-      const filtered = currentTypes.filter(type => type !== workplaceType);
+      const filtered = currentTypes.filter((type) => type !== workplaceType);
       newWorkplaceType = filtered.length > 0 ? filtered : "All";
     } else {
       newWorkplaceType = [...currentTypes, workplaceType];
     }
-    
+
     const updatedLocation = {
       ...currentLocation,
-      workplace_type: newWorkplaceType
+      workplace_type: newWorkplaceType,
     };
-    
+
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
+        location: searchState.location.location.map((loc: Location, index: number) => (index === locationIndex ? updatedLocation : loc)),
+      },
     });
   };
 }
@@ -276,9 +268,9 @@ export function createLocationFlexibleRegionsHandler(
   return (region: LocationType) => {
     const currentRegions = currentLocation.options?.flexible_regions || [];
     let newRegions: LocationType[];
-    
+
     if (currentRegions.includes(region)) {
-      newRegions = currentRegions.filter(r => r !== region);
+      newRegions = currentRegions.filter((r) => r !== region);
     } else {
       newRegions = [...currentRegions, region];
     }
@@ -290,49 +282,39 @@ export function createLocationFlexibleRegionsHandler(
         radius: currentLocation.options?.radius || 25,
         radius_unit: currentLocation.options?.radius_unit || "Miles",
         ignore_radius: currentLocation.options?.ignore_radius || false,
-        flexible_regions: newRegions
-      }
+        flexible_regions: newRegions,
+      },
     };
-    
+
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: searchState.location.location.map((loc: Location, index: number) => 
-          index === locationIndex ? updatedLocation : loc
-        )
-      }
+        location: searchState.location.location.map((loc: Location, index: number) => (index === locationIndex ? updatedLocation : loc)),
+      },
     });
   };
 }
 
-export function createLocationRemoveHandler(
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void,
-  locationIndex: number
-) {
+export function createLocationRemoveHandler(searchState: SearchState, updateSearchOptions: (updates: Partial<SearchState>) => void, locationIndex: number) {
   return () => {
     const updatedLocations = searchState.location.location.filter((_, index) => index !== locationIndex);
-    
+
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: updatedLocations
-      }
+        location: updatedLocations,
+      },
     });
   };
 }
 
-export function createLocationsChangeHandler(
-  searchState: SearchState,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
+export function createLocationsChangeHandler(searchState: SearchState, updateSearchOptions: (updates: Partial<SearchState>) => void) {
   return (locations: Location[]) => {
     updateSearchOptions({
       location: {
         ...searchState.location,
-        location: locations
-      }
+        location: locations,
+      },
     });
   };
 }
-

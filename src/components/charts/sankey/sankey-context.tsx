@@ -2,13 +2,7 @@
 
 import type { SankeyGraph, SankeyLink, SankeyNode } from "d3-sankey";
 import type { Transition } from "motion/react";
-import {
-  createContext,
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-  useContext,
-} from "react";
+import { createContext, type Dispatch, type RefObject, type SetStateAction, useContext } from "react";
 
 export interface Margin {
   top: number;
@@ -80,16 +74,8 @@ export interface SankeyContextValue {
 
 const SankeyContext = createContext<SankeyContextValue | null>(null);
 
-export function SankeyProvider({
-  children,
-  value,
-}: {
-  children: React.ReactNode;
-  value: SankeyContextValue;
-}) {
-  return (
-    <SankeyContext.Provider value={value}>{children}</SankeyContext.Provider>
-  );
+export function SankeyProvider({ children, value }: { children: React.ReactNode; value: SankeyContextValue }) {
+  return <SankeyContext.Provider value={value}>{children}</SankeyContext.Provider>;
 }
 
 export function useSankey(): SankeyContextValue {

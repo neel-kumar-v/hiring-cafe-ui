@@ -1,248 +1,204 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Combobox } from "@/components/ui/combobox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/contexts/AppContext";
+import { formatCompactNumber, formatSalarySentence } from "@/lib/search/sentence-query";
 import { useSearchData } from "@/hooks/useSearchData";
-import type { SalaryUnit } from "@/types/search";
+import type { SalaryOptions, SalaryUnit } from "@/types/search";
+import { useEffect, useState } from "react";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
-import MinMax, { cleanDigits } from "../util/MinMax";
+import { SentenceBlankSelect, SentenceRangeBlank, SentenceText, UNSPECIFIED_BLANK } from "../util/sentence-query";
 
-const frequencyOptions: SalaryUnit[] = ["Any", "Hourly", "Daily", "Weekly", "Bi-Weekly", "Monthly", "Yearly"];
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  CAD: "C$",
+  AUD: "A$",
+  INR: "₹",
+  JPY: "¥",
+  CHF: "CHF",
+};
 
-function getCurrencySymbol(currencyCode: string) {
-  try {
-    const parts = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currencyCode,
-    }).formatToParts(0);
-    return parts.find((part) => part.type === "currency")?.value ?? "$";
-  } catch {
-    return "$";
+export const getCurrencySymbol = (currency: string): string => {
+  return CURRENCY_SYMBOLS[currency] || currency;
+};
+
+const CURRENCY_BLANK_OPTIONS = [
+  { value: "USD", label: "USD", phrase: "$ USD" },
+  { value: "EUR", label: "EUR", phrase: "€ EUR" },
+  { value: "GBP", label: "GBP", phrase: "£ GBP" },
+  { value: "CAD", label: "CAD", phrase: "C$ CAD" },
+  { value: "AUD", label: "AUD", phrase: "A$ AUD" },
+  { value: "INR", label: "INR", phrase: "₹ INR" },
+];
+
+const FREQUENCY_BLANK_OPTIONS = [
+  { value: "Yearly", label: "Yearly", phrase: "yearly" },
+  { value: "Monthly", label: "Monthly", phrase: "monthly" },
+  { value: "Hourly", label: "Hourly", phrase: "hourly" },
+  { value: "Weekly", label: "Weekly", phrase: "weekly" },
+  { value: "Bi-Weekly", label: "Bi-Weekly", phrase: "bi-weekly" },
+  { value: "Daily", label: "Daily", phrase: "daily" },
+];
+
+const UNDISCLOSED_BLANK_OPTIONS = [
+  { value: "show", label: "Show", phrase: "Show" },
+  { value: "hide", label: "Hide", phrase: "Hide" },
+] as const;
+
+export function extractSalaryRange(salary: SalaryOptions): { min: number; max: number } {
+  const min = salary.min_range.min > 0 ? salary.min_range.min : 0;
+  let max = 0;
+
+  if (salary.max_range.max > 0) {
+    max = salary.max_range.max;
+  } else if (salary.min_range.max > 0 && salary.min_range.max !== min) {
+    max = salary.min_range.max;
+  } else if (salary.max_range.min > 0 && salary.max_range.min !== min) {
+    max = salary.max_range.min;
   }
+
+  return { min, max };
+}
+
+/**
+ * Title sentence built on the shared `formatSalarySentence` API:
+ * "Must pay between 70k - 120k USD yearly", "Must pay at least 70k USD yearly",
+ * "Must pay up to 120k USD yearly", or the any-salary fallback.
+ */
+export function getSalaryTitle(salary: SalaryOptions): string {
+  const { min, max } = extractSalaryRange(salary);
+
+  return formatSalarySentence({
+    min,
+    max,
+    currency: salary?.currency?.trim() || "USD",
+    unit: salary?.unit,
+    undisclosed: salary?.undisclosed,
+  });
+}
+
+export function getUndisclosedSalaryTitle(undisclosed: boolean): string {
+  return undisclosed ? "Hide jobs with undisclosed salaries" : "Show jobs with undisclosed salaries";
 }
 
 export default function Salary() {
   const { searchOptions, updateSearchOptions } = useApp();
-  const { options: currencyItems, loading: currenciesLoading } = useSearchData("currencies");
+  const { options: currencyItems } = useSearchData("currencies");
   const salary = searchOptions.salary;
-  const [advanced, setAdvanced] = useState(false);
 
-  const [simpleAmount, setSimpleAmount] = useState("");
-  const [advMinLow, setAdvMinLow] = useState("");
-  const [advMinHigh, setAdvMinHigh] = useState("");
-  const [advMaxLow, setAdvMaxLow] = useState("");
-  const [advMaxHigh, setAdvMaxHigh] = useState("");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
 
   useEffect(() => {
-    const hasAdvancedValues = salary.min_range.min !== salary.min_range.max || salary.max_range.min !== 0 || salary.max_range.max !== 0;
-
-    setAdvanced(hasAdvancedValues);
-  }, [salary.max_range.max, salary.max_range.min, salary.min_range.max, salary.min_range.min]);
-
-  useEffect(() => {
-    setSimpleAmount(salary.min_range.min > 0 ? String(salary.min_range.min) : "");
-    setAdvMinLow(salary.min_range.min > 0 ? String(salary.min_range.min) : "");
-    setAdvMinHigh(salary.min_range.max > 0 ? String(salary.min_range.max) : "");
-    setAdvMaxLow(salary.max_range.min > 0 ? String(salary.max_range.min) : "");
-    setAdvMaxHigh(salary.max_range.max > 0 ? String(salary.max_range.max) : "");
+    const { min, max } = extractSalaryRange(salary);
+    setMinAmount(min > 0 ? String(min) : "");
+    setMaxAmount(max > 0 ? String(max) : "");
   }, [salary.max_range.max, salary.max_range.min, salary.min_range.max, salary.min_range.min]);
 
   const toNumberOrZero = (value: string) => {
-    const cleaned = cleanDigits(value);
+    const cleaned = value.replace(/[^0-9]/g, "");
     if (!cleaned) return 0;
     const parsed = Number.parseInt(cleaned, 10);
     return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const currencySymbol = getCurrencySymbol(salary.currency || "USD");
+  const commitRange = (patch?: { min?: string; max?: string }) => {
+    const rawMin = toNumberOrZero(patch?.min ?? minAmount);
+    const rawMax = toNumberOrZero(patch?.max ?? maxAmount);
+    const min = rawMin > 0 && rawMax > 0 && rawMin > rawMax ? rawMax : rawMin;
+    const max = rawMin > 0 && rawMax > 0 && rawMin > rawMax ? rawMin : rawMax;
+
+    if (patch?.min !== undefined) setMinAmount(patch.min);
+    if (patch?.max !== undefined) setMaxAmount(patch.max);
+
+    updateSearchOptions({
+      salary: {
+        ...salary,
+        min_range: { min, max: min },
+        max_range: { min: 0, max },
+      },
+    });
+  };
+
+  const toCurrencyOption = (value: string, label = value) => {
+    const symbol = getCurrencySymbol(value);
+    return {
+      value,
+      label,
+      phrase: symbol && symbol !== value ? `${symbol} ${value}` : value,
+    };
+  };
+
+  const dynamicCurrencyOptions = (() => {
+    const base = currencyItems?.length ? currencyItems.slice(0, 10).map((c: { value: string; label: string }) => toCurrencyOption(c.value, c.label)) : CURRENCY_BLANK_OPTIONS;
+    const current = salary.currency || "USD";
+    if (base.some((option) => option.value === current)) return base;
+    return [toCurrencyOption(current), ...base];
+  })();
+
+  const formatAmountBlank = (raw: string) => {
+    const parsed = Number.parseInt(raw, 10);
+    if (!raw || !Number.isFinite(parsed) || parsed <= 0) return UNSPECIFIED_BLANK;
+    return formatCompactNumber(parsed);
+  };
+
+  const title = (
+    <SentenceText>
+      Must pay between
+      <SentenceRangeBlank
+        variant="popover"
+        minAriaLabel="Minimum salary"
+        maxAriaLabel="Maximum salary"
+        minLabel="Minimum salary"
+        maxLabel="Maximum salary"
+        minValue={minAmount}
+        maxValue={maxAmount}
+        onChangeMin={setMinAmount}
+        onChangeMax={setMaxAmount}
+        onCommit={commitRange}
+        formatDisplay={formatAmountBlank}
+        separator="-"
+        inputVariant="money"
+        currencySymbol={getCurrencySymbol(salary.currency || "USD")}
+      />
+      <SentenceBlankSelect
+        ariaLabel="Salary currency"
+        value={salary.currency || "USD"}
+        onChange={(curr) => updateSearchOptions({ salary: { ...salary, currency: curr } })}
+        options={dynamicCurrencyOptions}
+      />
+      <SentenceBlankSelect
+        ariaLabel="Salary frequency"
+        value={salary.unit && salary.unit !== "Any" ? salary.unit : "Yearly"}
+        onChange={(unit) =>
+          updateSearchOptions({
+            salary: { ...salary, unit: unit as SalaryUnit, listedUnit: unit as SalaryUnit },
+          })
+        }
+        options={FREQUENCY_BLANK_OPTIONS}
+      />
+    </SentenceText>
+  );
 
   return (
-    <FilterContainer categoryId="salary" title="Salary Range">
-      <div className="grid grid-cols-1 gap-4">
-        <LabelCheckbox
-          label="Hide Jobs with undisclosed salaries?"
-          checked={salary.undisclosed}
-          onChange={(checked) =>
+    <FilterContainer categoryId="salary" title={title} chrome="stream">
+      <SentenceText>
+        <SentenceBlankSelect
+          ariaLabel="Undisclosed salary visibility"
+          value={salary.undisclosed ? "hide" : "show"}
+          onChange={(next) =>
             updateSearchOptions({
               salary: {
                 ...salary,
-                undisclosed: Boolean(checked),
+                undisclosed: next === "hide",
               },
             })
           }
+          options={[...UNDISCLOSED_BLANK_OPTIONS]}
         />
-        <LabelCheckbox
-          label="Advanced Salary Control"
-          checked={advanced}
-          onChange={(checked) => {
-            const nextAdvanced = Boolean(checked);
-            setAdvanced(nextAdvanced);
-
-            if (!nextAdvanced) {
-              const nextAmount = toNumberOrZero(advMinLow || advMinHigh || advMaxHigh || simpleAmount);
-              updateSearchOptions({
-                salary: {
-                  ...salary,
-                  min_range: { min: nextAmount, max: nextAmount },
-                  max_range: { min: 0, max: 0 },
-                },
-              });
-            }
-          }}
-        />
-      </div>
-
-      <div className="mt-4 flex flex-col gap-4 md:flex-row">
-        <div className="flex-1">
-          <label className="mb-2 block text-xs font-medium text-foreground">Currency</label>
-          {currenciesLoading ? (
-            <div className="h-9 w-full rounded-md border border-border bg-accent px-3 py-2 text-sm text-muted-foreground">Loading...</div>
-          ) : (
-            <Combobox
-              items={currencyItems}
-              value={salary.currency}
-              onChange={(value) =>
-                updateSearchOptions({
-                  salary: {
-                    ...salary,
-                    currency: value || "USD",
-                  },
-                })
-              }
-              placeholder="Select currency"
-              buttonClassName="w-full h-9 px-3 py-2 text-sm border-border bg-accent text-foreground hover:bg-accent"
-            />
-          )}
-        </div>
-
-        <div className="flex-1">
-          <label className="mb-2 block text-xs font-medium text-foreground">Frequency</label>
-          <Select
-            value={salary.unit}
-            onValueChange={(value: SalaryUnit) =>
-              updateSearchOptions({
-                salary: {
-                  ...salary,
-                  unit: value,
-                  listedUnit: value,
-                },
-              })
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              {frequencyOptions.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-col gap-4">
-        {!advanced ? (
-          <MinMax
-            mode="single"
-            variant="money"
-            currencySymbol={currencySymbol}
-            minLabel="Amount"
-            minPlaceholder="Enter amount"
-            minValue={simpleAmount}
-            onChangeMinValue={setSimpleAmount}
-            onBlurMin={() => {
-              const amount = toNumberOrZero(simpleAmount);
-              updateSearchOptions({
-                salary: {
-                  ...salary,
-                  min_range: { min: amount, max: amount },
-                  max_range: { min: 0, max: 0 },
-                },
-              });
-            }}
-          />
-        ) : (
-          <>
-            <MinMax
-              title="Minimum Salary Range"
-              variant="money"
-              currencySymbol={currencySymbol}
-              minLabel="Low"
-              maxLabel="High"
-              minPlaceholder="No min"
-              maxPlaceholder="No max"
-              minValue={advMinLow}
-              maxValue={advMinHigh}
-              onChangeMinValue={setAdvMinLow}
-              onChangeMaxValue={setAdvMinHigh}
-              onBlurMin={() =>
-                updateSearchOptions({
-                  salary: {
-                    ...salary,
-                    min_range: {
-                      ...salary.min_range,
-                      min: toNumberOrZero(advMinLow),
-                    },
-                  },
-                })
-              }
-              onBlurMax={() =>
-                updateSearchOptions({
-                  salary: {
-                    ...salary,
-                    min_range: {
-                      ...salary.min_range,
-                      max: toNumberOrZero(advMinHigh),
-                    },
-                  },
-                })
-              }
-            />
-
-            <MinMax
-              title="Maximum Salary Range"
-              variant="money"
-              currencySymbol={currencySymbol}
-              minLabel="Low"
-              maxLabel="High"
-              minPlaceholder="No min"
-              maxPlaceholder="No max"
-              minValue={advMaxLow}
-              maxValue={advMaxHigh}
-              onChangeMinValue={setAdvMaxLow}
-              onChangeMaxValue={setAdvMaxHigh}
-              onBlurMin={() =>
-                updateSearchOptions({
-                  salary: {
-                    ...salary,
-                    max_range: {
-                      ...salary.max_range,
-                      min: toNumberOrZero(advMaxLow),
-                    },
-                  },
-                })
-              }
-              onBlurMax={() =>
-                updateSearchOptions({
-                  salary: {
-                    ...salary,
-                    max_range: {
-                      ...salary.max_range,
-                      max: toNumberOrZero(advMaxHigh),
-                    },
-                  },
-                })
-              }
-            />
-          </>
-        )}
-      </div>
+        jobs with undisclosed salaries
+      </SentenceText>
     </FilterContainer>
   );
 }

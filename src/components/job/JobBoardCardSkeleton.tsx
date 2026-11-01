@@ -1,42 +1,45 @@
 import { Card, CardContent } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 
-/** Slim row placeholder matching the scannable List layout. */
+/** Slim row placeholder matching the scannable List layout (icon-grid facts). */
 export const JobBoardListRowSkeleton = () => {
   return (
     <Card className="border bg-background shadow-sm dark:border-primary/20 dark:bg-card">
       <CardContent className="flex flex-col gap-2.5 p-3.5 sm:p-4">
-        <div className="flex items-start gap-3">
-          <Skeleton className="size-14 shrink-0 rounded-[6px]" />
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <Skeleton className="size-14 shrink-0 rounded-[6px]" />
+            <div className="min-w-0 flex-1">
               <Skeleton className="h-5 w-2/5" />
-              <Skeleton className="mt-1 h-3.5 w-1/4 [animation-delay:60ms]" />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-              <div className="flex items-center gap-1.5">
-                <Skeleton className="h-5 w-20 rounded-md [animation-delay:120ms]" />
-                <Skeleton className="h-5 w-16 rounded-md [animation-delay:160ms]" />
-                <Skeleton className="h-5 w-16 rounded-md [animation-delay:200ms]" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-5 w-24 rounded-md [animation-delay:240ms]" />
-                <Skeleton className="h-4 w-16 [animation-delay:280ms]" />
-              </div>
-            </div>
-            <div className="flex gap-1 pt-0.5">
-              <Skeleton className="h-5 w-14 rounded-md [animation-delay:320ms]" />
-              <Skeleton className="h-5 w-16 rounded-md [animation-delay:360ms]" />
-              <Skeleton className="h-5 w-12 rounded-md [animation-delay:400ms]" />
+              <Skeleton className="mt-1 h-3.5 w-1/3 [animation-delay:60ms]" />
             </div>
           </div>
+          <Skeleton className="mt-1 h-3.5 w-14 shrink-0 [animation-delay:100ms]" />
+        </div>
+        <div className="grid grid-cols-3 gap-x-5 gap-y-1.5">
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-28 [animation-delay:160ms]" />
+            <Skeleton className="h-3.5 w-16 [animation-delay:200ms]" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-20 [animation-delay:240ms]" />
+            <Skeleton className="h-3.5 w-16 [animation-delay:280ms]" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-24 [animation-delay:320ms]" />
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-5 w-14 rounded-md [animation-delay:360ms]" />
+          <Skeleton className="h-5 w-16 rounded-md [animation-delay:400ms]" />
+          <Skeleton className="h-5 w-12 rounded-md [animation-delay:440ms]" />
         </div>
         <div className="flex items-center justify-between gap-2 pt-1">
-          <Skeleton className="h-4 w-28 [animation-delay:440ms]" />
+          <Skeleton className="h-4 w-28 [animation-delay:480ms]" />
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <Skeleton className="h-8 w-24 rounded-md [animation-delay:480ms]" />
-            <Skeleton className="h-8 w-16 rounded-md [animation-delay:520ms]" />
-            <Skeleton className="size-8 rounded-md [animation-delay:560ms]" />
+            <Skeleton className="h-8 w-24 rounded-md [animation-delay:520ms]" />
+            <Skeleton className="h-8 w-16 rounded-md [animation-delay:560ms]" />
+            <Skeleton className="size-8 rounded-md [animation-delay:600ms]" />
           </div>
         </div>
       </CardContent>

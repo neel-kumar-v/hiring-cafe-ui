@@ -1,9 +1,30 @@
 "use client";
 
-import { Toggle } from "@/components/ui/toggle";
+import { SlidingTabs, type SlidingTabOption } from "@/components/ui/sliding-tabs";
 import { KanbanIcon, LayoutListIcon } from "lucide-react";
 
 type ViewMode = "board" | "list";
+
+const VIEW_OPTIONS: readonly SlidingTabOption<ViewMode>[] = [
+  {
+    id: "board",
+    label: (
+      <span className="inline-flex items-center gap-1.5">
+        <KanbanIcon className="size-4" />
+        Board
+      </span>
+    ),
+  },
+  {
+    id: "list",
+    label: (
+      <span className="inline-flex items-center gap-1.5">
+        <LayoutListIcon className="size-4" />
+        List
+      </span>
+    ),
+  },
+];
 
 interface ViewToggleProps {
   viewMode: ViewMode;
@@ -11,18 +32,7 @@ interface ViewToggleProps {
 }
 
 const ViewToggle = ({ viewMode, onViewChange }: ViewToggleProps) => {
-  return (
-    <div className="flex items-center gap-2">
-      <Toggle pressed={viewMode === "board"} onPressedChange={() => onViewChange("board")} variant="category" size="md">
-        <KanbanIcon className="size-4" />
-        Board
-      </Toggle>
-      <Toggle pressed={viewMode === "list"} onPressedChange={() => onViewChange("list")} variant="category" size="md">
-        <LayoutListIcon />
-        List
-      </Toggle>
-    </div>
-  );
+  return <SlidingTabs options={VIEW_OPTIONS} value={viewMode} onChange={onViewChange} size="md" ariaLabel="View mode" />;
 };
 
 export default ViewToggle;

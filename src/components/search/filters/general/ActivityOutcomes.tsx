@@ -1,42 +1,99 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from "@/contexts/AppContext";
-import type { ActivityMetric } from "@/types/search";
+import { normalizeActivityMetric, toActivityMetric } from "@/lib/search/general";
+import { formatCountedList } from "@/lib/search/sentence-query";
+import type { ActivityMetric, ActivityOutcomeOptions, SearchState } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelInputContainer from "../util/LabelInputContainer";
-import LabelRadio from "../util/LabelRadio";
+import { SentenceBlankMultiSelect, SentenceText } from "../util/sentence-query";
 
-function MetricChoices({
-  label,
-  name,
-  thresholds,
-  value,
-  onChange,
-}: {
-  label: string;
-  name: string;
-  thresholds: { few: string; many: string };
-  value: ActivityMetric;
-  onChange: (value: ActivityMetric) => void;
-}) {
+type ActivityOutcomesState = SearchState["activity_outcomes"];
+type MetricKey = "views" | "applications" | "saves";
+type OutcomeKey = keyof ActivityOutcomeOptions["reportedOutcomes"];
+
+const METRIC_KEYS: MetricKey[] = ["views", "applications", "saves"];
+
+const METRIC_LABELS: Record<MetricKey, { noun: string; few: string; many: string; fewHint: string; manyHint: string }> = {
+  views: { noun: "views", few: "Few views", many: "Lots of views", fewHint: "under 5", manyHint: "10+" },
+  applications: { noun: "applications", few: "Few applications", many: "Lots of applications", fewHint: "under 2", manyHint: "6+" },
+  saves: { noun: "saves", few: "Few saves", many: "Lots of saves", fewHint: "under 3", manyHint: "8+" },
+};
+
+function metricBlankOptions(type: MetricKey) {
+  const { few, many, fewHint, manyHint } = METRIC_LABELS[type];
+  return [
+    { value: "Few" as const, label: `${few} (${fewHint})`, phrase: few.toLowerCase() },
+    { value: "Many" as const, label: `${many} (${manyHint})`, phrase: many.toLowerCase() },
+  ];
+}
+
+const OUTCOME_CHOICES: { key: OutcomeKey; label: string; phrase: string }[] = [
+  { key: "interviews", label: "Interviews reported", phrase: "interviews reported" },
+  { key: "offers", label: "Offers reported", phrase: "offers reported" },
+  { key: "ghostProne", label: "Leave out ghost-prone", phrase: "no ghosting" },
+  { key: "highRejection", label: "Leave out high-rejection", phrase: "no high rejection" },
+];
+
+const OUTCOME_BLANK_OPTIONS = OUTCOME_CHOICES.map((choice) => ({
+  value: choice.key,
+  label: choice.label,
+  phrase: choice.phrase,
+}));
+
+function selectedOutcomeKeys(outcomes: ActivityOutcomeOptions["reportedOutcomes"]): OutcomeKey[] {
+  return OUTCOME_CHOICES.filter((choice) => outcomes[choice.key]).map((choice) => choice.key);
+}
+
+function metricPhrase(type: MetricKey, value: ActivityMetric): string {
+  const levels = normalizeActivityMetric(value);
+  const anyText = `any ${METRIC_LABELS[type].noun}`;
+  if (levels.length === 0) return anyText;
+
+  const phrases = metricBlankOptions(type)
+    .filter((option) => levels.includes(option.value))
+    .map((option) => option.phrase);
+
+  return formatCountedList(phrases, {
+    conjunction: "or",
+    noneText: anyText,
+    total: metricBlankOptions(type).length,
+  });
+}
+
+function outcomePhrases(outcomes: ActivityOutcomeOptions["reportedOutcomes"]): string[] {
+  return OUTCOME_CHOICES.filter((choice) => outcomes[choice.key]).map((choice) => choice.phrase);
+}
+
+/** Complete sentence title for a given activity/outcomes state. */
+export function getActivityOutcomesTitle(options: ActivityOutcomesState): string {
+  const parts = [...METRIC_KEYS.map((key) => metricPhrase(key, options[key])), ...outcomePhrases(options.reportedOutcomes)];
+  const allDefault = METRIC_KEYS.every((key) => normalizeActivityMetric(options[key]).length === 0) && outcomePhrases(options.reportedOutcomes).length === 0;
+
+  if (allDefault) {
+    return "Show jobs with any views and any applications and any saves and any reported outcomes";
+  }
+
+  return `Show jobs with ${formatCountedList(parts, { conjunction: "and", n1: 4 })}`;
+}
+
+function MetricBlank({ type, value, onChange }: { type: MetricKey; value: ActivityMetric; onChange: (value: ActivityMetric) => void }) {
+  const options = metricBlankOptions(type);
+  const selected = normalizeActivityMetric(value);
+  const anyText = `any ${METRIC_LABELS[type].noun}`;
+
   return (
-    <LabelInputContainer title={label} midColCount={2} lgColCount={3}>
-      <LabelRadio
-        name={name}
-        label="Few"
-        hint={thresholds.few}
-        checked={value === "Few"}
-        onChange={(checked) => onChange(checked ? "Few" : "All")}
-      />
-      <LabelRadio
-        name={name}
-        label="Lots"
-        hint={thresholds.many}
-        checked={value === "Many"}
-        onChange={(checked) => onChange(checked ? "Many" : "All")}
-      />
-    </LabelInputContainer>
+    <SentenceBlankMultiSelect
+      ariaLabel={`Job ${METRIC_LABELS[type].noun}`}
+      options={options}
+      values={selected}
+      onChange={(next) => onChange(toActivityMetric(next))}
+      placeholder={anyText}
+      formatOptions={{
+        conjunction: "or",
+        noneText: anyText,
+        total: options.length,
+      }}
+    />
   );
 }
 
@@ -48,45 +105,48 @@ export default function ActivityOutcomes() {
     updateSearchOptions({ activity_outcomes: { ...options, ...patch } });
   };
 
-  return (
-    <FilterContainer categoryId="activity-outcomes" title="Activity & Outcomes">
-      <MetricChoices
-        label="Views"
-        name="activity-views"
-        thresholds={{ few: "under 5", many: "10+" }}
-        value={options.views}
-        onChange={(views) => update({ views })}
-      />
-      <MetricChoices
-        label="Applications"
-        name="activity-applications"
-        thresholds={{ few: "under 2", many: "6+" }}
-        value={options.applications}
-        onChange={(applications) => update({ applications })}
-      />
-      <MetricChoices
-        label="Saves"
-        name="activity-saves"
-        thresholds={{ few: "under 3", many: "8+" }}
-        value={options.saves}
-        onChange={(saves) => update({ saves })}
-      />
+  const selectedOutcomes = selectedOutcomeKeys(options.reportedOutcomes);
 
-      <LabelInputContainer title="Reported outcomes" midColCount={2} lgColCount={3}>
-        {(
-          [
-            ["interviews", "Interviews reported"],
-            ["offers", "Offers reported"],
-            ["ghostProne", "Leave out ghost-prone"],
-            ["highRejection", "Leave out high-rejection"],
-          ] as const
-        ).map(([key, label]) => (
-          <label key={key} className="flex items-center gap-3 text-sm text-foreground">
-            <Checkbox checked={options.reportedOutcomes[key]} onCheckedChange={(checked) => update({ reportedOutcomes: { ...options.reportedOutcomes, [key]: checked === true } })} />
-            {label}
-          </label>
-        ))}
-      </LabelInputContainer>
+  const title = (
+    <SentenceText>
+      Show jobs with
+      <MetricBlank type="views" value={options.views} onChange={(views) => update({ views })} />
+      and
+      <MetricBlank type="applications" value={options.applications} onChange={(applications) => update({ applications })} />
+      and
+      <MetricBlank type="saves" value={options.saves} onChange={(saves) => update({ saves })} />
+      and
+      <SentenceBlankMultiSelect
+        ariaLabel="Reported outcomes"
+        options={OUTCOME_BLANK_OPTIONS}
+        values={selectedOutcomes}
+        onChange={(next) => {
+          const nextSet = new Set(next);
+          update({
+            reportedOutcomes: {
+              interviews: nextSet.has("interviews"),
+              offers: nextSet.has("offers"),
+              ghostProne: nextSet.has("ghostProne"),
+              highRejection: nextSet.has("highRejection"),
+            },
+          });
+        }}
+        placeholder="any reported outcomes"
+        formatOptions={{
+          conjunction: "and",
+          n1: 3,
+          noneText: "any reported outcomes",
+          total: OUTCOME_BLANK_OPTIONS.length,
+        }}
+      />
+    </SentenceText>
+  );
+
+  // Section chrome (not stream): multi-control filter keeps its own sticky header +
+  // a dedicated sidebar nav row under the General category header.
+  return (
+    <FilterContainer categoryId="activity-outcomes" title="Activity & Outcomes" chrome="section" defaultCollapsed>
+      <div className="px-1">{title}</div>
     </FilterContainer>
   );
 }

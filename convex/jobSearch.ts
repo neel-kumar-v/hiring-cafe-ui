@@ -83,6 +83,19 @@ export function normalizeStringList(values: string[] | undefined): string[] {
 type SearchRow = Doc<"jobCards">;
 
 /**
+ * Activity metric bands: Few → count <= max, Many → count >= min.
+ * When both bounds are set (user picked Few and Many), match either band (OR).
+ */
+function matchesActivityBands(count: number, minMany: number | undefined, maxFew: number | undefined): boolean {
+  const hasMany = typeof minMany === "number";
+  const hasFew = typeof maxFew === "number";
+  if (!hasMany && !hasFew) return true;
+  if (hasMany && hasFew) return count >= minMany || count <= maxFew;
+  if (hasMany) return count >= minMany;
+  return count <= maxFew!;
+}
+
+/**
  * Apply the filters that cannot currently be expressed by the search index.
  *
  * This is kept pure so filter semantics can be tested without a Convex
@@ -110,12 +123,9 @@ export function applyPostFilters(rows: SearchRow[], filters: ConvexJobSearchFilt
     if (frequencies.size >= 1 && !frequencies.has(normalizeLower(row.listedCompensationFrequency ?? ""))) return false;
     if (companyProfit.size >= 1 && !companyProfit.has(normalizeLower(row.companyProfit ?? ""))) return false;
     if (companyStage.size >= 1 && !companyStage.has(normalizeLower(row.companyStage ?? ""))) return false;
-    if (typeof filters.minViews === "number" && (row.views ?? 0) < filters.minViews) return false;
-    if (typeof filters.maxViews === "number" && (row.views ?? 0) > filters.maxViews) return false;
-    if (typeof filters.minApplies === "number" && (row.applies ?? 0) < filters.minApplies) return false;
-    if (typeof filters.maxApplies === "number" && (row.applies ?? 0) > filters.maxApplies) return false;
-    if (typeof filters.minSaves === "number" && (row.saves ?? 0) < filters.minSaves) return false;
-    if (typeof filters.maxSaves === "number" && (row.saves ?? 0) > filters.maxSaves) return false;
+    if (!matchesActivityBands(row.views ?? 0, filters.minViews, filters.maxViews)) return false;
+    if (!matchesActivityBands(row.applies ?? 0, filters.minApplies, filters.maxApplies)) return false;
+    if (!matchesActivityBands(row.saves ?? 0, filters.minSaves, filters.maxSaves)) return false;
 
     if (typeof filters.postedAfterMillis === "number") {
       const publishMillis = typeof row.sortPublishMillis === "number" ? row.sortPublishMillis : row.estimatedPublishDateMillis;
@@ -142,6 +152,18 @@ export function applyPostFilters(rows: SearchRow[], filters: ConvexJobSearchFilt
 }
 
 export function toCardResult(card: SearchRow) {
+  // Determine if card.sortPublishMillis is write-time (i.e. ingestion updatedAt / createdAt fallback)
+  const isSortWriteTime =
+    (typeof card.createdAt === "number" && Math.abs(card.sortPublishMillis - card.createdAt) < 120_000) ||
+    (typeof card.updatedAt === "number" && Math.abs(card.sortPublishMillis - card.updatedAt) < 120_000);
+
+  const realPublishMillis =
+    typeof card.estimatedPublishDateMillis === "number" && card.estimatedPublishDateMillis > 0
+      ? card.estimatedPublishDateMillis
+      : !isSortWriteTime && typeof card.sortPublishMillis === "number" && card.sortPublishMillis > 0
+        ? card.sortPublishMillis
+        : undefined;
+
   return {
     job: {
       _id: card._id,
@@ -163,7 +185,10 @@ export function toCardResult(card: SearchRow) {
       requirementsSummary: card.requirementsSummary,
       skills: card.skills ?? [],
       estimatedPublishDate: card.estimatedPublishDate,
-      estimatedPublishDateMillis: card.estimatedPublishDateMillis,
+      estimatedPublishDateMillis: realPublishMillis,
+      sortPublishMillis: card.sortPublishMillis,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
       views: card.views ?? 0,
       saves: card.saves ?? 0,
       applies: card.applies ?? 0,

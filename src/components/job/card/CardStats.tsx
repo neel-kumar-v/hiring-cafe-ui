@@ -10,6 +10,7 @@ const CardStats = ({
   isInterviewing = false,
   onBookmarkToggle,
   applyUrl,
+  quiet = false,
 }: {
   viewedCount?: number;
   savedCount?: number;
@@ -19,6 +20,7 @@ const CardStats = ({
   isInterviewing?: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
   applyUrl: string;
+  quiet?: boolean;
 }) => {
   const viewedTotal = viewedCount + 1;
   const savedTotal = savedCount + (isBookmarked ? 1 : 0);
@@ -51,6 +53,7 @@ const CardStats = ({
           iconClassName="size-3"
           applyUrl={applyUrl}
           onApplyClick={handleApplyClick}
+          quiet={quiet}
         />
       </div>
     </div>

@@ -214,7 +214,7 @@ export const renderCompanyAbbreviationGrid = (companyName: string, dialog?: bool
   if (companyName.length !== 4) return companyName;
   const letters = companyName.split("").map((letter) => letter.toUpperCase());
   return (
-    <span className={`inline-grid grid-cols-2 grid-rows-2 font-montserrat text-center font-bold ${dialog ? "gap-x-3 gap-y-2" : "gap-x-1"}`}>
+    <span className={`inline-grid grid-cols-2 grid-rows-2 font-display text-center font-bold ${dialog ? "gap-x-3 gap-y-2" : "gap-x-1"}`}>
       <span>{letters[0]}</span>
       <span>{letters[1]}</span>
       <span>{letters[2]}</span>

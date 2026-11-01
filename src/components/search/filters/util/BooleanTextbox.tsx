@@ -85,11 +85,7 @@ export function BooleanTextbox({
         const data = await res.json();
         const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
         if (!cancelled) {
-          setWarmOptions(
-            suggestions
-              .map((x: unknown) => (typeof x === "string" ? x.trim() : ""))
-              .filter(Boolean),
-          );
+          setWarmOptions(suggestions.map((x: unknown) => (typeof x === "string" ? x.trim() : "")).filter(Boolean));
         }
       } catch {
         if (!cancelled) setWarmOptions([]);
@@ -126,11 +122,7 @@ export function BooleanTextbox({
         if (!res.ok) throw new Error("Failed to fetch suggestions");
         const data = await res.json();
         const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
-        setOptions(
-          suggestions
-            .map((x: unknown) => (typeof x === "string" ? x.trim() : ""))
-            .filter(Boolean),
-        );
+        setOptions(suggestions.map((x: unknown) => (typeof x === "string" ? x.trim() : "")).filter(Boolean));
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           setOptions([]);
@@ -276,14 +268,7 @@ export function BooleanTextbox({
       {exampleEntries.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {exampleEntries.map(([label, expr]) => (
-            <Button
-              key={label}
-              variant="dashed"
-              size="sm"
-              className="max-w-full rounded-full p-1 px-2 h-full text-xs"
-              onClick={() => applyExample(expr)}
-              title={expr}
-            >
+            <Button key={label} variant="dashed" size="sm" className="max-w-full rounded-full p-1 px-2 h-full text-xs" onClick={() => applyExample(expr)} title={expr}>
               {label}
             </Button>
           ))}
@@ -291,4 +276,4 @@ export function BooleanTextbox({
       ) : null}
     </div>
   );
-} 
+}

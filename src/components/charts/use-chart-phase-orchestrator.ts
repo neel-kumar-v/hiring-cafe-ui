@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  type ChartPhase,
-  type ChartStatus,
-  resolveRestingChartPhase,
-} from "./chart-phase";
+import { type ChartPhase, type ChartStatus, resolveRestingChartPhase } from "./chart-phase";
 
 export interface UseChartPhaseOrchestratorOptions {
   chartStatus: ChartStatus;
@@ -28,12 +24,8 @@ export function useChartPhaseOrchestrator({
   revealSignature = "",
   skipEnterReveal = false,
 }: UseChartPhaseOrchestratorOptions) {
-  const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
-    resolveRestingChartPhase(chartStatus)
-  );
-  const [plotData, setPlotData] = useState<Record<string, unknown>[]>(() =>
-    chartStatus === "loading" ? skeletonData : targetData
-  );
+  const [chartPhase, setChartPhase] = useState<ChartPhase>(() => resolveRestingChartPhase(chartStatus));
+  const [plotData, setPlotData] = useState<Record<string, unknown>[]>(() => (chartStatus === "loading" ? skeletonData : targetData));
   const [revealEpoch, setRevealEpoch] = useState(0);
   const [concealEpoch, setConcealEpoch] = useState(0);
   const [isLoaded, setIsLoaded] = useState(() => chartStatus === "ready");
@@ -78,13 +70,7 @@ export function useChartPhaseOrchestrator({
         setChartPhase("exitingReady");
       }
     }
-  }, [
-    animationDuration,
-    chartStatus,
-    skeletonData,
-    targetData,
-    yDomainTweenDuration,
-  ]);
+  }, [animationDuration, chartStatus, skeletonData, targetData, yDomainTweenDuration]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature replays enter
   useEffect(() => {

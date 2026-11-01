@@ -20,7 +20,7 @@ export default function QualificationsOptions({ scrollToSection, clearScrollToSe
   const shouldShow = (id: string) => !filterIds?.length || filterIds.includes(id);
 
   return (
-    <div className="space-y-4 md:space-y-8">
+    <div className="space-y-4">
       {shouldShow("education") ? (
         <div className="scroll-mt-14" ref={refs.education}>
           <Education />
@@ -44,7 +44,6 @@ export default function QualificationsOptions({ scrollToSection, clearScrollToSe
           <Languages />
         </div>
       ) : null}
-
     </div>
   );
 }

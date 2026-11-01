@@ -14,7 +14,9 @@ export type Exclusion = "Saved" | "Applied" | "Hidden" | "Viewed";
 
 export type ExclusionOptions = Exclusion[];
 
-export type ActivityMetric = "All" | "Few" | "Many";
+export type ActivityMetricLevel = "Few" | "Many";
+/** `"All"` or empty selection means any; otherwise one or both band levels (OR). */
+export type ActivityMetric = "All" | ActivityMetricLevel[];
 
 export interface ActivityOutcomeOptions {
   views: ActivityMetric;

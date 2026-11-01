@@ -1,10 +1,13 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
 import { JobPreviewOverlay, useJobPreviewSequence } from "@/hooks/useJobPreview";
 import type { JobCardResultDTO } from "@/types/convexJobs";
 import type { JobCategory } from "@/types/tracker";
+import { Bookmark } from "lucide-react";
+import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
 import { ListJobCardContents } from "../job/contents";
 
@@ -13,6 +16,7 @@ interface ListViewProps {
   visibleCategories?: Record<JobCategory, boolean>;
   getJobStatus: (jobId: string) => JobCategory;
   onMoveJob?: (jobId: string, fromStatus: JobCategory, toStatus: JobCategory) => void;
+  hasSavedJobs?: boolean;
 }
 
 const ListViewJobCard = ({
@@ -27,13 +31,13 @@ const ListViewJobCard = ({
   onJobClick: () => void;
 }) => {
   return (
-    <Card className="mb-3 cursor-pointer border border-input p-4 shadow-none transition-all duration-300 ease-in-out hover:border-input/75" onClick={onJobClick}>
+    <Card className="mb-3 cursor-pointer border border-input p-3.5 shadow-none transition-all duration-300 ease-in-out hover:border-input/75 sm:p-4" onClick={onJobClick}>
       <ListJobCardContents job={row.job} company={row.company} currentStage={currentStage} onMoveJob={onMoveJob} />
     </Card>
   );
 };
 
-const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: ListViewProps) => {
+const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob, hasSavedJobs }: ListViewProps) => {
   const { user } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -109,17 +113,33 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob }: Lis
     onMoveJob?.(jobId, getJobStatus(jobId), "applied");
   }, [getJobStatus, isApplied, onMoveJob, selectedRow, user.applied, user.interviewing]);
 
+  const isCompletelyEmpty = hasSavedJobs !== undefined ? !hasSavedJobs : jobs.length === 0;
+
   return (
     <div className="h-full overflow-y-auto">
-      {filteredJobs.map((row) => (
-        <ListViewJobCard
-          key={row.job.externalId}
-          row={row}
-          currentStage={getJobStatus(row.job.externalId)}
-          onJobClick={() => openJob(row.job.externalId)}
-          onMoveJob={onMoveJob}
-        />
-      ))}
+      {filteredJobs.length === 0 ? (
+        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center">
+          <div className="mb-3 rounded-full bg-muted p-3 text-muted-foreground">
+            <Bookmark className="size-6" />
+          </div>
+          <div className="text-base font-medium text-foreground">{isCompletelyEmpty ? "No saved jobs" : "No jobs match your filters"}</div>
+          {isCompletelyEmpty ? (
+            <Button asChild className="mt-4" size="sm" variant="outline">
+              <Link href="/">Browse jobs</Link>
+            </Button>
+          ) : null}
+        </div>
+      ) : (
+        filteredJobs.map((row) => (
+          <ListViewJobCard
+            key={row.job.externalId}
+            row={row}
+            currentStage={getJobStatus(row.job.externalId)}
+            onJobClick={() => openJob(row.job.externalId)}
+            onMoveJob={onMoveJob}
+          />
+        ))
+      )}
 
       <JobPreviewOverlay
         job={selectedRow?.job ?? null}

@@ -45,8 +45,8 @@ test("builds specific readable chips for mixed search settings", () => {
     apply_form: "Fast",
     exclusion: ["Saved", "Applied"],
     activity_outcomes: {
-      views: "Few",
-      applications: "Few",
+      views: ["Few"],
+      applications: ["Few"],
       saves: "All",
       reportedOutcomes: { interviews: false, offers: false, ghostProne: false, highRejection: false },
     },
@@ -97,7 +97,7 @@ test("builds specific readable chips for mixed search settings", () => {
         "Bachelor's: Required / Preferred",
         "Master's: Preferred / Not Mentioned",
         "Doctorate: Not Mentioned",
-      ].includes(label),
+      ].includes(label)
     ),
     [
       "1 month",
@@ -118,26 +118,17 @@ test("builds specific readable chips for mixed search settings", () => {
       "Bachelor's: Required / Preferred",
       "Master's: Preferred / Not Mentioned",
       "Doctorate: Not Mentioned",
-    ],
+    ]
   );
 
   const groups = groupFilterChips(chips).map((group) => group.label);
-  assert.deepEqual(groups, [
-    "Date Posted",
-    "Apply Process",
-    "Exclude Jobs",
-    "Activity & Outcomes",
-    "Salary",
-    "Departments",
-    "Job Titles & Keywords",
-    "Education",
-  ]);
+  assert.deepEqual(groups, ["Date Posted", "Apply Process", "Exclude Jobs", "Activity & Outcomes", "Salary", "Departments", "Job Titles & Keywords", "Education"]);
 });
 
 test("orders chips to match the filter sidebar category sequence", () => {
   const state = withFilters({
     activity_outcomes: {
-      views: "Few",
+      views: ["Few"],
       applications: "All",
       saves: "All",
       reportedOutcomes: { interviews: false, offers: false, ghostProne: false, highRejection: false },
@@ -159,24 +150,46 @@ test("orders chips to match the filter sidebar category sequence", () => {
 
   assert.deepEqual(
     groupFilterChips(getFilterChips(state)).map((group) => group.label),
-    ["Activity & Outcomes", "Salary", "Departments", "Licenses & Certifications"],
+    ["Activity & Outcomes", "Salary", "Departments", "Licenses & Certifications"]
   );
 });
 
 test("clearing one activity chip leaves sibling activity chips in place", () => {
   const state = withFilters({
     activity_outcomes: {
-      views: "Few",
-      applications: "Few",
+      views: ["Few"],
+      applications: ["Few"],
       saves: "All",
       reportedOutcomes: { interviews: false, offers: false, ghostProne: false, highRejection: false },
     },
   });
 
-  const viewsChip = getFilterChips(state).find((chip) => chip.id === "activity-views");
+  const viewsChip = getFilterChips(state).find((chip) => chip.id === "activity-views-Few");
   assert.ok(viewsChip);
 
   const next = applyFilterChipClear(state, viewsChip);
   const remaining = getFilterChips(next).map((chip) => chip.label);
   assert.deepEqual(remaining, ["Few applications"]);
+});
+
+test("activity metric chips support Few and Many together", () => {
+  const state = withFilters({
+    activity_outcomes: {
+      views: ["Few", "Many"],
+      applications: "All",
+      saves: "All",
+      reportedOutcomes: { interviews: false, offers: false, ghostProne: false, highRejection: false },
+    },
+  });
+
+  const labels = getFilterChips(state).map((chip) => chip.label);
+  assert.deepEqual(labels, ["Few views", "Lots of views"]);
+
+  const fewChip = getFilterChips(state).find((chip) => chip.id === "activity-views-Few");
+  assert.ok(fewChip);
+  const next = applyFilterChipClear(state, fewChip);
+  assert.deepEqual(
+    getFilterChips(next).map((chip) => chip.label),
+    ["Lots of views"]
+  );
 });

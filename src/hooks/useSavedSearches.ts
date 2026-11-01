@@ -13,6 +13,22 @@ export function useSavedSearches() {
   const createSavedSearch = useMutation(api.savedSearches.create);
   const renameSavedSearch = useMutation(api.savedSearches.rename);
   const removeSavedSearch = useMutation(api.savedSearches.remove);
+  const setAlertsEnabledMutation = useMutation(api.savedSearches.setAlertsEnabled);
+
+  const setAlerts = async (id: Id<"savedSearches">, alertsEnabled: boolean) => {
+    if (!convexUser) {
+      toast.error("Sign in first to manage alerts.");
+      return;
+    }
+    try {
+      await setAlertsEnabledMutation({ id, userId: convexUser._id, alertsEnabled });
+      toast.success(alertsEnabled ? "Daily alerts turned on." : "Daily alerts turned off.");
+    } catch (error) {
+      console.error("Failed to update alerts:", error);
+      toast.error("Couldn't update alerts.");
+      throw error;
+    }
+  };
 
   const rename = async (id: Id<"savedSearches">, name: string) => {
     if (!convexUser) {
@@ -70,5 +86,6 @@ export function useSavedSearches() {
     create,
     rename,
     remove,
+    setAlerts,
   };
 }

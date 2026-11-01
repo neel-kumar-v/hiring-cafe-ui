@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogTitle } from "@/components/ui/responsive-dialog";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useSearchUI } from "@/contexts/SearchContext";
@@ -15,20 +16,23 @@ interface SearchDialogProps {
 
 export default function SearchDialog({ open, onOpenChange, from, isDarkMode }: SearchDialogProps) {
   const isMobile = useIsMobile(768);
+  const [keepContentMounted, setKeepContentMounted] = useState(open);
+
+  useEffect(() => {
+    if (open) setKeepContentMounted(true);
+  }, [open]);
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent
         className={`overflow-hidden border border-border/60 bg-background p-0 dark:border-border ${
-          isMobile
-            ? "h-[100dvh] max-h-[100dvh] w-full max-w-none rounded-none border-0"
-            : "h-[90vh] w-[800px] min-w-[min(80vw,100%-2rem)] max-w-[min(90vw,100%-2rem)]"
+          isMobile ? "h-[100dvh] max-h-[100dvh] w-full max-w-none rounded-none border-0" : "h-[90vh] w-[800px] min-w-[min(80vw,100%-2rem)] max-w-[min(90vw,100%-2rem)]"
         } ${isDarkMode ? "dark" : ""}`}
       >
         <ResponsiveDialogTitle className="sr-only">Create your Job Search</ResponsiveDialogTitle>
         <ResponsiveDialogDescription className="sr-only">Configure your job search filters and preferences.</ResponsiveDialogDescription>
 
-        <SearchContent open={open} onOpenChange={onOpenChange} from={from} variant={isMobile ? "tabs" : "sidebar"} />
+        {keepContentMounted ? <SearchContent open={open} onOpenChange={onOpenChange} from={from} variant={isMobile ? "tabs" : "sidebar"} /> : null}
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );

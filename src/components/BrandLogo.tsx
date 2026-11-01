@@ -8,13 +8,7 @@ interface BrandLogoProps {
   wordmark?: string;
 }
 
-export function BrandLogo({
-  className,
-  iconClassName,
-  showWordmark = false,
-  wordmarkClassName,
-  wordmark = "CloneCafe",
-}: BrandLogoProps) {
+export function BrandLogo({ className, iconClassName, showWordmark = false, wordmarkClassName, wordmark = "CloneCafe" }: BrandLogoProps) {
   return (
     <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
       <span className="w-fit rounded-full bg-primary p-2 text-primary-foreground">

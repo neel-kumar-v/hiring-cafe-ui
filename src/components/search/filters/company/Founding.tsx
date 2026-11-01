@@ -1,8 +1,20 @@
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
 import { getCurrentYear } from "@/lib/search/company";
-import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useState } from "react";
+import { formatFoundingYearsSentence } from "@/lib/search/sentence-query";
 import FilterContainer from "../util/FilterContainer";
+import { SentenceRangeBlank, SentenceText } from "../util/sentence-query";
+
+/**
+ * Sentence title for the founding-year range.
+ * Untouched → "Founding Year"; otherwise "Founded between {min} – {max}",
+ * "Founded after {min}", "Founded before {max}", or "Founded in {year}".
+ */
+export function getFoundingTitle(min = 0, max = 0): string {
+  return formatFoundingYearsSentence(min, max) ?? "Founding Year";
+}
 
 export default function Founding() {
   const { searchOptions, updateSearchOptions } = useApp();
@@ -24,49 +36,48 @@ export default function Founding() {
 
   const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-  const commit = useCallback(() => {
-    const rawMin = toNumberOrZero(minYear);
-    const rawMax = toNumberOrZero(maxYear);
+  const commit = useCallback(
+    (patch?: { min?: string; max?: string }) => {
+      const nextMin = patch?.min ?? minYear;
+      const nextMax = patch?.max ?? maxYear;
 
-    const normalizedMin = rawMin === 0 ? 0 : clamp(rawMin, 1800, currentYear);
-    const normalizedMax = rawMax === 0 ? 0 : clamp(rawMax, 1800, currentYear);
+      if (patch?.min !== undefined) setMinYear(patch.min);
+      if (patch?.max !== undefined) setMaxYear(patch.max);
 
-    const min = normalizedMin;
-    const max = normalizedMax;
+      const rawMin = toNumberOrZero(nextMin);
+      const rawMax = toNumberOrZero(nextMax);
 
-    updateSearchOptions({
-      founding_year: min > 0 && max > 0 && min > max ? { min: max, max: min } : { min, max },
-    });
-  }, [currentYear, maxYear, minYear, updateSearchOptions]);
+      const normalizedMin = rawMin === 0 ? 0 : clamp(rawMin, 1800, currentYear);
+      const normalizedMax = rawMax === 0 ? 0 : clamp(rawMax, 1800, currentYear);
 
-  return (
-    <FilterContainer categoryId="founding" title="Founding Year">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-foreground">Min</label>
-          <Input
-            className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-            inputMode="numeric"
-            placeholder="No min"
-            type="text"
-            value={minYear}
-            onChange={(e) => setMinYear(e.target.value.replace(/[^0-9]/g, ""))}
-            onBlur={commit}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-foreground">Max</label>
-          <Input
-            className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-            inputMode="numeric"
-            placeholder="No max"
-            type="text"
-            value={maxYear}
-            onChange={(e) => setMaxYear(e.target.value.replace(/[^0-9]/g, ""))}
-            onBlur={commit}
-          />
-        </div>
-      </div>
-    </FilterContainer>
+      updateSearchOptions({
+        founding_year:
+          normalizedMin > 0 && normalizedMax > 0 && normalizedMin > normalizedMax ? { min: normalizedMax, max: normalizedMin } : { min: normalizedMin, max: normalizedMax },
+      });
+    },
+    [currentYear, maxYear, minYear, updateSearchOptions]
   );
-} 
+
+  const title = (
+    <SentenceText>
+      Founded between
+      <SentenceRangeBlank
+        minAriaLabel="Earliest founding year"
+        maxAriaLabel="Latest founding year"
+        minLabel="Earliest founding year"
+        maxLabel="Latest founding year"
+        minValue={minYear}
+        maxValue={maxYear}
+        onChangeMin={setMinYear}
+        onChangeMax={setMaxYear}
+        onCommit={commit}
+        separator="-"
+        minPlaceholder="min"
+        maxPlaceholder="max"
+        widthClassName="w-14"
+      />
+    </SentenceText>
+  );
+
+  return <FilterContainer categoryId="founding" title={title} chrome="stream" />;
+}

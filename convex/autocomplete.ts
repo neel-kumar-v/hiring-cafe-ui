@@ -49,9 +49,9 @@ export const getOptions = query({
       .query("autocompleteTypeIndex")
       .withIndex("by_type", (q2) => q2.eq("type", type))
       .take(max);
-    const suggestions = (
-      await Promise.all(links.map(async (l) => l.value ?? (await ctx.db.get(l.valueId))?.value ?? null))
-    ).filter((value): value is string => typeof value === "string" && value.length > 0);
+    const suggestions = (await Promise.all(links.map(async (l) => l.value ?? (await ctx.db.get(l.valueId))?.value ?? null))).filter(
+      (value): value is string => typeof value === "string" && value.length > 0
+    );
     return { suggestions };
   },
 });

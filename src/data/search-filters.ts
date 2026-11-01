@@ -10,15 +10,19 @@ const filterGroupOrder: Array<{ name: string; type: CategoryType }> = [
   { name: "Company", type: "company" },
 ];
 
-const ribbonExcludedIds = new Set([
-  "filters",
-  "saved",
-  "date-range",
-  "sorting",
-  "apply-form",
-  "location",
-  "workplace-activity",
-]);
+/** Live elsewhere (Current Filters / Saved) — omitted from General content + nav. */
+const generalContentExcludedIds = new Set(["filters", "saved"]);
+
+/**
+ * Single-control General filters stacked inline under the General stream.
+ * Shown in content; hidden as separate sidebar nav entries.
+ */
+const generalStreamIds = new Set(["date-range", "sorting", "apply-form", "exclusion", "encouraged"]);
+
+/** Multi-control General subsections that keep their own section chrome + sidebar entry. */
+const generalSectionIds = new Set(["activity-outcomes"]);
+
+const ribbonExcludedIds = new Set(["filters", "saved", "date-range", "sorting", "apply-form", "location", "workplace-activity"]);
 
 const locationTags = ["Location", "Workplace Type", "Options"];
 
@@ -94,6 +98,9 @@ export {
   compensationLevelsTags,
   filterGroupOrder,
   filters,
+  generalContentExcludedIds,
+  generalSectionIds,
+  generalStreamIds,
   legacyFilterTags,
   locationTags,
   miscellaneousTags,

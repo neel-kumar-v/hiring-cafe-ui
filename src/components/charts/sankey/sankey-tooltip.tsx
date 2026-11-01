@@ -4,11 +4,7 @@ import type { SankeyLink, SankeyNode } from "d3-sankey";
 import { intFmt } from "../chart-formatters";
 import { TooltipBox } from "../tooltip/tooltip-box";
 import { TooltipContent, type TooltipRow } from "../tooltip/tooltip-content";
-import {
-  type SankeyLinkDatum,
-  type SankeyNodeDatum,
-  useSankey,
-} from "./sankey-context";
+import { type SankeyLinkDatum, type SankeyNodeDatum, useSankey } from "./sankey-context";
 
 // Helper to get node name from link source/target
 type NodeOrIndex = SankeyNode<SankeyNodeDatum, SankeyLinkDatum> | number;
@@ -22,37 +18,17 @@ function getNodeName(nodeOrIndex: NodeOrIndex, fallbackIndex: number): string {
 
 export interface SankeyTooltipProps {
   /** Custom content renderer for node tooltips */
-  nodeContent?: (props: {
-    node: SankeyNode<SankeyNodeDatum, SankeyLinkDatum>;
-    index: number;
-  }) => React.ReactNode;
+  nodeContent?: (props: { node: SankeyNode<SankeyNodeDatum, SankeyLinkDatum>; index: number }) => React.ReactNode;
   /** Custom content renderer for link tooltips */
-  linkContent?: (props: {
-    link: SankeyLink<SankeyNodeDatum, SankeyLinkDatum>;
-    index: number;
-  }) => React.ReactNode;
+  linkContent?: (props: { link: SankeyLink<SankeyNodeDatum, SankeyLinkDatum>; index: number }) => React.ReactNode;
   /** Value formatter function */
   formatValue?: (value: number) => string;
   /** Custom class name */
   className?: string;
 }
 
-export function SankeyTooltip({
-  nodeContent,
-  linkContent,
-  formatValue = intFmt,
-  className = "",
-}: SankeyTooltipProps) {
-  const {
-    tooltipData,
-    containerRef,
-    width,
-    height,
-    margin,
-    nodes,
-    links,
-    mousePos,
-  } = useSankey();
+export function SankeyTooltip({ nodeContent, linkContent, formatValue = intFmt, className = "" }: SankeyTooltipProps) {
+  const { tooltipData, containerRef, width, height, margin, nodes, links, mousePos } = useSankey();
 
   if (!tooltipData) {
     return null;
@@ -75,15 +51,7 @@ export function SankeyTooltip({
     // Custom content
     if (nodeContent) {
       return (
-        <TooltipBox
-          className={className}
-          containerHeight={height}
-          containerRef={containerRef}
-          containerWidth={width}
-          visible
-          x={x}
-          y={y}
-        >
+        <TooltipBox className={className} containerHeight={height} containerRef={containerRef} containerWidth={width} visible x={x} y={y}>
           {nodeContent({ node, index: tooltipData.nodeIndex })}
         </TooltipBox>
       );
@@ -99,15 +67,7 @@ export function SankeyTooltip({
     ];
 
     return (
-      <TooltipBox
-        className={className}
-        containerHeight={height}
-        containerRef={containerRef}
-        containerWidth={width}
-        visible
-        x={x}
-        y={y}
-      >
+      <TooltipBox className={className} containerHeight={height} containerRef={containerRef} containerWidth={width} visible x={x} y={y}>
         <TooltipContent rows={rows} title={node.name} />
       </TooltipBox>
     );
@@ -121,27 +81,13 @@ export function SankeyTooltip({
     }
 
     // Get source and target names
-    const sourceName = getNodeName(
-      link.source as NodeOrIndex,
-      tooltipData.linkIndex
-    );
-    const targetName = getNodeName(
-      link.target as NodeOrIndex,
-      tooltipData.linkIndex
-    );
+    const sourceName = getNodeName(link.source as NodeOrIndex, tooltipData.linkIndex);
+    const targetName = getNodeName(link.target as NodeOrIndex, tooltipData.linkIndex);
 
     // Custom content
     if (linkContent) {
       return (
-        <TooltipBox
-          className={className}
-          containerHeight={height}
-          containerRef={containerRef}
-          containerWidth={width}
-          visible
-          x={x}
-          y={y}
-        >
+        <TooltipBox className={className} containerHeight={height} containerRef={containerRef} containerWidth={width} visible x={x} y={y}>
           {linkContent({ link, index: tooltipData.linkIndex })}
         </TooltipBox>
       );
@@ -157,15 +103,7 @@ export function SankeyTooltip({
     ];
 
     return (
-      <TooltipBox
-        className={className}
-        containerHeight={height}
-        containerRef={containerRef}
-        containerWidth={width}
-        visible
-        x={x}
-        y={y}
-      >
+      <TooltipBox className={className} containerHeight={height} containerRef={containerRef} containerWidth={width} visible x={x} y={y}>
         <TooltipContent rows={rows} title={`${sourceName} → ${targetName}`} />
       </TooltipBox>
     );

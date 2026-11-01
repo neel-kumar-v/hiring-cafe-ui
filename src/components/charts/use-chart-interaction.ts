@@ -26,11 +26,7 @@ interface UseChartInteractionParams {
   lines: LineConfig[];
   margin: Margin;
   xAccessor: (d: Record<string, unknown>) => Date;
-  bisectDate: (
-    data: Record<string, unknown>[],
-    date: Date,
-    lo: number
-  ) => number;
+  bisectDate: (data: Record<string, unknown>[], date: Date, lo: number) => number;
   canInteract: boolean;
 }
 
@@ -51,25 +47,9 @@ interface ChartInteractionResult {
   interactionStyle: React.CSSProperties;
 }
 
-export function useChartInteraction({
-  xScale,
-  yScale,
-  yScales,
-  data,
-  lines,
-  margin,
-  xAccessor,
-  bisectDate,
-  canInteract,
-}: UseChartInteractionParams): ChartInteractionResult {
+export function useChartInteraction({ xScale, yScale, yScales, data, lines, margin, xAccessor, bisectDate, canInteract }: UseChartInteractionParams): ChartInteractionResult {
   const [selection, setSelection] = useState<ChartSelection | null>(null);
-  const {
-    tooltipData,
-    setTooltipData,
-    scheduleTooltip,
-    clearTooltip,
-    resetTooltipDedupe,
-  } = useScheduledTooltip<TooltipData>();
+  const { tooltipData, setTooltipData, scheduleTooltip, clearTooltip, resetTooltipDedupe } = useScheduledTooltip<TooltipData>();
 
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef<number>(0);
@@ -138,10 +118,7 @@ export function useChartInteraction({
   );
 
   const getChartX = useCallback(
-    (
-      event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-      touchIndex = 0
-    ): number | null => {
+    (event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, touchIndex = 0): number | null => {
       let point: { x: number; y: number } | null = null;
 
       if ("touches" in event) {
@@ -258,14 +235,7 @@ export function useChartInteraction({
         });
       }
     },
-    [
-      getChartX,
-      resolveTooltipFromX,
-      resolveIndexFromX,
-      scheduleTooltip,
-      resetTooltipDedupe,
-      clearTooltip,
-    ]
+    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip, resetTooltipDedupe, clearTooltip]
   );
 
   const handleTouchMove = useCallback(

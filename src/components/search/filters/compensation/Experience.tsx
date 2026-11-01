@@ -1,91 +1,140 @@
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
-import { ExperienceLevel, Role, Select } from "@/types/search";
-import { Input } from "@/components/ui/input";
+import { formatCountedList, formatExperienceYearSentence } from "@/lib/search/sentence-query";
+import type { ExperienceLevel, Role, SearchState, Select } from "@/types/search";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
-import LabelInputContainer from "../util/LabelInputContainer";
+import { SentenceBlankMultiSelect, SentenceRangeBlank, SentenceText } from "../util/sentence-query";
+
+const ALL_SENIORITY_LEVELS: ExperienceLevel[] = ["None", "Entry Level", "Mid Level", "Senior Level"];
+const ALL_ROLE_OPTIONS: Role[] = ["Individual Contributor", "People Manager"];
+
+const SENIORITY_LABELS: Record<ExperienceLevel, string> = {
+  None: "No Experience Required",
+  "Entry Level": "Entry Level",
+  "Mid Level": "Mid Level",
+  "Senior Level": "Senior Level",
+};
+
+const SENIORITY_BLANK_OPTIONS = ALL_SENIORITY_LEVELS.map((level) => ({
+  value: level,
+  label: SENIORITY_LABELS[level],
+  phrase: SENIORITY_LABELS[level],
+}));
+
+const ROLE_BLANK_OPTIONS = ALL_ROLE_OPTIONS.map((role) => ({
+  value: role,
+  label: role,
+}));
+
+function isSelectAll<T>(value: Select<T> | undefined, all: readonly T[]): boolean {
+  if (!value || value === "All") return true;
+  if (!Array.isArray(value)) return true;
+  return value.length === 0 || value.length === all.length;
+}
+
+function selectedFromSelect<T>(value: Select<T> | undefined, all: readonly T[]): T[] {
+  if (!Array.isArray(value) || isSelectAll(value, all)) return [];
+  return all.filter((item) => value.includes(item));
+}
+
+function toSelectValue<T>(next: T[], all: readonly T[]): Select<T> {
+  return next.length === 0 || next.length === all.length ? "All" : next;
+}
+
+function seniorityPhrases(levels: ExperienceLevel[]): string[] {
+  return levels.map((level) => SENIORITY_LABELS[level]);
+}
+
+export function formatSeniorityList(items: string[]): string {
+  return formatCountedList(items, { conjunction: "or", n1: 4 });
+}
+
+export function formatRoleList(items: string[]): string {
+  return formatCountedList(items, { conjunction: "or", n1: 4 });
+}
+
+export function getSeniorityTitle(level?: Select<ExperienceLevel>): string {
+  if (isSelectAll(level, ALL_SENIORITY_LEVELS)) {
+    return "Show jobs requiring any seniority";
+  }
+
+  const selected = selectedFromSelect(level, ALL_SENIORITY_LEVELS);
+  return `Show jobs requiring ${formatSeniorityList(seniorityPhrases(selected))}`;
+}
+
+export function getRoleTypeTitle(role?: Select<Role>): string {
+  if (isSelectAll(role, ALL_ROLE_OPTIONS)) {
+    return "Show jobs for any role type";
+  }
+
+  const selected = selectedFromSelect(role, ALL_ROLE_OPTIONS);
+  return `Show jobs for ${formatRoleList(selected)}`;
+}
+
+export function getExperienceYearSentence(minVal: number, maxVal: number, roleLabel: "individual contributor" | "people manager"): string | null {
+  return formatExperienceYearSentence(minVal, maxVal, roleLabel);
+}
+
+function formatShortRange(minVal: number, maxVal: number): string {
+  if (minVal > 0 && maxVal > 0) {
+    if (minVal === maxVal) return `${minVal} yr`;
+    const low = Math.min(minVal, maxVal);
+    const high = Math.max(minVal, maxVal);
+    return `${low}–${high} yrs`;
+  }
+  if (minVal > 0) return `${minVal}+ yrs`;
+  return `≤${maxVal} yrs`;
+}
+
+export function getExperienceTitle(experience: SearchState["experience"], activeIcMin = 0, activeIcMax = 0, activePmMin = 0, activePmMax = 0): string {
+  const icMin = activeIcMin || experience.individualContributor?.min || 0;
+  const icMax = activeIcMax || experience.individualContributor?.max || 0;
+  const pmMin = activePmMin || experience.peopleManager?.min || 0;
+  const pmMax = activePmMax || experience.peopleManager?.max || 0;
+
+  const hasIc = icMin > 0 || icMax > 0;
+  const hasPm = pmMin > 0 || pmMax > 0;
+
+  if (hasIc && hasPm) {
+    return `Must have ${formatShortRange(icMin, icMax)} IC & ${formatShortRange(pmMin, pmMax)} PM experience`;
+  }
+
+  if (hasIc) {
+    return getExperienceYearSentence(icMin, icMax, "individual contributor")!;
+  }
+
+  if (hasPm) {
+    return getExperienceYearSentence(pmMin, pmMax, "people manager")!;
+  }
+
+  if (!isSelectAll(experience.level, ALL_SENIORITY_LEVELS)) {
+    return getSeniorityTitle(experience.level);
+  }
+
+  if (!isSelectAll(experience.role, ALL_ROLE_OPTIONS)) {
+    return getRoleTypeTitle(experience.role);
+  }
+
+  return "Show jobs requiring any seniority";
+}
 
 export default function Experience() {
   const { searchOptions, updateSearchOptions } = useApp();
+  const experience = searchOptions.experience;
+
   const [icMin, setIcMin] = useState("");
   const [icMax, setIcMax] = useState("");
   const [pmMin, setPmMin] = useState("");
   const [pmMax, setPmMax] = useState("");
 
-  const handleSeniorityCheckboxChange = (type: ExperienceLevel) => {
-    const currentExperience = searchOptions.experience;
-    let newExperience: Select<ExperienceLevel>
-    const allExperienceLevels: ExperienceLevel[] = [
-      "None",
-      "Entry Level",
-      "Mid Level",
-      "Senior Level"
-    ]
-    
-    if (!Array.isArray(currentExperience.level)) {
-      const allExceptSelected = allExperienceLevels.filter(item => item !== type);
-      newExperience = allExceptSelected;
-    } else if (currentExperience.level.includes(type)) {
-      const filtered = currentExperience.level.filter((item: ExperienceLevel) => item !== type)
-      newExperience = filtered.length === 0 ? "All" : filtered
-    } else {
-      const added = [...currentExperience.level, type]
-      newExperience = added.length === allExperienceLevels.length ? "All" : added
-    }
-
-    updateSearchOptions({
-      experience: {
-        ...currentExperience,
-        level: newExperience
-      }
-    });
-  };
-
-  const handleRoleCheckboxChange = (role: Role) => {
-    const currentExperience = searchOptions.experience;
-    let newRole: Select<Role>;
-    const allRoles: Role[] = ["Individual Contributor", "People Manager"];
-    
-    if (!Array.isArray(currentExperience.role)) {
-      const allExceptSelected = allRoles.filter(item => item !== role);
-      newRole = allExceptSelected;
-    } else if (currentExperience.role.includes(role)) {
-      const filtered = currentExperience.role.filter((item: Role) => item !== role);
-      newRole = filtered.length === 0 ? "All" : filtered;
-    } else {
-      const added = [...currentExperience.role, role];
-      newRole = added.length === allRoles.length ? "All" : added;
-    }
-
-    // If both roles are unchecked, set both to true and show toast
-    if (Array.isArray(newRole) && newRole.length === 0) {
-      newRole = "All";
-      toast.info("Selecting neither role type is the same as selecting all role types");
-    }
-
-    updateSearchOptions({
-      experience: {
-        ...currentExperience,
-        role: newRole
-      }
-    });
-  };
-
   useEffect(() => {
-    const ic = searchOptions.experience.individualContributor;
-    const pm = searchOptions.experience.peopleManager;
-    setIcMin(ic?.min ? String(ic.min) : "");
-    setIcMax(ic?.max ? String(ic.max) : "");
-    setPmMin(pm?.min ? String(pm.min) : "");
-    setPmMax(pm?.max ? String(pm.max) : "");
-  }, [
-    searchOptions.experience.individualContributor?.max,
-    searchOptions.experience.individualContributor?.min,
-    searchOptions.experience.peopleManager?.max,
-    searchOptions.experience.peopleManager?.min,
-  ]);
+    setIcMin(experience.individualContributor?.min ? String(experience.individualContributor.min) : "");
+    setIcMax(experience.individualContributor?.max ? String(experience.individualContributor.max) : "");
+    setPmMin(experience.peopleManager?.min ? String(experience.peopleManager.min) : "");
+    setPmMax(experience.peopleManager?.max ? String(experience.peopleManager.max) : "");
+  }, [experience.individualContributor?.max, experience.individualContributor?.min, experience.peopleManager?.max, experience.peopleManager?.min]);
 
   const toNumberOrZero = (value: string) => {
     if (!value) return 0;
@@ -95,158 +144,160 @@ export default function Experience() {
 
   const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-  const commitIndividualContributor = useCallback(() => {
-    const rawMin = toNumberOrZero(icMin);
-    const rawMax = toNumberOrZero(icMax);
-    const min = clamp(rawMin, 0, 20);
-    const max = clamp(rawMax, 0, 20);
+  const commitIndividualContributor = useCallback(
+    (patch?: { min?: string; max?: string }) => {
+      const nextMin = patch?.min ?? icMin;
+      const nextMax = patch?.max ?? icMax;
 
-    const next =
-      icMin === "" && icMax === ""
-        ? null
-        : min > 0 && max > 0 && min > max
-          ? { min: max, max: min }
-          : { min, max: icMax === "" ? 20 : max };
+      if (patch?.min !== undefined) setIcMin(patch.min);
+      if (patch?.max !== undefined) setIcMax(patch.max);
 
-    updateSearchOptions({
-      experience: {
-        ...searchOptions.experience,
-        individualContributor: next,
-      },
-    });
-  }, [icMax, icMin, searchOptions.experience, updateSearchOptions]);
+      const rawMin = toNumberOrZero(nextMin);
+      const rawMax = toNumberOrZero(nextMax);
+      const min = clamp(rawMin, 0, 20);
+      const max = clamp(rawMax, 0, 20);
 
-  const commitPeopleManager = useCallback(() => {
-    const rawMin = toNumberOrZero(pmMin);
-    const rawMax = toNumberOrZero(pmMax);
-    const min = clamp(rawMin, 0, 20);
-    const max = clamp(rawMax, 0, 20);
+      const next = nextMin === "" && nextMax === "" ? null : min > 0 && max > 0 && min > max ? { min: max, max: min } : { min, max: nextMax === "" ? 20 : max };
 
-    const next =
-      pmMin === "" && pmMax === ""
-        ? null
-        : min > 0 && max > 0 && min > max
-          ? { min: max, max: min }
-          : { min, max: pmMax === "" ? 20 : max };
+      updateSearchOptions({
+        experience: {
+          ...searchOptions.experience,
+          individualContributor: next,
+        },
+      });
+    },
+    [icMax, icMin, searchOptions.experience, updateSearchOptions]
+  );
 
-    updateSearchOptions({
-      experience: {
-        ...searchOptions.experience,
-        peopleManager: next,
-      },
-    });
-  }, [pmMax, pmMin, searchOptions.experience, updateSearchOptions]);
+  const commitPeopleManager = useCallback(
+    (patch?: { min?: string; max?: string }) => {
+      const nextMin = patch?.min ?? pmMin;
+      const nextMax = patch?.max ?? pmMax;
 
-  const isIndividualContributorSelected = Array.isArray(searchOptions.experience.role) 
-    ? searchOptions.experience.role.includes("Individual Contributor")
-    : searchOptions.experience.role === "All";
+      if (patch?.min !== undefined) setPmMin(patch.min);
+      if (patch?.max !== undefined) setPmMax(patch.max);
 
-  const isPeopleManagerSelected = Array.isArray(searchOptions.experience.role)
-    ? searchOptions.experience.role.includes("People Manager")
-    : searchOptions.experience.role === "All";
+      const rawMin = toNumberOrZero(nextMin);
+      const rawMax = toNumberOrZero(nextMax);
+      const min = clamp(rawMin, 0, 20);
+      const max = clamp(rawMax, 0, 20);
 
-  const shouldShowIndividualContributorRange = isIndividualContributorSelected;
-  const shouldShowPeopleManagerRange = isPeopleManagerSelected;
+      const next = nextMin === "" && nextMax === "" ? null : min > 0 && max > 0 && min > max ? { min: max, max: min } : { min, max: nextMax === "" ? 20 : max };
+
+      updateSearchOptions({
+        experience: {
+          ...searchOptions.experience,
+          peopleManager: next,
+        },
+      });
+    },
+    [pmMax, pmMin, searchOptions.experience, updateSearchOptions]
+  );
+
+  const senioritySelected = selectedFromSelect(experience.level, ALL_SENIORITY_LEVELS);
+  const roleSelected = selectedFromSelect(experience.role, ALL_ROLE_OPTIONS);
+
+  const seniorityBlank = (
+    <SentenceBlankMultiSelect
+      ariaLabel="Seniority levels"
+      options={SENIORITY_BLANK_OPTIONS}
+      values={senioritySelected}
+      onChange={(next) => {
+        updateSearchOptions({
+          experience: {
+            ...searchOptions.experience,
+            level: toSelectValue(next, ALL_SENIORITY_LEVELS),
+          },
+        });
+      }}
+      placeholder="any seniority"
+      formatOptions={{
+        conjunction: "or",
+        n1: 4,
+        noneText: "any seniority",
+        allText: "any seniority",
+        total: ALL_SENIORITY_LEVELS.length,
+      }}
+    />
+  );
+
+  const roleBlank = (
+    <SentenceBlankMultiSelect
+      ariaLabel="Role types"
+      options={ROLE_BLANK_OPTIONS}
+      values={roleSelected}
+      onChange={(next) => {
+        updateSearchOptions({
+          experience: {
+            ...searchOptions.experience,
+            role: toSelectValue(next, ALL_ROLE_OPTIONS),
+          },
+        });
+      }}
+      placeholder="any role type"
+      formatOptions={{
+        conjunction: "or",
+        n1: 4,
+        noneText: "any role type",
+        allText: "any role type",
+        total: ALL_ROLE_OPTIONS.length,
+      }}
+    />
+  );
+
+  const title = (
+    <SentenceText>
+      Show jobs requiring
+      {seniorityBlank}
+    </SentenceText>
+  );
 
   return (
-    <FilterContainer categoryId="experience" title="Experience">
-      <LabelInputContainer title="Seniority">
-        <LabelCheckbox 
-          label="No Experience Required" 
-          checked={searchOptions.experience.level.includes("None") || searchOptions.experience.level === "All"} 
-          onChange={() => handleSeniorityCheckboxChange("None")}
+    <FilterContainer categoryId="experience" title={title} chrome="stream">
+      <SentenceText>
+        Show jobs for
+        {roleBlank}
+      </SentenceText>
+
+      <SentenceText>
+        Must have
+        <SentenceRangeBlank
+          minAriaLabel="Minimum IC experience years"
+          maxAriaLabel="Maximum IC experience years"
+          minLabel="Minimum IC experience years"
+          maxLabel="Maximum IC experience years"
+          minValue={icMin}
+          maxValue={icMax}
+          onChangeMin={setIcMin}
+          onChangeMax={setIcMax}
+          onCommit={commitIndividualContributor}
+          separator="-"
+          minPlaceholder="min"
+          maxPlaceholder="max"
+          widthClassName="w-10"
         />
-        <LabelCheckbox 
-          label="Entry Level" 
-          checked={searchOptions.experience.level.includes("Entry Level") || searchOptions.experience.level === "All"} 
-          onChange={() => handleSeniorityCheckboxChange("Entry Level")}
+        years of individual contributor experience
+      </SentenceText>
+
+      <SentenceText>
+        Must have
+        <SentenceRangeBlank
+          minAriaLabel="Minimum PM experience years"
+          maxAriaLabel="Maximum PM experience years"
+          minLabel="Minimum PM experience years"
+          maxLabel="Maximum PM experience years"
+          minValue={pmMin}
+          maxValue={pmMax}
+          onChangeMin={setPmMin}
+          onChangeMax={setPmMax}
+          onCommit={commitPeopleManager}
+          separator="-"
+          minPlaceholder="min"
+          maxPlaceholder="max"
+          widthClassName="w-10"
         />
-        <LabelCheckbox 
-          label="Mid Level" 
-          checked={searchOptions.experience.level.includes("Mid Level") || searchOptions.experience.level === "All"} 
-          onChange={() => handleSeniorityCheckboxChange("Mid Level")}
-        />
-        <LabelCheckbox 
-          label="Senior Level" 
-          checked={searchOptions.experience.level.includes("Senior Level") || searchOptions.experience.level === "All"} 
-          onChange={() => handleSeniorityCheckboxChange("Senior Level")}
-        />
-      </LabelInputContainer>
-      
-      <LabelInputContainer title="Role Type">
-        <LabelCheckbox 
-          label="Individual Contributor" 
-          checked={isIndividualContributorSelected}
-          onChange={() => handleRoleCheckboxChange("Individual Contributor")}
-        />
-        <LabelCheckbox 
-          label="People Manager" 
-          checked={isPeopleManagerSelected}
-          onChange={() => handleRoleCheckboxChange("People Manager")}
-        />
-      </LabelInputContainer>
-      
-      {shouldShowIndividualContributorRange && (
-        <LabelInputContainer title="Individual Contributor Experience (Years)" midColCount={1} lgColCount={1}>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-foreground">Min</label>
-              <Input
-                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                inputMode="numeric"
-                placeholder="No min"
-                type="text"
-                value={icMin}
-                onChange={(e) => setIcMin(e.target.value.replace(/[^0-9]/g, ""))}
-                onBlur={commitIndividualContributor}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-foreground">Max</label>
-              <Input
-                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                inputMode="numeric"
-                placeholder="No max"
-                type="text"
-                value={icMax}
-                onChange={(e) => setIcMax(e.target.value.replace(/[^0-9]/g, ""))}
-                onBlur={commitIndividualContributor}
-              />
-            </div>
-          </div>
-        </LabelInputContainer>
-      )}
-      
-      {shouldShowPeopleManagerRange && (
-        <LabelInputContainer title="People Manager Experience (Years)" midColCount={1} lgColCount={1}>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-foreground">Min</label>
-              <Input
-                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                inputMode="numeric"
-                placeholder="No min"
-                type="text"
-                value={pmMin}
-                onChange={(e) => setPmMin(e.target.value.replace(/[^0-9]/g, ""))}
-                onBlur={commitPeopleManager}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-foreground">Max</label>
-              <Input
-                className="w-full text-sm [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                inputMode="numeric"
-                placeholder="No max"
-                type="text"
-                value={pmMax}
-                onChange={(e) => setPmMax(e.target.value.replace(/[^0-9]/g, ""))}
-                onBlur={commitPeopleManager}
-              />
-            </div>
-          </div>
-        </LabelInputContainer>
-      )}
+        years of people manager experience
+      </SentenceText>
     </FilterContainer>
   );
-} 
+}

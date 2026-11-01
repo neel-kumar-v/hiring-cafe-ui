@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCompanyWebsite } from "@/lib/company-info";
@@ -15,10 +14,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bookmark, DollarSign, EyeOff, Link2, MapPin, MoreHorizontal, Send } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Bookmark,
+  Briefcase,
+  Building2,
+  Clock,
+  DollarSign,
+  EyeOff,
+  Link2,
+  MapPin,
+  MoreHorizontal,
+  Send,
+  type LucideIcon,
+} from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
@@ -27,6 +43,26 @@ import NewBadge, { isJobNew, shouldShowNewBadge } from "./card/NewBadge";
 import CardStats from "./card/CardStats";
 import CompanyLogo from "./util/CompanyLogo";
 import ScrapeTime from "./util/ScrapeTime";
+
+/** Jobright-style meta fact: icon + plain text (no outline pill). */
+function FactLine({ icon: Icon, children, emphasize = false }: { icon: LucideIcon; children: ReactNode; emphasize?: boolean }) {
+  if (children == null || children === false || children === "") return null;
+  return (
+    <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+      <Icon className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
+      <span className={cn("truncate", emphasize && "font-medium tracking-[-0.01em] text-foreground tabular-nums")}>{children}</span>
+    </div>
+  );
+}
+
+/** First short clause of tagline/description (not industry). */
+function shortCompanyBlurb(company: CompanyDTO | null): string {
+  const raw = company?.tagline?.trim() || company?.description?.trim() || "";
+  if (!raw) return "";
+  const clause = (raw.split(/[.|•\n]/)[0] ?? raw).trim();
+  if (!clause) return "";
+  return clause.length > 52 ? `${clause.slice(0, 49).trimEnd()}…` : clause;
+}
 
 interface JobBoardListRowProps {
   job: JobDTO;
@@ -43,9 +79,9 @@ interface JobBoardListRowProps {
 }
 
 /**
- * Taller list row for the board List layout. Keeps the card identity (logo,
- * title, company) but adds salary, workplace, YOE, skills, and a requirements
- * snippet without the sparse icon-column chrome LinkedIn-style cards waste.
+ * List-mode board row: logo + title + company blurb, Jobright-style icon-grid
+ * facts (location/workplace · commitment/level · salary), compact skill chips,
+ * then footer (stats · sibling roles · Apply/Save/···). No match-% panel.
  */
 const JobBoardListRow = memo(
   ({
@@ -95,6 +131,17 @@ const JobBoardListRow = memo(
         .filter((item) => item.index !== activeIndex);
     }, [jobs, activeIndex]);
 
+    const handleRoleClick = useCallback(
+      (e: React.MouseEvent, index: number) => {
+        e.stopPropagation();
+        handleRoleSelect(index);
+        if (onOpenJob && collectionIndex !== undefined) {
+          onOpenJob(collectionIndex, index);
+        }
+      },
+      [collectionIndex, handleRoleSelect, onOpenJob]
+    );
+
     // Same tracker state the card footer actions read and write, so the row's
     // Apply / Save buttons mirror the card view exactly.
     const { addJob, removeJob, user } = useApp();
@@ -110,12 +157,16 @@ const JobBoardListRow = memo(
 
     const locationLabels = useMemo(() => {
       const fromCities = getLocations(workplaceCities);
-      if (fromCities.length > 0) return fromCities.slice(0, 2);
+      if (fromCities.length > 0) return fromCities;
       const states = workplaceStates.map((s) => s.trim()).filter(Boolean);
-      if (states.length > 0) return states.slice(0, 2);
+      if (states.length > 0) return states;
       const countries = workplaceCountries.map((c) => c.trim()).filter((c) => c && !/^(us|united states)$/i.test(c));
-      return countries.slice(0, 2);
+      return countries;
     }, [workplaceCities, workplaceCountries, workplaceStates]);
+
+    const primaryLocation = locationLabels[0] ?? "";
+    const moreLocationCount = Math.max(0, locationLabels.length - 1);
+    const moreLocationsText = useMemo(() => locationLabels.slice(1).join("\n"), [locationLabels]);
 
     const compensation = useMemo(() => getCompensation(toCompensationRange(currentJob)), [currentJob]);
     const isSeen = isJobSeen(currentJob.externalId);
@@ -125,12 +176,13 @@ const JobBoardListRow = memo(
     const workplaceType = currentJob.workplaceType?.trim() || "";
     const commitment = (currentJob.commitment ?? []).filter(Boolean).slice(0, 1).join("");
     const experience = useMemo(() => getExperienceInfo(currentJob.minIcYoe, currentJob.minMgmtYoe), [currentJob.minIcYoe, currentJob.minMgmtYoe]);
-    const skills = useMemo(() => (currentJob.skills ?? []).filter(Boolean).slice(0, 4), [currentJob.skills]);
-    const industry = company?.industries?.[0]?.trim() || "";
+    const experienceLabel = experience.industryBadge || experience.leadershipBadge || "";
+    const companyBlurb = useMemo(() => shortCompanyBlurb(company), [company]);
     const companyWebsite = useMemo(
       () => company?.homepageUri || (company?.canonicalDomain ? `https://${company.canonicalDomain}` : ""),
       [company?.canonicalDomain, company?.homepageUri]
     );
+    const hasFacts = Boolean(primaryLocation || workplaceType || commitment || experienceLabel || compensation);
 
     const isBookmarked = useMemo(
       () => user.saved.includes(currentJob.externalId) || user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
@@ -201,119 +253,120 @@ const JobBoardListRow = memo(
         </div>
       ) : null}
 
-      <div className="flex items-start gap-3">
-        <CompanyLogo companyData={toUiCompany(company)} size="list" variant="card" className="mt-0.5 shrink-0" />
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <CompanyLogo companyData={toUiCompany(company)} size="list" variant="card" className="mt-0.5 shrink-0" />
 
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div>
-            <h3 className="truncate text-base font-semibold leading-snug text-foreground sm:text-lg">{title}</h3>
-            <p className="truncate text-xs text-muted-foreground sm:text-[0.8125rem]">
-              <span className="text-sm font-medium text-foreground/80">{companyName || "Unknown company"}</span>
-              {industry ? <span className="text-muted-foreground"> · {industry}</span> : null}
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground sm:text-[1.0625rem]">
+              {title}
+            </h3>
+            <p className="mt-0.5 truncate text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]">
+              <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85 sm:text-sm">
+                {companyName || "Unknown company"}
+              </span>
+              {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-              {locationLabels.map((loc) => (
-                <Badge key={loc} variant="outline" className="font-normal text-muted-foreground">
-                  <MapPin className="size-3 shrink-0" />
-                  <span>{loc}</span>
-                </Badge>
-              ))}
-              {workplaceType ? (
-                <Badge variant="outline" className="font-normal text-muted-foreground">
-                  {workplaceType}
-                </Badge>
-              ) : null}
-              {commitment ? (
-                <Badge variant="outline" className="font-normal text-muted-foreground">
-                  {commitment}
-                </Badge>
-              ) : null}
-              {experience.industryBadge ? (
-                <Badge variant="outline" className="font-normal text-muted-foreground">
-                  {experience.industryBadge}
-                </Badge>
-              ) : experience.leadershipBadge ? (
-                <Badge variant="outline" className="font-normal text-muted-foreground">
-                  {experience.leadershipBadge}
-                </Badge>
-              ) : null}
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-              {compensation ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-xs font-medium text-foreground">
-                  <DollarSign className="size-3 shrink-0" />
-                  {compensation}
-                </span>
-              ) : null}
-              <ScrapeTime
-                postedAt={currentJob.estimatedPublishDate ?? ""}
-                postedAtMillis={currentJob.estimatedPublishDateMillis}
-                createdAt={currentJob.createdAt}
-                iconClassName="size-3"
-                textClassName="text-xs"
-              />
-            </div>
-          </div>
-
-          {skills.length > 0 ? (
-            <div className="flex flex-wrap gap-1 pt-0.5">
-              {skills.map((skill) => (
-                <Badge key={skill} variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
         </div>
+
+        <ScrapeTime
+          postedAt={currentJob.estimatedPublishDate ?? ""}
+          postedAtMillis={currentJob.estimatedPublishDateMillis}
+          createdAt={currentJob.createdAt}
+          iconClassName="size-3"
+          textClassName="text-[0.6875rem] tracking-[0.02em] text-muted-foreground"
+          className="shrink-0 pt-1"
+        />
       </div>
 
-      {otherRoles.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          {otherRoles.map(({ job: otherJob, index: otherIndex }) => {
-            const otherTitle =
-              getCleanJobTitle(otherJob.title, companyName, otherJob.workplaceCities?.[0] ?? "", otherJob.skills ?? []) ||
-              otherJob.title ||
-              "Role";
-            return (
-              <Button
-                key={otherJob.externalId}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 max-w-full truncate px-2.5 text-xs font-normal hover:border-primary/50 hover:bg-accent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRoleSelect(otherIndex);
-                }}
-                onMouseEnter={() => {
-                  prefetchNow(getDetailsLookupId(otherJob));
-                }}
-                title={otherTitle}
-              >
-                <span className="truncate">{otherTitle}</span>
-              </Button>
-            );
-          })}
+      {/* Jobright-style facts: 3 columns of icon + plain text (not outline pills). */}
+      {hasFacts ? (
+        <div className="grid grid-cols-1 gap-x-5 gap-y-1.5 @[380px]/row:grid-cols-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            {primaryLocation ? (
+              <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+                <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
+                <span className="truncate">{primaryLocation}</span>
+                {moreLocationCount > 0 ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <span
+                        tabIndex={0}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex shrink-0 cursor-default items-center text-[0.8125rem] font-medium leading-snug tracking-[0.01em] text-foreground/50 underline-offset-2 transition-colors hover:text-foreground/75 hover:underline focus:outline-none focus-visible:text-foreground/75 focus-visible:underline"
+                      >
+                        +{moreLocationCount} more
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" sideOffset={4} className="max-h-60 max-w-xs overflow-y-auto text-xs">
+                      <p className="whitespace-pre-line leading-snug">{moreLocationsText}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : null}
+              </div>
+            ) : null}
+            <FactLine icon={Building2}>{workplaceType}</FactLine>
+          </div>
+          <div className="flex min-w-0 flex-col gap-1">
+            <FactLine icon={Clock}>{commitment}</FactLine>
+            <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
+          </div>
+          <div className="flex min-w-0 flex-col gap-1">
+            <FactLine icon={DollarSign} emphasize>
+              {compensation}
+            </FactLine>
+          </div>
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <CardStats
-          appliedCount={currentJob.applies}
-          isApplied={isApplied}
-          isBookmarked={isBookmarked}
-          isInterviewing={isInterviewing}
-          onBookmarkToggle={handleBookmarkToggle}
-          savedCount={currentJob.saves}
-          viewedCount={currentJob.views}
-          applyUrl={currentJob.applyUrl ?? ""}
-        />
+      {/* 3-zone footer: left stats | center roles | right actions */}
+      <div data-card-footer="true" className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <div className="flex shrink-0 items-center">
+          <CardStats
+            appliedCount={currentJob.applies}
+            isApplied={isApplied}
+            isBookmarked={isBookmarked}
+            isInterviewing={isInterviewing}
+            onBookmarkToggle={handleBookmarkToggle}
+            savedCount={currentJob.saves}
+            viewedCount={currentJob.views}
+            applyUrl={currentJob.applyUrl ?? ""}
+            quiet
+          />
+        </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+        {otherRoles.length > 0 ? (
+          <div
+            className="order-3 flex w-full min-w-0 flex-wrap items-center justify-center gap-1.5 px-1 sm:order-none sm:w-auto sm:flex-1 sm:px-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {otherRoles.map(({ job: otherJob, index: otherIndex }) => {
+              const otherTitle =
+                getCleanJobTitle(otherJob.title, companyName, otherJob.workplaceCities?.[0] ?? "", otherJob.skills ?? []) ||
+                otherJob.title ||
+                "Role";
+              return (
+                <Button
+                  key={otherJob.externalId}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 max-w-[200px] truncate px-2.5 text-xs font-normal hover:border-primary/50 hover:bg-accent sm:max-w-[260px]"
+                  onClick={(e) => handleRoleClick(e, otherIndex)}
+                  onMouseEnter={() => {
+                    prefetchNow(getDetailsLookupId(otherJob));
+                  }}
+                  title={otherTitle}
+                >
+                  <span className="truncate">{otherTitle}</span>
+                </Button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
           {currentJob.applyUrl ? (
             <Button
               asChild

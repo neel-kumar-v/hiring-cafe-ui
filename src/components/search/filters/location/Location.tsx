@@ -34,18 +34,11 @@ function createAddressComponent(longName: string, type: LocationType): AddressCo
   };
 }
 
-function getComponent(
-  components: AddressComponent[] | undefined,
-  type: LocationType
-) {
+function getComponent(components: AddressComponent[] | undefined, type: LocationType) {
   return components?.find((component) => component.types.includes(type));
 }
 
-function buildSuggestedLocation(
-  baseLocation: Location,
-  label: string,
-  type: LocationType
-): SuggestedLocation {
+function buildSuggestedLocation(baseLocation: Location, label: string, type: LocationType): SuggestedLocation {
   const existingComponents = baseLocation.address.components ?? [];
   const country = getComponent(existingComponents, "Country");
   const continent = getComponent(existingComponents, "Continent");
@@ -157,24 +150,9 @@ interface LocationAccordionProps {
 function LocationAccordion({ location, locationIndex }: LocationAccordionProps) {
   const { searchOptions, updateSearchOptions } = useApp();
 
-  const handleRadiusChange = createLocationRadiusHandler(
-    location,
-    searchOptions,
-    updateSearchOptions,
-    locationIndex
-  );
-  const handleWorkplaceTypeChange = createLocationWorkplaceTypeHandler(
-    location,
-    searchOptions,
-    updateSearchOptions,
-    locationIndex
-  );
-  const handleFlexibleRegionsChange = createLocationFlexibleRegionsHandler(
-    location,
-    searchOptions,
-    updateSearchOptions,
-    locationIndex
-  );
+  const handleRadiusChange = createLocationRadiusHandler(location, searchOptions, updateSearchOptions, locationIndex);
+  const handleWorkplaceTypeChange = createLocationWorkplaceTypeHandler(location, searchOptions, updateSearchOptions, locationIndex);
+  const handleFlexibleRegionsChange = createLocationFlexibleRegionsHandler(location, searchOptions, updateSearchOptions, locationIndex);
   const currentRadius = getCurrentRadius(location);
   const expansions = computeLocationExpansions(location);
 
@@ -215,9 +193,7 @@ function LocationAccordion({ location, locationIndex }: LocationAccordionProps) 
                 step={1}
                 className="mt-8 w-full"
                 label={(value) => (
-                  <span className="inline-flex min-w-24 items-center justify-center text-center text-foreground">
-                    {formatRadiusLabel(value, location).replace("km", "miles")}
-                  </span>
+                  <span className="inline-flex min-w-24 items-center justify-center text-center text-foreground">{formatRadiusLabel(value, location).replace("km", "miles")}</span>
                 )}
                 labelPosition="top"
               />
@@ -270,22 +246,10 @@ export default function LocationFilter() {
   const suggestedLocations = useMemo(() => {
     const allSuggestions = locations.flatMap((location) => generateLocationSuggestions(location));
     const deduped = allSuggestions.filter(
-      (suggestion, index, array) =>
-        array.findIndex(
-          (item) =>
-            item.address.formatted === suggestion.address.formatted &&
-            item.types[0] === suggestion.types[0]
-        ) === index
+      (suggestion, index, array) => array.findIndex((item) => item.address.formatted === suggestion.address.formatted && item.types[0] === suggestion.types[0]) === index
     );
 
-    return deduped.filter(
-      (suggestion) =>
-        !locations.some(
-          (location) =>
-            location.address.formatted === suggestion.address.formatted &&
-            location.types[0] === suggestion.types[0]
-        )
-    );
+    return deduped.filter((suggestion) => !locations.some((location) => location.address.formatted === suggestion.address.formatted && location.types[0] === suggestion.types[0]));
   }, [locations]);
 
   useEffect(() => {
@@ -294,9 +258,7 @@ export default function LocationFilter() {
     initialRender.current = false;
   }, [suggestedLocations.length]);
 
-  const visibleSuggestions = showAllSuggestions
-    ? suggestedLocations
-    : suggestedLocations.slice(0, MAX_SUGGESTIONS_INLINE);
+  const visibleSuggestions = showAllSuggestions ? suggestedLocations : suggestedLocations.slice(0, MAX_SUGGESTIONS_INLINE);
 
   return (
     <FilterContainer categoryId="location" title="Location">
@@ -316,9 +278,7 @@ export default function LocationFilter() {
         {locations.length === 0 ? (
           <div className="rounded-md border-2 border-dashed border-muted-foreground/30 p-3 text-center text-muted-foreground/75 transition-colors hover:border-muted-foreground/50 hover:text-muted-foreground">
             <Plus size={20} className="mx-auto mb-2 rounded" />
-            <p className="text-xs">
-              Currently searching {searchOptions.location.defaultUserLocation ? "in your general location" : "anywhere in the world"}.
-            </p>
+            <p className="text-xs">Currently searching {searchOptions.location.defaultUserLocation ? "in your general location" : "anywhere in the world"}.</p>
           </div>
         ) : null}
 
@@ -343,14 +303,8 @@ export default function LocationFilter() {
               </button>
             ))}
             {suggestedLocations.length > MAX_SUGGESTIONS_INLINE ? (
-              <button
-                type="button"
-                onClick={() => setShowAllSuggestions((value) => !value)}
-                className="text-xs font-bold text-primary underline hover:no-underline"
-              >
-                {showAllSuggestions
-                  ? "Show fewer suggested regions"
-                  : `Show ${suggestedLocations.length} suggested regions`}
+              <button type="button" onClick={() => setShowAllSuggestions((value) => !value)} className="text-xs font-bold text-primary underline hover:no-underline">
+                {showAllSuggestions ? "Show fewer suggested regions" : `Show ${suggestedLocations.length} suggested regions`}
               </button>
             ) : null}
           </div>

@@ -1,17 +1,14 @@
-import { BooleanOperator, DegreePreferences, DegreePreferencesOptions, Keywords, SearchExpression, SearchState, Select } from '../../types/search';
+import { BooleanOperator, DegreePreferences, DegreePreferencesOptions, Keywords, SearchExpression, SearchState, Select } from "../../types/search";
 
-export function createEducationPreferenceHandler(
-  currentEducation: DegreePreferencesOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', preference: DegreePreferences) => {
+export function createEducationPreferenceHandler(currentEducation: DegreePreferencesOptions, updateSearchOptions: (updates: Partial<SearchState>) => void) {
+  return (degreeType: "associate" | "bachelor" | "master" | "doctorate", preference: DegreePreferences) => {
     const currentPreferences = currentEducation[degreeType].preferences;
-    
+
     let newPreferences: Select<DegreePreferences, null>;
-    
+
     if (Array.isArray(currentPreferences)) {
       if (currentPreferences.includes(preference)) {
-        const filtered = currentPreferences.filter(p => p !== preference);
+        const filtered = currentPreferences.filter((p) => p !== preference);
         newPreferences = filtered.length > 0 ? filtered : null;
       } else {
         newPreferences = [...currentPreferences, preference];
@@ -19,32 +16,29 @@ export function createEducationPreferenceHandler(
     } else {
       newPreferences = [preference];
     }
-    
+
     updateSearchOptions({
       education: {
         ...currentEducation,
         [degreeType]: {
           ...currentEducation[degreeType],
-          preferences: newPreferences
-        }
-      }
+          preferences: newPreferences,
+        },
+      },
     });
   };
 }
 
-export function createEducationKeywordsHandler(
-  currentEducation: DegreePreferencesOptions,
-  updateSearchOptions: (updates: Partial<SearchState>) => void
-) {
-  return (degreeType: 'associate' | 'bachelor' | 'master' | 'doctorate', keywords: Keywords) => {
+export function createEducationKeywordsHandler(currentEducation: DegreePreferencesOptions, updateSearchOptions: (updates: Partial<SearchState>) => void) {
+  return (degreeType: "associate" | "bachelor" | "master" | "doctorate", keywords: Keywords) => {
     updateSearchOptions({
       education: {
         ...currentEducation,
         [degreeType]: {
           ...currentEducation[degreeType],
-          keywords
-        }
-      }
+          keywords,
+        },
+      },
     });
   };
 }
@@ -55,12 +49,12 @@ export function parseSearchExpression(input: string): SearchExpression<string> {
   while (index < input.length) {
     const char = input[index];
 
-    if (char === ' ') {
+    if (char === " ") {
       index++;
       continue;
     }
 
-    if (char === '(' || char === ')') {
+    if (char === "(" || char === ")") {
       tokens.push(char);
       index++;
       continue;
@@ -68,7 +62,7 @@ export function parseSearchExpression(input: string): SearchExpression<string> {
 
     if (char === '"') {
       let end = index + 1;
-      let phrase = '';
+      let phrase = "";
       while (end < input.length && input[end] !== '"') {
         phrase += input[end++];
       }
@@ -89,7 +83,7 @@ export function parseSearchExpression(input: string): SearchExpression<string> {
     }
 
     let end = index;
-    while (end < input.length && ![' ', '(', ')', '"'].includes(input[end])) end++;
+    while (end < input.length && ![" ", "(", ")", '"'].includes(input[end])) end++;
     tokens.push(input.slice(index, end));
     index = end;
   }
@@ -103,9 +97,9 @@ export function parseSearchExpression(input: string): SearchExpression<string> {
     while (pos < tokens.length) {
       const token = tokens[pos];
 
-      if (token === ')') break;
+      if (token === ")") break;
 
-      if (token === '(') {
+      if (token === "(") {
         pos++;
         const group = parseExpression();
         if (currentOp && exprStack.length) {
@@ -115,23 +109,23 @@ export function parseSearchExpression(input: string): SearchExpression<string> {
         } else {
           exprStack.push(group);
         }
-        if (tokens[pos] === ')') pos++;
+        if (tokens[pos] === ")") pos++;
         continue;
       }
 
-      if (token === 'AND' || token === 'OR') {
+      if (token === "AND" || token === "OR") {
         currentOp = token;
         pos++;
         continue;
       }
 
-      if (token === 'NOT') {
+      if (token === "NOT") {
         pos++;
         let next: SearchExpression<string>;
-        if (tokens[pos] === '(') {
+        if (tokens[pos] === "(") {
           pos++;
           next = parseExpression();
-          if (tokens[pos] === ')') pos++;
+          if (tokens[pos] === ")") pos++;
         } else {
           next = tokens[pos++];
         }

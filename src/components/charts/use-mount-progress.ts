@@ -5,11 +5,7 @@ import { useEffect, useRef } from "react";
 import { DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
 
 /** Drives 0→1 enter progress using the studio motion transition (spring or tween). */
-export function useMountProgress(
-  enterTransition: Transition | undefined,
-  delaySeconds: number,
-  replayKey: number | string
-) {
+export function useMountProgress(enterTransition: Transition | undefined, delaySeconds: number, replayKey: number | string) {
   const progress = useMotionValue(0);
   const transitionRef = useRef(enterTransition);
   transitionRef.current = enterTransition;

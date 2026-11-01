@@ -99,10 +99,7 @@ function TooltipBoxInner({
   const th = tooltipHeightRef.current;
   const shouldFlipX = x + tw + offset > containerWidth;
   const targetX = shouldFlipX ? x - offset - tw : x + offset;
-  const targetY = Math.max(
-    offset,
-    Math.min(y - th / 2, containerHeight - th - offset)
-  );
+  const targetY = Math.max(offset, Math.min(y - th / 2, containerHeight - th - offset));
 
   const animatedLeft = useSpring(targetX, effectiveSpring);
   const animatedTop = useSpring(targetY, effectiveSpring);
@@ -131,10 +128,7 @@ function TooltipBoxInner({
     const h2 = tooltipHeightRef.current;
     const flip = x + w2 + offset > containerWidth;
     const tx = flip ? x - offset - w2 : x + offset;
-    const ty = Math.max(
-      offset,
-      Math.min(y - h2 / 2, containerHeight - h2 - offset)
-    );
+    const ty = Math.max(offset, Math.min(y - h2 / 2, containerHeight - h2 - offset));
     if (!animate) {
       setStaticPosition({ left: tx, top: ty });
       return;
@@ -145,18 +139,7 @@ function TooltipBoxInner({
     if (topOverride === undefined) {
       animatedTop.set(ty);
     }
-  }, [
-    x,
-    y,
-    containerWidth,
-    containerHeight,
-    offset,
-    leftOverride,
-    topOverride,
-    animate,
-    animatedLeft,
-    animatedTop,
-  ]);
+  }, [x, y, containerWidth, containerHeight, offset, leftOverride, topOverride, animate, animatedLeft, animatedTop]);
 
   const prevFlipRef = useRef(shouldFlipX);
   const [flipKey, setFlipKey] = useState(0);
@@ -168,18 +151,14 @@ function TooltipBoxInner({
     }
   }, [shouldFlipX]);
 
-  const finalLeft = animate
-    ? (leftOverride ?? animatedLeft)
-    : staticPosition.left;
+  const finalLeft = animate ? (leftOverride ?? animatedLeft) : staticPosition.left;
   const finalTop = animate ? (topOverride ?? animatedTop) : staticPosition.top;
   const isFlipped = flippedOverride ?? shouldFlipX;
   const transformOrigin = isFlipped ? "right top" : "left top";
 
   const panelClassName = cn(
     "min-w-[140px] overflow-hidden rounded-lg text-chart-tooltip-foreground shadow-lg",
-    panelStyle?.backgroundColor === undefined &&
-      backgroundColor === chartCssVars.tooltipBackground &&
-      "bg-chart-tooltip-background",
+    panelStyle?.backgroundColor === undefined && backgroundColor === chartCssVars.tooltipBackground && "bg-chart-tooltip-background",
     panelStyle?.backdropFilter === undefined && "backdrop-blur-md"
   );
   const panelStyleResolved = {
@@ -192,11 +171,7 @@ function TooltipBoxInner({
 
   if (!entrance) {
     return createPortal(
-      <div
-        className={cn("pointer-events-none absolute z-50", className)}
-        ref={tooltipRef}
-        style={{ left: staticPosition.left, top: staticPosition.top }}
-      >
+      <div className={cn("pointer-events-none absolute z-50", className)} ref={tooltipRef} style={{ left: staticPosition.left, top: staticPosition.top }}>
         <div className={panelClassName} style={panelStyleResolved}>
           {children}
         </div>

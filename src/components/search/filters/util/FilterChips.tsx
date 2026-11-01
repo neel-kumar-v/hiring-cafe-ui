@@ -7,15 +7,7 @@ import { groupFilterChips } from "@/lib/search/filter-chips";
 import type { SearchState } from "@/types/search";
 import { X } from "lucide-react";
 
-export function FilterChipButton({
-  chip,
-  onClear,
-  onSelect,
-}: {
-  chip: FilterChip;
-  onClear: (chip: FilterChip) => void;
-  onSelect: () => void;
-}) {
+export function FilterChipButton({ chip, onClear, onSelect }: { chip: FilterChip; onClear: (chip: FilterChip) => void; onSelect: () => void }) {
   return (
     <span className="inline-flex max-w-72 shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
       <button type="button" className="max-w-72 truncate text-left hover:text-primary/80" onClick={onSelect}>
@@ -55,14 +47,8 @@ export function GroupedFilterChips({
       {groups.map((group) => (
         <div key={group.id} className="space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{group.label}</h3>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => onClearGroup(group)}
-            >
+            <h3 className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground">{group.label}</h3>
+            <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={() => onClearGroup(group)}>
               Clear
             </Button>
           </div>

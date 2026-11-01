@@ -26,10 +26,7 @@ export interface TooltipDotProps {
   animate?: boolean;
 }
 
-function ringCornerRadius(
-  halfExtent: number,
-  cornerRadiusFraction: number
-): number {
+function ringCornerRadius(halfExtent: number, cornerRadiusFraction: number): number {
   const side = halfExtent * 2;
   return side * Math.max(0, Math.min(0.5, cornerRadiusFraction));
 }
@@ -65,19 +62,7 @@ function AnimatedRingDot({
   animatedX.set(x);
   animatedY.set(y);
 
-  return (
-    <motion.rect
-      fill={fill}
-      height={side}
-      rx={rx}
-      ry={rx}
-      stroke={stroke}
-      strokeWidth={strokeWidth}
-      width={side}
-      x={rectX}
-      y={rectY}
-    />
-  );
+  return <motion.rect fill={fill} height={side} rx={rx} ry={rx} stroke={stroke} strokeWidth={strokeWidth} width={side} x={rectX} y={rectY} />;
 }
 
 export function TooltipDot({
@@ -131,44 +116,14 @@ export function TooltipDot({
     const side = size * 2;
     const rx = ringCornerRadius(size, cornerRadiusFraction);
 
-    return (
-      <rect
-        fill={fill}
-        height={side}
-        rx={rx}
-        ry={rx}
-        stroke={stroke}
-        strokeWidth={effectiveStrokeWidth}
-        width={side}
-        x={x - size}
-        y={y - size}
-      />
-    );
+    return <rect fill={fill} height={side} rx={rx} ry={rx} stroke={stroke} strokeWidth={effectiveStrokeWidth} width={side} x={x - size} y={y - size} />;
   }
 
   if (!animate) {
-    return (
-      <circle
-        cx={x}
-        cy={y}
-        fill={fill}
-        r={size}
-        stroke={stroke}
-        strokeWidth={effectiveStrokeWidth}
-      />
-    );
+    return <circle cx={x} cy={y} fill={fill} r={size} stroke={stroke} strokeWidth={effectiveStrokeWidth} />;
   }
 
-  return (
-    <motion.circle
-      cx={animatedX}
-      cy={animatedY}
-      fill={fill}
-      r={size}
-      stroke={stroke}
-      strokeWidth={effectiveStrokeWidth}
-    />
-  );
+  return <motion.circle cx={animatedX} cy={animatedY} fill={fill} r={size} stroke={stroke} strokeWidth={effectiveStrokeWidth} />;
 }
 
 TooltipDot.displayName = "TooltipDot";
