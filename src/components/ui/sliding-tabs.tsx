@@ -14,6 +14,13 @@ type TabPosition = {
 function measureTab(list: HTMLElement, tab: HTMLElement): TabPosition {
   const listRect = list.getBoundingClientRect();
   const tabRect = tab.getBoundingClientRect();
+  if (tabRect.width <= 0 || listRect.width <= 0) {
+    return {
+      left: 0,
+      width: 0,
+      opacity: 0,
+    };
+  }
   return {
     left: tabRect.left - listRect.left,
     width: tabRect.width,
@@ -38,11 +45,12 @@ export interface SlidingTabsProps<T extends string> {
   shape?: "rounded" | "pill";
   /**
    * `default` - subtle bordered muted track, background card indicator
+   * `primary` - primary tinted track, primary indicator, primary-foreground text when ready
    * `pill` - transparent track with no trough, elevated indicator
    * `ghost` / `transparent` - transparent track, elevated indicator
    * `onDark` - map/dark chrome: transparent track, light moving rect, white text
    */
-  tone?: "default" | "onDark" | "pill" | "ghost" | "transparent";
+  tone?: "default" | "primary" | "onDark" | "pill" | "ghost" | "transparent";
   role?: "group" | "radiogroup";
   tabClassName?: string;
   indicatorClassName?: string;
@@ -83,21 +91,69 @@ export function SlidingTabs<T extends string>({
   }, [value]);
 
   useIsomorphicLayoutEffect(() => {
-    measureActive();
-  }, [measureActive, options]);
-
-  useIsomorphicLayoutEffect(() => {
     const list = listRef.current;
     if (!list) return;
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => measureActive());
-    ro.observe(list);
-    return () => ro.disconnect();
-  }, [measureActive]);
 
+    measureActive();
+
+    // Double requestAnimationFrame to ensure measurement runs after style/layout passes,
+    // container query evaluation (@min-[640px]), or font layout shifts.
+    let raf2: number | null = null;
+    const raf1 = requestAnimationFrame(() => {
+      measureActive();
+      raf2 = requestAnimationFrame(() => {
+        measureActive();
+      });
+    });
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        measureActive();
+      });
+      observer.observe(list);
+      tabRefs.current.forEach((tab) => {
+        observer.observe(tab);
+      });
+      ro = observer;
+    }
+
+    let io: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== "undefined") {
+      io = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            measureActive();
+          }
+        }
+      });
+      io.observe(list);
+    }
+
+    let cancelled = false;
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.ready.then(() => {
+        if (!cancelled) {
+          measureActive();
+        }
+      });
+    }
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+      if (raf2 !== null) cancelAnimationFrame(raf2);
+      ro?.disconnect();
+      io?.disconnect();
+    };
+  }, [measureActive, options]);
+
+  const isPrimary = tone === "primary";
   const onDark = tone === "onDark";
   const isPill = shape === "pill";
   const isTransparentTrack = tone === "pill" || tone === "onDark" || tone === "ghost" || tone === "transparent";
+
+  const isIndicatorReady = position.opacity > 0 && position.width > 0;
 
   const pad =
     size === "xs"
@@ -113,11 +169,16 @@ export function SlidingTabs<T extends string>({
       ref={listRef}
       role={role}
       aria-label={ariaLabel}
+      data-indicator-ready={isIndicatorReady ? "true" : "false"}
       className={cn(
         "relative inline-flex shrink-0 items-center",
         isPill ? "rounded-full" : "rounded-xl",
         trackPadding,
-        isTransparentTrack ? "border-0 bg-transparent" : "border border-border/60 bg-muted/40 dark:bg-muted/25",
+        isPrimary
+          ? "border border-primary/20 bg-primary/5 dark:border-primary/25 dark:bg-primary/10"
+          : isTransparentTrack
+            ? "border-0 bg-transparent"
+            : "border border-border/60 bg-muted/40 dark:bg-muted/25",
         className
       )}
     >
@@ -142,17 +203,25 @@ export function SlidingTabs<T extends string>({
               isPill ? "rounded-full" : "rounded-md",
               pad,
               disabled && "cursor-not-allowed opacity-35",
-              onDark
+              isPrimary
                 ? active
-                  ? "text-white"
-                  : "text-white/70 hover:!text-white disabled:hover:!text-white/70"
-                : active
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? isIndicatorReady
+                    ? "text-primary-foreground"
+                    : "text-primary dark:text-primary/70"
+                  : "text-primary dark:text-primary/70 hover:text-primary dark:hover:text-primary"
+                : onDark
+                  ? active
+                    ? "text-white"
+                    : "text-white/70 hover:!text-white disabled:hover:!text-white/70"
+                  : active
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
               tabClassName
             )}
             aria-pressed={role === "group" ? active : undefined}
             aria-checked={role === "radiogroup" ? active : undefined}
+            data-state={active ? "active" : "inactive"}
+            data-indicator-ready={active && isIndicatorReady ? "true" : undefined}
             aria-label={opt.ariaLabel}
             aria-disabled={disabled || undefined}
           >
@@ -173,11 +242,13 @@ export function SlidingTabs<T extends string>({
           "pointer-events-none absolute z-0",
           isPill ? "rounded-full" : "rounded-md",
           isTransparentTrack ? "inset-y-0" : size === "xs" ? "top-px bottom-px" : "top-0.5 bottom-0.5",
-          tone === "onDark"
-            ? "bg-white/15"
-            : tone === "pill" || tone === "ghost" || tone === "transparent"
-              ? "bg-background shadow-xs border border-border/50 dark:bg-muted dark:border-border/60 dark:shadow-xs"
-              : "bg-background shadow-sm border border-border/40 dark:bg-muted dark:border-border/60 dark:shadow-sm",
+          isPrimary
+            ? "bg-primary border-primary shadow-sm dark:bg-primary dark:border-primary"
+            : tone === "onDark"
+              ? "bg-white/15"
+              : tone === "pill" || tone === "ghost" || tone === "transparent"
+                ? "bg-background shadow-xs border border-border/50 dark:bg-muted dark:border-border/60 dark:shadow-xs"
+                : "bg-background shadow-sm border border-border/40 dark:bg-muted dark:border-border/60 dark:shadow-sm",
           indicatorClassName
         )}
       />

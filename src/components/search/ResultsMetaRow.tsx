@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SlidingTabs, type SlidingTabOption } from "@/components/ui/sliding-tabs";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI, type JobBoardLayout } from "@/contexts/SearchContext";
@@ -92,13 +92,12 @@ function NotificationFrequencyMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuRadioGroup value={frequency} onValueChange={handleFrequencyChange}>
-          {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => (
-            <DropdownMenuRadioItem key={option.value} value={option.value}>
-              {option.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
+        {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => (
+          <DropdownMenuItem key={option.value} onSelect={() => handleFrequencyChange(option.value)}>
+            <Check className={cn("mr-1 size-4", frequency === option.value ? "opacity-100" : "opacity-0")} />
+            {option.label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -161,14 +160,13 @@ export function BoardLayoutControl({ className }: { className?: string } = {}) {
       ariaLabel="Job board layout"
       role="radiogroup"
       shape="pill"
-      tone="default"
+      tone="primary"
       size="sm"
       value={boardLayout}
       onChange={setBoardLayout}
       options={BOARD_LAYOUT_OPTIONS}
-      className={cn("hidden @min-[640px]:inline-flex border-primary/20 bg-primary/5 dark:border-primary/25 dark:bg-primary/10", className)}
-      indicatorClassName="bg-primary border-primary shadow-sm dark:bg-primary dark:border-primary"
-      tabClassName="h-7 px-3 [&[aria-checked=false]]:text-primary/70 [&[aria-checked=false]]:hover:text-primary [&[aria-checked=true]]:text-primary-foreground"
+      className={cn("hidden @min-[640px]:inline-flex", className)}
+      tabClassName="h-7 px-3"
     />
   );
 }
@@ -211,14 +209,12 @@ export function BoardActions({ unreadCount: unreadCountProp }: BoardActionsProps
         ariaLabel="Job view"
         role="radiogroup"
         shape="pill"
-        tone="default"
+        tone="primary"
         size="sm"
         value={unreadView ? "unread" : "all"}
         onChange={(next) => setUnreadView(next === "unread")}
         options={viewOptions}
-        className="border-primary/20 bg-primary/5 dark:border-primary/25 dark:bg-primary/10"
-        indicatorClassName="bg-primary border-primary shadow-sm dark:bg-primary dark:border-primary"
-        tabClassName="h-7 px-3 [&[aria-checked=false]]:text-primary/70 [&[aria-checked=false]]:hover:text-primary [&[aria-checked=true]]:text-primary-foreground [&:disabled]:pointer-events-none"
+        tabClassName="h-7 px-3 [&:disabled]:pointer-events-none"
       />
 
       <Button type="button" size="sm" onClick={share} className="h-8 rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90">
