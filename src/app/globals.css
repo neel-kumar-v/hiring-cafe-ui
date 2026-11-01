@@ -156,7 +156,7 @@
     --card-foreground: oklch(0.22 0.01 17);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.22 0.01 17);
-    --primary: oklch(0.67 0.23 358);
+    --primary: oklch(0.50 0.22 358);
     --primary-foreground: oklch(0.98 0.01 17);
     --secondary: oklch(0.97 0.004 17);
     --secondary-foreground: oklch(0.32 0.012 17);
@@ -167,7 +167,7 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.9 0.006 17);
     --input: oklch(0.9 0.006 17);
-    --ring: oklch(0.67 0.23 358);
+    --ring: oklch(0.50 0.22 358);
     --brand: var(--primary);
     --brand-foreground: var(--primary-foreground);
     --brand-soft: oklch(0.95 0.05 355);
@@ -379,7 +379,7 @@
     color: var(--foreground);
   }
 
-  .mention-input-stack > div > input[data-slot="mention-input"] {
+  .mention-input-stack > div > :is(input, textarea)[data-slot="mention-input"] {
     position: relative;
     z-index: 1;
     caret-color: var(--foreground);
@@ -387,7 +387,7 @@
     -webkit-text-fill-color: var(--foreground);
   }
 
-  .mention-input-stack > div > input[data-slot="mention-input"]::selection {
+  .mention-input-stack > div > :is(input, textarea)[data-slot="mention-input"]::selection {
     background: var(--accent);
     color: var(--foreground);
     -webkit-text-fill-color: var(--foreground);

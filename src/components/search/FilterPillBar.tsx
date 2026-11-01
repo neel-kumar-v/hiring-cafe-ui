@@ -17,13 +17,14 @@ export interface CategoryChipDef {
   fromId: string;
 }
 
+/** Matches `filterGroupOrder` in search-filters (General has no pill). */
 export const CATEGORY_CHIPS: CategoryChipDef[] = [
+  { label: "Compensation & Levels", categoryType: "compensation", fromId: "compensation" },
+  { label: "Location", categoryType: "location", fromId: "location" },
   { label: "Role & Department", categoryType: "role-department", fromId: "role-department" },
   { label: "Qualifications", categoryType: "qualifications", fromId: "qualifications" },
   { label: "Availability", categoryType: "availability", fromId: "availability" },
   { label: "Company", categoryType: "company", fromId: "company" },
-  { label: "Compensation & Levels", categoryType: "compensation", fromId: "compensation" },
-  { label: "Location", categoryType: "location", fromId: "location" },
 ];
 
 export function getCategoryCounts(

@@ -340,7 +340,7 @@ function SearchButton({ mode, onClick }: { mode: SearchMode; onClick: () => void
       onClick={onClick}
       aria-label={isAgent ? "Ask Talent Agent" : "Search jobs"}
       title={isAgent ? "Ask Talent Agent" : "Search jobs"}
-      className="flex size-8 sm:size-8.5 items-center justify-center rounded-full bg-neutral-900 text-primary shadow-xs transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-neutral-800 dark:hover:bg-neutral-700 shrink-0"
+      className="flex size-8 sm:size-8.5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-neutral-800 dark:text-primary dark:hover:bg-neutral-700 shrink-0"
     >
       {isAgent ? <Sparkles className="size-4" /> : <Search className="size-4" />}
     </button>

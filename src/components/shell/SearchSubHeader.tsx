@@ -47,7 +47,7 @@ export default function SearchSubHeader({ className, headerSlot, children }: Sea
             )}
             inert={!isFiltersOpen}
           >
-            <div className="px-2 py-2.5">
+            <div className="px-4 py-2.5 transition-[padding] duration-500 ease-in-out lg:px-8">
               <FilterPillBar />
             </div>
           </div>

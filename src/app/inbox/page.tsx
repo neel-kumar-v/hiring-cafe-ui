@@ -417,7 +417,7 @@ export default function InboxPage() {
                 <Separator />
 
                 {/* Bottom Quick Action Bar */}
-                <div className="p-4 bg-background">
+                <div className="bg-background">
                   <div className="space-y-3">
                     {/* Quick Action Buttons — bento grid, shared borders */}
                     <div className="overflow-hidden border border-border">
@@ -631,7 +631,7 @@ export default function InboxPage() {
 
                     {/* Expandable Custom Reply Composer */}
                     {isCustomReplying && (
-                      <form onSubmit={handleSendCustomReply} className="pt-2 border-t border-border/60 space-y-2.5 animate-in fade-in-50 duration-150">
+                      <form onSubmit={handleSendCustomReply} className="px-4 pb-4 pt-2 border-t border-border/60 space-y-2.5 animate-in fade-in-50 duration-150">
                         <Textarea
                           ref={textareaRef}
                           value={replyText}

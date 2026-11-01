@@ -17,7 +17,7 @@ const SEARCH_MODE_OPTIONS: readonly SlidingTabOption<SearchMode>[] = [
     id: "talent-agent",
     label: (
       <span className="inline-flex items-center gap-1.5 leading-none">
-        <Sparkles className="size-3.5 sm:size-4 text-pink-600 dark:text-pink-400 shrink-0" />
+        <Sparkles className="size-3.5 sm:size-4 text-primary shrink-0" />
         <span className="leading-none">Talent Agent</span>
       </span>
     ),

@@ -383,7 +383,7 @@ export default function Autocomplete({
                 </Hitbox>
               )}
               {iconButtons && <div className="flex h-full items-stretch justify-center">{iconButtons}</div>}
-              {searchButton && <div className="pr-1.5 shrink-0">{searchButton}</div>}
+              {searchButton && <div className="flex items-center pl-1.5 pr-1.5 shrink-0">{searchButton}</div>}
             </div>
             <MobileFiltersRow salaryButton={salaryButton} locationButton={locationButton} />
           </div>
