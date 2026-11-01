@@ -183,6 +183,8 @@ const JobDialogContent = ({
         isTransitioning={isTransitioning}
         onBookmarkClick={handleBookmarkClick}
         publishDate={processed.estimated_publish_date}
+        publishDateMillis={job.estimatedPublishDateMillis}
+        createdAt={job.createdAt}
         savedCount={job.saves}
         viewedCount={job.views}
       />

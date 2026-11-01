@@ -5,6 +5,7 @@ export function toUiCompany(company: CompanyDTO | null | undefined): ProcessedCo
   return {
     name: company?.name ?? "",
     website: company?.homepageUri ?? "",
+    canonical_domain: company?.canonicalDomain,
     image_url: company?.imageUrl ?? "",
     tagline: company?.tagline ?? "",
     subsidiaries: [],

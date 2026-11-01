@@ -42,13 +42,13 @@ const DialogStatGroup = ({
 
       {savedCount > 0 && (
         <UniversalTooltip content={isBookmarked ? "You have saved this job" : `Saved by ${savedCount} users`} side="bottom">
-          <span className="flex cursor-pointer items-center space-x-1" onClick={handleBookmarkClick}>
+          <span className="flex cursor-pointer items-center space-x-1 leading-none" onClick={handleBookmarkClick}>
             {isBookmarked ? (
-              <Bookmark className={cn("inline fill-current text-primary", iconClassName)} />
+              <Bookmark className={cn("inline shrink-0 fill-current text-primary", iconClassName)} />
             ) : (
-              <Bookmark className={cn("inline text-muted-foreground", iconClassName)} />
+              <Bookmark className={cn("inline shrink-0 text-muted-foreground", iconClassName)} />
             )}
-            <span className={cn(textClassName, jobFadeClass(isTransitioning))}>{savedCount}</span>
+            <span className={cn(textClassName, "leading-none", jobFadeClass(isTransitioning))}>{savedCount}</span>
           </span>
         </UniversalTooltip>
       )}
@@ -57,17 +57,17 @@ const DialogStatGroup = ({
         content={isApplied ? "You have applied to this job" : appliedCount === 0 ? "Be the first to apply to this job!" : `Applied by ${appliedCount} users. Click to apply.`}
         side="bottom"
       >
-        <a className="flex cursor-pointer items-center space-x-1" href={applyUrl} target="_blank" rel="noopener noreferrer external">
-          {isApplied ? <Send className={cn("inline fill-primary text-primary", iconClassName)} /> : <Send className={cn("inline text-muted-foreground", iconClassName)} />}
-          <span className={cn(textClassName, jobFadeClass(isTransitioning))}>{appliedCount}</span>
+        <a className="flex cursor-pointer items-center space-x-1 leading-none" href={applyUrl} target="_blank" rel="noopener noreferrer external">
+          {isApplied ? <Send className={cn("inline shrink-0 fill-primary text-primary", iconClassName)} /> : <Send className={cn("inline shrink-0 text-muted-foreground", iconClassName)} />}
+          <span className={cn(textClassName, "leading-none", jobFadeClass(isTransitioning))}>{appliedCount}</span>
         </a>
       </UniversalTooltip>
 
       {isInterviewing && (
         <UniversalTooltip content="You are interviewing for this job" side="bottom">
-          <span className="flex items-center space-x-1">
-            <PhoneOutgoingIcon className={cn("inline fill-primary text-primary", iconClassName)} />
-            <span className={cn(textClassName, jobFadeClass(isTransitioning))}>1</span>
+          <span className="flex items-center space-x-1 leading-none">
+            <PhoneOutgoingIcon className={cn("inline shrink-0 fill-primary text-primary", iconClassName)} />
+            <span className={cn(textClassName, "leading-none", jobFadeClass(isTransitioning))}>1</span>
           </span>
         </UniversalTooltip>
       )}

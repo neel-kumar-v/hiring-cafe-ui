@@ -29,7 +29,6 @@ const DialogJobDescription = ({
     const html = formatJobDescription(deferredDescription);
     const elapsed = performance.now() - started;
     if (process.env.NODE_ENV !== "production" && elapsed > 24) {
-       
       console.log(`[perf] formatJobDescription ${elapsed.toFixed(1)}ms`);
     }
     return html;

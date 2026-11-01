@@ -20,9 +20,9 @@ const StatIcon = ({
 }) => {
   return (
     <UniversalTooltip content={tooltipText} side="bottom">
-      <span className="flex max-w-[8ch] items-center space-x-1 overflow-hidden transition-[max-width,opacity,margin] duration-300 ease-out group-hover:max-w-0 group-hover:opacity-0 group-hover:-mr-1.5">
-        <Icon className={cn("inline text-muted-foreground", iconClassName)} />
-        <span className={cn(textClassName, jobFadeClass(isTransitioning))}>{count}</span>
+      <span className="flex max-w-[8ch] items-center space-x-1 leading-none overflow-hidden transition-[max-width,opacity,margin] duration-300 ease-out group-hover:max-w-0 group-hover:opacity-0 group-hover:-mr-1.5">
+        <Icon className={cn("inline shrink-0 text-muted-foreground", iconClassName)} />
+        <span className={cn(textClassName, "leading-none", jobFadeClass(isTransitioning))}>{count}</span>
       </span>
     </UniversalTooltip>
   );

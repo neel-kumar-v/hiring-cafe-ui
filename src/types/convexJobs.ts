@@ -46,6 +46,9 @@ export interface JobDTO {
 
   estimatedPublishDate?: string;
   estimatedPublishDateMillis?: number;
+  sortPublishMillis?: number;
+  createdAt?: number;
+  updatedAt?: number;
 
   views: number;
   saves: number;

@@ -32,7 +32,9 @@ const CardContextMenuProvider = ({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
+      <ContextMenuTrigger asChild>
+        <div className="h-full overflow-visible">{children}</div>
+      </ContextMenuTrigger>
       <ContextMenuContent className="min-w-64">
         <ContextMenuItem onClick={onBookmarkClick}>
           {isBookmarked ? <Bookmark className="mr-2 size-4 fill-current text-primary" /> : <Bookmark className="mr-2 size-4" />}

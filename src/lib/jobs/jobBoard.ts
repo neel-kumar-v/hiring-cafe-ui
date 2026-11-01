@@ -31,34 +31,44 @@ export function getJobBoardCollectionKey(collection: JobBoardCollection, index: 
 }
 
 /**
- * Groups visible search rows by company, then chunks each company's jobs into card-sized slices.
+ * Groups consecutive visible search rows by company into card-sized slices.
  */
 export function buildJobBoardDisplayedCollections(accumulatedRows: JobCardResultDTO[], visibleRowCount: number, jobsPerCard: number = JOBS_PER_CARD): JobBoardCollection[] {
   const visibleRows = accumulatedRows.slice(0, visibleRowCount);
   if (!visibleRows.length) return [];
 
-  const collectionsMap = new Map<string, JobBoardCollection>();
+  const collections: JobBoardCollection[] = [];
   for (const item of visibleRows) {
-    const companyKey = item.company?.companyId ?? item.company?._id ?? item.job.companyId ?? item.job.externalId;
-    const existing = collectionsMap.get(companyKey);
-    if (existing) {
-      existing.jobs.push(item.job);
-    } else {
-      collectionsMap.set(companyKey, { company: item.company, jobs: [item.job] });
-    }
-  }
+    const companyKey =
+      stableCompanyKey(item.company, item.job) ||
+      item.company?.name?.trim() ||
+      item.job.companyId ||
+      "";
 
-  const chunkedCollections: JobBoardCollection[] = [];
-  for (const collection of collectionsMap.values()) {
-    for (let i = 0; i < collection.jobs.length; i += jobsPerCard) {
-      chunkedCollections.push({
-        company: collection.company,
-        jobs: collection.jobs.slice(i, i + jobsPerCard),
+    const lastCollection = collections[collections.length - 1];
+    const lastCompanyKey = lastCollection
+      ? stableCompanyKey(lastCollection.company, lastCollection.jobs[0]) ||
+        lastCollection.company?.name?.trim() ||
+        lastCollection.jobs[0]?.companyId ||
+        ""
+      : "";
+
+    if (
+      companyKey &&
+      lastCompanyKey &&
+      companyKey === lastCompanyKey &&
+      lastCollection.jobs.length < jobsPerCard
+    ) {
+      lastCollection.jobs.push(item.job);
+    } else {
+      collections.push({
+        company: item.company,
+        jobs: [item.job],
       });
     }
   }
 
-  return chunkedCollections;
+  return collections;
 }
 
 export function flattenJobBoardPositions(displayedCollections: JobBoardCollection[]): JobBoardFlattenedPosition[] {

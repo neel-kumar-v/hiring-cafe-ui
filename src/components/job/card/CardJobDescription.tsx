@@ -13,8 +13,8 @@ const CardJobDescription = ({
   minManagementAndLeadershipYoe?: number | null;
 }) => {
   return (
-    <div className="mb-3 flex flex-col gap-2">
-      <div>
+    <div className="mb-3 flex min-w-0 flex-col gap-2 overflow-visible">
+      <div className="min-w-0 overflow-visible">
         <CardRequirements requirementsSummary={requirementsSummary} minIndustryAndRoleYoe={minIndustryAndRoleYoe} minManagementAndLeadershipYoe={minManagementAndLeadershipYoe} />
       </div>
       {technicalTools && technicalTools.length > 0 && <CardTechnicalTools technicalTools={technicalTools} />}

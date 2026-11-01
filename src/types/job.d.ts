@@ -142,6 +142,7 @@ export interface EnrichedCompanyData {
 export interface ProcessedCompanyData {
   name: string;
   image_url: string;
+  canonical_domain?: string;
   subsidiaries: string[];
   parent_company: string;
   website: string;

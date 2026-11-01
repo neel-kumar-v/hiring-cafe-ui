@@ -1,13 +1,17 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCleanJobTitle } from "@/lib/job-info";
+import { formatState, getCleanJobTitle, getCompensation, getExperienceInfo, getLocation } from "@/lib/job-info";
+import { toCompensationRange } from "@/lib/jobs/toCompensationRange";
 import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import { decodeLocationForDisplay } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
 import type { JobCategory } from "@/types/tracker";
-import { memo } from "react";
+import { DollarSign, MapPin } from "lucide-react";
+import { memo, useMemo } from "react";
 import CompanyLogo from "../util/CompanyLogo";
+import ScrapeTime from "../util/ScrapeTime";
 
 interface ListJobCardContentsProps {
   job: JobDTO;
@@ -21,14 +25,26 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
   const states = job.workplaceStates ?? [];
   const countries = job.workplaceCountries ?? [];
 
+  const cityLocations = cities.map(getLocation).filter(Boolean);
+  const stateLocations = states.map((state) => formatState(decodeLocationForDisplay(state))).filter(Boolean);
+  const countryLocations = countries.map(decodeLocationForDisplay).filter((country) => country && !/^(us|united states)$/i.test(country));
+
   const locations =
-    cities.length > 0
-      ? cities.map(decodeLocationForDisplay).join(", ")
-      : states.length > 0
-        ? states.map(decodeLocationForDisplay).join(", ")
-        : countries.length > 0
-          ? countries.map(decodeLocationForDisplay).join(", ")
+    cityLocations.length > 0
+      ? cityLocations.join(", ")
+      : stateLocations.length > 0
+        ? stateLocations.join(", ")
+        : countryLocations.length > 0
+          ? countryLocations.join(", ")
           : "Remote";
+
+  const compensation = useMemo(() => getCompensation(toCompensationRange(job)), [job]);
+  const experience = useMemo(() => getExperienceInfo(job.minIcYoe, job.minMgmtYoe), [job.minIcYoe, job.minMgmtYoe]);
+  const skills = useMemo(() => (job.skills ?? []).filter(Boolean).slice(0, 4), [job.skills]);
+  const tagline = company?.tagline?.trim() || company?.description?.trim() || "";
+  const workplaceType = job.workplaceType?.trim() || "";
+  const commitment = (job.commitment ?? []).filter(Boolean)[0] || "";
+  const summary = job.requirementsSummary?.trim() || "";
 
   const handleStageChange = (stageId: string) => {
     if (onMoveJob && stageId !== currentStage) {
@@ -37,20 +53,80 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
   };
 
   return (
-    <div className="flex flex-row max-[400px]:flex-col items-center justify-between">
-      <div className="flex items-center space-x-4 flex-1 max-[400px]:w-full max-[400px]:mb-2">
-        <CompanyLogo companyData={toUiCompany(company)} size="sm" variant="default" />
+    <div className="flex flex-row items-stretch gap-3.5 max-[480px]:flex-col">
+      <div className="flex min-w-0 flex-1 items-stretch gap-3.5">
+        <CompanyLogo companyData={toUiCompany(company)} size="list" variant="default" />
 
-        <div className="min-w-0 flex-1">
-          <h3 className="font-medium text-sm text-foreground line-clamp-1 mb-1">{getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? [])}</h3>
-          <p className="text-xs text-muted-foreground mb-1">{company?.name ?? ""}</p>
-          <p className="text-xs text-muted-foreground line-clamp-1">{locations}</p>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+              <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? [])}</h3>
+              {locations ? (
+                <Badge variant="outline" className="font-normal text-muted-foreground">
+                  {locations !== "Remote" ? <MapPin className="size-3 shrink-0" /> : null}
+                  <span>{locations}</span>
+                </Badge>
+              ) : null}
+              {workplaceType ? (
+                <Badge variant="outline" className="font-normal text-muted-foreground">
+                  {workplaceType}
+                </Badge>
+              ) : null}
+              {commitment ? (
+                <Badge variant="outline" className="font-normal text-muted-foreground">
+                  {commitment}
+                </Badge>
+              ) : null}
+              {experience.industryBadge ? (
+                <Badge variant="outline" className="font-normal text-muted-foreground">
+                  {experience.industryBadge}
+                </Badge>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {compensation ? (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-xs font-medium text-foreground">
+                  <DollarSign className="size-3 shrink-0" />
+                  {compensation}
+                </span>
+              ) : null}
+              <ScrapeTime
+                postedAt={job.estimatedPublishDate ?? ""}
+                postedAtMillis={job.estimatedPublishDateMillis}
+                createdAt={job.createdAt}
+                iconClassName="size-3"
+                textClassName="text-xs"
+              />
+            </div>
+          </div>
+
+          <p className="truncate text-xs text-muted-foreground">
+            <span className="font-medium text-foreground/80">{company?.name ?? ""}</span>
+            {tagline ? <span> · {tagline}</span> : null}
+          </p>
+
+          {skills.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {skills.map((skill) => (
+                <Badge key={skill} variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
+
+          {summary ? <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{summary}</p> : null}
         </div>
       </div>
 
-      <div className="flex items-center max-[400px]:w-full">
+      <div
+        className="flex shrink-0 items-center max-[480px]:w-full"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
         <Select value={currentStage} onValueChange={(e) => handleStageChange(e)}>
-          <SelectTrigger className="w-32 max-[400px]:w-full px-3 py-2 border  rounded-md  text-sm">
+          <SelectTrigger className="w-32 max-[480px]:w-full px-3 py-2 text-sm">
             <SelectValue placeholder="Select Stage" />
           </SelectTrigger>
           <SelectContent>

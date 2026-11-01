@@ -7,9 +7,10 @@ import CompanyLogo from "../util/CompanyLogo";
 const CardCompanyInfo = ({ companyData, tagline }: { companyData: ProcessedCompanyData; tagline: string }) => {
   return (
     <div className="group mb-3 flex items-start space-x-2">
-      <CompanyLogo companyData={companyData} size="md" variant="card" />
+      {/* The logo is decorative here: the adjacent company name link already announces the name. */}
+      <CompanyLogo alt="" companyData={companyData} size="md" variant="card" />
       <div className="min-w-0 flex-1">
-        <div className="overflow-visible whitespace-nowrap rounded group-hover:w-fit group-hover:backdrop-blur-xl pointer-coarse:w-fit pointer-coarse:backdrop-blur-none pointer-none:w-fit pointer-none:backdrop-blur-none pointer-fine:motion-reduce:w-fit pointer-fine:motion-reduce:backdrop-blur-none">
+        <div className="relative overflow-visible whitespace-nowrap rounded group-hover/card:z-50 group-hover:w-fit group-hover:backdrop-blur-xl pointer-coarse:z-50 pointer-coarse:w-fit pointer-coarse:backdrop-blur-none pointer-none:z-50 pointer-none:w-fit pointer-none:backdrop-blur-none pointer-fine:motion-reduce:z-50 pointer-fine:motion-reduce:w-fit pointer-fine:motion-reduce:backdrop-blur-none">
           {companyData.name ? (
             <>
               <UniversalTooltip content="Visit company site">
@@ -37,7 +38,7 @@ const CardCompanyInfo = ({ companyData, tagline }: { companyData: ProcessedCompa
               </UniversalTooltip>
               <UniversalTooltip content={`View all jobs from ${companyData.name}`}>
                 <div
-                  className="ml-2 z-10 inline-flex h-auto items-center gap-1 p-1 font-normal text-muted-foreground text-xs leading-none opacity-0 transition-all duration-200 hover:underline group-hover:ml-4 group-hover:opacity-100 pointer-coarse:ml-4 pointer-coarse:opacity-100 pointer-none:ml-4 pointer-none:opacity-100 pointer-fine:motion-reduce:ml-4 pointer-fine:motion-reduce:opacity-100 dark:text-primary dark:hover:text-primary"
+                  className="relative z-50 ml-2 inline-flex h-auto items-center gap-1 p-1 font-normal text-muted-foreground text-xs leading-none opacity-0 transition-all duration-200 hover:underline group-hover:ml-4 group-hover:opacity-100 pointer-coarse:ml-4 pointer-coarse:opacity-100 pointer-none:ml-4 pointer-none:opacity-100 pointer-fine:motion-reduce:ml-4 pointer-fine:motion-reduce:opacity-100 dark:text-primary dark:hover:text-primary"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

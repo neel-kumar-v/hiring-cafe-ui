@@ -1,9 +1,10 @@
 "use client";
 
-import { getCleanJobTitle } from "@/lib/job-info";
+import { formatState, getCleanJobTitle, getLocation } from "@/lib/job-info";
 import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import { decodeLocationForDisplay } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
+import { MapPin } from "lucide-react";
 import { memo } from "react";
 import CompanyLogo from "../util/CompanyLogo";
 
@@ -18,13 +19,17 @@ const KanbanJobCardContents = memo(({ job, company, className }: KanbanJobCardPr
   const states = job.workplaceStates ?? [];
   const countries = job.workplaceCountries ?? [];
 
+  const cityLocations = cities.map(getLocation).filter(Boolean);
+  const stateLocations = states.map((state) => formatState(decodeLocationForDisplay(state))).filter(Boolean);
+  const countryLocations = countries.map(decodeLocationForDisplay).filter((country) => country && !/^(us|united states)$/i.test(country));
+
   const locations =
-    cities.length > 0
-      ? cities.map(decodeLocationForDisplay).join(", ")
-      : states.length > 0
-        ? states.map(decodeLocationForDisplay).join(", ")
-        : countries.length > 0
-          ? countries.map(decodeLocationForDisplay).join(", ")
+    cityLocations.length > 0
+      ? cityLocations.join(", ")
+      : stateLocations.length > 0
+        ? stateLocations.join(", ")
+        : countryLocations.length > 0
+          ? countryLocations.join(", ")
           : "Remote";
 
   const content = (
@@ -34,7 +39,10 @@ const KanbanJobCardContents = memo(({ job, company, className }: KanbanJobCardPr
       <div className="min-w-0 flex-1">
         <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-1 select-none">{getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? [])}</h3>
         <p className="text-xs text-muted-foreground mb-1 select-none">{company?.name ?? ""}</p>
-        <p className="text-xs text-muted-foreground line-clamp-1 select-none ">{locations}</p>
+        <p className="text-xs text-muted-foreground line-clamp-1 select-none flex items-center gap-1">
+          {locations !== "Remote" && <MapPin className="size-3 shrink-0" />}
+          {locations}
+        </p>
       </div>
     </div>
   );

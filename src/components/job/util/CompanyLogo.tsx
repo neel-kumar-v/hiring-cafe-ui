@@ -1,7 +1,20 @@
-import { analyzeImageBackground, companyFaviconUrl, extractDomainFromCompanyWebsite, getCompanyAbbreviation, renderCompanyAbbreviationGrid } from "@/lib/company-info";
+import {
+  analyzeImageBackground,
+  cleanDomain,
+  companyFaviconUrl,
+  extractDomainFromCompanyWebsite,
+  getCompanyAbbreviation,
+  getCompanyLogoSources,
+  isExpandableLogo,
+  renderCompanyAbbreviationGrid,
+} from "@/lib/company-info";
 import type { ProcessedCompanyData } from "@/types/job";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
+import { cn } from "@/lib/utils";
+
+type LogoSize = "sm" | "md" | "list" | "lg" | "xl";
 
 interface CompanyLogoInnerProps {
   companyData: ProcessedCompanyData;
@@ -9,22 +22,17 @@ interface CompanyLogoInnerProps {
   containerClassName: string;
   imageClassName: string;
   fallbackClassName: string;
+  imageAlt: string;
+  size: LogoSize;
 }
 
-const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName }: CompanyLogoInnerProps) => {
-  const faviconSrc = useMemo(() => {
-    const domain = extractDomainFromCompanyWebsite(companyData.website);
-    return domain ? companyFaviconUrl(domain, faviconSizePx) : null;
-  }, [companyData.website, faviconSizePx]);
-
+const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName, imageAlt, size }: CompanyLogoInnerProps) => {
   const srcChain = useMemo(() => {
-    const chain: string[] = [];
-    if (faviconSrc) chain.push(faviconSrc);
-    if (companyData.image_url && companyData.image_url !== faviconSrc) {
-      chain.push(companyData.image_url);
-    }
-    return chain;
-  }, [faviconSrc, companyData.image_url]);
+    // For list slots, do not include low-res tiny favicon fallbacks.
+    // If a high-res logo isn't available, fall back cleanly to the initials monogram UI.
+    const includeFavicons = size !== "list";
+    return getCompanyLogoSources(companyData, faviconSizePx, { includeFavicons });
+  }, [companyData.image_url, companyData.canonical_domain, companyData.website, faviconSizePx, size]);
 
   const [chainIndex, setChainIndex] = useState(0);
 
@@ -41,17 +49,68 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
     setImageLoaded(false);
   }, [activeSrc]);
 
-  const handleImageLoad = useCallback(() => {
-    setImageLoaded(true);
-  }, []);
+  const minDimension = useMemo(() => {
+    switch (size) {
+      case "sm":
+        return 36;
+      case "md":
+      case "list":
+        return 44;
+      case "lg":
+      case "xl":
+      default:
+        return 64;
+    }
+  }, [size]);
+
+  const validateAndProcessImage = useCallback(
+    (img: HTMLImageElement) => {
+      const { naturalWidth, naturalHeight } = img;
+      const isSvg = Boolean(activeSrc && (/\.svg(\?|$)/i.test(activeSrc) || activeSrc.startsWith("data:image/svg+xml")));
+
+      // Verify that the logo can properly expand and fill the square slot without
+      // unsightly letterboxing, tiny low-res pixelation, or broken decodes.
+      const expandable = isExpandableLogo(naturalWidth, naturalHeight, {
+        minDimension,
+        minAspectRatio: 0.75,
+        maxAspectRatio: 1.35,
+        src: activeSrc,
+        isSvg,
+      });
+
+      if (!expandable) {
+        // Fall back to next source or monogram UI
+        setChainIndex((i) => i + 1);
+        return;
+      }
+
+      setImageLoaded(true);
+    },
+    [activeSrc, minDimension]
+  );
+
+  const handleImageLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      validateAndProcessImage(e.currentTarget);
+    },
+    [validateAndProcessImage]
+  );
 
   const handleImageError = useCallback(() => {
     setChainIndex((i) => i + 1);
   }, []);
 
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    if (imgRef.current?.complete && activeSrc) {
+      validateAndProcessImage(imgRef.current);
+    }
+  }, [activeSrc, validateAndProcessImage]);
+
   const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
 
-  const abbreviation = useMemo(() => getCompanyAbbreviation(companyData.name || ""), [companyData.name]);
+  const abbreviation = useMemo(() => getCompanyAbbreviation(companyData.name || companyData.canonical_domain || "") || "?", [companyData.name, companyData.canonical_domain]);
 
   const initialsContent = useMemo(() => renderCompanyAbbreviationGrid(abbreviation, false), [abbreviation]);
 
@@ -72,46 +131,93 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
     return "";
   }, [showImage, backgroundType]);
 
-  const finalContainerClasses = useMemo(() => `${containerClassName} ${backgroundClass}`, [containerClassName, backgroundClass]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [squareStyle, setSquareStyle] = useState<React.CSSProperties | undefined>(undefined);
+
+  useIsomorphicLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const enforceSquare = () => {
+      const rect = el.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      const h = Math.round(rect.height);
+      if (w > 0 && h > 0 && w !== h) {
+        const side = Math.min(w, h);
+        setSquareStyle({ width: `${side}px`, height: `${side}px` });
+      }
+    };
+
+    enforceSquare();
+
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(enforceSquare) : null;
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, []);
+
+  const finalContainerClasses = useMemo(() => {
+    // Strip self-stretch so the container never stretches out of aspect-square along flex cross-axis
+    const cleanedContainer = containerClassName.replace(/\bself-stretch\b/g, "").trim();
+    return cn(cleanedContainer, backgroundClass);
+  }, [containerClassName, backgroundClass]);
+
+  // An empty alt marks the logo as decorative, so the company name is announced by the adjacent text instead of twice.
+  const isDecorative = imageAlt.length === 0;
 
   const logoContent = useMemo(
     () => (
       <>
         {showImage ? (
           <>
-            {!imageLoaded && <Skeleton className="aspect-square h-full min-w-full w-full" />}
+            {!imageLoaded && <Skeleton className="absolute inset-0 aspect-square h-full w-full" />}
             <img
-              alt={companyData.name}
+              ref={imgRef}
+              alt={imageAlt}
               className={`${imageClassName} transition-opacity duration-200 ease-out ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+              decoding="async"
+              loading="lazy"
               onError={handleImageError}
               onLoad={handleImageLoad}
               src={activeSrc}
             />
           </>
         ) : (
-          <span className={`${fallbackClassName} animate-in fade-in-0 duration-200`}>{initialsContent}</span>
+          <span aria-hidden={isDecorative ? true : undefined} className={`${fallbackClassName} animate-in fade-in-0 duration-200`}>
+            {initialsContent}
+          </span>
         )}
       </>
     ),
-    [showImage, companyData.name, imageClassName, fallbackClassName, initialsContent, handleImageError, handleImageLoad, activeSrc, imageLoaded]
+    [showImage, imageAlt, isDecorative, imageClassName, fallbackClassName, initialsContent, handleImageError, handleImageLoad, activeSrc, imageLoaded]
   );
 
-  return <div className={finalContainerClasses}>{logoContent}</div>;
+  return (
+    <div ref={containerRef} className={finalContainerClasses} style={squareStyle}>
+      {logoContent}
+    </div>
+  );
 });
 
 CompanyLogoInner.displayName = "CompanyLogoInner";
 
 interface CompanyLogoProps {
   companyData: ProcessedCompanyData;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "list" | "lg" | "xl";
   variant?: "default" | "dialog" | "card";
   className?: string;
+  /**
+   * Accessible name of the logo image. Defaults to an empty alt, which renders the logo as decorative because every
+   * consumer renders the company name as adjacent text. Pass a name only when the logo is the sole carrier of it.
+   */
+  alt?: string;
 }
 
-const CompanyLogo = memo(({ companyData, size = "md", variant = "default", className = "" }: CompanyLogoProps) => {
+const CompanyLogo = memo(({ companyData, size = "md", variant = "default", className = "", alt = "" }: CompanyLogoProps) => {
   const sizeClasses = {
     sm: "size-12",
     md: "size-14",
+    /** List-row logos: sized to match the company and job title header row height. */
+    list: "aspect-square size-14 shrink-0",
     lg: "size-24",
     xl: "size-32",
   };
@@ -119,6 +225,7 @@ const CompanyLogo = memo(({ companyData, size = "md", variant = "default", class
   const textSizes = {
     sm: "text-sm",
     md: "text-md",
+    list: "text-md font-semibold",
     lg: "text-3xl",
     xl: "text-3xl",
   };
@@ -126,6 +233,7 @@ const CompanyLogo = memo(({ companyData, size = "md", variant = "default", class
   const paddingClasses = {
     sm: "p-0.5",
     md: "p-0.75",
+    list: "p-0.75",
     lg: "",
     xl: "",
   };
@@ -133,18 +241,19 @@ const CompanyLogo = memo(({ companyData, size = "md", variant = "default", class
   const roundedClasses = {
     sm: "rounded",
     md: "rounded-[6px]",
+    list: "rounded-[6px]",
     lg: "rounded-xl",
     xl: "rounded-xl",
   };
 
   const containerClasses = useMemo(() => {
-    const baseClasses = `flex aspect-square flex-shrink-0 items-center justify-center overflow-hidden ${sizeClasses[size]} ${roundedClasses[size]} ${className}`;
-
-    if (variant === "dialog") {
-      return `${baseClasses} self-start`;
-    }
-
-    return baseClasses;
+    return cn(
+      "relative flex aspect-square flex-shrink-0 items-center justify-center overflow-hidden",
+      sizeClasses[size],
+      roundedClasses[size],
+      variant === "dialog" && "self-start",
+      className
+    );
   }, [size, variant, className]);
 
   const imageClasses = useMemo(() => {
@@ -167,15 +276,17 @@ const CompanyLogo = memo(({ companyData, size = "md", variant = "default", class
     return baseClasses;
   }, [size, variant]);
 
-  const faviconSizePx = { sm: 64, md: 128, lg: 128, xl: 128 }[size];
+  const faviconSizePx = { sm: 128, md: 128, list: 128, lg: 256, xl: 256 }[size];
 
   return (
     <CompanyLogoInner
       companyData={companyData}
+      size={size}
       faviconSizePx={faviconSizePx}
       containerClassName={containerClasses}
       imageClassName={imageClasses}
       fallbackClassName={fallbackClasses}
+      imageAlt={alt}
     />
   );
 });

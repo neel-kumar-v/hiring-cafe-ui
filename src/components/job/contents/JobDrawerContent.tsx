@@ -155,7 +155,6 @@ const JobDrawerContent = ({
     if (!openedAtRef.current) return;
     const elapsed = performance.now() - openedAtRef.current;
     if (elapsed > 120) {
-       
       console.log(`[perf] getDetailsLite drawer ${elapsed.toFixed(1)}ms jobId=${lookupId}`);
     }
   }, [details, lookupId, open, perfEnabled]);
