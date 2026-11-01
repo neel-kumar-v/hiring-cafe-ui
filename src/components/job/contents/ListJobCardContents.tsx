@@ -30,12 +30,11 @@ function FactLine({ icon: Icon, children, emphasize = false }: { icon: LucideIco
   );
 }
 
+/** First clause of tagline/description — full clause, not character-clipped. */
 function shortCompanyBlurb(company: CompanyDTO | null): string {
   const raw = company?.tagline?.trim() || company?.description?.trim() || "";
   if (!raw) return "";
-  const clause = (raw.split(/[.|•\n]/)[0] ?? raw).trim();
-  if (!clause) return "";
-  return clause.length > 52 ? `${clause.slice(0, 49).trimEnd()}…` : clause;
+  return (raw.split(/[.|•\n]/)[0] ?? raw).trim();
 }
 
 const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: ListJobCardContentsProps) => {
@@ -83,7 +82,7 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
               <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground">
                 {cleanTitle}
               </h3>
-              <p className="mt-0.5 truncate text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground">
+              <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground">
                 <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85">{company?.name ?? ""}</span>
                 {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
               </p>

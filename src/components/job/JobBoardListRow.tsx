@@ -55,13 +55,11 @@ function FactLine({ icon: Icon, children, emphasize = false }: { icon: LucideIco
   );
 }
 
-/** First short clause of tagline/description (not industry). */
+/** First clause of tagline/description (not industry) — full clause, not character-clipped. */
 function shortCompanyBlurb(company: CompanyDTO | null): string {
   const raw = company?.tagline?.trim() || company?.description?.trim() || "";
   if (!raw) return "";
-  const clause = (raw.split(/[.|•\n]/)[0] ?? raw).trim();
-  if (!clause) return "";
-  return clause.length > 52 ? `${clause.slice(0, 49).trimEnd()}…` : clause;
+  return (raw.split(/[.|•\n]/)[0] ?? raw).trim();
 }
 
 interface JobBoardListRowProps {
@@ -124,22 +122,16 @@ const JobBoardListRow = memo(
       [collectionIndex, jobs, onJobIndexChange, prefetchNow]
     );
 
-    const otherRoles = useMemo(() => {
-      if (jobs.length <= 1) return [];
-      return jobs
-        .map((j, index) => ({ job: j, index }))
-        .filter((item) => item.index !== activeIndex);
-    }, [jobs, activeIndex]);
-
     const handleRoleClick = useCallback(
       (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
+        if (index === activeIndex) return;
         handleRoleSelect(index);
         if (onOpenJob && collectionIndex !== undefined) {
           onOpenJob(collectionIndex, index);
         }
       },
-      [collectionIndex, handleRoleSelect, onOpenJob]
+      [activeIndex, collectionIndex, handleRoleSelect, onOpenJob]
     );
 
     // Same tracker state the card footer actions read and write, so the row's
@@ -261,7 +253,7 @@ const JobBoardListRow = memo(
             <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground sm:text-[1.0625rem]">
               {title}
             </h3>
-            <p className="mt-0.5 truncate text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]">
+            <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]">
               <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85 sm:text-sm">
                 {companyName || "Unknown company"}
               </span>
@@ -336,30 +328,37 @@ const JobBoardListRow = memo(
           />
         </div>
 
-        {otherRoles.length > 0 ? (
+        {jobs.length > 1 ? (
           <div
             className="order-3 flex w-full min-w-0 flex-wrap items-center justify-center gap-1.5 px-1 sm:order-none sm:w-auto sm:flex-1 sm:px-2"
             onClick={(e) => e.stopPropagation()}
           >
-            {otherRoles.map(({ job: otherJob, index: otherIndex }) => {
-              const otherTitle =
-                getCleanJobTitle(otherJob.title, companyName, otherJob.workplaceCities?.[0] ?? "", otherJob.skills ?? []) ||
-                otherJob.title ||
+            {jobs.map((roleJob, roleIndex) => {
+              const isSelectedRole = roleIndex === activeIndex;
+              const roleTitle =
+                getCleanJobTitle(roleJob.title, companyName, roleJob.workplaceCities?.[0] ?? "", roleJob.skills ?? []) ||
+                roleJob.title ||
                 "Role";
               return (
                 <Button
-                  key={otherJob.externalId}
+                  key={roleJob.externalId}
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-7 max-w-[200px] truncate px-2.5 text-xs font-normal hover:border-primary/50 hover:bg-accent sm:max-w-[260px]"
-                  onClick={(e) => handleRoleClick(e, otherIndex)}
+                  aria-pressed={isSelectedRole}
+                  className={cn(
+                    "h-7 max-w-[200px] truncate px-2.5 text-xs transition-colors sm:max-w-[260px]",
+                    isSelectedRole
+                      ? "border-primary bg-primary/10 font-medium text-primary hover:bg-primary/15 hover:border-primary"
+                      : "font-normal text-muted-foreground hover:border-primary/50 hover:bg-accent hover:text-foreground"
+                  )}
+                  onClick={(e) => handleRoleClick(e, roleIndex)}
                   onMouseEnter={() => {
-                    prefetchNow(getDetailsLookupId(otherJob));
+                    prefetchNow(getDetailsLookupId(roleJob));
                   }}
-                  title={otherTitle}
+                  title={roleTitle}
                 >
-                  <span className="truncate">{otherTitle}</span>
+                  <span className="truncate">{roleTitle}</span>
                 </Button>
               );
             })}
