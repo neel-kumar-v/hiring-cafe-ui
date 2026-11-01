@@ -41,10 +41,12 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
   const compensation = useMemo(() => getCompensation(toCompensationRange(job)), [job]);
   const experience = useMemo(() => getExperienceInfo(job.minIcYoe, job.minMgmtYoe), [job.minIcYoe, job.minMgmtYoe]);
   const skills = useMemo(() => (job.skills ?? []).filter(Boolean).slice(0, 4), [job.skills]);
-  const tagline = company?.tagline?.trim() || company?.description?.trim() || "";
   const workplaceType = job.workplaceType?.trim() || "";
   const commitment = (job.commitment ?? []).filter(Boolean)[0] || "";
-  const summary = job.requirementsSummary?.trim() || "";
+  const cleanTitle = useMemo(
+    () => getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? []),
+    [company?.name, job.skills, job.title, locations]
+  );
 
   const handleStageChange = (stageId: string) => {
     if (onMoveJob && stageId !== currentStage) {
@@ -54,13 +56,19 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
 
   return (
     <div className="flex flex-row items-stretch gap-3.5 max-[480px]:flex-col">
-      <div className="flex min-w-0 flex-1 items-stretch gap-3.5">
-        <CompanyLogo companyData={toUiCompany(company)} size="list" variant="default" />
+      <div className="flex min-w-0 flex-1 items-start gap-3.5">
+        <CompanyLogo companyData={toUiCompany(company)} size="list" variant="default" className="mt-0.5 shrink-0" />
 
         <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 className="truncate text-sm font-semibold leading-snug text-foreground">{cleanTitle}</h3>
+            <p className="truncate text-xs text-muted-foreground">
+              <span className="font-medium text-foreground/80">{company?.name ?? ""}</span>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
             <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-              <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{getCleanJobTitle(job.title, company?.name ?? "", locations, job.skills ?? [])}</h3>
               {locations ? (
                 <Badge variant="outline" className="font-normal text-muted-foreground">
                   {locations !== "Remote" ? <MapPin className="size-3 shrink-0" /> : null}
@@ -83,7 +91,8 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
                 </Badge>
               ) : null}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+
+            <div className="flex shrink-0 items-center gap-2">
               {compensation ? (
                 <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-xs font-medium text-foreground">
                   <DollarSign className="size-3 shrink-0" />
@@ -100,13 +109,8 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
             </div>
           </div>
 
-          <p className="truncate text-xs text-muted-foreground">
-            <span className="font-medium text-foreground/80">{company?.name ?? ""}</span>
-            {tagline ? <span> · {tagline}</span> : null}
-          </p>
-
           {skills.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 pt-0.5">
               {skills.map((skill) => (
                 <Badge key={skill} variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
                   {skill}
@@ -114,8 +118,6 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
               ))}
             </div>
           ) : null}
-
-          {summary ? <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{summary}</p> : null}
         </div>
       </div>
 
