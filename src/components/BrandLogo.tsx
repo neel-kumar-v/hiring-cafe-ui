@@ -11,7 +11,7 @@ interface BrandLogoProps {
 export function BrandLogo({ className, iconClassName, showWordmark = false, wordmarkClassName, wordmark = "CloneCafe" }: BrandLogoProps) {
   return (
     <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
-      <span className="w-fit rounded-full bg-primary p-2 text-primary-foreground">
+      <span className="w-fit shrink-0 rounded-full bg-primary p-2 text-primary-foreground">
         <svg
           aria-hidden="true"
           className={cn("h-5 w-5 flex-none", iconClassName)}

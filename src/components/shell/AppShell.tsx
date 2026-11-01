@@ -64,7 +64,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
     defaultWidth: 400,
     min: 320,
     max: 560,
+    collapsed: !chatOpen,
+    collapsedWidth: 0,
     applyLiveWidth: applyChatLiveWidth,
+    onExpand: () => setChatOpen(true),
+    onCollapse: () => setChatOpen(false),
   });
 
   useEffect(() => {

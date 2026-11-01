@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeIconSwap } from "@/components/ThemeToggle";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { ChatRowOptions, ChatRowTitle } from "@/components/chat/ChatPanel";
@@ -471,7 +472,7 @@ function ClassicSearchItems({ activeId }: { activeId: string | null }) {
                           <EllipsisVertical className="size-4" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-lg">
+                      <DropdownMenuContent align="end" className="w-[200px]">
                         <DropdownMenuItem onSelect={() => void handleToggleAlerts(search)}>
                           <Bell className="mr-1 size-4" />
                           Get daily alerts
@@ -516,7 +517,7 @@ function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSaved
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="flex h-full w-full flex-col items-center justify-between overflow-x-hidden overflow-y-auto py-3">
+      <div className="flex min-h-0 flex-1 w-full flex-col items-center justify-between overflow-x-hidden overflow-y-auto py-3">
         <div className="flex w-full flex-col items-center gap-0.5">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -715,11 +716,54 @@ function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSaved
 }
 
 /**
+ * Brand header at the top of the sidebar nav:
+ * - Ribbon / collapsed: shows HiringCafe brand logo only (with tooltip), centered.
+ * - Expanded: shows HiringCafe brand logo + "CloneCafe" wordmark that truncates to fit sidebar width.
+ * - Links to `/`.
+ * - No UI subtitles.
+ */
+function BrandHeader({ isRibbon }: { isRibbon: boolean }) {
+  const content = (
+    <Link
+      href="/"
+      aria-label="CloneCafe"
+      className={cn(
+        "flex items-center rounded-md transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40",
+        isRibbon ? "justify-center" : "min-w-0 max-w-full gap-2 overflow-hidden"
+      )}
+    >
+      <BrandLogo showWordmark={!isRibbon} className="min-w-0" wordmarkClassName="text-xl" />
+    </Link>
+  );
+
+  return (
+    <div
+      className={cn(
+        "flex h-16 shrink-0 items-center border-b border-border",
+        isRibbon ? "justify-center px-2" : "px-4"
+      )}
+    >
+      {isRibbon ? (
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>{content}</TooltipTrigger>
+            <TooltipContent side="right">CloneCafe</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        content
+      )}
+    </div>
+  );
+}
+
+/**
  * Left sidebar of the app frame:
- * 1. Navigation options (Find Jobs, Job Tracker, Account, Talent Network, Inbox)
- * 2. "Talent Agent" (demo chats)
- * 3. "Classic Searches" (saved searches with demo fallback, with "+ Save search" when search is modified)
- * 4. Bottom footer with compact icon buttons (Employers, About Us, Reddit, Theme toggle)
+ * 1. Brand header (BrandLogo + CloneCafe when expanded, BrandLogo only when collapsed, links to /)
+ * 2. Navigation options (Find Jobs, Job Tracker, Account, Talent Network, Inbox)
+ * 3. "Talent Agent" (demo chats)
+ * 4. "Classic Searches" (saved searches with demo fallback, with "+ Save search" when search is modified)
+ * 5. Bottom footer with compact icon buttons (Employers, About Us, Reddit, Theme toggle)
  *
  * Supports resizable layout and collapsed icon ribbon.
  */
@@ -746,11 +790,12 @@ export default function AppSidebar({ className, collapsed: forcedCollapsed }: { 
 
   return (
     <aside ref={sidebarRef} className={cn("flex h-full w-full min-w-0 flex-col bg-background", className)}>
+      <BrandHeader isRibbon={isRibbon} />
       {isRibbon ? (
         <IconRibbon activeSavedId={activeSavedId} activeChatId={activeChatId} onSelectChat={openChat} />
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto pb-2">
+          <div className="min-h-0 flex-1 overflow-y-auto pt-1 pb-2">
             <NavigationOptions />
             <hr className="my-1 border-border" />
             <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent" headerHoverBg={false}>

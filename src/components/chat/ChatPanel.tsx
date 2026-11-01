@@ -102,7 +102,7 @@ export function ChatRowOptions({ label, onPin, onRename, onDelete }: { label: st
             <EllipsisVertical className="size-4" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-lg">
+        <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuItem
             onSelect={() => {
               if (onPin) onPin();
@@ -420,8 +420,17 @@ export default function ChatPanel({
           <button
             type="button"
             aria-label="Resize chat sidebar"
-            className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize bg-transparent transition-colors hover:bg-primary/30"
+            aria-expanded={chatOpen}
+            tabIndex={0}
+            className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize bg-transparent touch-none transition-colors hover:bg-primary/30 after:absolute after:inset-y-0 after:-left-1.5 after:-right-1.5"
             onPointerDown={onResizeStart}
+            onDoubleClick={() => setChatOpen(false)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setChatOpen(false);
+              }
+            }}
           />
         ) : null}
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-border px-4">
@@ -433,7 +442,7 @@ export default function ChatPanel({
                 <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-[320px] rounded-xl shadow-lg">
+            <DropdownMenuContent align="center" className="w-[320px]">
               {DEMO_AGENT_CHATS.map((chat) => (
                 <DropdownMenuItem key={chat.id} onSelect={() => setActiveChatId(chat.id)}>
                   <span className="truncate">{chat.name}</span>
@@ -461,7 +470,7 @@ export default function ChatPanel({
                 <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-[320px] rounded-xl shadow-lg">
+            <DropdownMenuContent align="center" className="w-[320px]">
               {DEMO_AGENT_CHATS.map((chat) => (
                 <DropdownMenuItem key={chat.id} onSelect={() => setActiveChatId(chat.id)}>
                   <span className="truncate">{chat.name}</span>
