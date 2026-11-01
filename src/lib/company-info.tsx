@@ -29,29 +29,67 @@ export const formatCompanyWebsite = (website: string | null | undefined): string
 /** Hostname for favicon services (e.g. `liebherr.com` from `https://www.liebherr.com/careers`). */
 export const cleanDomain = (domain: string | null | undefined): string | null => {
   if (!domain) return null;
-  const raw = domain.trim().toLowerCase();
-  if (!raw || raw === "localhost" || raw === "127.0.0.1" || raw === "null" || raw === "undefined") return null;
-  return raw.replace(/^www\./, "");
-};
+  const trimmed = domain.trim();
+  if (
+    !trimmed ||
+    trimmed === "null" ||
+    trimmed === "undefined" ||
+    trimmed === "#" ||
+    trimmed === "/" ||
+    trimmed.toLowerCase() === "localhost" ||
+    trimmed === "127.0.0.1"
+  ) {
+    return null;
+  }
 
-export const extractDomainFromCompanyWebsite = (website: string | null | undefined): string | null => {
-  const raw = website?.trim();
-  if (!raw || raw === "null" || raw === "undefined") return null;
   try {
-    const normalized = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
-    let host = new URL(normalized).hostname.toLowerCase();
-    if (!host || host === "localhost" || host === "127.0.0.1") return null;
+    const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed);
+    const urlStr = hasScheme ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(urlStr);
+    let host = parsed.hostname.toLowerCase();
+    host = host.split(":")[0];
     if (host.startsWith("www.")) {
       host = host.slice(4);
     }
+    // Filter out localhost, IP loopback, or slugs without a dot (e.g. "lockheed-martin")
+    if (!host || host === "localhost" || host === "127.0.0.1" || !host.includes(".")) {
+      return null;
+    }
+    // Basic domain validation: labels followed by valid TLD of at least 2 characters
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) {
+      return null;
+    }
     return host;
   } catch {
-    return null;
+    let host = trimmed
+      .toLowerCase()
+      .replace(/^[a-z]+:\/\//i, "")
+      .split(/[/?#:]/)[0]
+      .replace(/^www\./, "")
+      .trim();
+    if (!host || host === "localhost" || host === "127.0.0.1" || !host.includes(".")) {
+      return null;
+    }
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) {
+      return null;
+    }
+    return host;
   }
+};
+
+export const extractDomainFromCompanyWebsite = (website: string | null | undefined): string | null => {
+  return cleanDomain(website);
 };
 
 export const companyFaviconUrl = (domain: string, sizePx: number): string =>
   `https://s2.googleusercontent.com/s2/favicons?domain=${encodeURIComponent(cleanDomain(domain) || domain)}&sz=${sizePx}`;
+
+/**
+ * Google Favicon V2 resolves high-resolution icons (up to 256px) and Apple Touch Icons directly from domains.
+ * Provides high-fidelity vector/JPEG/PNG rendering without requiring external API keys.
+ */
+export const companyGoogleFaviconV2Url = (domain: string, sizePx: number = 128): string =>
+  `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${encodeURIComponent(cleanDomain(domain) || domain)}&size=${sizePx}`;
 
 /**
  * Unavatar.io resolves crisp vector SVGs, Apple Touch Icons (180px+),
@@ -86,6 +124,8 @@ export interface LogoExpandableOptions {
   src?: string;
   /** Force SVG vector handling where pixel dimension constraints are relaxed. */
   isSvg?: boolean;
+  /** If true, allows favicon service URLs to qualify if they satisfy dimensions / aspect ratio. Defaults to false. */
+  allowFavicons?: boolean;
 }
 
 /**
@@ -114,7 +154,7 @@ export const isExpandableLogo = (width: number, height: number, options?: LogoEx
     }
   }
 
-  if (options?.src && isFaviconServiceUrl(options.src)) {
+  if (!options?.allowFavicons && options?.src && isFaviconServiceUrl(options.src)) {
     return false;
   }
 
@@ -139,10 +179,11 @@ export interface CompanyLogoSourcesOptions {
  * 2. Brandfetch (if NEXT_PUBLIC_BRANDFETCH_CLIENT_ID is configured)
  * 3. Clearbit (if NEXT_PUBLIC_CLEARBIT_LOGO_URL or NEXT_PUBLIC_ENABLE_CLEARBIT is set)
  * 4. Logo.dev (if NEXT_PUBLIC_LOGO_DEV_TOKEN is configured)
- * 5. Unavatar (free zero-secret high-fidelity SVG/Apple-Touch-Icon resolver)
- * 6. Google Favicon service (universal fallback favicon at requested pixel dimensions)
- * 7. DuckDuckGo Favicon service (secondary favicon fallback)
- * 8. Secondary website domain if distinct from canonical domain
+ * 5. Google Favicon V2 (high-fidelity zero-auth resolver up to 256px, reliable non-unavatar candidate)
+ * 6. Unavatar (free zero-secret SVG/Apple-Touch-Icon resolver, mid/low priority)
+ * 7. DuckDuckGo Favicon service (reliable favicon fallback fetching site's genuine favicon.ico)
+ * 8. Google Favicon service (universal zero-auth fallback favicon)
+ * 9. Secondary website domain if distinct from canonical domain
  */
 export const getCompanyLogoSources = (companyData: CompanyLogoSourcesInput, sizePx: number = 256, options?: CompanyLogoSourcesOptions): string[] => {
   const chain: string[] = [];
@@ -189,19 +230,24 @@ export const getCompanyLogoSources = (companyData: CompanyLogoSourcesInput, size
       chain.push(`https://img.logo.dev/${encodeURIComponent(primaryDomain)}?token=${logoDevToken}&size=${sizePx}`);
     }
 
-    // 5. Unavatar: free, zero secrets, extracts SVGs and 180px+ Apple Touch Icons directly from the domain
+    // 5. Google Favicon V2: high-fidelity, zero-auth resolver providing crisp vector/JPEG/PNG brand logos (up to 256px)
+    // Always provided in the primary candidate chain (even with includeFavicons: false)
+    chain.push(companyGoogleFaviconV2Url(primaryDomain, sizePx));
+
+    // 6. Unavatar: free, zero secrets fallback (demoted to mid/low priority after Google Favicon V2)
     chain.push(companyUnavatarUrl(primaryDomain));
 
     if (includeFavicons) {
-      // 6. Google Favicon service (universal zero-auth fallback)
-      chain.push(companyFaviconUrl(primaryDomain, sizePx));
-
-      // 7. DuckDuckGo icon service (secondary favicon fallback)
+      // 7. DuckDuckGo icon service (primary favicon fallback, fetches genuine site favicon.ico)
       chain.push(companyDuckDuckGoFaviconUrl(primaryDomain));
+
+      // 8. Google Favicon service (universal zero-auth fallback)
+      chain.push(companyFaviconUrl(primaryDomain, sizePx));
 
       // If website domain is different from canonical domain, also try website domain as fallback
       const websiteDomain = extractDomainFromCompanyWebsite(companyData.website);
       if (websiteDomain && websiteDomain !== primaryDomain) {
+        chain.push(companyDuckDuckGoFaviconUrl(websiteDomain));
         chain.push(companyFaviconUrl(websiteDomain, sizePx));
       }
     }

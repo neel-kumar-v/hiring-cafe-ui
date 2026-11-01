@@ -2,10 +2,15 @@ import type { CompanyDTO } from "@/types/convexJobs";
 import type { ProcessedCompanyData } from "@/types/job";
 
 export function toUiCompany(company: CompanyDTO | null | undefined): ProcessedCompanyData {
+  const canonicalDomain =
+    company?.canonicalDomain ||
+    (company?.companyId && company.companyId.includes(".") ? company.companyId : undefined) ||
+    (company?.homepageUri && company.homepageUri.includes(".") ? company.homepageUri : undefined);
+
   return {
     name: company?.name ?? "",
     website: company?.homepageUri ?? "",
-    canonical_domain: company?.canonicalDomain,
+    canonical_domain: canonicalDomain,
     image_url: company?.imageUrl ?? "",
     tagline: company?.tagline ?? "",
     subsidiaries: [],

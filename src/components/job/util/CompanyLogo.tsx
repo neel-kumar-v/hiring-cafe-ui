@@ -6,6 +6,7 @@ import {
   getCompanyAbbreviation,
   getCompanyLogoSources,
   isExpandableLogo,
+  isFaviconServiceUrl,
   renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
 import type { ProcessedCompanyData } from "@/types/job";
@@ -30,9 +31,9 @@ interface CompanyLogoInnerProps {
 
 const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName, imageAlt, size, transparentBackground = false }: CompanyLogoInnerProps) => {
   const srcChain = useMemo(() => {
-    // For list slots, do not include low-res tiny favicon fallbacks.
-    // If a high-res logo isn't available, fall back cleanly to the initials monogram UI.
-    const includeFavicons = size !== "list";
+    // Enable favicon fallbacks across all sizes (including list cards) so companies
+    // with only favicon assets (e.g. Lockheed Martin) render reliably instead of falling back to initials.
+    const includeFavicons = true;
     return getCompanyLogoSources(companyData, faviconSizePx, { includeFavicons });
   }, [companyData.image_url, companyData.canonical_domain, companyData.website, faviconSizePx, size]);
 
@@ -69,8 +70,22 @@ const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName,
     (img: HTMLImageElement) => {
       const { naturalWidth, naturalHeight } = img;
       const isSvg = Boolean(activeSrc && (/\.svg(\?|$)/i.test(activeSrc) || activeSrc.startsWith("data:image/svg+xml")));
+      const isFavicon = Boolean(activeSrc && isFaviconServiceUrl(activeSrc));
 
-      // Verify that the logo can properly expand and fill the square slot without
+      if (isFavicon) {
+        // Favicon fallbacks: accept valid decoded icons with a reasonable aspect ratio
+        if (naturalWidth > 0 && naturalHeight > 0) {
+          const aspectRatio = naturalWidth / naturalHeight;
+          if (aspectRatio >= 0.5 && aspectRatio <= 2.0) {
+            setImageLoaded(true);
+            return;
+          }
+        }
+        setChainIndex((i) => i + 1);
+        return;
+      }
+
+      // Verify that primary logo candidates can properly expand and fill the square slot without
       // unsightly letterboxing, tiny low-res pixelation, or broken decodes.
       const expandable = isExpandableLogo(naturalWidth, naturalHeight, {
         minDimension,

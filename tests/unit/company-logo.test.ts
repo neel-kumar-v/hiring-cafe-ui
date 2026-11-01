@@ -6,6 +6,7 @@ import {
   companyClearbitUrl,
   companyDuckDuckGoFaviconUrl,
   companyFaviconUrl,
+  companyGoogleFaviconV2Url,
   companyUnavatarUrl,
   extractDomainFromCompanyWebsite,
   getCompanyLogoSources,
@@ -15,8 +16,13 @@ import {
 
 test("cleanDomain normalizes domains and strips www", () => {
   assert.equal(cleanDomain("www.stripe.com"), "stripe.com");
-  assert.equal(cleanDomain("https://www.stripe.com"), "https://www.stripe.com");
+  assert.equal(cleanDomain("https://www.stripe.com"), "stripe.com");
   assert.equal(cleanDomain("  GOOGLE.COM  "), "google.com");
+  assert.equal(cleanDomain("lockheedmartin.com"), "lockheedmartin.com");
+  assert.equal(cleanDomain("https://www.lockheedmartin.com/en-us/index.html"), "lockheedmartin.com");
+  assert.equal(cleanDomain("hcltech.com/"), "hcltech.com");
+  assert.equal(cleanDomain("http://hcltech.com"), "hcltech.com");
+  assert.equal(cleanDomain("lockheed-martin"), null);
   assert.equal(cleanDomain("localhost"), null);
   assert.equal(cleanDomain("127.0.0.1"), null);
   assert.equal(cleanDomain("null"), null);
@@ -42,6 +48,10 @@ test("url builder helpers construct expected endpoints", () => {
   assert.equal(companyUnavatarUrl("airbnb.com"), "https://unavatar.io/airbnb.com?fallback=false");
   assert.equal(companyUnavatarUrl("www.airbnb.com"), "https://unavatar.io/airbnb.com?fallback=false");
   assert.equal(companyFaviconUrl("stripe.com", 256), "https://s2.googleusercontent.com/s2/favicons?domain=stripe.com&sz=256");
+  assert.equal(
+    companyGoogleFaviconV2Url("stripe.com", 256),
+    "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://stripe.com&size=256"
+  );
   assert.equal(companyBrandfetchUrl("stripe.com", "test-client-id"), "https://cdn.brandfetch.io/stripe.com/logo?c=test-client-id");
   assert.equal(companyClearbitUrl("stripe.com"), "https://logo.clearbit.com/stripe.com");
   assert.equal(companyDuckDuckGoFaviconUrl("stripe.com"), "https://icons.duckduckgo.com/ip3/stripe.com.ico");
@@ -153,9 +163,31 @@ test("getCompanyLogoSources with includeFavicons: false excludes low-res favicon
     { includeFavicons: false }
   );
 
+  // Reliable non-unavatar candidate is included
+  assert.ok(sources.some((s) => s.includes("gstatic.com/faviconV2")));
   assert.ok(sources.includes("https://unavatar.io/stripe.com?fallback=false"));
   assert.ok(!sources.some((s) => s.includes("googleusercontent.com/s2/favicons")));
   assert.ok(!sources.some((s) => s.includes("icons.duckduckgo.com")));
+});
+
+test("getCompanyLogoSources candidate order prioritizes high-res sources over unavatar and fallbacks", () => {
+  const sources = getCompanyLogoSources({ canonical_domain: "hcltech.com" }, 128);
+  const gstaticIdx = sources.findIndex((s) => s.includes("gstatic.com/faviconV2"));
+  const unavatarIdx = sources.findIndex((s) => s.includes("unavatar.io"));
+  const ddgIdx = sources.findIndex((s) => s.includes("icons.duckduckgo.com"));
+  const googleFaviconIdx = sources.findIndex((s) => s.includes("googleusercontent.com/s2/favicons"));
+
+  assert.ok(gstaticIdx !== -1, "gstatic_v2 must be present");
+  assert.ok(unavatarIdx !== -1, "unavatar must be present");
+  assert.ok(ddgIdx !== -1, "ddg must be present");
+  assert.ok(googleFaviconIdx !== -1, "google favicon must be present");
+
+  // Higher-quality free Google Favicon V2 must precede unavatar
+  assert.ok(gstaticIdx < unavatarIdx, "Google Favicon V2 must precede unavatar");
+  // Unavatar precedes low-res favicon fallbacks
+  assert.ok(unavatarIdx < ddgIdx, "unavatar must precede DuckDuckGo favicon fallback");
+  // DuckDuckGo genuine site favicon precedes standard Google favicon
+  assert.ok(ddgIdx < googleFaviconIdx, "DuckDuckGo favicon fallback must precede standard Google favicon");
 });
 
 test("isFaviconServiceUrl identifies favicon endpoints and icon files", () => {
