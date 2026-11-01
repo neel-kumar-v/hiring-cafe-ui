@@ -22,7 +22,6 @@ const INGEST_BATCH_MAX_ITEMS = 100;
 const HIDE_EXTERNAL_IDS_MAX = 200;
 const BY_EXTERNAL_IDS_MAX = 400;
 const SEARCH_PAGE_MAX_ITEMS = 48;
-const SEARCH_OVERSCAN_MAX_PAGES = 5;
 
 type DbCtx = QueryCtx | MutationCtx;
 
@@ -419,56 +418,34 @@ export const search = query({
     const boundedNumItems = Math.min(Math.max(paginationOpts.numItems, 1), SEARCH_PAGE_MAX_ITEMS);
     const boundedPaginationOpts = { ...paginationOpts, numItems: boundedNumItems };
 
-    const fetchSearchPage = async (cursor: string | null) => {
-      const pageOpts = { ...boundedPaginationOpts, cursor };
-      if (hasQuery) {
-        mode = "searchIndex";
-        return await ctx.db
-          .query("jobCards")
-          .withSearchIndex("search_searchText", (q2) => {
-            let qq = q2.search("searchText", queryText);
-            if (workplaceTypes.length === 1) qq = qq.eq("workplaceType", workplaceTypes[0]);
-            if (departments.length === 1) qq = qq.eq("department", departments[0]);
-            if (currencies.length === 1) qq = qq.eq("listedCompensationCurrency", currencies[0]);
-            if (frequencies.length === 1) qq = qq.eq("listedCompensationFrequency", frequencies[0]);
-            return qq;
-          })
-          .paginate(pageOpts);
-      }
+    let page;
+    if (hasQuery) {
+      mode = "searchIndex";
+      page = await ctx.db
+        .query("jobCards")
+        .withSearchIndex("search_searchText", (q2) => {
+          let qq = q2.search("searchText", queryText);
+          if (workplaceTypes.length === 1) qq = qq.eq("workplaceType", workplaceTypes[0]);
+          if (departments.length === 1) qq = qq.eq("department", departments[0]);
+          if (currencies.length === 1) qq = qq.eq("listedCompensationCurrency", currencies[0]);
+          if (frequencies.length === 1) qq = qq.eq("listedCompensationFrequency", frequencies[0]);
+          return qq;
+        })
+        .paginate(boundedPaginationOpts);
+    } else {
       // Browse uses `by_recent` only; filters are applied in `applyPostFilters`.
       mode = "by_recent";
-      return await ctx.db.query("jobCards").withIndex("by_recent").order(order).paginate(pageOpts);
-    };
-
-    let scannedCount = 0;
-    let continueCursor = "";
-    let isDone = false;
-    let cursor: string | null = boundedPaginationOpts.cursor;
-    const filteredRows: Doc<"jobCards">[] = [];
-
-    for (let overscanPage = 0; overscanPage < SEARCH_OVERSCAN_MAX_PAGES; overscanPage++) {
-      const page = await fetchSearchPage(cursor);
-      scannedCount += page.page.length;
-      continueCursor = page.continueCursor;
-      isDone = page.isDone;
-
-      const pageFiltered = applyPostFilters(page.page, normalizedFilters, viewerUserId, companyDocIds);
-      filteredRows.push(...pageFiltered);
-
-      if (filteredRows.length >= boundedNumItems || isDone) break;
-      if (pageFiltered.length > 0) break;
-
-      cursor = page.continueCursor;
+      page = await ctx.db.query("jobCards").withIndex("by_recent").order(order).paginate(boundedPaginationOpts);
     }
 
-    const trimmedFilteredRows = filteredRows.slice(0, boundedNumItems);
+    const filteredRows = applyPostFilters(page.page, normalizedFilters, viewerUserId, companyDocIds);
     // Card rows already carry browse fields; details resolve via jobId in getDetailsLite (no per-page jobs db.get).
-    const resultPage = trimmedFilteredRows.map((card) => toCardResult(card));
+    const resultPage = filteredRows.map((card) => toCardResult(card));
 
     const durationMs = Date.now() - startedAt;
     const slowThresholdMs = 1200;
     const logLine =
-      `[jobs.search] mode=${mode} query=${queryText ? "text" : "browse"} order=${order} ` + `scanned=${scannedCount} returned=${resultPage.length} durationMs=${durationMs}`;
+      `[jobs.search] mode=${mode} query=${queryText ? "text" : "browse"} order=${order} ` + `scanned=${page.page.length} returned=${resultPage.length} durationMs=${durationMs}`;
     if (durationMs >= slowThresholdMs) {
       console.warn(`[SLOW_QUERY] ${logLine}`);
     } else {
@@ -476,9 +453,8 @@ export const search = query({
     }
 
     return {
+      ...page,
       page: resultPage,
-      continueCursor,
-      isDone,
     };
   },
 });

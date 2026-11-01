@@ -78,7 +78,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
   // grid presentation, so the board degrades to the list layout — exactly what
   // the List tab shows. Width 0 means "not measured yet" (SSR / first paint):
   // check window width as client fallback to avoid layout flash.
-  const isSingleColumn = containerWidth > 0 ? columns <= 1 : (typeof window !== "undefined" ? window.innerWidth < 640 : false);
+  const isSingleColumn = containerWidth > 0 ? columns <= 1 : typeof window !== "undefined" ? window.innerWidth < 640 : false;
   const effectiveLayout: JobBoardLayout = isSingleColumn ? "list" : boardLayout;
 
   const initialCount = columns * 4;
@@ -220,6 +220,15 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
       loadMoreItems();
     }
   }, [accumulatedRows.length, displayedCollections.length, isLoading, loadMoreItems, revealLoading, status, visibleRowCount]);
+
+  // When selective filters (e.g. location) filter out all rows on a page, the query
+  // returns an empty page with status "CanLoadMore". Auto-fetch next pages so the client
+  // continues scanning until matching jobs are found or results are exhausted.
+  useEffect(() => {
+    if (status === "CanLoadMore" && !isLoading && !revealLoading && accumulatedJobs.length === 0) {
+      loadMore(JOB_BOARD_PAGE_LIMIT);
+    }
+  }, [accumulatedJobs.length, isLoading, loadMore, revealLoading, status]);
 
   useEffect(() => {
     if (!displayedCollections.length) {
@@ -638,7 +647,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
     );
   };
 
-  if (status === "LoadingFirstPage") {
+  if (status === "LoadingFirstPage" || (accumulatedJobs.length === 0 && (status === "CanLoadMore" || isLoading))) {
     return (
       <div ref={containerRef} className="@container space-y-6">
         {effectiveLayout === "masonry" ? (
