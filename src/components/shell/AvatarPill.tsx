@@ -2,22 +2,24 @@
 
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
+import { useSearchUI } from "@/contexts/SearchContext";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 /**
- * Avatar pill from the navbar (shared with chat panel header).
- * The menu options have been migrated into AppSidebar above Talent Agent
- * and Classic Searches (Feedback #12). The old menu is emptied/removed.
- * Note: Feedback #19 removes the three-bars button entirely once options moved.
+ * Avatar pill from the navbar / mobile header with a three-bars (hamburger) menu icon.
+ * Opens the mobile navigation drawer containing AppSidebar when clicked.
  */
-export function AvatarPill({ className }: { className?: string }) {
+export function AvatarPill({ className, onClick }: { className?: string; onClick?: () => void }) {
+  const { setMobileSidebarOpen } = useSearchUI();
+
   return (
     <Button
       className={cn("flex h-9 items-center gap-2 rounded-full border border-border bg-background py-0 pl-3 pr-1.5 shadow-sm hover:bg-accent", className)}
       variant="outline"
-      aria-label="Account"
+      aria-label="Open navigation menu"
+      onClick={onClick ?? (() => setMobileSidebarOpen(true))}
     >
       <Menu className="size-4 text-foreground" />
       <span className="size-6 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-primary" aria-hidden />
