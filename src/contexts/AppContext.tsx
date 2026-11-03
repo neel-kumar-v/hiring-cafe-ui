@@ -44,6 +44,7 @@ const defaultUser: User = {
   interviewing: [],
   rejected: [],
   hidden: [],
+  jobTransitions: [],
 };
 
 function getUserStorageKey(email: string | null) {
@@ -67,7 +68,17 @@ const loadUserFromStorage = (email: string | null): User | null => {
     if (typeof window !== "undefined" && window.localStorage) {
       const stored = localStorage.getItem(getUserStorageKey(email));
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        const jobTransitions = Array.isArray(parsed?.jobTransitions)
+          ? parsed.jobTransitions
+          : Array.isArray(parsed?.transitions)
+            ? parsed.transitions
+            : [];
+        return {
+          ...defaultUser,
+          ...parsed,
+          jobTransitions,
+        };
       }
     }
   } catch (error) {
@@ -183,17 +194,83 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addJob = useCallback((jobId: string, status: JobStatus) => {
-    setUser((prev) => ({
-      ...prev,
-      [status]: [...prev[status], jobId],
-    }));
+    setUser((prev) => {
+      const now = Date.now();
+      const existingTransitions = prev.jobTransitions || [];
+      const newTransitions = [...existingTransitions];
+
+      const lastIndex = [...newTransitions]
+        .map((t, idx) => ({ t, idx }))
+        .reverse()
+        .find(({ t }) => t.jobId === jobId)?.idx;
+
+      if (
+        lastIndex !== undefined &&
+        newTransitions[lastIndex].from &&
+        !newTransitions[lastIndex].to
+      ) {
+        const fromStatus = newTransitions[lastIndex].from!;
+        if (fromStatus !== status) {
+          newTransitions[lastIndex] = {
+            jobId,
+            from: fromStatus,
+            to: status,
+            at: now,
+          };
+        } else {
+          newTransitions[lastIndex] = {
+            jobId,
+            to: status,
+            at: now,
+          };
+        }
+      } else {
+        const statuses: JobStatus[] = ["saved", "applied", "interviewing", "rejected", "hidden"];
+        const currentStatus = statuses.find((s) => prev[s].includes(jobId));
+
+        if (currentStatus && currentStatus !== status) {
+          newTransitions.push({
+            jobId,
+            from: currentStatus,
+            to: status,
+            at: now,
+          });
+        } else if (!currentStatus) {
+          newTransitions.push({
+            jobId,
+            to: status,
+            at: now,
+          });
+        }
+      }
+
+      return {
+        ...prev,
+        [status]: [...prev[status].filter((id) => id !== jobId), jobId],
+        jobTransitions: newTransitions,
+      };
+    });
   }, []);
 
   const removeJob = useCallback((jobId: string, status: JobStatus) => {
-    setUser((prev) => ({
-      ...prev,
-      [status]: prev[status].filter((id) => id !== jobId),
-    }));
+    setUser((prev) => {
+      const now = Date.now();
+      const existingTransitions = prev.jobTransitions || [];
+      const newTransitions = [
+        ...existingTransitions,
+        {
+          jobId,
+          from: status,
+          at: now,
+        },
+      ];
+
+      return {
+        ...prev,
+        [status]: prev[status].filter((id) => id !== jobId),
+        jobTransitions: newTransitions,
+      };
+    });
   }, []);
 
   const moveJob = useCallback((jobId: string, fromStatus: JobStatus, toStatus: JobStatus) => {
@@ -203,10 +280,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return prev;
       }
 
+      const now = Date.now();
+      const existingTransitions = prev.jobTransitions || [];
+      const newTransitions = [
+        ...existingTransitions,
+        {
+          jobId,
+          from: fromStatus,
+          to: toStatus,
+          at: now,
+        },
+      ];
+
       return {
         ...prev,
         [fromStatus]: prev[fromStatus].filter((id) => id !== jobId),
-        [toStatus]: [...prev[toStatus], jobId],
+        [toStatus]: [...prev[toStatus].filter((id) => id !== jobId), jobId],
+        jobTransitions: newTransitions,
       };
     });
   }, []);

@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandLogo } from "@/components/BrandLogo";
+import { AvatarPill } from "@/components/shell/AvatarPill";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Hitbox } from "@/components/ui/hitbox";
 import { useSearchUI } from "@/contexts/SearchContext";
@@ -27,7 +28,10 @@ export default function HomeCompactHeader({ className }: HomeCompactHeaderProps)
           </Link>
         </Hitbox>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <AvatarPill />
+        </div>
       </div>
       <div {...containerProps}>
         <div

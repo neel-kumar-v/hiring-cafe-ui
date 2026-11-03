@@ -1,6 +1,7 @@
 "use client";
 
 import SearchBar from "@/components/search/SearchBar";
+import { AvatarPill } from "@/components/shell/AvatarPill";
 import { Button } from "@/components/ui/button";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { cn } from "@/lib/utils";
@@ -101,9 +102,10 @@ export default function Navbar({ className, searchLeadingSlot, searchTrailingSlo
         </div>
       </div>
 
-      {/* Right zone: rewired AI chat sidebar toggle */}
+      {/* Right zone: rewired AI chat sidebar toggle + mobile menu hamburger */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <SidebarToggle />
+        <AvatarPill className="md:hidden" />
       </div>
     </header>
   );

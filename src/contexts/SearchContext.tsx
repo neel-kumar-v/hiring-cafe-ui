@@ -156,6 +156,8 @@ interface SearchUIContextType {
   // New-design app shell (docs/redesign-structure-plan.md)
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
   chatOpen: boolean;
   setChatOpen: (open: boolean) => void;
   /** Demo talent-agent chat currently displayed in the chat rail. */
@@ -266,6 +268,7 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
     }
     return true;
   });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [navbarTitle, setNavbarTitle] = useState("Home");
@@ -339,6 +342,8 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
       setBoardLayout: handleBoardLayoutChange,
       sidebarOpen,
       setSidebarOpen: handleSidebarOpenChange,
+      mobileSidebarOpen,
+      setMobileSidebarOpen,
       chatOpen,
       setChatOpen,
       activeChatId,
@@ -361,6 +366,7 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
       isJobSeen,
       boardLayout,
       sidebarOpen,
+      mobileSidebarOpen,
       chatOpen,
       activeChatId,
       navbarTitle,
