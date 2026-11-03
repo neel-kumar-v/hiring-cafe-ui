@@ -80,6 +80,13 @@ export default function TrackerPage() {
     return counts;
   }, [filteredJobs, user.applied, user.hidden, user.interviewing, user.rejected]);
 
+  const filteredJobIds = useMemo(() => new Set(filteredJobs.map(({ job }) => job.externalId)), [filteredJobs]);
+
+  const flowTransitions = useMemo(() => {
+    const transitions = user.jobTransitions || [];
+    return transitions.filter((transition) => filteredJobIds.has(transition.jobId));
+  }, [filteredJobIds, user.jobTransitions]);
+
   const getEffectiveViewMode = () => {
     return isLargeScreen ? viewMode : "list";
   };
@@ -140,7 +147,7 @@ export default function TrackerPage() {
           )}
         </div>
         <div className="mt-6">
-          <TrackerFlowDiagram counts={flowCounts} />
+          <TrackerFlowDiagram counts={flowCounts} transitions={flowTransitions} />
         </div>
       </div>
     </div>
