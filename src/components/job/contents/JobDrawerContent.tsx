@@ -189,7 +189,7 @@ const JobDrawerContent = ({
             tools={processed.technical_tools ?? []}
             workplaceCities={processed.workplace_cities ?? []}
           />
-          <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} />
+          <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} jobId={lookupId} />
           <div className={jobFadeClass(isTransitioning)}>
             <DialogBadges
               commitments={processed.commitment ?? []}

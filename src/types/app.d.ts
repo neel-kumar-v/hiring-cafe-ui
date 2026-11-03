@@ -1,11 +1,4 @@
-export type JobStatus = "saved" | "applied" | "interviewing" | "rejected" | "hidden";
-
-export interface JobTransition {
-  jobId: string;
-  from?: JobStatus;
-  to?: JobStatus;
-  at: number;
-}
+import type { JobStatusEvents } from "./tracker";
 
 export interface User {
   name: string;
@@ -16,5 +9,8 @@ export interface User {
   interviewing: string[];
   rejected: string[];
   hidden: string[];
-  jobTransitions: JobTransition[];
+  /** Full status history per job id; absent on profiles saved before it existed. */
+  jobEvents?: JobStatusEvents;
 }
+
+export type JobStatus = "saved" | "applied" | "interviewing" | "rejected" | "hidden";

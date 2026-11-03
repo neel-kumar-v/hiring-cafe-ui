@@ -5,18 +5,23 @@ import type { ProcessedCompanyData } from "@/types/job";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import DialogExtendedCompanyInfo from "./DialogExtendedCompanyInfo";
+import DialogStatusTimeline from "./DialogStatusTimeline";
 import CompanyLogo from "../util/CompanyLogo";
 
 const DialogCompanyLogoCard = ({
   companyData,
   isTransitioning = false,
   fadeCompanyChrome = false,
+  jobId,
 }: {
   companyData: ProcessedCompanyData;
   isTransitioning?: boolean;
   fadeCompanyChrome?: boolean;
+  /** Job whose status history the "Show timeline" sibling control reveals. */
+  jobId?: string;
 }) => {
   const [showExtended, setShowExtended] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   const removeHtmlTags = (str: string) => {
     let result = str.replace(/<[^>]*>/g, "");
@@ -51,7 +56,7 @@ const DialogCompanyLogoCard = ({
           <DialogExtendedCompanyInfo companyData={companyData} />
         </div>
       )}
-      <div className="sm:mt-6 mt-9 mb-3 sm:mb-0 border-t pt-1.5 border-border w-full flex justify-center">
+      <div className="mt-9 mb-3 border-t pt-1.5 border-border w-full flex flex-wrap items-center justify-center gap-2 sm:mt-6">
         <Button
           className="rounded-md border border-border bg-background shadow-sm hover:bg-secondary/60 dark:bg-card dark:hover:bg-accent -my-6"
           onClick={() => setShowExtended((v) => !v)}
@@ -61,7 +66,23 @@ const DialogCompanyLogoCard = ({
           {showExtended ? <ChevronUp className="mr-2 size-4" /> : <ChevronDown className="mr-2 size-4" />}
           {showExtended ? "Show less" : "Show more company info"}
         </Button>
+        {jobId ? (
+          <Button
+            className="rounded-md border border-border bg-background shadow-sm hover:bg-secondary/60 dark:bg-card dark:hover:bg-accent -my-6"
+            onClick={() => setShowTimeline((v) => !v)}
+            size="sm"
+            variant="outline"
+          >
+            {showTimeline ? <ChevronUp className="mr-2 size-4" /> : <ChevronDown className="mr-2 size-4" />}
+            {showTimeline ? "Hide timeline" : "Show timeline"}
+          </Button>
+        ) : null}
       </div>
+      {showTimeline && jobId ? (
+        <div className="w-full rounded-lg border border-border bg-background p-3 dark:bg-card">
+          <DialogStatusTimeline jobId={jobId} />
+        </div>
+      ) : null}
     </div>
   );
 };

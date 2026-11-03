@@ -209,7 +209,7 @@ const JobDialogContent = ({
         />
       </div>
 
-      <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} />
+      <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} jobId={lookupId} />
 
       <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
 

@@ -737,7 +737,6 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
                   job={currentJob}
                   company={collection.company}
                   onJobIndexChange={updateCollectionJobIndex}
-                  onOpenJob={openJobDetails}
                   isSelected={isSelected}
                   selectionMode={jobBoardSelectionMode}
                   onClick={(event) => handleCardSelectionClick(event, currentJob.externalId)}

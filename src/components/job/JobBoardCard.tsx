@@ -7,6 +7,7 @@ import { useSearchUI } from "@/contexts/SearchContext";
 import { useResponsiveBreakpoint } from "@/hooks/useMediaQuery";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import { JOB_FADE_DURATION_MS, jobFadeClass } from "@/lib/jobs/fadeTransition";
+import { isInteractiveCardTarget } from "@/lib/jobs/cardClickTargets";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
@@ -78,6 +79,9 @@ const JobCard = memo(
 
     const handleCardClick = useCallback(
       (e: React.MouseEvent) => {
+        // Interactive chrome (speed dial, stats, nav) keeps its own click; only
+        // the non-interactive card body opens the detail dialog.
+        if (isInteractiveCardTarget(e.target)) return;
         onClick(e);
       },
       [onClick]

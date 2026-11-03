@@ -3,35 +3,15 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCompanyWebsite } from "@/lib/company-info";
+import { isInteractiveCardTarget } from "@/lib/jobs/cardClickTargets";
 import { getCleanJobTitle, getCompensation, getExperienceInfo, getLocations } from "@/lib/job-info";
 import { toCompensationRange } from "@/lib/jobs/toCompensationRange";
 import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Bookmark,
-  Briefcase,
-  Building2,
-  Clock,
-  DollarSign,
-  EyeOff,
-  Link2,
-  MapPin,
-  MoreHorizontal,
-  Send,
-  type LucideIcon,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Bookmark, Briefcase, Building2, Clock, DollarSign, EyeOff, Link2, MapPin, MoreHorizontal, Send, type LucideIcon } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
@@ -45,20 +25,10 @@ import CompanyLogo from "./util/CompanyLogo";
 import ScrapeTime from "./util/ScrapeTime";
 
 /** Jobright-style meta fact: icon + plain text (no outline pill). */
-function FactLine({
-  icon: Icon,
-  children,
-  emphasize = false,
-  className,
-}: {
-  icon: LucideIcon;
-  children: ReactNode;
-  emphasize?: boolean;
-  className?: string;
-}) {
+function FactLine({ icon: Icon, children, emphasize = false }: { icon: LucideIcon; children: ReactNode; emphasize?: boolean }) {
   if (children == null || children === false || children === "") return null;
   return (
-    <div className={cn("flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90", className)}>
+    <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
       <Icon className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
       <span className={cn("truncate", emphasize && "font-medium tracking-[-0.01em] text-foreground tabular-nums")}>{children}</span>
     </div>
@@ -79,7 +49,6 @@ interface JobBoardListRowProps {
   collectionIndex?: number;
   currentJobIndex?: number;
   onJobIndexChange?: (collectionIndex: number, nextJobIndex: number) => void;
-  onOpenJob?: (collectionIndex: number, jobIndex: number) => void;
   isSelected?: boolean;
   selectionMode?: boolean;
   onClick: (event: React.MouseEvent) => void;
@@ -92,19 +61,7 @@ interface JobBoardListRowProps {
  * then footer (stats · sibling roles · Apply/Save/···). No match-% panel.
  */
 const JobBoardListRow = memo(
-  ({
-    job,
-    company,
-    collection,
-    collectionIndex,
-    currentJobIndex,
-    onJobIndexChange,
-    onOpenJob,
-    isSelected = false,
-    selectionMode = false,
-    onClick,
-    onHide,
-  }: JobBoardListRowProps) => {
+  ({ job, company, collection, collectionIndex, currentJobIndex, onJobIndexChange, isSelected = false, selectionMode = false, onClick, onHide }: JobBoardListRowProps) => {
     const { unreadView, isJobSeen } = useSearchUI();
     const { prefetchNow } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 4, maxSeen: 600 });
     const [localJobIndex, setLocalJobIndex] = useState(0);
@@ -136,12 +93,21 @@ const JobBoardListRow = memo(
       (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
         if (index === activeIndex) return;
+        // Role chips only switch which sibling role the card previews; the
+        // detail dialog opens from the card body, never from here.
         handleRoleSelect(index);
-        if (onOpenJob && collectionIndex !== undefined) {
-          onOpenJob(collectionIndex, index);
-        }
       },
-      [activeIndex, collectionIndex, handleRoleSelect, onOpenJob]
+      [activeIndex, handleRoleSelect]
+    );
+
+    const handleCardClick = useCallback(
+      (e: React.MouseEvent) => {
+        // Clicks on interactive chrome (role chips, Apply Now, Save, overflow)
+        // stay on that control and never bubble up to the dialog opener.
+        if (isInteractiveCardTarget(e.target)) return;
+        onClick(e);
+      },
+      [onClick]
     );
 
     // Same tracker state the card footer actions read and write, so the row's
@@ -185,8 +151,6 @@ const JobBoardListRow = memo(
       [company?.canonicalDomain, company?.homepageUri]
     );
     const hasFacts = Boolean(primaryLocation || workplaceType || commitment || experienceLabel || compensation);
-    const otherFactsCount = (primaryLocation ? 1 : 0) + (workplaceType ? 1 : 0) + (commitment ? 1 : 0) + (experienceLabel ? 1 : 0);
-    const salarySpans = otherFactsCount % 2 === 0;
 
     const isBookmarked = useMemo(
       () => user.saved.includes(currentJob.externalId) || user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
@@ -241,225 +205,201 @@ const JobBoardListRow = memo(
       return null;
     }
 
-  return (
-    <Card
-      data-job-card="true"
-      onClick={onClick}
-      className={cn(
-        "group/row @container/row relative flex cursor-pointer flex-col gap-2.5 border bg-background p-3.5 shadow-sm sm:p-4",
-        isSelected ? "border-primary ring-2 ring-primary/30" : "border-border",
-        selectionMode && "select-none"
-      )}
-    >
-      {showBadge ? (
-        <div className="pointer-events-none absolute top-0 left-3 z-20 -translate-y-1/2">
-          <NewBadge />
-        </div>
-      ) : null}
-
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <CompanyLogo companyData={toUiCompany(company)} size="list" variant="card" className="mt-0.5 shrink-0" />
-
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground sm:text-[1.0625rem]">
-              {title}
-            </h3>
-            <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]">
-              <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85 sm:text-sm">
-                {companyName || "Unknown company"}
-              </span>
-              {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
-            </p>
-          </div>
-        </div>
-
-        <ScrapeTime
-          postedAt={currentJob.estimatedPublishDate ?? ""}
-          postedAtMillis={currentJob.estimatedPublishDateMillis}
-          createdAt={currentJob.createdAt}
-          iconClassName="size-3"
-          textClassName="text-[0.6875rem] tracking-[0.02em] text-muted-foreground"
-          className="shrink-0 pt-1"
-        />
-      </div>
-
-      {/* Jobright-style facts: 2-column grid capped to 2 lines max with salary spanning when alone. */}
-      {hasFacts ? (
-        <div className="grid grid-cols-2 gap-x-5 gap-y-1.5">
-          {primaryLocation ? (
-            <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
-              <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
-              <span className="truncate">{primaryLocation}</span>
-              {moreLocationCount > 0 ? (
-                <Tooltip>
-                  <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <span
-                      tabIndex={0}
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex shrink-0 cursor-default items-center text-[0.8125rem] font-medium leading-snug tracking-[0.01em] text-foreground/50 underline-offset-2 transition-colors hover:text-foreground/75 hover:underline focus:outline-none focus-visible:text-foreground/75 focus-visible:underline"
-                    >
-                      +{moreLocationCount} more
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" sideOffset={4} className="max-h-60 max-w-xs overflow-y-auto text-xs">
-                    <p className="whitespace-pre-line leading-snug">{moreLocationsText}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : null}
-            </div>
-          ) : null}
-          <FactLine icon={Building2}>{workplaceType}</FactLine>
-          <FactLine icon={Clock}>{commitment}</FactLine>
-          <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
-          <FactLine icon={DollarSign} emphasize className={salarySpans ? "col-span-2" : undefined}>
-            {compensation}
-          </FactLine>
-        </div>
-      ) : null}
-
-      {/* 3-zone footer: left stats | center roles | right actions */}
-      <div data-card-footer="true" className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <div className="flex shrink-0 items-center">
-          <CardStats
-            appliedCount={currentJob.applies}
-            isApplied={isApplied}
-            isBookmarked={isBookmarked}
-            isInterviewing={isInterviewing}
-            onBookmarkToggle={handleBookmarkToggle}
-            savedCount={currentJob.saves}
-            viewedCount={currentJob.views}
-            applyUrl={currentJob.applyUrl ?? ""}
-            quiet
-          />
-        </div>
-
-        {jobs.length > 1 ? (
-          <div
-            className="order-3 flex w-full min-w-0 flex-wrap items-center justify-center gap-1.5 px-1 sm:order-none sm:w-auto sm:flex-1 sm:px-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {jobs.map((roleJob, roleIndex) => {
-              const isSelectedRole = roleIndex === activeIndex;
-              const roleTitle =
-                getCleanJobTitle(roleJob.title, companyName, roleJob.workplaceCities?.[0] ?? "", roleJob.skills ?? []) ||
-                roleJob.title ||
-                "Role";
-              return (
-                <Button
-                  key={roleJob.externalId}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  aria-pressed={isSelectedRole}
-                  className={cn(
-                    "h-7 max-w-[200px] truncate px-2.5 text-xs transition-colors sm:max-w-[260px]",
-                    isSelectedRole
-                      ? "border-primary bg-primary/10 font-medium text-primary hover:bg-primary/15 hover:border-primary"
-                      : "font-normal text-muted-foreground hover:border-primary/50 hover:bg-accent hover:text-foreground"
-                  )}
-                  onClick={(e) => handleRoleClick(e, roleIndex)}
-                  onMouseEnter={() => {
-                    prefetchNow(getDetailsLookupId(roleJob));
-                  }}
-                  title={roleTitle}
-                >
-                  <span className="truncate">{roleTitle}</span>
-                </Button>
-              );
-            })}
+    return (
+      <Card
+        data-job-card="true"
+        onClick={handleCardClick}
+        className={cn(
+          "group/row @container/row relative flex cursor-pointer flex-col gap-2.5 border bg-background p-3.5 shadow-sm sm:p-4",
+          isSelected ? "border-primary ring-2 ring-primary/30" : "border-border",
+          selectionMode && "select-none"
+        )}
+      >
+        {showBadge ? (
+          <div className="pointer-events-none absolute top-0 left-3 z-20 -translate-y-1/2">
+            <NewBadge />
           </div>
         ) : null}
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
-          {currentJob.applyUrl ? (
-            <Button
-              asChild
-              size="sm"
-              variant="default"
-              className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <CompanyLogo companyData={toUiCompany(company)} size="list" variant="card" className="mt-0.5 shrink-0" />
+
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground sm:text-[1.0625rem]">{title}</h3>
+              <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]">
+                <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85 sm:text-sm">{companyName || "Unknown company"}</span>
+                {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
+              </p>
+            </div>
+          </div>
+
+          <ScrapeTime
+            postedAt={currentJob.estimatedPublishDate ?? ""}
+            postedAtMillis={currentJob.estimatedPublishDateMillis}
+            createdAt={currentJob.createdAt}
+            iconClassName="size-3"
+            textClassName="text-[0.6875rem] tracking-[0.02em] text-muted-foreground"
+            className="shrink-0 pt-1"
+          />
+        </div>
+
+        {/* Jobright-style facts: 3 columns of icon + plain text (not outline pills). */}
+        {hasFacts ? (
+          <div className="grid grid-cols-1 gap-x-5 gap-y-1.5 @[380px]/row:grid-cols-3">
+            <div className="flex min-w-0 flex-col gap-1">
+              {primaryLocation ? (
+                <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+                  <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
+                  <span className="truncate">{primaryLocation}</span>
+                  {moreLocationCount > 0 ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <span
+                          tabIndex={0}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex shrink-0 cursor-default items-center text-[0.8125rem] font-medium leading-snug tracking-[0.01em] text-foreground/50 underline-offset-2 transition-colors hover:text-foreground/75 hover:underline focus:outline-none focus-visible:text-foreground/75 focus-visible:underline"
+                        >
+                          +{moreLocationCount} more
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" sideOffset={4} className="max-h-60 max-w-xs overflow-y-auto text-xs">
+                        <p className="whitespace-pre-line leading-snug">{moreLocationsText}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              ) : null}
+              <FactLine icon={Building2}>{workplaceType}</FactLine>
+            </div>
+            <div className="flex min-w-0 flex-col gap-1">
+              <FactLine icon={Clock}>{commitment}</FactLine>
+              <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
+            </div>
+            <div className="flex min-w-0 flex-col gap-1">
+              <FactLine icon={DollarSign} emphasize>
+                {compensation}
+              </FactLine>
+            </div>
+          </div>
+        ) : null}
+
+        {/* 3-zone footer: left stats | center roles | right actions */}
+        <div data-card-footer="true" className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex shrink-0 items-center">
+            <CardStats
+              appliedCount={currentJob.applies}
+              isApplied={isApplied}
+              isBookmarked={isBookmarked}
+              isInterviewing={isInterviewing}
+              onBookmarkToggle={handleBookmarkToggle}
+              savedCount={currentJob.saves}
+              viewedCount={currentJob.views}
+              applyUrl={currentJob.applyUrl ?? ""}
+              quiet
+            />
+          </div>
+
+          {jobs.length > 1 ? (
+            <div
+              className="order-3 flex w-full min-w-0 flex-wrap items-center justify-center gap-1.5 px-1 sm:order-none sm:w-auto sm:flex-1 sm:px-2"
+              onClick={(e) => e.stopPropagation()}
             >
-              <a
-                href={currentJob.applyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              {jobs.map((roleJob, roleIndex) => {
+                const isSelectedRole = roleIndex === activeIndex;
+                const roleTitle = getCleanJobTitle(roleJob.title, companyName, roleJob.workplaceCities?.[0] ?? "", roleJob.skills ?? []) || roleJob.title || "Role";
+                return (
+                  <Button
+                    key={roleJob.externalId}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    aria-pressed={isSelectedRole}
+                    className={cn(
+                      "h-7 max-w-[200px] truncate px-2.5 text-xs transition-colors sm:max-w-[260px]",
+                      isSelectedRole
+                        ? "border-primary bg-primary/10 font-medium text-primary hover:bg-primary/15 hover:border-primary"
+                        : "font-normal text-muted-foreground hover:border-primary/50 hover:bg-accent hover:text-foreground"
+                    )}
+                    onClick={(e) => handleRoleClick(e, roleIndex)}
+                    onMouseEnter={() => {
+                      prefetchNow(getDetailsLookupId(roleJob));
+                    }}
+                    title={roleTitle}
+                  >
+                    <span className="truncate">{roleTitle}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+            {currentJob.applyUrl ? (
+              <Button asChild size="sm" variant="default" className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs hover:bg-primary/90">
+                <a href={currentJob.applyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                  <Send className="size-3.5" />
+                  <span>Apply Now</span>
+                </a>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                disabled
+                className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs opacity-50"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Send className="size-3.5" />
                 <span>Apply Now</span>
-              </a>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              size="sm"
-              variant="default"
-              disabled
-              className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs opacity-50"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Send className="size-3.5" />
-              <span>Apply Now</span>
-            </Button>
-          )}
-
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={handleBookmarkToggle}
-            className="h-8 gap-1.5 text-xs font-normal"
-          >
-            <Bookmark className={cn("size-3.5", isBookmarked && "fill-primary text-primary")} />
-            <span>{isBookmarked ? "Saved" : "Save"}</span>
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="size-8 p-0 text-muted-foreground hover:text-foreground"
-                aria-label="More options"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="size-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              {companyWebsite ? (
-                <DropdownMenuItem asChild>
-                  <a
-                    href={formatCompanyWebsite(companyWebsite)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
+            )}
+
+            <Button type="button" size="sm" variant="outline" onClick={handleBookmarkToggle} className="h-8 gap-1.5 text-xs font-normal">
+              <Bookmark className={cn("size-3.5", isBookmarked && "fill-primary text-primary")} />
+              <span>{isBookmarked ? "Saved" : "Save"}</span>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                  aria-label="More options"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                {companyWebsite ? (
+                  <DropdownMenuItem asChild>
+                    <a href={formatCompanyWebsite(companyWebsite)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer">
+                      <Link2 className="size-4" />
+                      <span>Company Link</span>
+                    </a>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem disabled className="flex items-center gap-2">
                     <Link2 className="size-4" />
                     <span>Company Link</span>
-                  </a>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleHide} className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-destructive focus:text-destructive">
+                  <EyeOff className="size-4" />
+                  <span>Hide</span>
                 </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem disabled className="flex items-center gap-2">
-                  <Link2 className="size-4" />
-                  <span>Company Link</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={handleHide}
-                className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-destructive focus:text-destructive"
-              >
-                <EyeOff className="size-4" />
-                <span>Hide</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </div>
-    </Card>
-  );
-});
+      </Card>
+    );
+  }
+);
 
 JobBoardListRow.displayName = "JobBoardListRow";
 
