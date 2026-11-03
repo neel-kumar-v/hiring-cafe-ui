@@ -173,12 +173,13 @@ export function BoardLayoutControl({ className }: { className?: string } = {}) {
 
 interface BoardActionsProps {
   unreadCount?: number;
+  isOneColumn?: boolean;
 }
 
 /** "All" shows every job, "Unread" narrows the board to the jobs labeled New. */
 type BoardView = "all" | "unread";
 
-export function BoardActions({ unreadCount: unreadCountProp }: BoardActionsProps = {}) {
+export function BoardActions({ unreadCount: unreadCountProp, isOneColumn }: BoardActionsProps = {}) {
   const { unreadView, setUnreadView, unreadCount: unreadCountFromContext } = useSearchUI();
   // Count of loaded New jobs is published by JobBoard via SearchUI; the prop wins
   // for callers that render the band without a mounted board.
@@ -222,7 +223,12 @@ export function BoardActions({ unreadCount: unreadCountProp }: BoardActionsProps
         Share
       </Button>
 
-      <div className="flex h-8 items-center gap-2 rounded-full border border-primary/25 bg-primary/5 pl-3 pr-1 text-xs transition-colors hover:border-primary/40 hover:bg-primary/10 dark:bg-primary/10">
+      <div
+        className={cn(
+          "flex @max-[640px]:hidden h-8 items-center gap-2 rounded-full border border-primary/25 bg-primary/5 pl-3 pr-1 text-xs transition-colors hover:border-primary/40 hover:bg-primary/10 dark:bg-primary/10",
+          isOneColumn && "hidden"
+        )}
+      >
         <Bell className="size-3.5 text-primary" />
         <span className="text-xs font-medium text-primary">Email me new jobs</span>
         <NotificationFrequencyMenu />
@@ -258,7 +264,7 @@ export default function ResultsHeaderBand({ jobCount, companyCount, showSortCont
           {showSortControl && <SortControl />}
           {!isOneColumn && <BoardLayoutControl />}
         </div>
-        <BoardActions unreadCount={unreadCount} />
+        <BoardActions unreadCount={unreadCount} isOneColumn={isOneColumn} />
       </div>
     </div>
   );
