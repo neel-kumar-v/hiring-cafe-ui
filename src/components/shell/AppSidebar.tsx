@@ -5,6 +5,7 @@ import { ThemeIconSwap } from "@/components/ThemeToggle";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { ChatRowOptions, ChatRowTitle } from "@/components/chat/ChatPanel";
 import { Button } from "@/components/ui/button";
+import { DrawerClose } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/contexts/AppContext";
@@ -19,7 +20,7 @@ import { getEditedTags, initialSearchState } from "@/lib/edited-filters";
 import { cn } from "@/lib/utils";
 import type { SearchState } from "@/types/search";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { BarChart3, Bell, Building, ChevronDown, CircleUser, EllipsisVertical, House, Info, Mail, Pencil, Pin, Plus, Search, Sparkles, Trash2, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, Bell, Building, ChevronDown, CircleUser, EllipsisVertical, House, Info, Mail, Pencil, Pin, Plus, Search, Sparkles, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -50,32 +51,32 @@ function RedditIcon({ className }: { className?: string }) {
  * above Talent Agent and Classic Searches sections (Feedback #12).
  * Bottom actions (Employers, About Us, Reddit, Theme toggle) are moved to the bottom bar (Feedback #8).
  */
-function NavigationOptions() {
+function NavigationOptions({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
     <nav className="pb-1" aria-label="Main Navigation">
-      <Link href="/" className={inboxRowClass(pathname === "/" || Boolean(pathname?.startsWith("/search/")))}>
+      <Link href="/" onClick={onNavigate} className={inboxRowClass(pathname === "/" || Boolean(pathname?.startsWith("/search/")))}>
         <House className="size-4 shrink-0 text-muted-foreground group-hover/row:text-foreground" />
         <span className="truncate font-medium">Find Jobs</span>
       </Link>
 
-      <Link href="/tracker" className={inboxRowClass(pathname === "/tracker")}>
+      <Link href="/tracker" onClick={onNavigate} className={inboxRowClass(pathname === "/tracker")}>
         <BarChart3 className="size-4 shrink-0 text-muted-foreground group-hover/row:text-foreground" />
         <span className="truncate font-medium">Job Tracker</span>
       </Link>
 
-      <Link href="/account" className={inboxRowClass(pathname === "/account")}>
+      <Link href="/account" onClick={onNavigate} className={inboxRowClass(pathname === "/account")}>
         <CircleUser className="size-4 shrink-0 text-muted-foreground group-hover/row:text-foreground" />
         <span className="truncate font-medium">Account</span>
       </Link>
 
-      <Link href="/talent-network" className={inboxRowClass(pathname === "/talent-network")}>
+      <Link href="/talent-network" onClick={onNavigate} className={inboxRowClass(pathname === "/talent-network")}>
         <Users className="size-4 shrink-0 text-muted-foreground group-hover/row:text-foreground" />
         <span className="truncate font-medium">Talent Network</span>
       </Link>
 
-      <Link href="/inbox" className={inboxRowClass(pathname === "/inbox")}>
+      <Link href="/inbox" onClick={onNavigate} className={inboxRowClass(pathname === "/inbox")}>
         <Mail className="size-4 shrink-0 text-muted-foreground group-hover/row:text-foreground" />
         <span className="truncate font-medium">Inbox</span>
       </Link>
@@ -263,7 +264,7 @@ function AgentChatItems({ activeChatId, onSelect }: { activeChatId: string | nul
  * Only when the viewer isn't on a search route (e.g. `/account`) do we move
  * to the job board so the applied filters are visible.
  */
-function ClassicSearchItems({ activeId }: { activeId: string | null }) {
+function ClassicSearchItems({ activeId, onNavigate }: { activeId: string | null; onNavigate?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const { searchOptions, setSearchOptions } = useApp();
@@ -373,6 +374,7 @@ function ClassicSearchItems({ activeId }: { activeId: string | null }) {
     if (!isMainSearchPage) {
       router.push("/");
     }
+    onNavigate?.();
   };
 
   /** Row ids whose applied filters equal the current `searchOptions` (row highlight when no URL id). */
@@ -720,12 +722,13 @@ function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSaved
  * - Ribbon / collapsed: shows HiringCafe brand logo only (with tooltip), centered.
  * - Expanded: shows HiringCafe brand logo + "CloneCafe" wordmark that truncates to fit sidebar width.
  * - Links to `/`.
- * - No UI subtitles.
+ * - Optional close button for mobile drawer mode.
  */
-function BrandHeader({ isRibbon }: { isRibbon: boolean }) {
+function BrandHeader({ isRibbon, onClose }: { isRibbon: boolean; onClose?: () => void }) {
   const content = (
     <Link
       href="/"
+      onClick={onClose}
       aria-label="CloneCafe"
       className={cn(
         "flex items-center rounded-md transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40",
@@ -740,7 +743,7 @@ function BrandHeader({ isRibbon }: { isRibbon: boolean }) {
     <div
       className={cn(
         "flex h-16 shrink-0 items-center border-b border-border",
-        isRibbon ? "justify-center px-2" : "px-4"
+        isRibbon ? "justify-center px-2" : "justify-between px-4"
       )}
     >
       {isRibbon ? (
@@ -751,7 +754,21 @@ function BrandHeader({ isRibbon }: { isRibbon: boolean }) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        content
+        <>
+          {content}
+          {onClose ? (
+            <DrawerClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Close navigation menu"
+              >
+                <X className="size-4" />
+              </Button>
+            </DrawerClose>
+          ) : null}
+        </>
       )}
     </div>
   );
@@ -767,7 +784,15 @@ function BrandHeader({ isRibbon }: { isRibbon: boolean }) {
  *
  * Supports resizable layout and collapsed icon ribbon.
  */
-export default function AppSidebar({ className, collapsed: forcedCollapsed }: { className?: string; collapsed?: boolean }) {
+export default function AppSidebar({
+  className,
+  collapsed: forcedCollapsed,
+  onNavigate,
+}: {
+  className?: string;
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) {
   const sidebarRef = useRef<HTMLElement>(null);
   // Width-based ribbon only when parent isn't forcing expanded/collapsed (drag-to-narrow).
   const containerWidth = useQuantizedContainerWidth(sidebarRef, SIDEBAR_RIBBON_WIDTH_STEPS);
@@ -786,24 +811,25 @@ export default function AppSidebar({ className, collapsed: forcedCollapsed }: { 
     }
     setActiveChatId(id);
     setChatOpen(true);
+    onNavigate?.();
   };
 
   return (
     <aside ref={sidebarRef} className={cn("flex h-full w-full min-w-0 flex-col bg-background", className)}>
-      <BrandHeader isRibbon={isRibbon} />
+      <BrandHeader isRibbon={isRibbon} onClose={onNavigate} />
       {isRibbon ? (
         <IconRibbon activeSavedId={activeSavedId} activeChatId={activeChatId} onSelectChat={openChat} />
       ) : (
         <>
           <div className="min-h-0 flex-1 overflow-y-auto pt-1 pb-2">
-            <NavigationOptions />
+            <NavigationOptions onNavigate={onNavigate} />
             <hr className="my-1 border-border" />
             <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent" headerHoverBg={false}>
               <AgentChatItems activeChatId={activeChatId} onSelect={openChat} />
             </GroupSection>
             <hr className="my-2 border-border" />
             <GroupSection icon={Search} iconClassName="text-muted-foreground" iconDot label="Classic Searches" headerHoverBg={false}>
-              <ClassicSearchItems activeId={activeSavedId} />
+              <ClassicSearchItems activeId={activeSavedId} onNavigate={onNavigate} />
             </GroupSection>
           </div>
           <div className="shrink-0 border-t border-border px-3 py-2">

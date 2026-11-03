@@ -5,6 +5,7 @@ import { MobileTopBar } from "@/components/shell/AvatarPill";
 import AppSidebar from "@/components/shell/AppSidebar";
 import Navbar from "@/components/shell/Navbar";
 import SearchSubHeader from "@/components/shell/SearchSubHeader";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResizableWidth } from "@/hooks/useResizableWidth";
@@ -23,8 +24,9 @@ const DEFAULT_TITLES: Record<string, string> = {
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { sidebarOpen, setSidebarOpen, chatOpen, setNavbarTitle, setChatOpen } = useSearchUI();
+  const { sidebarOpen, setSidebarOpen, mobileSidebarOpen, setMobileSidebarOpen, chatOpen, setNavbarTitle, setChatOpen } = useSearchUI();
   const isChatDocked = useMediaQuery("(min-width: 1280px)");
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const sidebarRailRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -80,6 +82,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
     if (match) setNavbarTitle(DEFAULT_TITLES[match]);
   }, [pathname, setNavbarTitle, setChatOpen]);
 
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [pathname, setMobileSidebarOpen]);
+
+  useEffect(() => {
+    if (isDesktop) {
+      setMobileSidebarOpen(false);
+    }
+  }, [isDesktop, setMobileSidebarOpen]);
+
   const isSearchRoute = pathname ? pathname === "/" || pathname.startsWith("/search/") : false;
   const leftWidth = sidebarOpen ? sidebar.width : SIDEBAR_RIBBON_WIDTH;
   const showDockedChat = Boolean(isSearchRoute && chatOpen && isChatDocked);
@@ -127,6 +139,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
       {isSearchRoute ? (
         <ChatPanel panelRef={chatPanelRef} width={chat.width} onResizeStart={isChatDocked ? (event: ReactPointerEvent) => chat.startResize(event, { edge: "left" }) : undefined} />
       ) : null}
+
+      {/* Mobile navigation drawer */}
+      <Drawer open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen} direction="right">
+        <DrawerContent className="inset-y-0 right-0 h-full w-[300px] max-w-[85vw] border-l border-border p-0 sm:max-w-sm">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Navigation</DrawerTitle>
+            <DrawerDescription>Site navigation and options</DrawerDescription>
+          </DrawerHeader>
+          <AppSidebar className="h-full border-none" collapsed={false} onNavigate={() => setMobileSidebarOpen(false)} />
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
