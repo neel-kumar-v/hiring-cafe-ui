@@ -484,8 +484,12 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
             <Share2 className="size-4" />
             Share
           </ActionBarItem>
-          <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkHide}>
-            <EyeOff className="size-4" />
+          <ActionBarItem
+            className="text-destructive! hover:text-destructive! focus-visible:text-destructive! [&_svg]:text-destructive!"
+            onSelect={(e) => e.preventDefault()}
+            onClick={handleBulkHide}
+          >
+            <EyeOff className="size-4 text-destructive!" />
             Hide
           </ActionBarItem>
           <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleMoveLeft}>
