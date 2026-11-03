@@ -50,9 +50,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   const sidebar = useResizableWidth({
     storageKey: SIDEBAR_WIDTH_KEY,
-    defaultWidth: 280,
+    defaultWidth: 830,
     min: 200,
-    max: 420,
+    max: 960,
     collapsed: !sidebarOpen,
     collapsedWidth: SIDEBAR_RIBBON_WIDTH,
     applyLiveWidth: applySidebarLiveWidth,

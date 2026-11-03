@@ -248,13 +248,13 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
         const stored = localStorage.getItem(BOARD_LAYOUT_STORAGE_KEY);
         if (isBoardLayout(stored)) return stored;
         // First visit on a phone: the one-column list is the mobile-native
-        // presentation. Wider viewports still open on masonry.
+        // presentation. Wider viewports open on grid.
         if (window.matchMedia?.("(max-width: 767px)").matches) return "list";
       } catch {
-        return "masonry";
+        return "grid";
       }
     }
-    return "masonry";
+    return "grid";
   });
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
