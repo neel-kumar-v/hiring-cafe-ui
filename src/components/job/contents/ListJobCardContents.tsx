@@ -20,10 +20,20 @@ interface ListJobCardContentsProps {
   onMoveJob?: (jobId: string, fromStatus: JobCategory, toStatus: JobCategory) => void;
 }
 
-function FactLine({ icon: Icon, children, emphasize = false }: { icon: LucideIcon; children: ReactNode; emphasize?: boolean }) {
+function FactLine({
+  icon: Icon,
+  children,
+  emphasize = false,
+  className,
+}: {
+  icon: LucideIcon;
+  children: ReactNode;
+  emphasize?: boolean;
+  className?: string;
+}) {
   if (children == null || children === false || children === "") return null;
   return (
-    <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+    <div className={cn("flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90", className)}>
       <Icon className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
       <span className={cn("truncate", emphasize && "font-medium tracking-[-0.01em] text-foreground tabular-nums")}>{children}</span>
     </div>
@@ -64,6 +74,8 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
     [company?.name, job.skills, job.title, primaryLocation]
   );
   const hasFacts = Boolean(primaryLocation || workplaceType || commitment || experienceLabel || compensation);
+  const otherFactsCount = (primaryLocation ? 1 : 0) + (workplaceType ? 1 : 0) + (commitment ? 1 : 0) + (experienceLabel ? 1 : 0);
+  const salarySpans = otherFactsCount % 2 === 0;
 
   const handleStageChange = (stageId: string) => {
     if (onMoveJob && stageId !== currentStage) {
@@ -98,41 +110,35 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
           </div>
 
           {hasFacts ? (
-            <div className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-3">
-              <div className="flex min-w-0 flex-col gap-1">
-                {primaryLocation ? (
-                  <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
-                    <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
-                    <span className="truncate">{primaryLocation}</span>
-                    {moreLocationCount > 0 ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <span
-                            tabIndex={0}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex shrink-0 cursor-default items-center text-[0.8125rem] font-medium leading-snug tracking-[0.01em] text-foreground/50 underline-offset-2 transition-colors hover:text-foreground/75 hover:underline focus:outline-none focus-visible:text-foreground/75 focus-visible:underline"
-                          >
-                            +{moreLocationCount} more
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" sideOffset={4} className="max-h-60 max-w-xs overflow-y-auto text-xs">
-                          <p className="whitespace-pre-line leading-snug">{moreLocationsText}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : null}
-                  </div>
-                ) : null}
-                <FactLine icon={Building2}>{workplaceType}</FactLine>
-              </div>
-              <div className="flex min-w-0 flex-col gap-1">
-                <FactLine icon={Clock}>{commitment}</FactLine>
-                <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
-              </div>
-              <div className="flex min-w-0 flex-col gap-1">
-                <FactLine icon={DollarSign} emphasize>
-                  {compensation}
-                </FactLine>
-              </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {primaryLocation ? (
+                <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+                  <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
+                  <span className="truncate">{primaryLocation}</span>
+                  {moreLocationCount > 0 ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <span
+                          tabIndex={0}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex shrink-0 cursor-default items-center text-[0.8125rem] font-medium leading-snug tracking-[0.01em] text-foreground/50 underline-offset-2 transition-colors hover:text-foreground/75 hover:underline focus:outline-none focus-visible:text-foreground/75 focus-visible:underline"
+                        >
+                          +{moreLocationCount} more
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" sideOffset={4} className="max-h-60 max-w-xs overflow-y-auto text-xs">
+                        <p className="whitespace-pre-line leading-snug">{moreLocationsText}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              ) : null}
+              <FactLine icon={Building2}>{workplaceType}</FactLine>
+              <FactLine icon={Clock}>{commitment}</FactLine>
+              <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
+              <FactLine icon={DollarSign} emphasize className={salarySpans ? "col-span-2" : undefined}>
+                {compensation}
+              </FactLine>
             </div>
           ) : null}
         </div>

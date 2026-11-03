@@ -16,18 +16,11 @@ export const JobBoardListRowSkeleton = () => {
           </div>
           <Skeleton className="mt-1 h-3.5 w-14 shrink-0 [animation-delay:100ms]" />
         </div>
-        <div className="grid grid-cols-3 gap-x-5 gap-y-1.5">
-          <div className="flex flex-col gap-1.5">
-            <Skeleton className="h-3.5 w-28 [animation-delay:160ms]" />
-            <Skeleton className="h-3.5 w-16 [animation-delay:200ms]" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Skeleton className="h-3.5 w-20 [animation-delay:240ms]" />
-            <Skeleton className="h-3.5 w-16 [animation-delay:280ms]" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Skeleton className="h-3.5 w-24 [animation-delay:320ms]" />
-          </div>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-1.5">
+          <Skeleton className="h-3.5 w-28 [animation-delay:160ms]" />
+          <Skeleton className="h-3.5 w-16 [animation-delay:200ms]" />
+          <Skeleton className="h-3.5 w-20 [animation-delay:240ms]" />
+          <Skeleton className="h-3.5 w-16 [animation-delay:280ms]" />
         </div>
         <div className="flex items-center gap-1.5">
           <Skeleton className="h-5 w-14 rounded-md [animation-delay:360ms]" />
