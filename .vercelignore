@@ -1,0 +1,7 @@
+.convex
+.next
+node_modules
+.git
+scraper/__pycache__
+*.pyc
+.env*

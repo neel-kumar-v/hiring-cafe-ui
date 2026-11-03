@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local Convex backend state (can be multi-GB)
+.convex
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
