@@ -1,12 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Banknote, ChevronDown, EyeOff, FileText, Github, Globe, Globe2, Link2, Linkedin, MapPin, Plus, Search, Upload } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from "react";
 
-const STORAGE_KEY = "talent-network-prefs";
+const STORAGE_KEY = "talent-network-prefs-v2";
+const LEGACY_STORAGE_KEY = "talent-network-prefs";
 
 function getLinkIcon(url: string) {
   const lower = url.trim().toLowerCase();
@@ -19,6 +21,7 @@ type TalentPrefs = {
   resumeName: string | null;
   otherResumeCount: number;
   homeLocation: string;
+  onlyWhereYouLive: boolean;
   openToLocations: string[];
   minimumPay: string;
   links: string[];
@@ -26,18 +29,20 @@ type TalentPrefs = {
 };
 
 const DEFAULT_PREFS: TalentPrefs = {
-  resumeName: "Neel Kumar Resume",
+  resumeName: "Resume",
   otherResumeCount: 2,
-  homeLocation: "Chester Springs, PA, US",
+  homeLocation: "New York, NY, US",
+  onlyWhereYouLive: true,
   openToLocations: [],
   minimumPay: "30/hr",
-  links: ["https://www.linkedin.com/in/neel-v-kumar/", "https://neelvkumar.vercel.app/"],
+  links: ["https://www.linkedin.com/in/username", "https://example.com/portfolio"],
   hiddenCompanies: [],
 };
 
 function loadPrefs(): TalentPrefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
   try {
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_PREFS;
     return { ...DEFAULT_PREFS, ...JSON.parse(raw) };
@@ -81,6 +86,7 @@ function SearchField({ value, onChange, placeholder, trailing }: { value: string
 
 export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmployersSeeIt?: () => void }) {
   const fileInputId = useId();
+  const onlyHomeId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [prefs, setPrefs] = useState<TalentPrefs>(DEFAULT_PREFS);
   const [hydrated, setHydrated] = useState(false);
@@ -136,7 +142,10 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
       setOpenToDraft("");
       return;
     }
-    update({ openToLocations: [...prefs.openToLocations, next] });
+    update({
+      onlyWhereYouLive: false,
+      openToLocations: [...prefs.openToLocations, next],
+    });
     setOpenToDraft("");
   };
 
@@ -159,6 +168,14 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
 
   const addLinkField = () => {
     update({ links: [...prefs.links, ""] });
+  };
+
+  const setOnlyWhereYouLive = (checked: boolean) => {
+    update({
+      onlyWhereYouLive: checked,
+      ...(checked ? { openToLocations: [] } : {}),
+    });
+    if (checked) setOpenToDraft("");
   };
 
   return (
@@ -220,29 +237,43 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
 
       <PreferenceRow icon={<Globe2 />} label="Open to working in">
         <div className="space-y-2">
-          <p className="text-sm text-foreground">{prefs.openToLocations.length === 0 ? "Only where you live." : null}</p>
-          {prefs.openToLocations.length > 0 ? (
-            <ul className="flex flex-wrap gap-1.5">
-              {prefs.openToLocations.map((place) => (
-                <li key={place}>
-                  <button
-                    type="button"
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
-                    onClick={() => update({ openToLocations: prefs.openToLocations.filter((p) => p !== place) })}
-                    title="Remove"
-                  >
-                    {place} ×
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {!prefs.onlyWhereYouLive ? (
+            <>
+              <SearchField value={openToDraft} onChange={setOpenToDraft} placeholder="Add a city, state, or country..." />
+              <div className="flex justify-end">
+                <Button type="button" variant="outline" size="sm" className="shrink-0" disabled={!openToDraft.trim()} onClick={addOpenTo}>
+                  Add
+                </Button>
+              </div>
+            </>
           ) : null}
-          <SearchField value={openToDraft} onChange={setOpenToDraft} placeholder="Add a city, state, or country..." />
-          <div className="flex justify-end">
-            <Button type="button" variant="outline" size="sm" className="shrink-0" disabled={!openToDraft.trim()} onClick={addOpenTo}>
-              Add
-            </Button>
-          </div>
+
+          <ul className="flex flex-wrap items-center gap-1.5">
+            <li>
+              <label
+                htmlFor={onlyHomeId}
+                className={cn(
+                  "inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-2 py-1 text-xs font-normal text-foreground hover:bg-muted",
+                  prefs.onlyWhereYouLive && "border-primary/40 bg-primary/5"
+                )}
+              >
+                <Checkbox id={onlyHomeId} checked={prefs.onlyWhereYouLive} onCheckedChange={(value) => setOnlyWhereYouLive(value === true)} />
+                Only where you live
+              </label>
+            </li>
+            {prefs.openToLocations.map((place) => (
+              <li key={place}>
+                <button
+                  type="button"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
+                  onClick={() => update({ openToLocations: prefs.openToLocations.filter((p) => p !== place) })}
+                  title="Remove"
+                >
+                  {place} ×
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       </PreferenceRow>
 

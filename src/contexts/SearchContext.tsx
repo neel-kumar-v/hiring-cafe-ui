@@ -86,7 +86,7 @@ export const defaultSearchOptions: SearchState = {
       searched: false,
       id: "",
       types: [],
-      address: { formatted: "Chester Springs, PA, USA", components: [] },
+      address: { formatted: "New York, NY, USA", components: [] },
       geographical: { latitude: 0, longitude: 0 },
     },
     location: [],

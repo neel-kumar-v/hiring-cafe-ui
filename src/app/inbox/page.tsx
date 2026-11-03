@@ -30,7 +30,8 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface ThreadReply {
@@ -108,8 +109,13 @@ function getInitials(name: string) {
 }
 
 export default function InboxPage() {
+  const searchParams = useSearchParams();
+  const threadParam = searchParams?.get("thread") ?? null;
+  const initialThreadId =
+    threadParam && DEMO_MAIL_THREADS.some((thread) => thread.id === threadParam) ? threadParam : DEMO_MAIL_THREADS[0].id;
+
   const [threads, setThreads] = useState<MailThread[]>(DEMO_MAIL_THREADS);
-  const [selectedId, setSelectedId] = useState<string>(DEMO_MAIL_THREADS[0].id);
+  const [selectedId, setSelectedId] = useState<string>(initialThreadId);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [replyText, setReplyText] = useState("");
@@ -121,6 +127,15 @@ export default function InboxPage() {
   const [customAvailabilityNote, setCustomAvailabilityNote] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!threadParam) return;
+    const match = DEMO_MAIL_THREADS.find((thread) => thread.id === threadParam);
+    if (!match) return;
+    setSelectedId(match.id);
+    setMobileView("detail");
+    setThreads((prev) => prev.map((item) => (item.id === match.id ? { ...item, unread: false } : item)));
+  }, [threadParam]);
 
   const selectedThread = useMemo(() => threads.find((t) => t.id === selectedId) || threads[0], [threads, selectedId]);
 

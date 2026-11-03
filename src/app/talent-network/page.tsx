@@ -71,7 +71,7 @@ export default function TalentNetworkPage() {
             <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
               {INTRO_REQUESTS.map((thread) => (
                 <li key={thread.id}>
-                  <Link href="/inbox" className="flex items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/50">
+                  <Link href={`/inbox?thread=${encodeURIComponent(thread.id)}`} className="flex items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/50">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium text-foreground">{thread.company}</p>
