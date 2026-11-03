@@ -31,6 +31,7 @@ function measureTab(list: HTMLElement, tab: HTMLElement): TabPosition {
 export type SlidingTabOption<T extends string> = {
   id: T;
   label: ReactNode;
+  icon?: ReactNode;
   disabled?: boolean;
   ariaLabel?: string;
 };
@@ -54,6 +55,10 @@ export interface SlidingTabsProps<T extends string> {
   role?: "group" | "radiogroup";
   tabClassName?: string;
   indicatorClassName?: string;
+  /** Hide labels and only show icons (when provided) */
+  iconOnly?: boolean;
+  /** Additional styling or container query for the label wrapper (e.g. "hidden @min-[520px]:inline") */
+  labelClassName?: string;
 }
 
 /**
@@ -72,6 +77,8 @@ export function SlidingTabs<T extends string>({
   role = "group",
   tabClassName,
   indicatorClassName,
+  iconOnly,
+  labelClassName,
 }: SlidingTabsProps<T>) {
   const listRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -224,8 +231,16 @@ export function SlidingTabs<T extends string>({
             data-indicator-ready={active && isIndicatorReady ? "true" : undefined}
             aria-label={opt.ariaLabel}
             aria-disabled={disabled || undefined}
+            title={opt.ariaLabel || (typeof opt.label === "string" ? opt.label : undefined)}
           >
-            {opt.label}
+            {opt.icon ? (
+              <span className="inline-flex items-center gap-1.5 leading-none">
+                <span className="shrink-0 flex items-center justify-center">{opt.icon}</span>
+                {opt.label ? <span className={cn("leading-none", iconOnly ? "hidden" : labelClassName)}>{opt.label}</span> : null}
+              </span>
+            ) : (
+              opt.label
+            )}
           </button>
         );
       })}

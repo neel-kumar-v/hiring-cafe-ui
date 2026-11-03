@@ -10,27 +10,20 @@ interface SearchModeToggleProps {
   value?: SearchMode;
   onChange?: (mode: SearchMode) => void;
   size?: "xs" | "sm" | "md";
+  iconOnly?: boolean;
 }
 
 const SEARCH_MODE_OPTIONS: readonly SlidingTabOption<SearchMode>[] = [
   {
     id: "talent-agent",
-    label: (
-      <span className="inline-flex items-center gap-1.5 leading-none">
-        <Sparkles className="size-3.5 sm:size-4 text-primary shrink-0" />
-        <span className="leading-none">Talent Agent</span>
-      </span>
-    ),
+    icon: <Sparkles className="size-3.5 sm:size-4 text-primary shrink-0" />,
+    label: "Talent Agent",
     ariaLabel: "Talent Agent search mode",
   },
   {
     id: "classic",
-    label: (
-      <span className="inline-flex items-center gap-1.5 leading-none">
-        <Search className="size-3.5 sm:size-4 shrink-0" />
-        <span className="leading-none">Classic Search</span>
-      </span>
-    ),
+    icon: <Search className="size-3.5 sm:size-4 shrink-0" />,
+    label: "Classic Search",
     ariaLabel: "Classic Search mode",
   },
 ];
@@ -38,8 +31,10 @@ const SEARCH_MODE_OPTIONS: readonly SlidingTabOption<SearchMode>[] = [
 /**
  * Segmented control toggle embedded inline inside the SearchBar pill.
  * Offers "Talent Agent" (AI prompt) and "Classic Search" (keyword + filters).
+ * Full control height is maintained across responsive breakpoints, with labels
+ * collapsing to icon-only at narrow container widths (< 520px).
  */
-export default function SearchModeToggle({ className, value, onChange, size = "md" }: SearchModeToggleProps) {
+export default function SearchModeToggle({ className, value, onChange, size = "sm", iconOnly }: SearchModeToggleProps) {
   const { searchMode: contextMode, setSearchMode: setContextMode } = useSearchUI();
   const currentMode = value ?? contextMode;
   const setMode = onChange ?? setContextMode;
@@ -54,7 +49,10 @@ export default function SearchModeToggle({ className, value, onChange, size = "m
       value={currentMode}
       onChange={setMode}
       options={SEARCH_MODE_OPTIONS}
+      iconOnly={iconOnly}
+      labelClassName="hidden @min-[520px]:inline"
       className={cn("select-none shrink-0", className)}
+      tabClassName="px-2.5 sm:px-3"
     />
   );
 }

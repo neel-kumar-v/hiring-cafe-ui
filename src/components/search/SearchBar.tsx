@@ -467,8 +467,7 @@ export default function SearchBar({ placeholder, className = "", containerClassN
   const effectivePlaceholder = placeholder ?? (isAgentMode ? "Describe what you're looking for, or ask the AI agent..." : "Search by role, company, or keyword...");
 
   const searchButton = <SearchButton mode={searchMode} onClick={handleSubmit} />;
-  const toggleSize = isMeasured && barWidth < 520 ? "xs" : "sm";
-  const modeToggle = <SearchModeToggle size={toggleSize} />;
+  const modeToggle = <SearchModeToggle size="sm" />;
 
   return (
     <div ref={barRef} className={cn("relative flex-1 min-w-0 @container", containerClassName)}>
