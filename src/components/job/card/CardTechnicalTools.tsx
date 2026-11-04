@@ -132,7 +132,7 @@ const CardTechnicalTools = ({ technicalTools, variant = "card" }: CardTechnicalT
       // transient stretch would raise the resting clamp and permanently unlock
       // more chips across the row ("one card expands → siblings show more →
       // nothing goes back because the siblings now prop the row up"). The row
-      // also keeps collapsing for ~750ms after the pointer leaves the cards,
+      // also keeps collapsing for ~350ms after the pointer leaves the cards,
       // so observer ticks during that settle window are transient as well.
       // Definitive ticks bypass the settle window so resting clamps get
       // re-committed from resting geometry (and any hover-driven excess
