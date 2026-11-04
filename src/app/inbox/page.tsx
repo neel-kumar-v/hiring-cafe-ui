@@ -14,22 +14,7 @@ import { extractDomainFromCompanyWebsite } from "@/lib/company-info";
 import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import { formatCompactRelativeTime } from "@/lib/relative-time";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  Building2,
-  Calendar,
-  Check,
-  Clock,
-  ExternalLink,
-  FileText,
-  Link2,
-  MessageSquare,
-  Search,
-  UserPlus,
-  Volume2,
-  VolumeX,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Building2, Calendar, Check, Clock, ExternalLink, FileText, Link2, MessageSquare, Search, UserPlus, Volume2, VolumeX, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -111,8 +96,7 @@ function getInitials(name: string) {
 export default function InboxPage() {
   const searchParams = useSearchParams();
   const threadParam = searchParams?.get("thread") ?? null;
-  const initialThreadId =
-    threadParam && DEMO_MAIL_THREADS.some((thread) => thread.id === threadParam) ? threadParam : DEMO_MAIL_THREADS[0].id;
+  const initialThreadId = threadParam && DEMO_MAIL_THREADS.some((thread) => thread.id === threadParam) ? threadParam : DEMO_MAIL_THREADS[0].id;
 
   const [threads, setThreads] = useState<MailThread[]>(DEMO_MAIL_THREADS);
   const [selectedId, setSelectedId] = useState<string>(initialThreadId);
@@ -164,9 +148,7 @@ export default function InboxPage() {
   const currentReplies = selectedThread ? threadReplies[selectedThread.id] || [] : [];
 
   const activeQuickActions = useMemo(() => {
-    return selectedThread?.quickActions && selectedThread.quickActions.length > 0
-      ? selectedThread.quickActions
-      : DEFAULT_QUICK_ACTIONS;
+    return selectedThread?.quickActions && selectedThread.quickActions.length > 0 ? selectedThread.quickActions : DEFAULT_QUICK_ACTIONS;
   }, [selectedThread]);
 
   const handleSelectThread = (thread: MailThread) => {
@@ -266,7 +248,7 @@ export default function InboxPage() {
           >
             {/* Header: Search + All mail / Unread toggle */}
             <div className="flex h-14 shrink-0 items-center justify-between gap-2 px-4">
-              <div className="relative w-40 sm:w-48">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
                 <Input
                   type="search"
@@ -316,22 +298,11 @@ export default function InboxPage() {
                       )}
                     >
                       {/* Unread indicator dot */}
-                      <span
-                        className={cn(
-                          "mt-3.5 size-2 shrink-0 rounded-full transition-opacity",
-                          thread.unread ? "bg-primary opacity-100" : "opacity-0"
-                        )}
-                        aria-hidden
-                      />
+                      <span className={cn("mt-3.5 size-2 shrink-0 rounded-full transition-opacity", thread.unread ? "bg-primary opacity-100" : "opacity-0")} aria-hidden />
 
                       {/* Company Logo on left */}
                       <div className="shrink-0 mt-0.5">
-                        <CompanyLogo
-                          companyData={getThreadCompanyData(thread)}
-                          size="sm"
-                          variant="inbox"
-                          className="size-10"
-                        />
+                        <CompanyLogo companyData={getThreadCompanyData(thread)} size="sm" variant="inbox" className="size-10" />
                       </div>
 
                       {/* Thread Row Content */}
@@ -353,9 +324,7 @@ export default function InboxPage() {
 
                         <div className="text-xs font-medium text-foreground/90 line-clamp-1">{thread.subject}</div>
 
-                        <div className="truncate text-xs text-muted-foreground">
-                          {getMessagePreview(thread.text)}
-                        </div>
+                        <div className="truncate text-xs text-muted-foreground">{getMessagePreview(thread.text)}</div>
                       </div>
                     </button>
                   );
@@ -429,13 +398,11 @@ export default function InboxPage() {
                   )}
                 </div>
 
-                <Separator />
-
-                {/* Bottom Quick Action Bar */}
-                <div className="bg-background">
+                {/* Bottom Quick Action Bar — single border-t divider from letter (no Separator) */}
+                <div className="shrink-0 border-t border-border bg-background">
                   <div className="space-y-3">
-                    {/* Quick Action Buttons — bento grid, shared borders */}
-                    <div className="overflow-hidden border border-border">
+                    {/* Bento grid: side/bottom frame only; top edge is the parent border-t */}
+                    <div className="overflow-hidden border-x border-b border-border">
                       <div className="grid grid-cols-2 sm:grid-cols-3 -mb-px -mr-px">
                         {activeQuickActions.map((action) => {
                           switch (action.kind) {
@@ -446,10 +413,7 @@ export default function InboxPage() {
                                   type="button"
                                   size="sm"
                                   onClick={() => handleInterested(action.replyText)}
-                                  className={cn(
-                                    QUICK_ACTION_BENTO_CELL,
-                                    "bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-700/40"
-                                  )}
+                                  className={cn(QUICK_ACTION_BENTO_CELL, "bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-700/40")}
                                 >
                                   <Check className="size-3.5" />
                                   {action.label || "Interested"}
@@ -479,10 +443,7 @@ export default function InboxPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleNotInterested(action.label)}
-                                  className={cn(
-                                    QUICK_ACTION_BENTO_CELL,
-                                    "bg-background text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                  )}
+                                  className={cn(QUICK_ACTION_BENTO_CELL, "bg-background text-muted-foreground hover:bg-destructive/10 hover:text-destructive")}
                                 >
                                   <X className="size-3.5" />
                                   {action.label || "Not interested"}
@@ -519,10 +480,7 @@ export default function InboxPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleQuickReply(
-                                      action.replyText || "Could you please share more details or the full specification?",
-                                      action.label || "Requested info"
-                                    )
+                                    handleQuickReply(action.replyText || "Could you please share more details or the full specification?", action.label || "Requested info")
                                   }
                                   className={cn(QUICK_ACTION_BENTO_CELL, "bg-background text-foreground hover:bg-accent/50")}
                                 >
@@ -539,10 +497,7 @@ export default function InboxPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleQuickReply(
-                                      action.replyText || "I'd be glad to refer a colleague who could be a great fit.",
-                                      action.label || "Offered referral"
-                                    )
+                                    handleQuickReply(action.replyText || "I'd be glad to refer a colleague who could be a great fit.", action.label || "Offered referral")
                                   }
                                   className={cn(QUICK_ACTION_BENTO_CELL, "bg-background text-foreground hover:bg-accent/50")}
                                 >
@@ -646,7 +601,7 @@ export default function InboxPage() {
 
                     {/* Expandable Custom Reply Composer */}
                     {isCustomReplying && (
-                      <form onSubmit={handleSendCustomReply} className="px-4 pb-4 pt-2 border-t border-border/60 space-y-2.5 animate-in fade-in-50 duration-150">
+                      <form onSubmit={handleSendCustomReply} className="px-4 pb-4 pt-2 space-y-2.5 animate-in fade-in-50 duration-150">
                         <Textarea
                           ref={textareaRef}
                           value={replyText}

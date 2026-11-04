@@ -234,14 +234,8 @@ test("isExpandableLogo validates square and properly filling logos", () => {
   assert.equal(isExpandableLogo(NaN, 100), false);
 
   // Favicon URLs rejected even if reported with larger dimensions
-  assert.equal(
-    isExpandableLogo(128, 128, { src: "https://s2.googleusercontent.com/s2/favicons?domain=example.com" }),
-    false
-  );
-  assert.equal(
-    isExpandableLogo(128, 128, { src: "https://icons.duckduckgo.com/ip3/example.com.ico" }),
-    false
-  );
+  assert.equal(isExpandableLogo(128, 128, { src: "https://s2.googleusercontent.com/s2/favicons?domain=example.com" }), false);
+  assert.equal(isExpandableLogo(128, 128, { src: "https://icons.duckduckgo.com/ip3/example.com.ico" }), false);
 
   // SVGs are vector and can scale from small viewBoxes
   assert.equal(isExpandableLogo(24, 24, { isSvg: true }), true);

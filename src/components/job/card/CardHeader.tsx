@@ -1,4 +1,6 @@
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { getCleanJobTitle, getCompensation, getLocations } from "@/lib/job-info";
+import { cn } from "@/lib/utils";
 import { CompensationRange } from "@/types/job";
 import { DollarSign, MapPin } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
@@ -27,6 +29,8 @@ const CardHeader = ({
   compensation: CompensationRange;
   tools: string[];
 }) => {
+  const { prefs } = useCardPrefs();
+  const hoverExpandDisabled = prefs.disableLocationsHoverExpansion;
   const locationForTitle = workplaceCities.length > 0 ? workplaceCities[0] : "";
 
   const locations = getLocations(workplaceCities);
@@ -106,7 +110,10 @@ const CardHeader = ({
             <div
               ref={locationsRef}
               style={{ "--card-locations-expanded-max-h": locationsMaxHeight } as CSSProperties}
-              className="pointer-fine:max-h-6 pointer-fine:group-hover/card:max-h-[var(--card-locations-expanded-max-h)] pointer-fine:motion-reduce:max-h-full pointer-coarse:max-h-none pointer-none:max-h-none flex max-h-full flex-row flex-wrap items-center gap-1 overflow-hidden transition-[max-height] duration-[750ms] ease-in-out"
+              className={cn(
+                "pointer-fine:max-h-6 pointer-fine:motion-reduce:max-h-full pointer-coarse:max-h-none pointer-none:max-h-none flex max-h-full flex-row flex-wrap items-center gap-1 overflow-hidden transition-[max-height] duration-[750ms] ease-in-out",
+                !hoverExpandDisabled && "pointer-fine:group-hover/card:max-h-[var(--card-locations-expanded-max-h)]"
+              )}
             >
               {locations.map((loc, index) => (
                 <span key={index} className={`flex items-center gap-1 ${chipClass}`}>

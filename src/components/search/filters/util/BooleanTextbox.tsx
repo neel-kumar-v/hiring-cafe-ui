@@ -7,8 +7,7 @@ import { decodeSearchExpression, parseSearchExpression } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import type { SearchExpression } from "@/types/search";
 import { Undo2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { flushSync } from "react-dom";
+import { startTransition, useEffect, useMemo, useState } from "react";
 
 function getMentionQuery(value: string) {
   const triggerIndex = value.lastIndexOf("@");
@@ -66,7 +65,6 @@ export function BooleanTextbox({
   const [options, setOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [undoPayload, setUndoPayload] = useState<{ text: string; expr: SearchExpression<string> } | null>(null);
-  const valueSignature = useMemo(() => JSON.stringify(value), [value]);
 
   // Update text if value changes from outside
   useEffect(() => {
@@ -170,42 +168,32 @@ export function BooleanTextbox({
     const normalized = normalizeExpressionText(next).trim();
     const expr = normalized ? parseSearchExpression(normalized) : emptyExpression();
     const display = decodeSearchExpression(expr) ?? "";
-    flushSync(() => {
-      setText(display);
-      onChange(expr);
-    });
+    // Local text paints first; committing re-renders every mounted filter.
+    setText(display);
+    startTransition(() => onChange(expr));
   };
 
   const undo = () => {
     if (!undoPayload) return;
-    flushSync(() => {
-      setText(undoPayload.text);
-      onChange(undoPayload.expr);
-    });
+    setText(undoPayload.text);
+    startTransition(() => onChange(undoPayload.expr));
     setUndoPayload(null);
   };
 
   const clear = () => {
-    flushSync(() => {
-      setText("");
-      onChange(emptyExpression());
-    });
+    setText("");
+    startTransition(() => onChange(emptyExpression()));
     setUndoPayload(null);
   };
 
   const exampleEntries = examples ? Object.entries(examples) : [];
-  const textareaClassName = cn(
-    "w-full min-h-20 resize-y bg-card",
-    (undoPayload || text.trim()) && "pr-10",
-    className
-  );
+  const textareaClassName = cn("w-full min-h-20 resize-y bg-card", (undoPayload || text.trim()) && "pr-10", className);
 
   return (
     <div className="space-y-2">
       <div className="relative">
         {facet_type ? (
           <Mention
-            key={valueSignature}
             inputValue={text}
             onInputValueChange={setText}
             onValueChange={() => {

@@ -1,61 +1,69 @@
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
-import { createSelectHandler } from "@/lib/search";
-import { SecurityClearance } from "@/types/search";
+import { formatCountedList } from "@/lib/search/sentence-query";
+import type { SecurityClearance, SecurityClearanceOptions } from "@/types/search";
 import FilterContainer from "../util/FilterContainer";
-import LabelCheckbox from "../util/LabelCheckbox";
-import LabelInputContainer from "../util/LabelInputContainer";
+import { SentenceBlankMultiSelect, SentenceText } from "../util/sentence-query";
+
+export const allSecurityClearances: SecurityClearance[] = ["None", "Confidential", "Secret", "Top Secret", "Top Secret/SCI", "Public Trust", "Interim Clearances", "Other"];
+
+const NO_CLEARANCE_TEXT = "no";
+const ANY_CLEARANCE_TEXT = "any";
+
+const SECURITY_BLANK_OPTIONS = allSecurityClearances.map((clearance) => ({
+  value: clearance,
+  label: clearance === "None" ? "no" : clearance,
+  phrase: clearance === "None" ? NO_CLEARANCE_TEXT : clearance,
+}));
+
+function selectedClearances(value: SecurityClearanceOptions | undefined): SecurityClearance[] {
+  if (!value || value === "All" || !Array.isArray(value)) return [];
+  return allSecurityClearances.filter((clearance) => value.includes(clearance));
+}
+
+export function getSecurityTitle(security?: SecurityClearanceOptions): string {
+  const selected = selectedClearances(security);
+  const blank = formatCountedList(
+    selected.map((clearance) => (clearance === "None" ? NO_CLEARANCE_TEXT : clearance)),
+    {
+      conjunction: "or",
+      n1: 3,
+      noneText: ANY_CLEARANCE_TEXT,
+      allText: ANY_CLEARANCE_TEXT,
+      total: allSecurityClearances.length,
+    }
+  );
+  return `Jobs requiring ${blank} security clearance`;
+}
 
 export default function Security() {
   const { searchOptions, updateSearchOptions } = useApp();
-
-  const allSecurityClearances: SecurityClearance[] = ["None", "Confidential", "Secret", "Top Secret", "Top Secret/SCI", "Public Trust", "Interim Clearances", "Other"];
-
-  const handleCheckboxChange = createSelectHandler(searchOptions.security_clearance, allSecurityClearances, updateSearchOptions, "security_clearance");
+  const selected = selectedClearances(searchOptions.security_clearance);
 
   return (
-    <FilterContainer categoryId="security" title="Security Clearance">
-      <LabelInputContainer>
-        <LabelCheckbox
-          label="None"
-          checked={searchOptions.security_clearance.includes("None") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("None")}
+    <FilterContainer categoryId="security" chrome="stream">
+      <SentenceText>
+        Jobs requiring
+        <SentenceBlankMultiSelect
+          ariaLabel="Security clearance"
+          options={SECURITY_BLANK_OPTIONS}
+          values={selected}
+          onChange={(next) => {
+            const value = next.length === 0 || next.length === allSecurityClearances.length ? "All" : next;
+            updateSearchOptions({ security_clearance: value });
+          }}
+          placeholder={ANY_CLEARANCE_TEXT}
+          formatOptions={{
+            conjunction: "or",
+            n1: 3,
+            noneText: ANY_CLEARANCE_TEXT,
+            allText: ANY_CLEARANCE_TEXT,
+            total: allSecurityClearances.length,
+          }}
         />
-        <LabelCheckbox
-          label="Confidential"
-          checked={searchOptions.security_clearance.includes("Confidential") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Confidential")}
-        />
-        <LabelCheckbox
-          label="Secret"
-          checked={searchOptions.security_clearance.includes("Secret") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Secret")}
-        />
-        <LabelCheckbox
-          label="Top Secret"
-          checked={searchOptions.security_clearance.includes("Top Secret") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Top Secret")}
-        />
-        <LabelCheckbox
-          label="Top Secret/SCI"
-          checked={searchOptions.security_clearance.includes("Top Secret/SCI") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Top Secret/SCI")}
-        />
-        <LabelCheckbox
-          label="Public Trust"
-          checked={searchOptions.security_clearance.includes("Public Trust") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Public Trust")}
-        />
-        <LabelCheckbox
-          label="Interim Clearances"
-          checked={searchOptions.security_clearance.includes("Interim Clearances") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Interim Clearances")}
-        />
-        <LabelCheckbox
-          label="Other"
-          checked={searchOptions.security_clearance.includes("Other") || searchOptions.security_clearance === "All"}
-          onChange={() => handleCheckboxChange("Other")}
-        />
-      </LabelInputContainer>
+        security clearance
+      </SentenceText>
     </FilterContainer>
   );
 }

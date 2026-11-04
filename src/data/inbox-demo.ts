@@ -39,12 +39,7 @@ export interface MailThread {
  */
 export function getMessagePreview(text: string): string {
   if (!text) return "";
-  const cleaned = text
-    .replace(
-      /^(?:(?:hi|hey|hello|dear|greetings|good\s+(?:morning|afternoon|evening))\b[^\n]*\n*)+/i,
-      ""
-    )
-    .trim();
+  const cleaned = text.replace(/^(?:(?:hi|hey|hello|dear|greetings|good\s+(?:morning|afternoon|evening))\b[^\n]*\n*)+/i, "").trim();
   return cleaned || text;
 }
 
@@ -86,7 +81,8 @@ export const DEMO_MAIL_THREADS: MailThread[] = [
         id: "act-call",
         kind: "interested",
         label: "Connect with Director",
-        replyText: "Hi David,\n\nI'd love to chat with your engineering director about the Product Engineering Lead role and Linear's sync engine roadmap. When would be a good time to set that up?",
+        replyText:
+          "Hi David,\n\nI'd love to chat with your engineering director about the Product Engineering Lead role and Linear's sync engine roadmap. When would be a good time to set that up?",
       },
       { id: "act-avail", kind: "availability", label: "Give availability" },
       { id: "act-custom", kind: "custom-reply", label: "Custom reply" },
@@ -111,7 +107,8 @@ export const DEMO_MAIL_THREADS: MailThread[] = [
         id: "act-spec",
         kind: "request-info",
         label: "Request role spec",
-        replyText: "Hi Elena,\n\nThanks for reaching out! I'm curious to learn more about how this role bridges design systems and Next.js. Could you share the role specification?",
+        replyText:
+          "Hi Elena,\n\nThanks for reaching out! I'm curious to learn more about how this role bridges design systems and Next.js. Could you share the role specification?",
       },
       { id: "act-custom", kind: "custom-reply", label: "Custom reply" },
       { id: "act-decline", kind: "not-interested", label: "Not right now" },
@@ -136,7 +133,8 @@ export const DEMO_MAIL_THREADS: MailThread[] = [
         id: "act-roadmap",
         kind: "request-info",
         label: "Ask about roadmap",
-        replyText: "Hi Marcus,\n\nThanks for thinking of me! The Claude Workspace team sounds fascinating. I'd love to learn more about the technical challenges and roadmap you're tackling before setting up a call.",
+        replyText:
+          "Hi Marcus,\n\nThanks for thinking of me! The Claude Workspace team sounds fascinating. I'd love to learn more about the technical challenges and roadmap you're tackling before setting up a call.",
       },
       { id: "act-custom", kind: "custom-reply", label: "Custom reply" },
       { id: "act-decline", kind: "not-interested", label: "Pass for now" },
@@ -235,7 +233,8 @@ export const DEMO_MAIL_THREADS: MailThread[] = [
         id: "act-refer",
         kind: "referral",
         label: "Refer someone",
-        replyText: "Hi Amara,\n\nThanks for reaching out! I'm not currently looking for a transition, but I know a couple of great frontend/design-systems engineers who might be interested. Would you like me to introduce you?",
+        replyText:
+          "Hi Amara,\n\nThanks for reaching out! I'm not currently looking for a transition, but I know a couple of great frontend/design-systems engineers who might be interested. Would you like me to introduce you?",
       },
       { id: "act-custom", kind: "custom-reply", label: "Custom reply" },
       { id: "act-decline", kind: "not-interested", label: "Not looking" },

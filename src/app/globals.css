@@ -156,7 +156,7 @@
     --card-foreground: oklch(0.22 0.01 17);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.22 0.01 17);
-    --primary: oklch(0.50 0.22 358);
+    --primary: oklch(0.5 0.22 358);
     --primary-foreground: oklch(0.98 0.01 17);
     --secondary: oklch(0.97 0.004 17);
     --secondary-foreground: oklch(0.32 0.012 17);
@@ -167,7 +167,7 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.9 0.006 17);
     --input: oklch(0.9 0.006 17);
-    --ring: oklch(0.50 0.22 358);
+    --ring: oklch(0.5 0.22 358);
     --brand: var(--primary);
     --brand-foreground: var(--primary-foreground);
     --brand-soft: oklch(0.95 0.05 355);
@@ -238,7 +238,10 @@
   * {
     @apply outline-ring/50;
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.025em;
     font-weight: 600;
@@ -362,6 +365,39 @@
 
   input[type="range"]::-moz-range-thumb:hover {
     background: color-mix(in srgb, var(--primary) 88%, black);
+  }
+}
+
+/**
+ * Anti-bleed cover for sticky dialog headers.
+ *
+ * Subpixel (fractional-DPR) sticky compositing can leave a ~1px hairline of
+ * scrolling content visible above a sticky header's top edge, and between
+ * stacked sticky bands (top-0 / top-10 / top-20). Paint a 2px strip of the
+ * header's own background above its top edge: it covers any transparent gap,
+ * stays invisible when bands are flush (lower band's strip slides under the
+ * band above), and needs no per-site color token because it inherits the
+ * element's background.
+ *
+ * Apply to sticky elements that already have an opaque background token
+ * (bg-background / dark:bg-card / bg-popover), alongside their sticky position
+ * and offset utilities. Used by: search filter pane headers, job dialog title
+ * bar, job dialog footer, and sentence-blank dropdown search bars. Do NOT use
+ * on the mobile drawer header — its top edge sits flush against the drag
+ * handle, and the drawer's scrolling body is clipped inside a sibling overflow
+ * container, so no bleed can reach it; just give it a solid bg.
+ */
+@utility sticky-dialog-header {
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    inset-inline: 0;
+    height: 2px;
+    background: inherit;
+    pointer-events: none;
   }
 }
 

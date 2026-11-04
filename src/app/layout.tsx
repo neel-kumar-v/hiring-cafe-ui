@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { SearchUIProvider } from "@/contexts/SearchContext";
+import { CardPrefsProvider } from "@/contexts/CardPrefsContext";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
 import AppShell from "@/components/shell/AppShell";
 import { AgentationDev } from "@/components/dev/AgentationDev";
@@ -95,14 +96,16 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <AppProvider>
                 <SearchUIProvider>
-                  <div className="min-h-screen transition-colors duration-300">
-                    <AppShell>
-                      <Suspense fallback={null}>
-                        <SearchDialogWrapper />
-                      </Suspense>
-                      {children}
-                    </AppShell>
-                  </div>
+                  <CardPrefsProvider>
+                    <div className="min-h-screen transition-colors duration-300">
+                      <AppShell>
+                        <Suspense fallback={null}>
+                          <SearchDialogWrapper />
+                        </Suspense>
+                        {children}
+                      </AppShell>
+                    </div>
+                  </CardPrefsProvider>
                 </SearchUIProvider>
               </AppProvider>
             </Suspense>

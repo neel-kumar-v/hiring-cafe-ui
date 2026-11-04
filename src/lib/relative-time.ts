@@ -411,14 +411,7 @@ export function formatCompactRelativeTime(date?: string | number | null, nowMill
   }
 
   const clean = trimmed.toLowerCase();
-  if (
-    clean === "today" ||
-    clean === "just now" ||
-    clean === "right now" ||
-    clean === "moments ago" ||
-    clean.startsWith("today,") ||
-    clean.startsWith("today at ")
-  ) {
+  if (clean === "today" || clean === "just now" || clean === "right now" || clean === "moments ago" || clean.startsWith("today,") || clean.startsWith("today at ")) {
     return "now";
   }
   if (clean === "yesterday" || clean.startsWith("yesterday,") || clean.startsWith("yesterday at ")) {

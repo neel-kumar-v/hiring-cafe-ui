@@ -6,3 +6,4 @@ export { default as DialogJobTitle } from "./DialogJobTitle";
 export { default as DialogRequirements } from "./DialogRequirements";
 export { default as DialogSkills } from "./DialogSkills";
 export { default as DialogStats } from "./DialogStats";
+export { default as DialogStatusTimeline } from "./DialogStatusTimeline";

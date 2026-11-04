@@ -406,12 +406,16 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
   );
 
   return (
-    <div ref={containerRef} className={`h-full w-full ${className}`}>
+    // Natural-flow board: columns grow with their cards and the page owns the
+    // scroll, so there is no per-column scroll region to get stuck in. The grid
+    // stretches columns to the tallest one, and every column's card list stays
+    // shorter than that, so nothing clips.
+    <div ref={containerRef} className={`w-full ${className ?? ""}`}>
       <KanbanProvider
         columns={columns}
         data={kanbanData}
         onDataChange={handleDataChange}
-        className="h-full"
+        className="w-full"
         onDragEnd={(event) => {
           const activeId = String(event.active.id);
           const over = event.over;

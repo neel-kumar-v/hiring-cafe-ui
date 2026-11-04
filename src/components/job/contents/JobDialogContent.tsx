@@ -189,7 +189,7 @@ const JobDialogContent = ({
         viewedCount={job.views}
       />
 
-      <div className="-mx-8 sticky top-0 z-20 bg-background px-8 dark:bg-card">
+      <div className="sticky-dialog-header -mx-8 sticky top-0 z-20 bg-background px-8 dark:bg-card">
         <DialogJobTitle
           companyName={companyData.name}
           fadeCompanyChrome={fadeCompanyChrome}
@@ -209,7 +209,7 @@ const JobDialogContent = ({
         />
       </div>
 
-      <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} />
+      <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} jobId={lookupId} />
 
       <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
 

@@ -20,8 +20,8 @@ interface SearchSubHeaderProps {
  * filter pill ribbon and the counts/actions band.
  * Main search input is hosted in Navbar and not duplicated here.
  * When in 'talent-agent' mode, the filter pill ribbon is completely hidden.
- * Filter area sticks below the top navbar (top-16) without a bottom border (Feedback #5, #13).
- * ResultsHeaderBand is not sticky and scrolls with content without a bottom border.
+ * The filter ribbon scrolls with the page (no sticky chrome; Feedback #5, #13).
+ * ResultsHeaderBand is not sticky either and scrolls with content without a bottom border.
  * Reduced horizontal chrome padding (Feedback #3).
  * Rendered on md+ only - mobile keeps its own compact band.
  */
@@ -36,20 +36,18 @@ export default function SearchSubHeader({ className, headerSlot, children }: Sea
 
   return (
     <div className={cn("@container bg-background-header dark:bg-background", className)}>
-      <div className="sticky top-16 z-30 bg-background-header dark:bg-background">
-        {hasCustomHeader && <div>{headerSlot ?? children}</div>}
-        <div {...containerProps}>
-          <div
-            ref={contentRef}
-            className={cn(
-              "transition-transform duration-300 ease-in-out motion-reduce:transition-none motion-reduce:transform-none",
-              isFiltersOpen ? "translate-y-0" : "-translate-y-full"
-            )}
-            inert={!isFiltersOpen}
-          >
-            <div className="px-4 py-2.5 transition-[padding] duration-500 ease-in-out lg:px-8">
-              <FilterPillBar />
-            </div>
+      {hasCustomHeader && <div>{headerSlot ?? children}</div>}
+      <div {...containerProps}>
+        <div
+          ref={contentRef}
+          className={cn(
+            "transition-transform duration-300 ease-in-out motion-reduce:transition-none motion-reduce:transform-none",
+            isFiltersOpen ? "translate-y-0" : "-translate-y-full"
+          )}
+          inert={!isFiltersOpen}
+        >
+          <div className="px-4 py-2.5 transition-[padding] duration-500 ease-in-out lg:px-8">
+            <FilterPillBar />
           </div>
         </div>
       </div>

@@ -5,7 +5,6 @@ import { createRefs, useScrollToSection } from "@/lib/scrollTo";
 import ApplyForm from "./ApplyForm";
 import ActivityOutcomes from "./ActivityOutcomes";
 import DateRange from "./DateRange";
-import Encouraged from "./Encouraged";
 import Exclusion from "./Exclusion";
 import Sorting from "./Sorting";
 import { FilterSubsection } from "../util/FilterSubsection";
@@ -17,7 +16,7 @@ interface GeneralOptionsProps {
 }
 
 export default function GeneralOptions({ scrollToSection, clearScrollToSection, filterIds }: GeneralOptionsProps) {
-  const refs = createRefs(["date-range", "sorting", "apply-form", "exclusion", "activity-outcomes", "encouraged"]);
+  const refs = createRefs(["date-range", "sorting", "apply-form", "exclusion", "activity-outcomes"]);
 
   useScrollToSection(scrollToSection, refs, clearScrollToSection);
 
@@ -52,12 +51,6 @@ export default function GeneralOptions({ scrollToSection, clearScrollToSection, 
           {shouldShow("exclusion") ? (
             <div className="scroll-mt-14" ref={refs.exclusion}>
               <Exclusion />
-            </div>
-          ) : null}
-
-          {shouldShow("encouraged") ? (
-            <div className="scroll-mt-14" ref={refs.encouraged}>
-              <Encouraged />
             </div>
           ) : null}
         </div>

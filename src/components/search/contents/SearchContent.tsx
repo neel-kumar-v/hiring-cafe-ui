@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { SearchIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,9 @@ import { getCategoryEditCount, initialSearchState } from "@/lib/edited-filters";
 import { EMPTY_FILTER_SEARCH_QUERY, FilterSearchQueryProvider, FocusedFilterProvider, useFocusedFilterId } from "@/lib/focused-filter";
 import type { FilterChip } from "@/lib/search/filter-chips";
 import { getFilterChips } from "@/lib/search/filter-chips";
+import { filterCategoriesBySearchQuery, firstMatchingFilterId } from "@/lib/search/filter-search-text";
 import type { CategoryType } from "@/types/search";
-import { filters } from "@/data/search-filters";
+import { filters, groupAnchorFilterIds } from "@/data/search-filters";
 import { clearChipFromState, FilterChipButton } from "../filters/util/FilterChips";
 import { GENERAL_NAV_EXCLUDED, FilteredCategoriesContent, getGroupedCategories, type FilteredGroup, useCategoryState } from ".";
 
@@ -23,102 +24,6 @@ interface SearchContentProps {
   from?: string;
   variant: SearchContentVariant;
 }
-
-const ScrollVignette = memo(function ScrollVignette({
-  axis,
-  children,
-  className,
-  viewportClassName,
-  viewportRef,
-  disableStart = false,
-  startClassName,
-}: {
-  axis: "x" | "y";
-  children: React.ReactNode;
-  className?: string;
-  viewportClassName?: string;
-  viewportRef?: React.RefObject<HTMLDivElement | null>;
-  disableStart?: boolean;
-  startClassName?: string;
-}) {
-  const internalViewportRef = useRef<HTMLDivElement>(null);
-  const activeViewportRef = viewportRef ?? internalViewportRef;
-  const [edges, setEdges] = useState({ start: false, end: false });
-
-  useEffect(() => {
-    const viewport = activeViewportRef.current;
-    if (!viewport) return;
-
-    let frameId: number | null = null;
-    const scheduleUpdate = () => {
-      if (frameId !== null) return;
-      frameId = requestAnimationFrame(() => {
-        frameId = null;
-        const start = axis === "y" ? viewport.scrollTop > 1 : viewport.scrollLeft > 1;
-        const hasOverflow =
-          axis === "y"
-            ? viewport.scrollHeight > viewport.clientHeight + 1
-            : viewport.scrollWidth > viewport.clientWidth + 1;
-        const end =
-          hasOverflow &&
-          (axis === "y"
-            ? viewport.scrollTop + viewport.clientHeight < viewport.scrollHeight - 1
-            : viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1);
-        setEdges((previous) => (previous.start === start && previous.end === end ? previous : { start, end }));
-      });
-    };
-
-    const resizeObserver = new ResizeObserver(scheduleUpdate);
-    resizeObserver.observe(viewport);
-    for (const child of viewport.children) {
-      resizeObserver.observe(child);
-    }
-
-    const mutationObserver = new MutationObserver(() => {
-      for (const child of viewport.children) {
-        resizeObserver.observe(child);
-      }
-      scheduleUpdate();
-    });
-    mutationObserver.observe(viewport, { childList: true, subtree: true });
-
-    viewport.addEventListener("scroll", scheduleUpdate, { passive: true });
-    scheduleUpdate();
-    return () => {
-      resizeObserver.disconnect();
-      mutationObserver.disconnect();
-      viewport.removeEventListener("scroll", scheduleUpdate);
-      if (frameId !== null) cancelAnimationFrame(frameId);
-    };
-  }, [activeViewportRef, axis]);
-
-  return (
-    <div className={cn("relative min-h-0 min-w-0 overflow-hidden", className)}>
-      <div ref={activeViewportRef} className={cn(axis === "y" ? "h-full min-w-0 overflow-y-auto" : "min-w-0 overflow-x-auto overscroll-x-contain", viewportClassName)}>
-        {children}
-      </div>
-      {!disableStart && edges.start ? (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute z-10",
-            axis === "y" ? "inset-x-0 top-0 h-6 bg-gradient-to-b from-background to-transparent" : "bottom-0 left-0 top-0 w-6 bg-gradient-to-r from-background to-transparent",
-            startClassName
-          )}
-        />
-      ) : null}
-      {edges.end ? (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute z-30",
-            axis === "y" ? "inset-x-0 bottom-0 h-8 bg-gradient-to-t from-background to-transparent" : "bottom-0 right-0 top-0 w-8 bg-gradient-to-l from-background to-transparent"
-          )}
-        />
-      ) : null}
-    </div>
-  );
-});
 
 const CurrentFiltersFooter = memo(function CurrentFiltersFooter({
   chips,
@@ -135,7 +40,7 @@ const CurrentFiltersFooter = memo(function CurrentFiltersFooter({
 }) {
   return (
     <footer className="flex min-w-0 w-full shrink-0 items-center gap-2 overflow-hidden border-t border-border/80 bg-background px-2 py-2.5">
-      <ScrollVignette axis="x" className="min-w-0 flex-1" viewportClassName="scrollbar-none">
+      <div className="min-w-0 flex-1 overflow-x-auto scrollbar-none">
         <div className="flex w-max items-center gap-1.5 pr-2">
           {chips.length ? (
             chips.map((chip) => <FilterChipButton key={chip.id} chip={chip} onClear={onClearFilter} onSelect={() => onSelectCategory(chip.categoryId)} />)
@@ -143,7 +48,7 @@ const CurrentFiltersFooter = memo(function CurrentFiltersFooter({
             <span className="px-1 text-xs text-muted-foreground">No filters selected</span>
           )}
         </div>
-      </ScrollVignette>
+      </div>
       <Button type="button" variant="ghost" size="sm" className="shrink-0 px-2 text-xs" onClick={onClearAll} disabled={!chips.length}>
         Clear all
       </Button>
@@ -174,15 +79,16 @@ const SearchSidebarNav = memo(function SearchSidebarNav({
     <div className="space-y-2 p-2 pt-0">
       {filteredCategories.map((category) => {
         // Stream / nested filters stay out of the rail unless the user is searching for them.
-        const subcategories = category.categories.filter((item) => revealNested || !GENERAL_NAV_EXCLUDED.has(item.id));
-
-        const isHidden = category.type === "qualifications";
+        // A row whose name matches the group (Location, Company) is the section itself — the header scrolls there.
+        const subcategories = category.categories.filter(
+          (item) => (revealNested || !GENERAL_NAV_EXCLUDED.has(item.id)) && item.name.localeCompare(category.name, undefined, { sensitivity: "accent" }) !== 0
+        );
 
         return (
-          <div key={category.name} className={cn("mt-1 gap-y-1 first-of-type:mt-0", isHidden && "hidden")}>
+          <div key={category.name} className="mt-1 gap-y-1 first-of-type:mt-0">
             {/* Category labels scroll to the section — no hover/selected chrome. */}
             <Button
-              className="h-auto w-full justify-start rounded-none border-0 bg-transparent px-0 py-2 text-left text-foreground shadow-none hover:bg-transparent hover:text-foreground focus-visible:bg-transparent active:bg-transparent"
+              className="h-auto w-full justify-start rounded-none border-0 bg-transparent px-0 py-2 text-left text-foreground shadow-none hover:bg-transparent hover:text-foreground hover:no-underline focus-visible:bg-transparent active:bg-transparent dark:hover:bg-transparent"
               onClick={() => onHeaderClick(category.type)}
               variant="ghost"
             >
@@ -251,10 +157,12 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
   const { searchOptions, setSearchOptions, setHasUnsavedChanges } = useApp();
   const deferredSearchOptions = useDeferredValue(searchOptions);
   const defaultCategory = (variant === "sidebar" ? filters[0].type : "general") as CategoryType;
-  const { selectedCategory, scrollToSection, setScrollToSection, handleFilterSelectWithScroll, handleHeaderClick } = useCategoryState(from, open, defaultCategory);
+  const { scrollToSection, setScrollToSection, handleFilterSelectWithScroll, handleHeaderClick } = useCategoryState(from, open, defaultCategory);
   const { focusedFilterId, setFocusedFilterId } = useFocusedFilterId();
   const clearScrollToSection = useCallback(() => setScrollToSection(undefined), [setScrollToSection]);
   const [sidebarSearch, setSidebarSearch] = useState("");
+  // Filtering the category tree yields to the input; the field itself stays instant.
+  const deferredSidebarSearch = useDeferredValue(sidebarSearch);
   const selectedFilters = useMemo(() => getFilterChips(deferredSearchOptions, initialSearchState), [deferredSearchOptions]);
   const filterSearchQueryValue = useMemo(
     () => ({
@@ -263,22 +171,11 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
     }),
     [sidebarSearch]
   );
-  const filteredCategories = useMemo(() => {
-    const base = getGroupedCategories();
-    const query = sidebarSearch.trim().toLowerCase();
-    if (!query) return base;
-
-    return base
-      .map((category) => {
-        if (category.name.toLowerCase().includes(query)) return category;
-        const matchingSubfilters = category.categories.filter((item) => item.name.toLowerCase().includes(query));
-        if (!matchingSubfilters.length) return null;
-        return { ...category, categories: matchingSubfilters };
-      })
-      .filter((category): category is (typeof base)[number] => category !== null);
-  }, [sidebarSearch]);
+  // Rebuilds off `deferredSidebarSearch` so keystrokes stay urgent and the tree yields.
+  const filteredCategories = useMemo(() => filterCategoriesBySearchQuery(getGroupedCategories(), deferredSidebarSearch), [deferredSidebarSearch]);
 
   const handleSidebarSearchChange = useCallback((value: string) => {
+    // Input stays urgent; `deferredSidebarSearch` is what rebuilds the category tree.
     setSidebarSearch(value);
   }, []);
 
@@ -292,6 +189,18 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
     if (scrollToSection) setFocusedFilterId(scrollToSection);
   }, [scrollToSection, setFocusedFilterId]);
 
+  // Ctrl+F-style: once the deferred query settles, land on the first sentence/name hit.
+  useEffect(() => {
+    const query = deferredSidebarSearch.trim();
+    if (!query || !open) return;
+
+    const matchId = firstMatchingFilterId(filteredCategories, query);
+    if (!matchId) return;
+
+    setFocusedFilterId(matchId);
+    setScrollToSection(matchId);
+  }, [deferredSidebarSearch, filteredCategories, open, setFocusedFilterId, setScrollToSection]);
+
   const handleFilterClickWithScroll = useCallback(
     (categoryId: string) => {
       handleFilterSelectWithScroll(categoryId);
@@ -302,12 +211,17 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
 
   const handleHeaderClickWithScroll = useCallback(
     (categoryType: CategoryType) => {
-      // Skip the filters that are not rendered in the rail (e.g. "Current Filters" / "Saved Searches").
-      const firstFilterId = filters.find((category) => category.type === categoryType && !GENERAL_NAV_EXCLUDED.has(category.id))?.id ?? null;
+      // Land on the section-named filter (Location, Company) when the header is that section; otherwise the first rail row.
+      const groupName = filteredCategories.find((category) => category.type === categoryType)?.name;
+      const named = groupName
+        ? filters.find((category) => category.type === categoryType && category.name.localeCompare(groupName, undefined, { sensitivity: "accent" }) === 0)
+        : undefined;
+      const firstFilterId =
+        named?.id ?? groupAnchorFilterIds[categoryType] ?? filters.find((category) => category.type === categoryType && !GENERAL_NAV_EXCLUDED.has(category.id))?.id ?? null;
       setFocusedFilterId(firstFilterId);
       handleHeaderClick(categoryType);
     },
-    [handleHeaderClick, setFocusedFilterId]
+    [filteredCategories, handleHeaderClick, setFocusedFilterId]
   );
 
   const sidebarEditCounts = useMemo(() => {
@@ -376,9 +290,7 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
           </div>
         </div>
 
-        <ScrollVignette axis="y" className="min-h-0 flex-1" viewportClassName="px-4 pb-8" disableStart>
-          {filterCategoriesBody}
-        </ScrollVignette>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8">{filterCategoriesBody}</div>
         {footer}
       </div>
     );
@@ -402,30 +314,23 @@ function SearchContentInner({ open, onOpenChange, from, variant }: SearchContent
             </div>
           </div>
 
-          <ScrollVignette axis="y" className="min-h-0 flex-1" viewportClassName="pt-1 overflow-x-hidden overscroll-y-contain [scrollbar-width:thin]">
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pt-1 [scrollbar-width:thin]">
             <SearchSidebarNav
               filteredCategories={filteredCategories}
               focusedFilterId={focusedFilterId}
               editCounts={sidebarEditCounts}
               onHeaderClick={handleHeaderClickWithScroll}
               onFilterClick={handleFilterClickWithScroll}
-              revealNested={sidebarSearch.trim().length > 0}
+              revealNested={deferredSidebarSearch.trim().length > 0}
             />
-          </ScrollVignette>
+          </div>
         </div>
 
         <div aria-hidden="true" className="w-px shrink-0 bg-border" />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-r-md bg-background">
           {/* Extra bottom padding keeps the last filter (e.g. the boolean-search help link) clear of the scroll cutoff. */}
-          <ScrollVignette
-            axis="y"
-            className="min-h-0 flex-1"
-            viewportClassName="px-6 pb-10 pr-10 overscroll-y-contain [scrollbar-width:thin]"
-            disableStart
-          >
-            {filterCategoriesBody}
-          </ScrollVignette>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-10 pr-10 [scrollbar-width:thin]">{filterCategoriesBody}</div>
         </div>
       </div>
       {footer}

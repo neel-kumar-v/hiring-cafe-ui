@@ -519,7 +519,7 @@ export default function Filters({ companyCount, jobCount, location }: { companyC
                     checked={searchOptions.exclusion.includes(option.value)}
                     onCheckedChange={() => toggleExclusion(option.value)}
                     onSelect={(event) => event.preventDefault()}
-                    className="items-start rounded-lg pl-9 pr-2.5 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
+                    className="items-start rounded-lg pl-2.5 pr-9 py-2 data-[state=checked]:bg-accent data-[state=checked]:text-primary"
                   >
                     <OptionText description={option.description} label={option.label} />
                   </DropdownMenuCheckboxItem>

@@ -4,6 +4,7 @@ import { CategoryFilter, KanbanBoard, ListView, SearchBar, TrackerFlowDiagram, V
 import { useApp } from "@/contexts/AppContext";
 import { useQuantizedContainerWidth } from "@/hooks/useContainerWidth";
 import { useTrackedJobs } from "@/hooks/useTrackedJobs";
+import { logicalStatusPath } from "@/lib/tracker/statusTimeline";
 import { useMemo, useRef, useState } from "react";
 import type { JobCategory } from "@/types/tracker";
 
@@ -64,28 +65,15 @@ export default function TrackerPage() {
     return titleMatch || companyMatch || locationMatch;
   });
 
-  const flowCounts = useMemo(() => {
-    const counts: Record<JobCategory, number> = {
-      saved: 0,
-      applied: 0,
-      interviewing: 0,
-      rejected: 0,
-      hidden: 0,
-    };
-
+  const logicalPaths = useMemo(() => {
+    // One funnel path per tracked job: forward stages only, backward moves
+    // already reset — so the flow diagram shows how far jobs really got.
+    const paths: JobCategory[][] = [];
     filteredJobs.forEach(({ job }) => {
-      counts[getJobStatus(job.externalId)] += 1;
+      paths.push(logicalStatusPath(user.jobEvents?.[job.externalId], getJobStatus(job.externalId)));
     });
-
-    return counts;
-  }, [filteredJobs, user.applied, user.hidden, user.interviewing, user.rejected]);
-
-  const filteredJobIds = useMemo(() => new Set(filteredJobs.map(({ job }) => job.externalId)), [filteredJobs]);
-
-  const flowTransitions = useMemo(() => {
-    const transitions = user.jobTransitions || [];
-    return transitions.filter((transition) => filteredJobIds.has(transition.jobId));
-  }, [filteredJobIds, user.jobTransitions]);
+    return paths;
+  }, [filteredJobs, user.applied, user.hidden, user.interviewing, user.jobEvents, user.rejected, user.saved]);
 
   const getEffectiveViewMode = () => {
     return isLargeScreen ? viewMode : "list";
@@ -94,7 +82,7 @@ export default function TrackerPage() {
   if (loading) {
     return (
       <div ref={containerRef} className="min-h-[calc(100vh-4.5rem)] bg-background-body @container">
-        <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out @min-[1024px]:p-8">
+        <div className="mx-auto max-w-full p-4 @min-[1024px]:p-8">
           <div className="text-center py-16">
             <h1 className="mb-4 font-display text-3xl font-bold tracking-tight text-foreground">Loading...</h1>
           </div>
@@ -106,7 +94,7 @@ export default function TrackerPage() {
   if (loadError) {
     return (
       <div ref={containerRef} className="min-h-[calc(100vh-4.5rem)] bg-background-body @container">
-        <div className="mx-auto max-w-full p-4 transition-[padding] duration-500 ease-in-out @min-[1024px]:p-8">
+        <div className="mx-auto max-w-full p-4 @min-[1024px]:p-8">
           <div className="py-16 text-center">
             <h1 className="mb-4 font-display text-3xl font-bold tracking-tight text-foreground">Job Tracker</h1>
             <p className="text-muted-foreground">{loadError}</p>
@@ -118,7 +106,7 @@ export default function TrackerPage() {
 
   return (
     <div ref={containerRef} className="min-h-[calc(100vh-4.5rem)] bg-background-body @container">
-      <div className="mx-auto max-w-full p-4 pb-0 transition-[padding] duration-500 ease-in-out @min-[1024px]:p-8">
+      <div className="mx-auto max-w-full p-4 pb-10 @min-[1024px]:p-8">
         <div className="mb-3">
           <div className="flex items-center gap-2">
             <SearchBar className="min-w-0 flex-1" searchQuery={searchQuery} onSearchChange={setSearchQuery} />
@@ -127,19 +115,16 @@ export default function TrackerPage() {
 
             {isLargeScreen ? (
               <div className="flex shrink-0 items-center gap-2">
-                <button
-                  className={`h-9 rounded-md border px-3 text-sm ${kanbanSelectionMode ? "bg-primary text-primary-foreground" : "bg-background"}`}
-                  onClick={() => setKanbanSelectionMode((prev) => !prev)}
-                >
-                  Select jobs
-                </button>
                 <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="h-[calc(100vh-250px)]">
+        {/* One primary page scroll: the list/board grows with its content and the
+            Job flow diagram below follows it, instead of a fixed-height nested
+            scroller that trapped the wheel before the diagram. */}
+        <div>
           {getEffectiveViewMode() === "board" ? (
             <KanbanBoard jobs={filteredJobs} visibleCategories={visibleCategories} selectionMode={kanbanSelectionMode} onSelectionModeChange={setKanbanSelectionMode} />
           ) : (
@@ -147,7 +132,7 @@ export default function TrackerPage() {
           )}
         </div>
         <div className="mt-6">
-          <TrackerFlowDiagram counts={flowCounts} transitions={flowTransitions} />
+          <TrackerFlowDiagram paths={logicalPaths} />
         </div>
       </div>
     </div>

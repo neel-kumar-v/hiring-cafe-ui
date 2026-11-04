@@ -11,7 +11,6 @@ import type { JobCategory } from "@/types/tracker";
 import { Briefcase, Building2, Clock, DollarSign, MapPin, type LucideIcon } from "lucide-react";
 import { memo, useMemo, type ReactNode } from "react";
 import CompanyLogo from "../util/CompanyLogo";
-import ScrapeTime from "../util/ScrapeTime";
 
 interface ListJobCardContentsProps {
   job: JobDTO;
@@ -56,8 +55,7 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
   const stateLocations = states.map((state) => formatState(decodeLocationForDisplay(state))).filter(Boolean);
   const countryLocations = countries.map(decodeLocationForDisplay).filter((country) => country && !/^(us|united states)$/i.test(country));
 
-  const locationLabels =
-    cityLocations.length > 0 ? cityLocations : stateLocations.length > 0 ? stateLocations : countryLocations.length > 0 ? countryLocations : [];
+  const locationLabels = cityLocations.length > 0 ? cityLocations : stateLocations.length > 0 ? stateLocations : countryLocations.length > 0 ? countryLocations : [];
 
   const primaryLocation = locationLabels[0] ?? (job.workplaceType?.toLowerCase().includes("remote") ? "Remote" : "");
   const moreLocationCount = Math.max(0, locationLabels.length - 1);
@@ -69,10 +67,7 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
   const workplaceType = job.workplaceType?.trim() || "";
   const commitment = (job.commitment ?? []).filter(Boolean)[0] || "";
   const companyBlurb = useMemo(() => shortCompanyBlurb(company), [company]);
-  const cleanTitle = useMemo(
-    () => getCleanJobTitle(job.title, company?.name ?? "", primaryLocation, job.skills ?? []),
-    [company?.name, job.skills, job.title, primaryLocation]
-  );
+  const cleanTitle = useMemo(() => getCleanJobTitle(job.title, company?.name ?? "", primaryLocation, job.skills ?? []), [company?.name, job.skills, job.title, primaryLocation]);
   const hasFacts = Boolean(primaryLocation || workplaceType || commitment || experienceLabel || compensation);
   const otherFactsCount = (primaryLocation ? 1 : 0) + (workplaceType ? 1 : 0) + (commitment ? 1 : 0) + (experienceLabel ? 1 : 0);
   const salarySpans = otherFactsCount % 2 === 0;
@@ -89,24 +84,13 @@ const ListJobCardContents = memo(({ job, company, currentStage, onMoveJob }: Lis
         <CompanyLogo companyData={toUiCompany(company)} size="list" variant="default" className="mt-0.5 shrink-0" />
 
         <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground">
-                {cleanTitle}
-              </h3>
-              <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground">
-                <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85">{company?.name ?? ""}</span>
-                {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
-              </p>
-            </div>
-            <ScrapeTime
-              postedAt={job.estimatedPublishDate ?? ""}
-              postedAtMillis={job.estimatedPublishDateMillis}
-              createdAt={job.createdAt}
-              iconClassName="size-3"
-              textClassName="text-[0.6875rem] tracking-[0.02em] text-muted-foreground"
-              className="shrink-0 pt-0.5"
-            />
+          {/* Tracker stage is the signal here, so no posted-age / scrape clock on list cards. */}
+          <div className="min-w-0">
+            <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground">{cleanTitle}</h3>
+            <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground">
+              <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85">{company?.name ?? ""}</span>
+              {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
+            </p>
           </div>
 
           {hasFacts ? (

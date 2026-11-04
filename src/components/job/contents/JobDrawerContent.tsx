@@ -170,7 +170,7 @@ const JobDrawerContent = ({
         <VisuallyHidden>
           <DialogTitle>Job Details</DialogTitle>
         </VisuallyHidden>
-        <div className="sticky top-0 z-10 border-border p-2 max-sm:border-b dark:border-border">
+        <div className="sticky top-0 z-10 border-border bg-background p-2 max-sm:border-b dark:border-border">
           <DialogActionButtons
             isApplied={isApplied}
             isBookmarked={isBookmarked}
@@ -180,40 +180,42 @@ const JobDrawerContent = ({
             companyUrl={companyData.website}
           />
         </div>
-        <div className="space-y-4 overflow-y-auto p-4" onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove} onTouchStart={handleTouchStart}>
-          <DialogJobTitle
-            companyName={companyData.name}
-            fadeCompanyChrome={fadeCompanyChrome}
-            isTransitioning={isTransitioning}
-            jobTitle={job.title}
-            tools={processed.technical_tools ?? []}
-            workplaceCities={processed.workplace_cities ?? []}
-          />
-          <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} />
-          <div className={jobFadeClass(isTransitioning)}>
-            <DialogBadges
-              commitments={processed.commitment ?? []}
-              compensation={toCompensationRange(job)}
+        <div className="flex min-h-0 flex-1 flex-col" onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove} onTouchStart={handleTouchStart}>
+          <div className="min-h-0 flex-1 space-y-4 overflow-x-hidden overflow-y-auto p-4 overscroll-y-contain">
+            <DialogJobTitle
+              companyName={companyData.name}
+              fadeCompanyChrome={fadeCompanyChrome}
+              isTransitioning={isTransitioning}
+              jobTitle={job.title}
+              tools={processed.technical_tools ?? []}
               workplaceCities={processed.workplace_cities ?? []}
-              workType={processed.workplace_type ?? ""}
-              compact={true}
+            />
+            <DialogCompanyLogoCard companyData={companyData} fadeCompanyChrome={fadeCompanyChrome} isTransitioning={isTransitioning} jobId={lookupId} />
+            <div className={jobFadeClass(isTransitioning)}>
+              <DialogBadges
+                commitments={processed.commitment ?? []}
+                compensation={toCompensationRange(job)}
+                workplaceCities={processed.workplace_cities ?? []}
+                workType={processed.workplace_type ?? ""}
+                compact={true}
+              />
+            </div>
+            <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
+            <DialogRequirements
+              isTransitioning={isTransitioning}
+              minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
+              minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
+              requirementsSummary={processed.requirements_summary ?? ""}
+            />
+            <DialogSkills isTransitioning={isTransitioning} technicalTools={processed.technical_tools ?? []} />
+            <DialogJobDescription
+              description={detailsDoc?.description ?? ""}
+              fadeCompanyChrome={fadeCompanyChrome}
+              isLoading={isDetailsLoading}
+              loadFailed={detailsLoadFailed}
+              isTransitioning={isTransitioning}
             />
           </div>
-          <DialogResponsibilities isTransitioning={isTransitioning} roleActivities={processed.role_activities ?? []} />
-          <DialogRequirements
-            isTransitioning={isTransitioning}
-            minIndustryAndRoleYoe={processed.min_industry_and_role_yoe}
-            minManagementAndLeadershipYoe={processed.min_management_and_leadership_yoe}
-            requirementsSummary={processed.requirements_summary ?? ""}
-          />
-          <DialogSkills isTransitioning={isTransitioning} technicalTools={processed.technical_tools ?? []} />
-          <DialogJobDescription
-            description={detailsDoc?.description ?? ""}
-            fadeCompanyChrome={fadeCompanyChrome}
-            isLoading={isDetailsLoading}
-            loadFailed={detailsLoadFailed}
-            isTransitioning={isTransitioning}
-          />
         </div>
       </DrawerContent>
     </Drawer>

@@ -314,13 +314,6 @@ export const AllFilter = ({ handleCategoryClick, searchOptions, showButton = tru
       isExtended: extended,
       handleCategoryClick: handleCategoryClick,
     },
-    {
-      label: "Encouraged to Apply",
-      value: stringifiedState.encouraged,
-      categoryId: "encouraged" as CategoryId,
-      isExtended: extended,
-      handleCategoryClick: handleCategoryClick,
-    },
   ];
 
   const compensationItems: FilterItemProps[] = [
@@ -537,6 +530,13 @@ export const AllFilter = ({ handleCategoryClick, searchOptions, showButton = tru
       label: "Excluded Language Keywords",
       value: stringifiedState.language.exclude,
       categoryId: "languages" as CategoryId,
+      isExtended: extended,
+      handleCategoryClick: handleCategoryClick,
+    },
+    {
+      label: "Encouraged to Apply",
+      value: stringifiedState.encouraged,
+      categoryId: "encouraged" as CategoryId,
       isExtended: extended,
       handleCategoryClick: handleCategoryClick,
     },
@@ -804,8 +804,8 @@ export const AllFilter = ({ handleCategoryClick, searchOptions, showButton = tru
   const sections = [
     { title: "General", items: generalItems, isExtended: extended },
     { title: "Compensation & Levels", items: compensationItems, isExtended: extended },
+    { title: "Requirements", items: qualificationsItems, isExtended: extended },
     { title: "Role & Department", items: roleDepartmentItems, isExtended: extended },
-    { title: "Qualifications", items: qualificationsItems, isExtended: extended },
     { title: "Availability", items: availabilityItems, isExtended: extended },
     { title: "Location", items: locationItems, isExtended: extended },
     { title: "Company", items: companyItems, isExtended: extended },

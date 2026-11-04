@@ -247,7 +247,7 @@ export default function Departments() {
 
   return (
     <FilterContainer categoryId="departments" chrome="stream">
-      <div className="sticky top-20 z-10 -mx-1 flex items-center gap-2 border-b border-border/80 bg-background px-1 py-2">
+      <div className="sticky-dialog-header sticky top-20 z-10 -mx-1 flex items-center gap-2 border-b border-border/80 bg-background px-1 py-2">
         <div className="relative min-w-0 flex-1">
           <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input

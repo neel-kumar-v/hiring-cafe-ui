@@ -5,30 +5,18 @@ import { DEMO_MAIL_THREADS, getMessagePreview } from "@/data/inbox-demo";
 describe("inbox demo and preview helpers", () => {
   describe("getMessagePreview", () => {
     it("strips standard greeting lines like 'Hi there,' and returns real message body", () => {
-      const text =
-        "Hi there,\n\nI came across your profile and was really impressed by your background in full-stack TypeScript.";
-      assert.equal(
-        getMessagePreview(text),
-        "I came across your profile and was really impressed by your background in full-stack TypeScript."
-      );
+      const text = "Hi there,\n\nI came across your profile and was really impressed by your background in full-stack TypeScript.";
+      assert.equal(getMessagePreview(text), "I came across your profile and was really impressed by your background in full-stack TypeScript.");
     });
 
     it("strips 'Hey,' and multi-line salutations", () => {
-      const text =
-        "Hey,\n\nI lead engineering recruiting at Linear. Your recent work on reactive user interfaces caught our eye.";
-      assert.equal(
-        getMessagePreview(text),
-        "I lead engineering recruiting at Linear. Your recent work on reactive user interfaces caught our eye."
-      );
+      const text = "Hey,\n\nI lead engineering recruiting at Linear. Your recent work on reactive user interfaces caught our eye.";
+      assert.equal(getMessagePreview(text), "I lead engineering recruiting at Linear. Your recent work on reactive user interfaces caught our eye.");
     });
 
     it("strips 'Hi again,' and follow-up greetings", () => {
-      const text =
-        "Hi again,\n\nJust floating my earlier note back to the top of your inbox. The Merchant Experience team is still hiring.";
-      assert.equal(
-        getMessagePreview(text),
-        "Just floating my earlier note back to the top of your inbox. The Merchant Experience team is still hiring."
-      );
+      const text = "Hi again,\n\nJust floating my earlier note back to the top of your inbox. The Merchant Experience team is still hiring.";
+      assert.equal(getMessagePreview(text), "Just floating my earlier note back to the top of your inbox. The Merchant Experience team is still hiring.");
     });
 
     it("strips 'Hello,' or 'Hello there,'", () => {

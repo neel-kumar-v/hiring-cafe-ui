@@ -5,6 +5,7 @@ import { SearchState } from "@/types/search";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
 import { getAuthEmail, onAuthChanged } from "@/lib/local-auth";
+import { recordJobStatusEvent, seedMissingJobEvents } from "@/lib/tracker/statusTimeline";
 import { decodeSearchState, encodeSearchState } from "@/lib/url-search-state";
 
 interface AppContextType {
@@ -44,7 +45,7 @@ const defaultUser: User = {
   interviewing: [],
   rejected: [],
   hidden: [],
-  jobTransitions: [],
+  jobEvents: {},
 };
 
 function getUserStorageKey(email: string | null) {
@@ -68,17 +69,7 @@ const loadUserFromStorage = (email: string | null): User | null => {
     if (typeof window !== "undefined" && window.localStorage) {
       const stored = localStorage.getItem(getUserStorageKey(email));
       if (stored) {
-        const parsed = JSON.parse(stored);
-        const jobTransitions = Array.isArray(parsed?.jobTransitions)
-          ? parsed.jobTransitions
-          : Array.isArray(parsed?.transitions)
-            ? parsed.transitions
-            : [];
-        return {
-          ...defaultUser,
-          ...parsed,
-          jobTransitions,
-        };
+        return JSON.parse(stored);
       }
     }
   } catch (error) {
@@ -87,6 +78,25 @@ const loadUserFromStorage = (email: string | null): User | null => {
   return null;
 };
 
+/** Normalize stored profiles and backfill status events for pre-jobEvents data. */
+function hydrateUser(stored: User | null, email: string | null): User {
+  const base = stored ? { ...defaultUser, ...stored, email: email ?? stored.email ?? "" } : { ...defaultUser, email: email ?? "" };
+  return {
+    ...base,
+    jobEvents: seedMissingJobEvents(
+      base.jobEvents,
+      {
+        saved: base.saved ?? [],
+        applied: base.applied ?? [],
+        interviewing: base.interviewing ?? [],
+        rejected: base.rejected ?? [],
+        hidden: base.hidden ?? [],
+      },
+      Date.now()
+    ),
+  };
+}
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -94,8 +104,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(() => {
     if (typeof window !== "undefined") {
       const email = getAuthEmail();
-      const storedUser = loadUserFromStorage(email);
-      return storedUser || { ...defaultUser, email: email ?? "" };
+      return hydrateUser(loadUserFromStorage(email), email);
     }
     return defaultUser;
   });
@@ -104,16 +113,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchOptions, setSearchOptions] = useState<SearchState>(defaultSearchOptions);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Save user data to localStorage whenever it changes (but not on initial render)
-  const isFirstRender = useRef(true);
+  // Persist workspace state (including any legacy jobEvents backfill from hydrate).
   const hasHydratedSearchStateRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return;
-      }
       saveUserToStorage(user, getAuthEmail());
     }
   }, [user]);
@@ -175,8 +179,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return onAuthChanged(() => {
       const email = getAuthEmail();
-      const stored = loadUserFromStorage(email);
-      setUser(stored || { ...defaultUser, email: email ?? "" });
+      setUser(hydrateUser(loadUserFromStorage(email), email));
     });
   }, []);
 
@@ -194,111 +197,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addJob = useCallback((jobId: string, status: JobStatus) => {
-    setUser((prev) => {
-      const now = Date.now();
-      const existingTransitions = prev.jobTransitions || [];
-      const newTransitions = [...existingTransitions];
-
-      const lastIndex = [...newTransitions]
-        .map((t, idx) => ({ t, idx }))
-        .reverse()
-        .find(({ t }) => t.jobId === jobId)?.idx;
-
-      if (
-        lastIndex !== undefined &&
-        newTransitions[lastIndex].from &&
-        !newTransitions[lastIndex].to
-      ) {
-        const fromStatus = newTransitions[lastIndex].from!;
-        if (fromStatus !== status) {
-          newTransitions[lastIndex] = {
-            jobId,
-            from: fromStatus,
-            to: status,
-            at: now,
-          };
-        } else {
-          newTransitions[lastIndex] = {
-            jobId,
-            to: status,
-            at: now,
-          };
-        }
-      } else {
-        const statuses: JobStatus[] = ["saved", "applied", "interviewing", "rejected", "hidden"];
-        const currentStatus = statuses.find((s) => prev[s].includes(jobId));
-
-        if (currentStatus && currentStatus !== status) {
-          newTransitions.push({
-            jobId,
-            from: currentStatus,
-            to: status,
-            at: now,
-          });
-        } else if (!currentStatus) {
-          newTransitions.push({
-            jobId,
-            to: status,
-            at: now,
-          });
-        }
-      }
-
-      return {
-        ...prev,
-        [status]: [...prev[status].filter((id) => id !== jobId), jobId],
-        jobTransitions: newTransitions,
-      };
-    });
+    // Timestamp outside the updater so the updater stays pure (StrictMode runs
+    // it twice) and both runs produce the same event log.
+    const at = Date.now();
+    setUser((prev) => ({
+      ...prev,
+      [status]: prev[status].includes(jobId) ? prev[status] : [...prev[status], jobId],
+      jobEvents: recordJobStatusEvent(prev.jobEvents, jobId, status, at, null),
+    }));
   }, []);
 
   const removeJob = useCallback((jobId: string, status: JobStatus) => {
-    setUser((prev) => {
-      const now = Date.now();
-      const existingTransitions = prev.jobTransitions || [];
-      const newTransitions = [
-        ...existingTransitions,
-        {
-          jobId,
-          from: status,
-          at: now,
-        },
-      ];
-
-      return {
-        ...prev,
-        [status]: prev[status].filter((id) => id !== jobId),
-        jobTransitions: newTransitions,
-      };
-    });
+    setUser((prev) => ({
+      ...prev,
+      [status]: prev[status].filter((id) => id !== jobId),
+    }));
   }, []);
 
   const moveJob = useCallback((jobId: string, fromStatus: JobStatus, toStatus: JobStatus) => {
-    setUser((prev) => {
-      // If moving from same status to same status, just return current state
-      if (fromStatus === toStatus) {
-        return prev;
-      }
+    // If moving from same status to same status, leave state untouched.
+    if (fromStatus === toStatus) return;
+    const at = Date.now();
 
-      const now = Date.now();
-      const existingTransitions = prev.jobTransitions || [];
-      const newTransitions = [
-        ...existingTransitions,
-        {
-          jobId,
-          from: fromStatus,
-          to: toStatus,
-          at: now,
-        },
-      ];
-
-      return {
-        ...prev,
-        [fromStatus]: prev[fromStatus].filter((id) => id !== jobId),
-        [toStatus]: [...prev[toStatus].filter((id) => id !== jobId), jobId],
-        jobTransitions: newTransitions,
-      };
-    });
+    setUser((prev) => ({
+      ...prev,
+      [fromStatus]: prev[fromStatus].filter((id) => id !== jobId),
+      [toStatus]: prev[toStatus].includes(jobId) ? prev[toStatus] : [...prev[toStatus], jobId],
+      jobEvents: recordJobStatusEvent(prev.jobEvents, jobId, toStatus, at, fromStatus),
+    }));
   }, []);
 
   const addSkill = useCallback((skill: string) => {

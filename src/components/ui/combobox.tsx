@@ -75,8 +75,8 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName,
                     setOpen(false);
                   }}
                 >
-                  <CheckIcon className={cn("mr-2 h-4 w-4", value === item.value ? "opacity-100" : "opacity-0")} />
                   {item.label}
+                  <CheckIcon className={cn("ml-auto h-4 w-4 shrink-0", value === item.value ? "opacity-100" : "opacity-0")} aria-hidden="true" />
                 </CommandItem>
               ))}
               {isCustom && (
@@ -88,8 +88,8 @@ export function Combobox({ items, value, onChange, placeholder, buttonClassName,
                     setOpen(false);
                   }}
                 >
-                  <CheckIcon className={cn("mr-2 h-4 w-4", value === inputValue ? "opacity-100" : "opacity-0")} />
                   {`Use "${inputValue}"`}
+                  <CheckIcon className={cn("ml-auto h-4 w-4 shrink-0", value === inputValue ? "opacity-100" : "opacity-0")} aria-hidden="true" />
                 </CommandItem>
               )}
             </CommandGroup>

@@ -9,12 +9,11 @@ import { SentenceBlankMultiSelect, SentenceText } from "../util/sentence-query";
 const ENCOURAGED_CHOICES: EncouragedType[] = ["Veteran", "Fair Chance"];
 
 const ENCOURAGED_BLANK_OPTIONS = [
-  { value: "Veteran" as const, label: "Veteran applicants", phrase: "Veteran applicants" },
-  { value: "Fair Chance" as const, label: "Fair Chance applicants", phrase: "Fair Chance applicants" },
+  { value: "Veteran" as const, label: "military veterans", phrase: "military veterans" },
+  { value: "Fair Chance" as const, label: "fair chance", phrase: "fair chance" },
 ];
 
-const ANY_APPLICANTS_TEXT = "any applicants";
-const ENCOURAGED_BLANK_COUNT = ENCOURAGED_CHOICES.length;
+const UNSPECIFIED_TEXT = "unspecified";
 
 function selectedEncouraged(value: EncouragedOptions | undefined): EncouragedType[] {
   if (!Array.isArray(value)) return [];
@@ -22,7 +21,7 @@ function selectedEncouraged(value: EncouragedOptions | undefined): EncouragedTyp
 }
 
 function toEncouragedValue(next: EncouragedType[]): EncouragedOptions {
-  return next.length === 0 || next.length === ENCOURAGED_BLANK_COUNT ? null : next;
+  return next.length === 0 ? null : next;
 }
 
 export function getEncouragedTitle(encouraged?: EncouragedOptions): string {
@@ -31,38 +30,34 @@ export function getEncouragedTitle(encouraged?: EncouragedOptions): string {
     selected.map((choice) => ENCOURAGED_BLANK_OPTIONS.find((option) => option.value === choice)?.phrase ?? choice),
     {
       conjunction: "and",
-      total: ENCOURAGED_BLANK_COUNT,
-      noneText: ANY_APPLICANTS_TEXT,
-      allText: ANY_APPLICANTS_TEXT,
+      noneText: UNSPECIFIED_TEXT,
     }
   );
-  return `Show jobs that encourage ${blank}`;
+  return `Jobs that welcome applicants from ${blank}`;
 }
 
 export default function Encouraged() {
   const { searchOptions, updateSearchOptions } = useApp();
   const selectedValues = selectedEncouraged(searchOptions.encouraged);
 
-  const title = (
-    <SentenceText>
-      Show jobs that encourage
-      <SentenceBlankMultiSelect
-        ariaLabel="Encouraged to Apply"
-        options={ENCOURAGED_BLANK_OPTIONS}
-        values={selectedValues}
-        onChange={(next) => {
-          updateSearchOptions({ encouraged: toEncouragedValue(next) });
-        }}
-        placeholder={ANY_APPLICANTS_TEXT}
-        formatOptions={{
-          conjunction: "and",
-          total: ENCOURAGED_BLANK_COUNT,
-          noneText: ANY_APPLICANTS_TEXT,
-          allText: ANY_APPLICANTS_TEXT,
-        }}
-      />
-    </SentenceText>
+  return (
+    <FilterContainer categoryId="encouraged" chrome="stream">
+      <SentenceText>
+        Jobs that welcome applicants from
+        <SentenceBlankMultiSelect
+          ariaLabel="Encouraged to Apply"
+          options={ENCOURAGED_BLANK_OPTIONS}
+          values={selectedValues}
+          onChange={(next) => {
+            updateSearchOptions({ encouraged: toEncouragedValue(next) });
+          }}
+          placeholder={UNSPECIFIED_TEXT}
+          formatOptions={{
+            conjunction: "and",
+            noneText: UNSPECIFIED_TEXT,
+          }}
+        />
+      </SentenceText>
+    </FilterContainer>
   );
-
-  return <FilterContainer categoryId="encouraged" title={title} chrome="stream" />;
 }

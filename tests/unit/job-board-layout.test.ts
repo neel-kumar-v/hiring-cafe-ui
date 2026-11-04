@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getJobGridColumnsForWidth, JOB_GRID_COLUMN_THRESHOLDS } from "../../src/hooks/useContainerWidth";
+import { getJobGridColumnsForWidth, isOneColumnBoardWidth, JOB_GRID_COLUMN_THRESHOLDS, resolveJobBoardLayout } from "../../src/hooks/useContainerWidth";
 import type { JobBoardLayout } from "../../src/contexts/SearchContext";
 
 test("getJobGridColumnsForWidth maps quantized container widths to correct column counts", () => {
@@ -11,14 +11,27 @@ test("getJobGridColumnsForWidth maps quantized container widths to correct colum
   assert.equal(getJobGridColumnsForWidth(1000), 2);
   assert.equal(getJobGridColumnsForWidth(JOB_GRID_COLUMN_THRESHOLDS[3]), 3);
   assert.equal(getJobGridColumnsForWidth(JOB_GRID_COLUMN_THRESHOLDS[4]), 4);
-  assert.equal(getJobGridColumnsForWidth(JOB_GRID_COLUMN_THRESHOLDS[5]), 5);
+  // Hard cap: wide containers stay at four columns (no 5-column layout).
+  assert.equal(getJobGridColumnsForWidth(1800), 4);
+  assert.equal(getJobGridColumnsForWidth(2560), 4);
+});
+
+test("isOneColumnBoardWidth treats a narrow container and the mobile shell as one column", () => {
+  // Narrow containers are one column on any viewport.
+  assert.equal(isOneColumnBoardWidth(320, false), true);
+  assert.equal(isOneColumnBoardWidth(639, false), true);
+  assert.equal(isOneColumnBoardWidth(JOB_GRID_COLUMN_THRESHOLDS[2], false), false);
+  assert.equal(isOneColumnBoardWidth(1200, false), false);
+
+  // The mobile shell stays one column even when the container (sidebar gone)
+  // could fit two cards.
+  assert.equal(isOneColumnBoardWidth(647, true), true);
+  assert.equal(isOneColumnBoardWidth(1200, true), true);
 });
 
 test("effective layout transitions to list when in 1-column mode on waterfall or grid", () => {
-  function getEffectiveLayout(columns: number, containerWidth: number, boardLayout: JobBoardLayout): JobBoardLayout {
-    const isSingleColumn = containerWidth > 0 && columns <= 1;
-    return isSingleColumn ? "list" : boardLayout;
-  }
+  const getEffectiveLayout = (columns: number, containerWidth: number, boardLayout: JobBoardLayout): JobBoardLayout =>
+    resolveJobBoardLayout(isOneColumnBoardWidth(containerWidth, false) || columns <= 1, boardLayout);
 
   // In 1-column mode, masonry (Waterfall) transitions to list
   assert.equal(getEffectiveLayout(1, 500, "masonry"), "list");
@@ -31,6 +44,11 @@ test("effective layout transitions to list when in 1-column mode on waterfall or
   assert.equal(getEffectiveLayout(2, 700, "masonry"), "masonry");
   assert.equal(getEffectiveLayout(2, 700, "grid"), "grid");
   assert.equal(getEffectiveLayout(2, 700, "list"), "list");
+
+  // Leftover masonry/grid state never applies in the mobile shell, even though
+  // the container fits two columns there.
+  assert.equal(resolveJobBoardLayout(isOneColumnBoardWidth(647, true), "masonry"), "list");
+  assert.equal(resolveJobBoardLayout(isOneColumnBoardWidth(647, true), "grid"), "list");
 });
 
 test("buildJobBoardDisplayedCollections groups consecutive same-company jobs into one collection", async () => {

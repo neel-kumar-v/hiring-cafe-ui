@@ -8,7 +8,7 @@ import { closestCenter, DndContext, DragOverlay, KeyboardSensor, MouseSensor, To
 import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import { createContext, type HTMLAttributes, type ReactNode, useCallback, useContext, useState } from "react";
+import { createContext, type HTMLAttributes, type ReactNode, useCallback, useContext, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import tunnel from "tunnel-rat";
 
@@ -222,6 +222,11 @@ export const KanbanProvider = <T extends KanbanItemProps = KanbanItemProps, C ex
   ...props
 }: KanbanProviderProps<T, C>) => {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  // Local draft while dragging so cards can hop columns visually without
+  // persisting (and without refreshing dependent UI like the Sankey) until drop.
+  const [draftData, setDraftData] = useState<T[] | null>(null);
+  const dragStartColumnRef = useRef<string | null>(null);
+  const items = draftData ?? data;
 
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor), useSensor(KeyboardSensor));
 
@@ -229,6 +234,8 @@ export const KanbanProvider = <T extends KanbanItemProps = KanbanItemProps, C ex
     const card = data.find((item) => item.id === event.active.id);
     if (card) {
       setActiveCardId(event.active.id as string);
+      dragStartColumnRef.current = card.column;
+      setDraftData(data.map((item) => ({ ...item })));
     }
     onDragStart?.(event);
   };
@@ -240,81 +247,110 @@ export const KanbanProvider = <T extends KanbanItemProps = KanbanItemProps, C ex
       return;
     }
 
-    const activeItem = data.find((item) => item.id === active.id);
-    const overItem = data.find((item) => item.id === over.id);
+    setDraftData((previous) => {
+      const base = previous ?? data;
+      const activeItem = base.find((item) => item.id === active.id);
+      const overItem = base.find((item) => item.id === over.id);
 
-    if (!activeItem) {
-      return;
-    }
+      if (!activeItem) {
+        return previous;
+      }
 
-    const activeColumn = activeItem.column;
-    const overColumn = overItem?.column || columns.find((col) => col.id === over.id)?.id || columns[0]?.id;
+      const activeColumn = activeItem.column;
+      const overColumn = overItem?.column || columns.find((col) => col.id === over.id)?.id || columns[0]?.id;
 
-    if (activeColumn !== overColumn) {
-      let newData = [...data];
-      const activeIndex = newData.findIndex((item) => item.id === active.id);
-      const overIndex = newData.findIndex((item) => item.id === over.id);
+      if (activeColumn === overColumn) {
+        return previous;
+      }
 
-      newData[activeIndex].column = overColumn;
-      newData = arrayMove(newData, activeIndex, overIndex);
-
-      onDataChange?.(newData);
-    }
+      let next = base.map((item) => ({ ...item }));
+      const activeIndex = next.findIndex((item) => item.id === active.id);
+      const overIndex = next.findIndex((item) => item.id === over.id);
+      next[activeIndex] = { ...next[activeIndex], column: overColumn };
+      next = arrayMove(next, activeIndex, overIndex);
+      return next;
+    });
 
     onDragOver?.(event);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const clearDraft = () => {
     setActiveCardId(null);
+    setDraftData(null);
+    dragStartColumnRef.current = null;
+  };
+
+  const handleDragCancel = () => {
+    clearDraft();
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const startColumn = dragStartColumnRef.current;
+    const { active, over } = event;
 
     onDragEnd?.(event);
 
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) {
+    if (!over) {
+      clearDraft();
       return;
     }
 
-    let newData = [...data];
+    let next = (draftData ?? data).map((item) => ({ ...item }));
+    const oldIndex = next.findIndex((item) => item.id === active.id);
+    const overItemIndex = next.findIndex((item) => item.id === over.id);
+    const overColumn = next[overItemIndex]?.column || columns.find((col) => col.id === over.id)?.id;
 
-    const oldIndex = newData.findIndex((item) => item.id === active.id);
-    const newIndex = newData.findIndex((item) => item.id === over.id);
+    if (oldIndex !== -1 && overColumn && next[oldIndex].column !== overColumn) {
+      next[oldIndex] = { ...next[oldIndex], column: overColumn };
+    }
 
-    newData = arrayMove(newData, oldIndex, newIndex);
+    if (oldIndex !== -1 && overItemIndex !== -1 && active.id !== over.id) {
+      next = arrayMove(next, oldIndex, overItemIndex);
+    }
 
-    onDataChange?.(newData);
+    const finalColumn = next.find((item) => item.id === active.id)?.column;
+    const columnChanged = Boolean(startColumn && finalColumn && startColumn !== finalColumn);
+
+    clearDraft();
+
+    // Persist only when the card lands in a different column than pickup.
+    // Same-column reorder and cancelled/no-op drops leave app state alone.
+    if (columnChanged) {
+      onDataChange?.(next);
+    }
   };
 
   const announcements: Announcements = {
     onDragStart({ active }) {
-      const { name, column } = data.find((item) => item.id === active.id) ?? {};
+      const { name, column } = items.find((item) => item.id === active.id) ?? {};
 
       return `Picked up the card "${name}" from the "${column}" column`;
     },
     onDragOver({ active, over }) {
-      const { name } = data.find((item) => item.id === active.id) ?? {};
+      const { name } = items.find((item) => item.id === active.id) ?? {};
       const newColumn = columns.find((column) => column.id === over?.id)?.name;
 
       return `Dragged the card "${name}" over the "${newColumn}" column`;
     },
     onDragEnd({ active, over }) {
-      const { name } = data.find((item) => item.id === active.id) ?? {};
+      const { name } = items.find((item) => item.id === active.id) ?? {};
       const newColumn = columns.find((column) => column.id === over?.id)?.name;
 
       return `Dropped the card "${name}" into the "${newColumn}" column`;
     },
     onDragCancel({ active }) {
-      const { name } = data.find((item) => item.id === active.id) ?? {};
+      const { name } = items.find((item) => item.id === active.id) ?? {};
 
       return `Cancelled dragging the card "${name}"`;
     },
   };
 
   return (
-    <KanbanContext.Provider value={{ columns, data, activeCardId }}>
+    <KanbanContext.Provider value={{ columns, data: items, activeCardId }}>
       <DndContext
         accessibility={{ announcements }}
         collisionDetection={closestCenter}
+        onDragCancel={handleDragCancel}
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
         onDragStart={handleDragStart}

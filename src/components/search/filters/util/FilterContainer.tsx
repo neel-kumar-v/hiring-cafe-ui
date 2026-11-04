@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
+import { memo, startTransition, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronDown, CircleHelp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -66,13 +66,11 @@ function FilterContainerInner({
   const edited = useMemo(() => (categoryId ? isCategoryEdited(searchOptions, initialSearchState, categoryId) : false), [categoryId, searchOptions]);
   const editCount = useMemo(() => (categoryId ? getCategoryEditCount(searchOptions, initialSearchState, categoryId) : 0), [categoryId, searchOptions]);
   const hasTitle = title != null && title !== "";
-  const hasHeader = isStream
-    ? Boolean(hasTitle || help || actions)
-    : Boolean(hasTitle || help || actions || (edited && categoryId) || editCount > 0);
+  const hasHeader = isStream ? Boolean(hasTitle || help || actions) : Boolean(hasTitle || help || actions || (edited && categoryId) || editCount > 0);
 
   const handleClearAll = () => {
     if (!categoryId) return;
-    updateSearchOptions(getInitialPatchForCategory(categoryId, initialSearchState));
+    startTransition(() => updateSearchOptions(getInitialPatchForCategory(categoryId, initialSearchState)));
   };
 
   useEffect(() => {
@@ -113,8 +111,9 @@ function FilterContainerInner({
       data-filter-container-id={containerId}
       className={cn(wrapperBase, isFocused && "scroll-mt-4", containerClasses)}
       onClick={() => {
-        if (categoryId) {
-          setFocusedFilterId(categoryId);
+        if (categoryId && focusedFilterId !== categoryId) {
+          // Highlighting the active filter re-renders the sidebar; don't block the click.
+          startTransition(() => setFocusedFilterId(categoryId));
         }
       }}
     >
@@ -162,7 +161,9 @@ function FilterContainerInner({
             </div>
           ) : null}
           {help ? (
-            <p className={cn("px-1 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-24 opacity-100 pb-1.5" : "my-0 max-h-0 overflow-hidden opacity-0")}>{help}</p>
+            <p className={cn("px-1 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-24 opacity-100 pb-1.5" : "my-0 max-h-0 overflow-hidden opacity-0")}>
+              {help}
+            </p>
           ) : null}
           {showBody && bodyMounted ? <div className="flex flex-col gap-3">{children}</div> : null}
         </div>
@@ -171,7 +172,7 @@ function FilterContainerInner({
           {hasHeader ? (
             <div
               className={cn(
-                "sticky top-10 z-20 flex h-10 items-center border-b border-border/80 bg-background px-1",
+                "sticky-dialog-header sticky top-10 z-20 flex h-10 items-center border-b border-border/80 bg-background px-1",
                 collapsible && "cursor-pointer"
               )}
               onClick={() => {
@@ -187,9 +188,7 @@ function FilterContainerInner({
                         {title}
                       </h3>
                     ) : (
-                      <span className="min-w-0 text-foreground">
-                        {title}
-                      </span>
+                      <span className="min-w-0 text-foreground">{title}</span>
                     )}
                     {editCount > 0 ? (
                       <span className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-md bg-primary/15 px-1.5 text-xs font-semibold leading-5 text-primary">
@@ -224,7 +223,9 @@ function FilterContainerInner({
           ) : null}
 
           {showBody || help ? (
-            <div className={cn(collapsible && "grid transition-[grid-template-rows] duration-300 ease-out", collapsible ? (contentOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]") : "")}>
+            <div
+              className={cn(collapsible && "grid transition-[grid-template-rows] duration-300 ease-out", collapsible ? (contentOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]") : "")}
+            >
               <div className={cn("min-h-0", collapsible ? (contentOpen ? "overflow-visible" : "overflow-hidden") : "")}>
                 {help ? (
                   <p className={cn("px-1 text-sm text-foreground/75 transition-all duration-300", isOpen ? "max-h-24 opacity-100 pb-2" : "my-0 max-h-0 overflow-hidden opacity-0")}>

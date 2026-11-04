@@ -26,6 +26,8 @@ interface AutocompleteProps {
   salaryButton?: React.ReactNode;
   searchButton?: React.ReactNode;
   modeToggle?: React.ReactNode;
+  /** Never show the results dropdown ("No results found" included); Enter still calls onSubmit. Used in talent-agent mode. */
+  suppressDropdown?: boolean;
 }
 
 interface AutocompleteOptionProps {
@@ -216,9 +218,7 @@ function MobileFiltersRow({ salaryButton, locationButton }: { salaryButton?: Rea
         inert={!hasContent}
       >
         {activeSalary && (
-          <div className={cn("basis-auto shrink-0 min-w-0 max-w-[50%]", activeLocation && "border-r border-border", !activeLocation && "flex-1 max-w-none")}>
-            {activeSalary}
-          </div>
+          <div className={cn("basis-auto shrink-0 min-w-0 max-w-[50%]", activeLocation && "border-r border-border", !activeLocation && "flex-1 max-w-none")}>{activeSalary}</div>
         )}
         {activeLocation && <div className="flex-1 min-w-0">{activeLocation}</div>}
       </div>
@@ -243,6 +243,7 @@ export default function Autocomplete({
   salaryButton,
   searchButton,
   modeToggle,
+  suppressDropdown = false,
 }: AutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
@@ -250,6 +251,10 @@ export default function Autocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile(768);
+
+  // Effective open state: agent mode (suppressDropdown) never shows the dropdown,
+  // even if the input was focused before the user toggled search modes.
+  const dropdownOpen = isOpen && !suppressDropdown;
 
   useEffect(() => {
     if (value.trim()) {
@@ -261,7 +266,9 @@ export default function Autocomplete({
   }, [value, options, maxTotal]);
 
   const handleInputFocus = () => {
-    setIsOpen(true);
+    if (!suppressDropdown) {
+      setIsOpen(true);
+    }
     onFocus?.();
   };
 
@@ -286,6 +293,14 @@ export default function Autocomplete({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (suppressDropdown) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmit?.();
+      }
+      return;
+    }
+
     if (!isOpen && (e.key === "Enter" || e.key === "ArrowDown")) {
       setIsOpen(true);
       return;
@@ -320,7 +335,7 @@ export default function Autocomplete({
   const handleBack = () => setIsOpen(false);
 
   useEffect(() => {
-    if (isOpen && isMobile) {
+    if (dropdownOpen && isMobile) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -328,22 +343,22 @@ export default function Autocomplete({
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, isMobile]);
+  }, [dropdownOpen, isMobile]);
 
   const displayOptions = value.trim() ? Array.from(new Set([value.trim(), ...filteredOptions].filter((q) => q.trim()))) : filteredOptions;
 
   const hasRightControls = Boolean(iconButtons || locationButton || salaryButton || searchButton);
   const inputRoundedClasses = hasRightControls
-    ? isOpen
+    ? dropdownOpen
       ? "rounded-l-[24px] rounded-r-none rounded-b-none border-r-0"
       : "rounded-l-[24px] rounded-r-none border-r-0"
-    : isOpen
+    : dropdownOpen
       ? "rounded-[24px] rounded-b-none"
       : "rounded-[24px]";
 
   const containerClasses = hasRightControls
-    ? `flex h-11 w-full min-w-0 items-center border border-border bg-card shadow-xs ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
-    : `flex h-11 w-full min-w-0 items-center border border-border bg-card shadow-xs ${isOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`;
+    ? `flex h-11 w-full min-w-0 items-center border border-border bg-card shadow-xs ${dropdownOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`
+    : `flex h-11 w-full min-w-0 items-center border border-border bg-card shadow-xs ${dropdownOpen ? "rounded-t-[24px] rounded-b-none" : "rounded-[24px]"}`;
 
   const inputBorderClasses = hasRightControls || modeToggle ? "border-0" : "border border-border";
 
@@ -371,9 +386,7 @@ export default function Autocomplete({
                   type="text"
                   value={value}
                 />
-                {!modeToggle && (
-                  <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground" />
-                )}
+                {!modeToggle && <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground" />}
               </div>
               {showClearButton && value && (
                 <Hitbox size="sm" radius="full">
@@ -423,9 +436,13 @@ export default function Autocomplete({
               </Hitbox>
             )}
             {locationButton && (
-              <div className={cn("h-full max-w-[30%] border-l border-border hidden @[680px]:block", !salaryButton && !iconButtons && !searchButton && "rounded-r-[24px]")}>{locationButton}</div>
+              <div className={cn("h-full max-w-[30%] border-l border-border hidden @[680px]:block", !salaryButton && !iconButtons && !searchButton && "rounded-r-[24px]")}>
+                {locationButton}
+              </div>
             )}
-            {salaryButton && <div className={cn("h-full max-w-[20%] border-l border-border hidden @[880px]:block", !iconButtons && !searchButton && "rounded-r-[24px]")}>{salaryButton}</div>}
+            {salaryButton && (
+              <div className={cn("h-full max-w-[20%] border-l border-border hidden @[880px]:block", !iconButtons && !searchButton && "rounded-r-[24px]")}>{salaryButton}</div>
+            )}
             {iconButtons && <div className={cn("flex h-full items-stretch justify-end border-l border-border", !searchButton && "rounded-r-[24px]")}>{iconButtons}</div>}
             {/* SearchButton on right */}
             {searchButton ? <div className="flex items-center pl-1.5 pr-1.5 shrink-0">{searchButton}</div> : null}
@@ -436,7 +453,7 @@ export default function Autocomplete({
           displayOptions={displayOptions}
           filteredOptions={filteredOptions}
           highlightedIndex={highlightedIndex}
-          isOpen={isOpen}
+          isOpen={dropdownOpen}
           onOptionClick={handleOptionClick}
           maxTotal={maxTotal}
         />
@@ -444,7 +461,7 @@ export default function Autocomplete({
       <MobileOverlay
         displayOptions={displayOptions}
         highlightedIndex={highlightedIndex}
-        isOpen={isOpen}
+        isOpen={dropdownOpen}
         onBack={handleBack}
         onChange={onChange}
         onOptionClick={handleOptionClick}

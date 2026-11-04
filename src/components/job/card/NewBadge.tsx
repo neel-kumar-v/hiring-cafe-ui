@@ -89,8 +89,8 @@ export default function NewBadge({ visible = true }: { visible?: boolean }) {
   return (
     <span
       className={cn(
-        "rounded-full bg-emerald-600 px-2 py-0.5 font-bold text-white shadow-sm ring-1 ring-emerald-500/20",
-        "text-[10px] tracking-wide uppercase transition-colors dark:bg-emerald-500 dark:text-zinc-950"
+        "rounded-full bg-primary px-2 py-0.5 font-bold text-primary-foreground shadow-sm ring-1 ring-primary/20",
+        "text-[10px] tracking-wide uppercase transition-colors"
       )}
     >
       New
