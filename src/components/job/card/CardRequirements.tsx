@@ -171,7 +171,7 @@ const CardRequirements = ({
         // "Disable hover expansion — Description" pref is on, the block stays
         // clamped at its rest height (no hover class, no fade vignette), so
         // the visible lines stay fully readable.
-        "pointer-fine:max-h-[var(--requirements-collapsed-max-h,2lh)] pointer-fine:motion-reduce:max-h-none overflow-hidden transition-[max-height] duration-[750ms] ease-in-out pointer-coarse:max-h-none pointer-none:max-h-none text-xs leading-normal",
+        "pointer-fine:max-h-[var(--requirements-collapsed-max-h,2lh)] pointer-fine:motion-reduce:max-h-none overflow-hidden transition-[max-height] duration-[350ms] ease-out pointer-coarse:max-h-none pointer-none:max-h-none text-xs leading-normal",
         !hoverExpandDisabled && "pointer-fine:group-hover/card:max-h-[var(--requirements-expanded-max-h)]",
         overflows && !hoverExpandDisabled && VIGNETTE_CLASSES
       )}

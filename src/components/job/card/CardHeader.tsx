@@ -111,7 +111,7 @@ const CardHeader = ({
               ref={locationsRef}
               style={{ "--card-locations-expanded-max-h": locationsMaxHeight } as CSSProperties}
               className={cn(
-                "pointer-fine:max-h-6 pointer-fine:motion-reduce:max-h-full pointer-coarse:max-h-none pointer-none:max-h-none flex max-h-full flex-row flex-wrap items-center gap-1 overflow-hidden transition-[max-height] duration-[750ms] ease-in-out",
+                "pointer-fine:max-h-6 pointer-fine:motion-reduce:max-h-full pointer-coarse:max-h-none pointer-none:max-h-none flex max-h-full flex-row flex-wrap items-center gap-1 overflow-hidden transition-[max-height] duration-[350ms] ease-out",
                 !hoverExpandDisabled && "pointer-fine:group-hover/card:max-h-[var(--card-locations-expanded-max-h)]"
               )}
             >

@@ -21,8 +21,8 @@
 
 const HOVER_CARD_SELECTOR = '[data-job-card="true"]';
 
-/** Hover expansions transition over 750ms (requirements/header max-height) plus headroom for the settle window. */
-export const JOB_CARD_HOVER_SETTLE_MS = 900;
+/** Hover expansions transition over 350ms ease-out (skills/locations/description) plus headroom for the settle window. */
+export const JOB_CARD_HOVER_SETTLE_MS = 500;
 
 const hoveredCards = new Set<Element>();
 let installed = false;
