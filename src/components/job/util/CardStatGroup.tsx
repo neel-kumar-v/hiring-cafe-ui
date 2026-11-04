@@ -108,7 +108,7 @@ const CardStatGroup = ({
             "flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out",
             quiet
               ? "bg-transparent text-muted-foreground hover:text-foreground"
-              : "group/action group-hover:pl-0 group-hover:px-1.5 bg-transparent text-muted-foreground group-hover:bg-primary group-hover:text-black!"
+              : "group/action group-hover:pl-0 group-hover:px-1.5 bg-transparent text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground!"
           )}
           onClick={handleBookmarkClick}
           type="button"
@@ -118,14 +118,19 @@ const CardStatGroup = ({
               fill="currentColor"
               className={cn(
                 "inline fill-current text-primary",
-                !quiet && "group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
+                !quiet &&
+                  "group-hover:fill-primary-foreground! group-hover:text-primary-foreground! group-hover/action:fill-primary-foreground! group-hover/action:text-primary-foreground!",
                 iconClassName
               )}
               stroke="currentColor"
             />
           ) : (
             <Bookmark
-              className={cn("inline text-muted-foreground", !quiet && "group-hover:text-black! group-hover/action:text-black!", iconClassName)}
+              className={cn(
+                "inline text-muted-foreground",
+                !quiet && "group-hover:text-primary-foreground! group-hover/action:text-primary-foreground!",
+                iconClassName
+              )}
               fill="none"
               stroke="currentColor"
             />
@@ -135,7 +140,7 @@ const CardStatGroup = ({
             count={savedCount}
             label={isBookmarked ? "Unsave" : "Save"}
             labelHoverWidthClassName={isBookmarked ? "group-hover:w-[7ch]" : "group-hover:w-[4ch]"}
-            textClassName={cn(textClassName, !quiet && "group-hover:text-black!")}
+            textClassName={cn(textClassName, !quiet && "group-hover:text-primary-foreground!")}
             isTransitioning={isTransitioning}
             quiet={quiet}
           />
@@ -148,7 +153,7 @@ const CardStatGroup = ({
             "flex h-6 cursor-pointer items-center gap-1 rounded-md py-1 leading-none transition-colors duration-300 ease-out",
             quiet
               ? "bg-transparent text-muted-foreground hover:text-foreground"
-              : "group/action group-hover:pl-0 group-hover:px-1.5 bg-transparent text-muted-foreground group-hover:bg-primary group-hover:text-black!"
+              : "group/action group-hover:pl-0 group-hover:px-1.5 bg-transparent text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground!"
           )}
           href={applyUrl}
           target="_blank"
@@ -160,14 +165,19 @@ const CardStatGroup = ({
               fill="currentColor"
               className={cn(
                 "inline fill-current text-primary",
-                !quiet && "group-hover:fill-black! group-hover:text-black! group-hover/action:fill-black! group-hover/action:text-black!",
+                !quiet &&
+                  "group-hover:fill-primary-foreground! group-hover:text-primary-foreground! group-hover/action:fill-primary-foreground! group-hover/action:text-primary-foreground!",
                 iconClassName
               )}
               stroke="currentColor"
             />
           ) : (
             <Send
-              className={cn("inline text-muted-foreground", !quiet && "group-hover:text-black! group-hover/action:text-black!", iconClassName)}
+              className={cn(
+                "inline text-muted-foreground",
+                !quiet && "group-hover:text-primary-foreground! group-hover/action:text-primary-foreground!",
+                iconClassName
+              )}
               fill="none"
               stroke="currentColor"
             />
@@ -177,7 +187,7 @@ const CardStatGroup = ({
             count={appliedCount}
             label={isApplied ? "Applied" : "Apply"}
             labelHoverWidthClassName={isApplied ? "group-hover:w-[7ch]" : "group-hover:w-[5ch]"}
-            textClassName={cn(textClassName, !quiet && "group-hover:text-black!")}
+            textClassName={cn(textClassName, !quiet && "group-hover:text-primary-foreground!")}
             isTransitioning={isTransitioning}
             quiet={quiet}
           />
