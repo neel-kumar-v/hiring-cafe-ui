@@ -36,8 +36,30 @@ type ChipGroupMeta = {
   categoryId: CategoryId;
 };
 
-function isEqual(left: unknown, right: unknown) {
-  return JSON.stringify(left) === JSON.stringify(right);
+function isEqual(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (left == null || right == null) return left === right;
+  if (typeof left !== typeof right) return false;
+
+  if (Array.isArray(left)) {
+    if (!Array.isArray(right) || left.length !== right.length) return false;
+    for (let i = 0; i < left.length; i++) {
+      if (!isEqual(left[i], right[i])) return false;
+    }
+    return true;
+  }
+
+  if (typeof left === "object") {
+    const lKeys = Object.keys(left as Record<string, unknown>);
+    const rKeys = Object.keys(right as Record<string, unknown>);
+    if (lKeys.length !== rKeys.length) return false;
+    for (const key of lKeys) {
+      if (!isEqual((left as Record<string, unknown>)[key], (right as Record<string, unknown>)[key])) return false;
+    }
+    return true;
+  }
+
+  return left === right;
 }
 
 function asList<T>(value: Select<T> | Select<T, null> | null | undefined): T[] {

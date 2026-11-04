@@ -29,192 +29,194 @@ interface CompanyLogoInnerProps {
   transparentBackground?: boolean;
 }
 
-const CompanyLogoInner = memo(({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName, imageAlt, size, transparentBackground = false }: CompanyLogoInnerProps) => {
-  const srcChain = useMemo(() => {
-    // Enable favicon fallbacks across all sizes (including list cards) so companies
-    // with only favicon assets (e.g. Lockheed Martin) render reliably instead of falling back to initials.
-    const includeFavicons = true;
-    return getCompanyLogoSources(companyData, faviconSizePx, { includeFavicons });
-  }, [companyData.image_url, companyData.canonical_domain, companyData.website, faviconSizePx, size]);
+const CompanyLogoInner = memo(
+  ({ companyData, faviconSizePx, containerClassName, imageClassName, fallbackClassName, imageAlt, size, transparentBackground = false }: CompanyLogoInnerProps) => {
+    const srcChain = useMemo(() => {
+      // Enable favicon fallbacks across all sizes (including list cards) so companies
+      // with only favicon assets (e.g. Lockheed Martin) render reliably instead of falling back to initials.
+      const includeFavicons = true;
+      return getCompanyLogoSources(companyData, faviconSizePx, { includeFavicons });
+    }, [companyData.image_url, companyData.canonical_domain, companyData.website, faviconSizePx, size]);
 
-  const [chainIndex, setChainIndex] = useState(0);
+    const [chainIndex, setChainIndex] = useState(0);
 
-  useEffect(() => {
-    setChainIndex(0);
-  }, [srcChain.join("|")]);
+    useEffect(() => {
+      setChainIndex(0);
+    }, [srcChain.join("|")]);
 
-  const activeSrc = chainIndex < srcChain.length ? srcChain[chainIndex] : undefined;
-  const showImage = activeSrc !== undefined;
+    const activeSrc = chainIndex < srcChain.length ? srcChain[chainIndex] : undefined;
+    const showImage = activeSrc !== undefined;
 
-  const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
-  useEffect(() => {
-    setImageLoaded(false);
-  }, [activeSrc]);
+    useEffect(() => {
+      setImageLoaded(false);
+    }, [activeSrc]);
 
-  const minDimension = useMemo(() => {
-    switch (size) {
-      case "sm":
-        return 36;
-      case "md":
-      case "list":
-        return 44;
-      case "lg":
-      case "xl":
-      default:
-        return 64;
-    }
-  }, [size]);
+    const minDimension = useMemo(() => {
+      switch (size) {
+        case "sm":
+          return 36;
+        case "md":
+        case "list":
+          return 44;
+        case "lg":
+        case "xl":
+        default:
+          return 64;
+      }
+    }, [size]);
 
-  const validateAndProcessImage = useCallback(
-    (img: HTMLImageElement) => {
-      const { naturalWidth, naturalHeight } = img;
-      const isSvg = Boolean(activeSrc && (/\.svg(\?|$)/i.test(activeSrc) || activeSrc.startsWith("data:image/svg+xml")));
-      const isFavicon = Boolean(activeSrc && isFaviconServiceUrl(activeSrc));
+    const validateAndProcessImage = useCallback(
+      (img: HTMLImageElement) => {
+        const { naturalWidth, naturalHeight } = img;
+        const isSvg = Boolean(activeSrc && (/\.svg(\?|$)/i.test(activeSrc) || activeSrc.startsWith("data:image/svg+xml")));
+        const isFavicon = Boolean(activeSrc && isFaviconServiceUrl(activeSrc));
 
-      if (isFavicon) {
-        // Favicon fallbacks: accept valid decoded icons with a reasonable aspect ratio
-        if (naturalWidth > 0 && naturalHeight > 0) {
-          const aspectRatio = naturalWidth / naturalHeight;
-          if (aspectRatio >= 0.5 && aspectRatio <= 2.0) {
-            setImageLoaded(true);
-            return;
+        if (isFavicon) {
+          // Favicon fallbacks: accept valid decoded icons with a reasonable aspect ratio
+          if (naturalWidth > 0 && naturalHeight > 0) {
+            const aspectRatio = naturalWidth / naturalHeight;
+            if (aspectRatio >= 0.5 && aspectRatio <= 2.0) {
+              setImageLoaded(true);
+              return;
+            }
           }
+          setChainIndex((i) => i + 1);
+          return;
         }
-        setChainIndex((i) => i + 1);
-        return;
+
+        // Verify that primary logo candidates can properly expand and fill the square slot without
+        // unsightly letterboxing, tiny low-res pixelation, or broken decodes.
+        const expandable = isExpandableLogo(naturalWidth, naturalHeight, {
+          minDimension,
+          minAspectRatio: 0.75,
+          maxAspectRatio: 1.35,
+          src: activeSrc,
+          isSvg,
+        });
+
+        if (!expandable) {
+          // Fall back to next source or monogram UI
+          setChainIndex((i) => i + 1);
+          return;
+        }
+
+        setImageLoaded(true);
+      },
+      [activeSrc, minDimension]
+    );
+
+    const handleImageLoad = useCallback(
+      (e: React.SyntheticEvent<HTMLImageElement>) => {
+        validateAndProcessImage(e.currentTarget);
+      },
+      [validateAndProcessImage]
+    );
+
+    const handleImageError = useCallback(() => {
+      setChainIndex((i) => i + 1);
+    }, []);
+
+    const imgRef = useRef<HTMLImageElement | null>(null);
+
+    useEffect(() => {
+      if (imgRef.current?.complete && activeSrc) {
+        validateAndProcessImage(imgRef.current);
       }
+    }, [activeSrc, validateAndProcessImage]);
 
-      // Verify that primary logo candidates can properly expand and fill the square slot without
-      // unsightly letterboxing, tiny low-res pixelation, or broken decodes.
-      const expandable = isExpandableLogo(naturalWidth, naturalHeight, {
-        minDimension,
-        minAspectRatio: 0.75,
-        maxAspectRatio: 1.35,
-        src: activeSrc,
-        isSvg,
-      });
+    const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
 
-      if (!expandable) {
-        // Fall back to next source or monogram UI
-        setChainIndex((i) => i + 1);
-        return;
+    const abbreviation = useMemo(() => getCompanyAbbreviation(companyData.name || companyData.canonical_domain || "") || "?", [companyData.name, companyData.canonical_domain]);
+
+    const initialsContent = useMemo(() => renderCompanyAbbreviationGrid(abbreviation, false), [abbreviation]);
+
+    const imageUrlForAnalysis = showImage && activeSrc === companyData.image_url ? companyData.image_url : null;
+
+    useEffect(() => {
+      if (imageUrlForAnalysis) {
+        analyzeImageBackground(imageUrlForAnalysis).then(setBackgroundType);
+      } else {
+        setBackgroundType(null);
       }
+    }, [imageUrlForAnalysis]);
 
-      setImageLoaded(true);
-    },
-    [activeSrc, minDimension]
-  );
+    const backgroundClass = useMemo(() => {
+      if (!showImage) return "bg-brand-soft/50";
+      if (transparentBackground) return "";
+      if (backgroundType === "light") return "dark:bg-card";
+      if (backgroundType === "dark") return "dark:bg-background";
+      return "";
+    }, [showImage, backgroundType, transparentBackground]);
 
-  const handleImageLoad = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement>) => {
-      validateAndProcessImage(e.currentTarget);
-    },
-    [validateAndProcessImage]
-  );
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [squareStyle, setSquareStyle] = useState<React.CSSProperties | undefined>(undefined);
 
-  const handleImageError = useCallback(() => {
-    setChainIndex((i) => i + 1);
-  }, []);
+    useIsomorphicLayoutEffect(() => {
+      const el = containerRef.current;
+      if (!el) return;
 
-  const imgRef = useRef<HTMLImageElement | null>(null);
+      const enforceSquare = () => {
+        const rect = el.getBoundingClientRect();
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        if (w > 0 && h > 0 && w !== h) {
+          const side = Math.min(w, h);
+          setSquareStyle({ width: `${side}px`, height: `${side}px` });
+        }
+      };
 
-  useEffect(() => {
-    if (imgRef.current?.complete && activeSrc) {
-      validateAndProcessImage(imgRef.current);
-    }
-  }, [activeSrc, validateAndProcessImage]);
+      enforceSquare();
 
-  const [backgroundType, setBackgroundType] = useState<"light" | "dark" | null>(null);
+      const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(enforceSquare) : null;
+      ro?.observe(el);
+      return () => ro?.disconnect();
+    }, []);
 
-  const abbreviation = useMemo(() => getCompanyAbbreviation(companyData.name || companyData.canonical_domain || "") || "?", [companyData.name, companyData.canonical_domain]);
+    const finalContainerClasses = useMemo(() => {
+      // Strip self-stretch so the container never stretches out of aspect-square along flex cross-axis
+      const cleanedContainer = containerClassName.replace(/\bself-stretch\b/g, "").trim();
+      return cn(cleanedContainer, backgroundClass);
+    }, [containerClassName, backgroundClass]);
 
-  const initialsContent = useMemo(() => renderCompanyAbbreviationGrid(abbreviation, false), [abbreviation]);
+    // An empty alt marks the logo as decorative, so the company name is announced by the adjacent text instead of twice.
+    const isDecorative = imageAlt.length === 0;
 
-  const imageUrlForAnalysis = showImage && activeSrc === companyData.image_url ? companyData.image_url : null;
+    const logoContent = useMemo(
+      () => (
+        <>
+          {showImage ? (
+            <>
+              {!imageLoaded && <Skeleton className="absolute inset-0 aspect-square h-full w-full" />}
+              <img
+                ref={imgRef}
+                alt={imageAlt}
+                className={`${imageClassName} transition-opacity duration-200 ease-out ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                decoding="async"
+                loading="lazy"
+                onError={handleImageError}
+                onLoad={handleImageLoad}
+                src={activeSrc}
+              />
+            </>
+          ) : (
+            <span aria-hidden={isDecorative ? true : undefined} className={`${fallbackClassName} animate-in fade-in-0 duration-200`}>
+              {initialsContent}
+            </span>
+          )}
+        </>
+      ),
+      [showImage, imageAlt, isDecorative, imageClassName, fallbackClassName, initialsContent, handleImageError, handleImageLoad, activeSrc, imageLoaded]
+    );
 
-  useEffect(() => {
-    if (imageUrlForAnalysis) {
-      analyzeImageBackground(imageUrlForAnalysis).then(setBackgroundType);
-    } else {
-      setBackgroundType(null);
-    }
-  }, [imageUrlForAnalysis]);
-
-  const backgroundClass = useMemo(() => {
-    if (!showImage) return "bg-brand-soft/50";
-    if (transparentBackground) return "";
-    if (backgroundType === "light") return "dark:bg-card";
-    if (backgroundType === "dark") return "dark:bg-background";
-    return "";
-  }, [showImage, backgroundType, transparentBackground]);
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [squareStyle, setSquareStyle] = useState<React.CSSProperties | undefined>(undefined);
-
-  useIsomorphicLayoutEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const enforceSquare = () => {
-      const rect = el.getBoundingClientRect();
-      const w = Math.round(rect.width);
-      const h = Math.round(rect.height);
-      if (w > 0 && h > 0 && w !== h) {
-        const side = Math.min(w, h);
-        setSquareStyle({ width: `${side}px`, height: `${side}px` });
-      }
-    };
-
-    enforceSquare();
-
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(enforceSquare) : null;
-    ro?.observe(el);
-    return () => ro?.disconnect();
-  }, []);
-
-  const finalContainerClasses = useMemo(() => {
-    // Strip self-stretch so the container never stretches out of aspect-square along flex cross-axis
-    const cleanedContainer = containerClassName.replace(/\bself-stretch\b/g, "").trim();
-    return cn(cleanedContainer, backgroundClass);
-  }, [containerClassName, backgroundClass]);
-
-  // An empty alt marks the logo as decorative, so the company name is announced by the adjacent text instead of twice.
-  const isDecorative = imageAlt.length === 0;
-
-  const logoContent = useMemo(
-    () => (
-      <>
-        {showImage ? (
-          <>
-            {!imageLoaded && <Skeleton className="absolute inset-0 aspect-square h-full w-full" />}
-            <img
-              ref={imgRef}
-              alt={imageAlt}
-              className={`${imageClassName} transition-opacity duration-200 ease-out ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-              decoding="async"
-              loading="lazy"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              src={activeSrc}
-            />
-          </>
-        ) : (
-          <span aria-hidden={isDecorative ? true : undefined} className={`${fallbackClassName} animate-in fade-in-0 duration-200`}>
-            {initialsContent}
-          </span>
-        )}
-      </>
-    ),
-    [showImage, imageAlt, isDecorative, imageClassName, fallbackClassName, initialsContent, handleImageError, handleImageLoad, activeSrc, imageLoaded]
-  );
-
-  return (
-    <div ref={containerRef} className={finalContainerClasses} style={squareStyle}>
-      {logoContent}
-    </div>
-  );
-});
+    return (
+      <div ref={containerRef} className={finalContainerClasses} style={squareStyle}>
+        {logoContent}
+      </div>
+    );
+  }
+);
 
 CompanyLogoInner.displayName = "CompanyLogoInner";
 
@@ -233,15 +235,7 @@ interface CompanyLogoProps {
 }
 
 const CompanyLogo = memo(
-  ({
-    companyData,
-    size = "md",
-    variant = "default",
-    className = "",
-    imageClassName = "",
-    faviconSizePx: customFaviconSizePx,
-    alt = "",
-  }: CompanyLogoProps) => {
+  ({ companyData, size = "md", variant = "default", className = "", imageClassName = "", faviconSizePx: customFaviconSizePx, alt = "" }: CompanyLogoProps) => {
     const sizeClasses = {
       sm: "size-12",
       md: "size-14",
@@ -287,12 +281,7 @@ const CompanyLogo = memo(
 
     const imageClasses = useMemo(() => {
       const padding = variant === "inbox" ? "p-0" : paddingClasses[size];
-      const baseClasses = cn(
-        "h-full w-full object-contain",
-        variant === "inbox" ? "rounded-md" : roundedClasses[size],
-        padding,
-        imageClassName
-      );
+      const baseClasses = cn("h-full w-full object-contain", variant === "inbox" ? "rounded-md" : roundedClasses[size], padding, imageClassName);
 
       if (variant === "dialog") {
         return `${baseClasses} drop-shadow-lg`;

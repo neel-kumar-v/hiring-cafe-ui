@@ -74,7 +74,7 @@ export default function Navbar({ className, searchLeadingSlot, searchTrailingSlo
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-primary/20 bg-background-header px-2 dark:border-primary/25 dark:bg-background",
+        "sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-background-header px-2 dark:bg-background",
         className
       )}
     >

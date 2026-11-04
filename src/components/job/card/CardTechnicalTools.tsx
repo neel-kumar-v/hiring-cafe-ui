@@ -3,6 +3,7 @@
 import { formatTool } from "@/lib/job-info";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/contexts/AppContext";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { countWrapRows, getNaturalTextWidth } from "@/lib/pretext-text";
 import { isAnyJobCardHovered, isJobCardHoverSettled, markElementHoveredIfHovered, onJobCardHoverSettled } from "@/lib/jobs/cardHoverTracker";
 import { useMemo, useRef, useState, useEffect, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
@@ -28,6 +29,7 @@ const MATCHED_ICON_PX = 16; // matched chips add a size-3 icon (12) + gap-1 (4)
 
 const CardTechnicalTools = ({ technicalTools, variant = "card" }: CardTechnicalToolsProps) => {
   const { user, addSkill, removeSkill } = useApp();
+  const { prefs } = useCardPrefs();
   const tools = technicalTools ?? [];
   const chipsRef = useRef<HTMLDivElement>(null);
   const [restMaxHeight, setRestMaxHeight] = useState<string | null>(null);
@@ -237,10 +239,8 @@ const CardTechnicalTools = ({ technicalTools, variant = "card" }: CardTechnicalT
   // this gate a card that mounts under the pointer (measure() bails while the
   // card matches ":hover") keeps the old "20rem" fallback and expands the
   // strip on hover to reveal nothing but empty space below the chips.
-  const expandable =
-    expandedHeight !== null &&
-    restVisibleHeight !== null &&
-    parseFloat(expandedHeight) > restVisibleHeight + 1;
+  // The "Disable hover expansion — Skills" pref forces the rest state.
+  const expandable = !prefs.disableSkillsHoverExpansion && expandedHeight !== null && restVisibleHeight !== null && parseFloat(expandedHeight) > restVisibleHeight + 1;
 
   const chipBaseClass = isDialog
     ? "inline-flex items-center gap-1.5 shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium leading-normal select-none whitespace-nowrap transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -287,9 +287,7 @@ const CardTechnicalTools = ({ technicalTools, variant = "card" }: CardTechnicalT
       <div
         className={cn(
           "relative min-w-0 transition-[height] duration-[350ms] ease-out motion-reduce:transition-none pointer-coarse:h-auto pointer-none:h-auto",
-          expandable
-            ? "h-[var(--skills-rest-height)] pointer-fine:group-hover/card:h-[var(--skills-expanded-height)]"
-            : "h-auto"
+          expandable ? "h-[var(--skills-rest-height)] pointer-fine:group-hover/card:h-[var(--skills-expanded-height)]" : "h-auto"
         )}
         style={
           expandable
@@ -312,9 +310,7 @@ const CardTechnicalTools = ({ technicalTools, variant = "card" }: CardTechnicalT
             // shadow that fakes one) reads as a grey box around the chips.
             "scrollbar-none flex min-w-0 max-w-full flex-wrap gap-1.5 rounded-md bg-transparent py-1 overflow-hidden transition-[max-height] duration-[350ms] ease-out motion-reduce:transition-none pointer-coarse:static pointer-coarse:max-h-none pointer-none:static pointer-none:max-h-none",
             "pointer-fine:max-h-[var(--skills-rest-max-h)]",
-            expandable
-              ? "absolute top-0 right-0 left-0 z-10 pointer-fine:group-hover/card:max-h-[var(--skills-expanded-height)]"
-              : "relative"
+            expandable ? "absolute top-0 right-0 left-0 z-10 pointer-fine:group-hover/card:max-h-[var(--skills-expanded-height)]" : "relative"
           )}
         >
           {chips}

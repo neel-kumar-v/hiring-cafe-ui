@@ -55,7 +55,7 @@ function NavigationOptions({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className="pb-1" aria-label="Main Navigation">
+    <nav className="py-0" aria-label="Main Navigation">
       <Link href="/" onClick={onNavigate} className={inboxRowClass(pathname === "/" || Boolean(pathname?.startsWith("/search/")))}>
         <House className="size-4 shrink-0 text-muted-foreground group-hover/row:text-foreground" />
         <span className="truncate font-medium">Find Jobs</span>
@@ -821,7 +821,7 @@ export default function AppSidebar({
         <IconRibbon activeSavedId={activeSavedId} activeChatId={activeChatId} onSelectChat={openChat} />
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto pt-1 pb-2">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <NavigationOptions onNavigate={onNavigate} />
             <hr className="my-1 border-border" />
             <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent" headerHoverBg={false}>

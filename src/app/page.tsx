@@ -13,7 +13,7 @@ const JobBoard = lazy(() => import("@/components/JobBoard"));
 
 const LoadingFallback = () => (
   <div className="@container space-y-6">
-    <div className="grid min-h-[50vh] grid-cols-1 gap-4 @min-[640px]:grid-cols-2 @min-[640px]:gap-6 @min-[1024px]:grid-cols-3 @min-[1400px]:grid-cols-4 @min-[1800px]:grid-cols-5">
+    <div className="grid min-h-[50vh] grid-cols-1 gap-4 @min-[640px]:grid-cols-2 @min-[640px]:gap-6 @min-[1024px]:grid-cols-3 @min-[1400px]:grid-cols-4">
       {Array.from({ length: 10 }).map((_, i) => (
         <JobBoardCardSkeleton key={i} />
       ))}

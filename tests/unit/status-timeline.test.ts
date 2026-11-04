@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FUNNEL_STAGES, appendStatusEvent, logicalStatusPath, recordJobStatusEvent } from "../../src/lib/tracker/statusTimeline";
+import {
+  FUNNEL_STAGES,
+  appendStatusEvent,
+  currentTrackedStatus,
+  hasStatusHistory,
+  logicalStatusPath,
+  recordJobStatusEvent,
+  seedMissingJobEvents,
+  statusHistoryFor,
+} from "../../src/lib/tracker/statusTimeline";
 import type { JobStatus } from "../../src/types/app";
 import type { JobStatusEvent } from "../../src/types/tracker";
 
@@ -66,8 +75,55 @@ test("logicalStatusPath never produces reverse stages on zig-zag histories", () 
 test("logicalStatusPath handles hidden and current status", () => {
   assert.deepEqual(logicalStatusPath(undefined, "hidden"), ["hidden"]);
   assert.deepEqual(logicalStatusPath(events("saved", "hidden"), "hidden"), ["saved", "hidden"]);
-  assert.deepEqual(logicalStatusPath(undefined, "applied"), ["applied"]);
+  // Mid-funnel current status still enters through Saved.
+  assert.deepEqual(logicalStatusPath(undefined, "applied"), ["saved", "applied"]);
   assert.deepEqual(logicalStatusPath([], undefined), []);
-  // A legacy profile with no log reports only the stage it is actually in.
-  assert.deepEqual(logicalStatusPath(undefined, "rejected"), ["rejected"]);
+  assert.deepEqual(logicalStatusPath(undefined, "rejected"), ["saved", "rejected"]);
+});
+
+test("logicalStatusPath never skips Saved as the funnel entry", () => {
+  assert.deepEqual(logicalStatusPath(events("applied", "interviewing")), ["saved", "applied", "interviewing"]);
+  assert.deepEqual(logicalStatusPath(events("interviewing"), "interviewing"), ["saved", "interviewing"]);
+  assert.deepEqual(logicalStatusPath(events("saved", "applied", "interviewing")), ["saved", "applied", "interviewing"]);
+});
+
+test("currentTrackedStatus prefers applied over other columns", () => {
+  const lists = {
+    saved: ["job-a", "job-b"],
+    applied: ["job-a"],
+    interviewing: [] as string[],
+    rejected: [] as string[],
+    hidden: ["job-c"],
+  };
+  assert.equal(currentTrackedStatus(lists, "job-a"), "applied");
+  assert.equal(currentTrackedStatus(lists, "job-b"), "saved");
+  assert.equal(currentTrackedStatus(lists, "job-c"), "hidden");
+  assert.equal(currentTrackedStatus(lists, "missing"), null);
+});
+
+test("seedMissingJobEvents backfills only jobs with empty history", () => {
+  const lists = {
+    saved: ["legacy-saved"],
+    applied: ["legacy-applied", "logged"],
+    interviewing: [] as string[],
+    rejected: [] as string[],
+    hidden: [] as string[],
+  };
+  const existing = {
+    logged: events("saved", "applied"),
+  };
+
+  const seeded = seedMissingJobEvents(existing, lists, 1_700_000_100_000);
+
+  assert.deepEqual(statusHistoryFor(seeded, "legacy-applied"), [
+    { status: "saved", at: 1_700_000_100_000, from: null },
+    { status: "applied", at: 1_700_000_100_000, from: "saved" },
+  ]);
+  assert.deepEqual(statusHistoryFor(seeded, "legacy-saved"), [{ status: "saved", at: 1_700_000_100_000, from: null }]);
+  assert.equal(seeded.logged, existing.logged, "existing logs keep the same array reference");
+  assert.equal(hasStatusHistory(seeded, "legacy-applied"), true);
+  assert.equal(hasStatusHistory(seeded, "unknown"), false);
+
+  const again = seedMissingJobEvents(seeded, lists, 1_700_000_200_000);
+  assert.equal(again, seeded, "second seed is a no-op");
 });

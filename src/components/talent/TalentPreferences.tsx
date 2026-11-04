@@ -288,13 +288,7 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
             return (
               <div key={`link-${index}`} className="relative flex items-center">
                 <Icon className="pointer-events-none absolute left-3 size-4 text-muted-foreground" aria-hidden="true" />
-                <Input
-                  value={link}
-                  onChange={(e) => setLinkAt(index, e.target.value)}
-                  placeholder="https://"
-                  className="h-10 bg-background pl-9 shadow-xs"
-                  inputMode="url"
-                />
+                <Input value={link} onChange={(e) => setLinkAt(index, e.target.value)} placeholder="https://" className="h-10 bg-background pl-9 shadow-xs" inputMode="url" />
               </div>
             );
           })}

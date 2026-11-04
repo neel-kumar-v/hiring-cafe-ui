@@ -362,7 +362,7 @@ export default function SavedSearches() {
                         </div>
                       </div>
 
-                       <AllFilter searchOptions={safeSearchOptions} handleCategoryClick={handleCategoryClick} showButton={false} />
+                      <AllFilter searchOptions={safeSearchOptions} handleCategoryClick={handleCategoryClick} showButton={false} />
                     </div>
                   );
                 })}
@@ -439,11 +439,7 @@ function AgentPromptQuote({ prompt }: { prompt: string }) {
 
   return (
     <div className="relative mb-3 rounded-md bg-muted/40 text-xs text-muted-foreground sm:text-sm" title={prompt}>
-      <div
-        ref={scrollRef}
-        style={maskStyle}
-        className="overflow-x-auto overscroll-x-contain whitespace-nowrap p-2.5 scrollbar-none"
-      >
+      <div ref={scrollRef} style={maskStyle} className="overflow-x-auto overscroll-x-contain whitespace-nowrap p-2.5 scrollbar-none">
         <span className="font-semibold text-foreground">Agent prompt: </span>&ldquo;{prompt}&rdquo;
       </div>
     </div>

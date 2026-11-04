@@ -20,17 +20,14 @@ export interface CategoryChipDef {
 /** Matches `filterGroupOrder` in search-filters (General has no pill). */
 export const CATEGORY_CHIPS: CategoryChipDef[] = [
   { label: "Compensation & Levels", categoryType: "compensation", fromId: "compensation" },
+  { label: "Requirements", categoryType: "qualifications", fromId: "qualifications" },
   { label: "Location", categoryType: "location", fromId: "location" },
   { label: "Role & Department", categoryType: "role-department", fromId: "role-department" },
-  { label: "Qualifications", categoryType: "qualifications", fromId: "qualifications" },
   { label: "Availability", categoryType: "availability", fromId: "availability" },
   { label: "Company", categoryType: "company", fromId: "company" },
 ];
 
-export function getCategoryCounts(
-  searchOptions: SearchState,
-  initialState: SearchState = initialSearchState
-): Record<string, number> {
+export function getCategoryCounts(searchOptions: SearchState, initialState: SearchState = initialSearchState): Record<string, number> {
   const filterIdToType = new Map<string, string>();
   for (const filter of filters) {
     filterIdToType.set(filter.id, filter.type);
@@ -47,11 +44,7 @@ export function getCategoryCounts(
   return counts;
 }
 
-export function getCategoryActiveCount(
-  categoryType: string,
-  searchOptions: SearchState,
-  initialState: SearchState = initialSearchState
-): number {
+export function getCategoryActiveCount(categoryType: string, searchOptions: SearchState, initialState: SearchState = initialSearchState): number {
   return getCategoryCounts(searchOptions, initialState)[categoryType] ?? 0;
 }
 
@@ -61,9 +54,7 @@ export function CountChip({ count, className }: { count: number; className?: str
     <span
       className={cn(
         "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold leading-none",
-        isActive
-          ? "bg-primary text-primary-foreground"
-          : "bg-muted text-muted-foreground",
+        isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
         className
       )}
     >
@@ -92,8 +83,18 @@ export default function FilterPillBar({ className }: { className?: string }) {
     toast.success("Filters cleared.");
   };
 
+  /**
+   * Category chips deep-link into the existing search filters dialog/drawer
+   * for that category (`fromId`: compensation, location, …).
+   */
+  const handleChipClick = (event: React.MouseEvent<HTMLButtonElement>, fromId: string) => {
+    // Ancestors (job cards/list rows) must not treat this as a card click and open job details.
+    event.stopPropagation();
+    handleSearchIconClick(fromId);
+  };
+
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+    <div className={cn("@container/pills flex flex-wrap items-center gap-1.5 @min-[720px]/pills:gap-2", className)}>
       {CATEGORY_CHIPS.map((chip) => {
         const count = categoryCounts[chip.categoryType] ?? 0;
         const isActive = count > 0;
@@ -102,16 +103,16 @@ export default function FilterPillBar({ className }: { className?: string }) {
           <button
             key={chip.fromId}
             type="button"
-            onClick={() => handleSearchIconClick(chip.fromId)}
+            onClick={(event) => handleChipClick(event, chip.fromId)}
             className={cn(
-              "flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm transition-colors",
+              "flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] transition-colors @min-[720px]/pills:h-8 @min-[720px]/pills:gap-1.5 @min-[720px]/pills:px-3 @min-[720px]/pills:text-xs @min-[900px]/pills:h-9 @min-[900px]/pills:px-3.5 @min-[900px]/pills:text-sm",
               isActive
                 ? "border border-primary/40 bg-primary/5 font-semibold text-primary hover:bg-primary/10"
                 : "border border-border bg-background font-medium text-foreground hover:bg-accent"
             )}
           >
-            {chip.label}
-            <CountChip count={count} />
+            <span className="whitespace-nowrap">{chip.label}</span>
+            <CountChip count={count} className="@max-[719px]/pills:h-3.5 @max-[719px]/pills:min-w-3.5 @max-[719px]/pills:px-1 @max-[719px]/pills:text-[9px]" />
           </button>
         );
       })}
@@ -120,9 +121,9 @@ export default function FilterPillBar({ className }: { className?: string }) {
         <button
           type="button"
           onClick={handleClearFilters}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-border/80 bg-background px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+          className="flex h-7 items-center gap-1 rounded-full border border-border/80 bg-background px-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive @min-[720px]/pills:h-8 @min-[720px]/pills:gap-1.5 @min-[720px]/pills:px-3 @min-[720px]/pills:text-xs @min-[900px]/pills:h-9"
         >
-          <RotateCcw className="size-3.5" />
+          <RotateCcw className="size-3 @min-[900px]/pills:size-3.5" />
           Clear filters
         </button>
       ) : null}

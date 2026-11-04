@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, startTransition, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -61,17 +61,10 @@ export interface SentenceBlankSearchInputProps {
  * Compact inline search input pinned to the top of sentence blank dropdown menus.
  * Mimics CommandInput styling and intercepts keys to avoid Radix menu typeahead collisions.
  */
-export function SentenceBlankSearchInput({
-  value,
-  onChange,
-  inputRef,
-  placeholder = "Search...",
-  ariaLabel = "Search options",
-  onKeyDown,
-}: SentenceBlankSearchInputProps) {
+export function SentenceBlankSearchInput({ value, onChange, inputRef, placeholder = "Search...", ariaLabel = "Search options", onKeyDown }: SentenceBlankSearchInputProps) {
   return (
     <div
-      className="sticky -top-1 z-10 -mx-1 -mt-1 mb-1 flex h-8 items-center gap-1.5 border-b border-border/60 bg-popover px-2"
+      className="sticky-dialog-header sticky -top-1 z-10 -mx-1 -mt-1 mb-1 flex h-8 items-center gap-1.5 border-b border-border/60 bg-popover px-2"
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >
@@ -136,25 +129,35 @@ export interface UseSentenceBlankSearchOptions<T extends { label: string; phrase
   searchThreshold?: number;
 }
 
+/** Cap rendered rows. Filtering still searches the full list; only the visible slice is mounted. */
+const SENTENCE_BLANK_RENDER_LIMIT = 40;
+
+function filterSentenceOptions<T extends { label: string; phrase?: string }>(options: ReadonlyArray<T>, query: string): ReadonlyArray<T> {
+  const trimmed = query.trim().toLowerCase();
+  if (!trimmed) return options;
+  return options.filter((option) => {
+    if (option.label.toLowerCase().includes(trimmed)) return true;
+    return option.phrase ? option.phrase.toLowerCase().includes(trimmed) : false;
+  });
+}
+
 export function useSentenceBlankSearch<T extends { label: string; phrase?: string }>({
   options,
   searchable,
   searchThreshold = SENTENCE_BLANK_SEARCH_THRESHOLD,
 }: UseSentenceBlankSearchOptions<T>) {
   const [searchQuery, setSearchQuery] = useState("");
+  // Filtering the (often 250-item) list yields to the keystroke; the input itself stays urgent.
+  const deferredQuery = useDeferredValue(searchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isSearchable = searchable ?? options.length >= searchThreshold;
 
   const filteredOptions = useMemo(() => {
-    if (!isSearchable || !searchQuery.trim()) return options;
-    const query = searchQuery.trim().toLowerCase();
-    return options.filter((option) => {
-      const labelMatch = option.label.toLowerCase().includes(query);
-      const phraseMatch = option.phrase ? option.phrase.toLowerCase().includes(query) : false;
-      return labelMatch || phraseMatch;
-    });
-  }, [options, isSearchable, searchQuery]);
+    if (!isSearchable) return options;
+    const matches = filterSentenceOptions(options, deferredQuery);
+    return matches.length > SENTENCE_BLANK_RENDER_LIMIT ? matches.slice(0, SENTENCE_BLANK_RENDER_LIMIT) : matches;
+  }, [options, isSearchable, deferredQuery]);
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
@@ -221,7 +224,7 @@ export interface SentenceBlankSelectProps<T> {
  * checkmarked options. Used by single-select sentence filters
  * (DateRange / Sorting, …).
  */
-export function SentenceBlankSelect<T extends string | number>({
+function SentenceBlankSelectInner<T extends string | number>({
   options,
   value,
   onChange,
@@ -238,15 +241,7 @@ export function SentenceBlankSelect<T extends string | number>({
   const rawTrigger = selected?.phrase ?? selected?.label ?? effectivePlaceholder;
   const triggerText = unspecifiedBlank(rawTrigger, effectivePlaceholder);
 
-  const {
-    isSearchable,
-    searchQuery,
-    setSearchQuery,
-    filteredOptions,
-    inputRef,
-    handleOpenChange,
-    handleOpenAutoFocus,
-  } = useSentenceBlankSearch({
+  const { isSearchable, searchQuery, setSearchQuery, filteredOptions, inputRef, handleOpenChange, handleOpenAutoFocus } = useSentenceBlankSearch({
     options,
     searchable,
     searchThreshold,
@@ -289,8 +284,8 @@ export function SentenceBlankSelect<T extends string | number>({
                 }
               }}
             >
-              <Check className={cn("mr-1 size-4", option.value === value ? "opacity-100" : "opacity-0")} />
               {option.label}
+              <Check className={cn("ml-auto size-4 shrink-0", option.value === value ? "opacity-100" : "opacity-0")} aria-hidden="true" />
             </DropdownMenuItem>
           ))
         )}
@@ -298,6 +293,8 @@ export function SentenceBlankSelect<T extends string | number>({
     </DropdownMenu>
   );
 }
+
+export const SentenceBlankSelect = memo(SentenceBlankSelectInner) as typeof SentenceBlankSelectInner;
 
 // ---------------------------------------------------------------------------
 // Dropdown blank (multi select)
@@ -337,7 +334,7 @@ export interface SentenceBlankMultiSelectProps<T> {
  * Formats the selected items using `formatCountedList` (N1/N2 thresholds, conjunctions).
  * The dropdown menu keeps open on selection so users can toggle multiple options.
  */
-export function SentenceBlankMultiSelect<T extends string | number>({
+function SentenceBlankMultiSelectInner<T extends string | number>({
   options,
   values,
   onChange,
@@ -350,7 +347,8 @@ export function SentenceBlankMultiSelect<T extends string | number>({
   searchThreshold,
   searchPlaceholder,
 }: SentenceBlankMultiSelectProps<T>) {
-  const selectedOptions = options.filter((option) => values.includes(option.value));
+  const selectedSet = useMemo(() => new Set(values), [values]);
+  const selectedOptions = options.filter((option) => selectedSet.has(option.value));
   const selectedPhrases = selectedOptions.map((option) => option.phrase ?? option.label);
 
   const effectivePlaceholder = unspecifiedBlank(placeholder);
@@ -367,20 +365,13 @@ export function SentenceBlankMultiSelect<T extends string | number>({
   );
 
   const handleToggle = (optionValue: T) => {
-    const isSelected = values.includes(optionValue);
+    const isSelected = selectedSet.has(optionValue);
     const nextValues = isSelected ? values.filter((v) => v !== optionValue) : [...values, optionValue];
-    onChange(nextValues);
+    // The checkmark updates immediately; rebuilding chips/edit counts can wait.
+    startTransition(() => onChange(nextValues));
   };
 
-  const {
-    isSearchable,
-    searchQuery,
-    setSearchQuery,
-    filteredOptions,
-    inputRef,
-    handleOpenChange,
-    handleOpenAutoFocus,
-  } = useSentenceBlankSearch({
+  const { isSearchable, searchQuery, setSearchQuery, filteredOptions, inputRef, handleOpenChange, handleOpenAutoFocus } = useSentenceBlankSearch({
     options,
     searchable,
     searchThreshold,
@@ -413,7 +404,7 @@ export function SentenceBlankMultiSelect<T extends string | number>({
           <div className="py-4 text-center text-xs text-muted-foreground select-none">No options found</div>
         ) : (
           filteredOptions.map((option, index) => {
-            const isChecked = values.includes(option.value);
+            const isChecked = selectedSet.has(option.value);
             return (
               <DropdownMenuCheckboxItem
                 key={String(option.value)}
@@ -438,6 +429,8 @@ export function SentenceBlankMultiSelect<T extends string | number>({
     </DropdownMenu>
   );
 }
+
+export const SentenceBlankMultiSelect = memo(SentenceBlankMultiSelectInner) as typeof SentenceBlankMultiSelectInner;
 
 // ---------------------------------------------------------------------------
 // Inline number blank (min/max/amount value inside a sentence)
@@ -488,8 +481,11 @@ export function SentenceInlineNumberInput({
 
   const handleChange = (raw: string) => {
     const cleaned = raw.replace(/[^0-9]/g, "");
-    setDraft(cleaned);
-    onChange(cleaned);
+    // Local draft paints immediately; the parent re-derives the whole filter tree.
+    startTransition(() => {
+      setDraft(cleaned);
+      onChange(cleaned);
+    });
   };
 
   const commit = () => {
@@ -600,8 +596,10 @@ export function SentenceNumberBlank({
   const setDigits = (raw: string) => {
     selectOnOpenRef.current = false;
     const cleaned = raw.replace(/[^0-9]/g, "");
-    setDraft(cleaned);
-    onChange(cleaned);
+    startTransition(() => {
+      setDraft(cleaned);
+      onChange(cleaned);
+    });
   };
 
   const commit = () => {

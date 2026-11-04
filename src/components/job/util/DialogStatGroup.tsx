@@ -58,7 +58,11 @@ const DialogStatGroup = ({
         side="bottom"
       >
         <a className="flex cursor-pointer items-center space-x-1 leading-none" href={applyUrl} target="_blank" rel="noopener noreferrer external">
-          {isApplied ? <Send className={cn("inline shrink-0 fill-primary text-primary", iconClassName)} /> : <Send className={cn("inline shrink-0 text-muted-foreground", iconClassName)} />}
+          {isApplied ? (
+            <Send className={cn("inline shrink-0 fill-primary text-primary", iconClassName)} />
+          ) : (
+            <Send className={cn("inline shrink-0 text-muted-foreground", iconClassName)} />
+          )}
           <span className={cn(textClassName, "leading-none", jobFadeClass(isTransitioning))}>{appliedCount}</span>
         </a>
       </UniversalTooltip>

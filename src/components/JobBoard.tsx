@@ -12,7 +12,7 @@ import { useApp } from "../contexts/AppContext";
 import { useSearchUI, type JobBoardLayout } from "../contexts/SearchContext";
 import { useJobBoardSelection } from "../hooks/useJobBoardSelection";
 import { JobPreviewOverlay, useJobPreviewChrome } from "../hooks/useJobPreview";
-import { getJobGridColumnsForWidth, JOB_GRID_WIDTH_STEPS, useQuantizedContainerWidth } from "../hooks/useContainerWidth";
+import { resolveJobBoardLayout, useJobBoardColumns } from "../hooks/useContainerWidth";
 import {
   buildJobBoardDisplayedCollections,
   flattenJobBoardPositions,
@@ -71,15 +71,13 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
   // Quantized to the grid-column breakpoints: during sidebar/chat drag-resize
   // the observer fires every frame, and stepping on thresholds only (the only
   // thing `columns` reacts to) keeps the board from re-rendering while dragging.
-  const containerWidth = useQuantizedContainerWidth(containerRef, JOB_GRID_WIDTH_STEPS);
-  const columns = getJobGridColumnsForWidth(containerWidth);
+  const { columns, isOneColumn } = useJobBoardColumns(containerRef);
 
-  // A container narrow enough for a single column can't fit the waterfall or
-  // grid presentation, so the board degrades to the list layout — exactly what
-  // the List tab shows. Width 0 means "not measured yet" (SSR / first paint):
-  // check window width as client fallback to avoid layout flash.
-  const isSingleColumn = containerWidth > 0 ? columns <= 1 : typeof window !== "undefined" ? window.innerWidth < 640 : false;
-  const effectiveLayout: JobBoardLayout = isSingleColumn ? "list" : boardLayout;
+  // A one-column board (a measured container too narrow for two cards, or the
+  // mobile shell below `md`) can't fit the waterfall or grid presentation, so it
+  // degrades to the list layout — exactly what the List tab shows. The stored
+  // preference is kept untouched so desktop keeps the user's choice.
+  const effectiveLayout: JobBoardLayout = resolveJobBoardLayout(isOneColumn, boardLayout);
 
   const initialCount = columns * 4;
   const [visibleRowCount, setVisibleRowCount] = useState(initialCount);
@@ -618,8 +616,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
   // changes (e.g. sidebar open/close, window resize). The grid stretches each
   // card to its row height, which keeps every footer aligned to the card
   // bottom; masonry splits the same collections into independent columns.
-  const gridClassName =
-    "grid scroll-mt-14 grid-cols-1 items-stretch gap-4 @min-[640px]:grid-cols-2 @min-[640px]:gap-6 @min-[1024px]:grid-cols-3 @min-[1400px]:grid-cols-4 @min-[1800px]:grid-cols-5";
+  const gridClassName = "grid scroll-mt-14 grid-cols-1 items-stretch gap-4 @min-[640px]:grid-cols-2 @min-[640px]:gap-6 @min-[1024px]:grid-cols-3 @min-[1400px]:grid-cols-4";
   const columnGapClassName = "gap-4 @min-[640px]:gap-6";
   const columnRowClassName = `flex scroll-mt-14 items-start ${columnGapClassName}`;
   const columnClassName = `flex min-w-0 flex-1 flex-col ${columnGapClassName}`;

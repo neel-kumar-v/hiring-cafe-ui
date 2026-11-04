@@ -246,46 +246,28 @@ test("getActivityOutcomesTitle splits views, applications, saves, and outcomes s
       highRejection: false,
     },
   });
-  assert.equal(
-    customTitle,
-    "Show jobs with few views. Show jobs with few applications or lots of applications. Show jobs with lots of saves. Show jobs with interviews reported"
-  );
+  assert.equal(customTitle, "Show jobs with few views. Show jobs with few applications or lots of applications. Show jobs with lots of saves. Show jobs with interviews reported");
 });
 
 test("getTravelTitle splits air travel and land travel sentences", async () => {
   const { getTravelTitle } = await import("../../src/components/search/filters/availability/Travel");
   const defaultTitle = getTravelTitle();
-  assert.equal(
-    defaultTitle,
-    "Show jobs with any amount of air travel. Show jobs with any amount of land travel"
-  );
+  assert.equal(defaultTitle, "Show jobs with any amount of air travel. Show jobs with any amount of land travel");
 
   const customTitle = getTravelTitle({
     air: ["None"],
     land: ["Moderate", "Extensive"],
   });
-  assert.equal(
-    customTitle,
-    "Show jobs with None air travel. Show jobs with Moderate or Extensive land travel"
-  );
+  assert.equal(customTitle, "Show jobs with None air travel. Show jobs with Moderate or Extensive land travel");
 });
 
 test("getExclusionTitle treats empty selection as don't exclude any", async () => {
   const { getExclusionTitle } = await import("../../src/components/search/filters/general/Exclusion");
   assert.equal(getExclusionTitle(), "Don't exclude any jobs");
   assert.equal(getExclusionTitle([]), "Don't exclude any jobs");
-  assert.equal(
-    getExclusionTitle(["Applied", "Viewed", "Saved", "Hidden"]),
-    "Exclude jobs you have applied to, viewed, saved, or hidden"
-  );
-  assert.equal(
-    getExclusionTitle(["Applied", "Viewed", "Saved"]),
-    "Exclude jobs you have applied to, viewed, or saved"
-  );
-  assert.equal(
-    getExclusionTitle(["Applied", "Saved"]),
-    "Exclude jobs you have applied to or saved"
-  );
+  assert.equal(getExclusionTitle(["Applied", "Viewed", "Saved", "Hidden"]), "Exclude jobs you have applied to, viewed, saved, or hidden");
+  assert.equal(getExclusionTitle(["Applied", "Viewed", "Saved"]), "Exclude jobs you have applied to, viewed, or saved");
+  assert.equal(getExclusionTitle(["Applied", "Saved"]), "Exclude jobs you have applied to or saved");
 });
 
 // ---------------------------------------------------------------------------
@@ -327,5 +309,3 @@ test("CURRENCY_BLANK_OPTIONS contains expanded, deduplicated uppercase options",
   const opt = toCurrencyOption("eur");
   assert.deepEqual(opt, { value: "EUR", label: "EUR", phrase: "€ EUR" });
 });
-
-

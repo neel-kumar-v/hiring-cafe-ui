@@ -125,11 +125,7 @@ const CardStatGroup = ({
             />
           ) : (
             <Bookmark
-              className={cn(
-                "inline text-muted-foreground",
-                !quiet && "group-hover:text-black! group-hover/action:text-black!",
-                iconClassName
-              )}
+              className={cn("inline text-muted-foreground", !quiet && "group-hover:text-black! group-hover/action:text-black!", iconClassName)}
               fill="none"
               stroke="currentColor"
             />
@@ -137,8 +133,8 @@ const CardStatGroup = ({
 
           <HoverSwapText
             count={savedCount}
-            label={isBookmarked ? "Saved" : "Save"}
-            labelHoverWidthClassName={isBookmarked ? "group-hover:w-[5ch]" : "group-hover:w-[4ch]"}
+            label={isBookmarked ? "Unsave" : "Save"}
+            labelHoverWidthClassName={isBookmarked ? "group-hover:w-[7ch]" : "group-hover:w-[4ch]"}
             textClassName={cn(textClassName, !quiet && "group-hover:text-black!")}
             isTransitioning={isTransitioning}
             quiet={quiet}
@@ -171,11 +167,7 @@ const CardStatGroup = ({
             />
           ) : (
             <Send
-              className={cn(
-                "inline text-muted-foreground",
-                !quiet && "group-hover:text-black! group-hover/action:text-black!",
-                iconClassName
-              )}
+              className={cn("inline text-muted-foreground", !quiet && "group-hover:text-black! group-hover/action:text-black!", iconClassName)}
               fill="none"
               stroke="currentColor"
             />

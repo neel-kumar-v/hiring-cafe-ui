@@ -106,7 +106,7 @@ export default function TrackerPage() {
 
   return (
     <div ref={containerRef} className="min-h-[calc(100vh-4.5rem)] bg-background-body @container">
-      <div className="mx-auto max-w-full p-4 pb-0 @min-[1024px]:p-8">
+      <div className="mx-auto max-w-full p-4 pb-10 @min-[1024px]:p-8">
         <div className="mb-3">
           <div className="flex items-center gap-2">
             <SearchBar className="min-w-0 flex-1" searchQuery={searchQuery} onSearchChange={setSearchQuery} />
@@ -115,19 +115,16 @@ export default function TrackerPage() {
 
             {isLargeScreen ? (
               <div className="flex shrink-0 items-center gap-2">
-                <button
-                  className={`h-9 rounded-md border px-3 text-sm ${kanbanSelectionMode ? "bg-primary text-primary-foreground" : "bg-background"}`}
-                  onClick={() => setKanbanSelectionMode((prev) => !prev)}
-                >
-                  Select jobs
-                </button>
                 <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="h-[calc(100vh-250px)]">
+        {/* One primary page scroll: the list/board grows with its content and the
+            Job flow diagram below follows it, instead of a fixed-height nested
+            scroller that trapped the wheel before the diagram. */}
+        <div>
           {getEffectiveViewMode() === "board" ? (
             <KanbanBoard jobs={filteredJobs} visibleCategories={visibleCategories} selectionMode={kanbanSelectionMode} onSelectionModeChange={setKanbanSelectionMode} />
           ) : (

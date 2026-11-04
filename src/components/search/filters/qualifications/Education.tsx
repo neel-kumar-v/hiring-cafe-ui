@@ -1,142 +1,115 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+"use client";
+
 import { useApp } from "@/contexts/AppContext";
-import { createEducationKeywordsHandler, createEducationPreferenceHandler } from "@/lib/search";
-import { DegreePreferences } from "@/types/search";
-import FilterContainer from "../util/FilterContainer";
-import { KeywordsMultiSelect } from "../util/KeywordsMultiSelect";
-import LabelCheckbox from "../util/LabelCheckbox";
-import LabelInputContainer from "../util/LabelInputContainer";
 import { useSearchData } from "@/hooks/useSearchData";
+import { createEducationKeywordsHandler } from "@/lib/search";
+import { formatCountedList } from "@/lib/search/sentence-query";
+import type { DegreePreferences, DegreePreferencesOptions, Keywords, Select } from "@/types/search";
+import FilterContainer from "../util/FilterContainer";
+import { SentenceBlankMultiSelect, SentenceBlankSelect, SentenceText } from "../util/sentence-query";
+
+type DegreeKey = keyof DegreePreferencesOptions;
+
+const DEGREE_ROWS: Array<{ key: DegreeKey; label: string }> = [
+  { key: "associate", label: "Associate's" },
+  { key: "bachelor", label: "Bachelor's" },
+  { key: "master", label: "Master's" },
+  { key: "doctorate", label: "Doctorate" },
+];
+
+const PREFERENCE_OPTIONS: Array<{ value: DegreePreferences; label: string; phrase: string }> = [
+  { value: "Required", label: "be required", phrase: "be required" },
+  { value: "Preferred", label: "be preferred", phrase: "be preferred" },
+  { value: "Not Mentioned", label: "not be mentioned", phrase: "not be mentioned" },
+];
+
+const ANY_FIELD_TEXT = "any";
+
+function selectedPreference(value: Select<DegreePreferences, null> | undefined): DegreePreferences | undefined {
+  return Array.isArray(value) && value.length > 0 ? value[0] : undefined;
+}
+
+function preferencePhrase(value: Select<DegreePreferences, null> | undefined): string {
+  const selected = selectedPreference(value) ?? "Not Mentioned";
+  return PREFERENCE_OPTIONS.find((option) => option.value === selected)?.phrase ?? "not be mentioned";
+}
+
+function includeList(keywords: Keywords | undefined): string[] {
+  if (!keywords || !Array.isArray(keywords.include)) return [];
+  return keywords.include.filter(Boolean);
+}
+
+function fieldPhrase(keywords: Keywords | undefined): string {
+  const include = includeList(keywords);
+  return formatCountedList(include, { conjunction: "or", n1: 3, noneText: ANY_FIELD_TEXT });
+}
+
+export function getEducationTitle(education?: DegreePreferencesOptions): string {
+  return DEGREE_ROWS.map(({ key, label }) => {
+    const row = education?.[key];
+    return `${label} degree in ${fieldPhrase(row?.keywords)} should ${preferencePhrase(row?.preferences)}`;
+  }).join(". ");
+}
+
+function mergeBlankOptions(options: { label: string; value: string }[], selected: string[]) {
+  const seen = new Set(options.map((option) => option.value));
+  const extras = selected.filter((value) => !seen.has(value)).map((value) => ({ label: value, value }));
+  return [...extras, ...options];
+}
 
 export default function Education() {
   const { searchOptions, updateSearchOptions } = useApp();
-
-  const { options: degreeTitles, loading } = useSearchData("bachelors_degree_titles", true);
-
-  const handlePreferenceChange = createEducationPreferenceHandler(searchOptions.education, updateSearchOptions);
+  const { options: degreeTitles } = useSearchData("bachelors_degree_titles", true);
 
   const handleKeywordsChange = createEducationKeywordsHandler(searchOptions.education, updateSearchOptions);
 
-  const isPreferenceSelected = (degreeType: "associate" | "bachelor" | "master" | "doctorate", preference: DegreePreferences) => {
-    const currentPreferences = searchOptions.education[degreeType].preferences;
-    return Array.isArray(currentPreferences) && currentPreferences.includes(preference);
-  };
-
   return (
-    <FilterContainer categoryId="education" title="Education">
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading degree titles...</div>
-      ) : (
-        <Accordion type="multiple" className="w-full">
-          <AccordionItem
-            value="associate"
-            className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
-          >
-            <AccordionTrigger className="text-base font-medium">Associate&apos;s Degree</AccordionTrigger>
-            <AccordionContent className="space-y-3 p-2 pb-4">
-              <LabelInputContainer midColCount={4} lgColCount={4}>
-                <LabelCheckbox label="Required" checked={isPreferenceSelected("associate", "Required")} onChange={() => handlePreferenceChange("associate", "Required")} />
-                <LabelCheckbox label="Preferred" checked={isPreferenceSelected("associate", "Preferred")} onChange={() => handlePreferenceChange("associate", "Preferred")} />
-                <LabelCheckbox
-                  label="Not Mentioned"
-                  checked={isPreferenceSelected("associate", "Not Mentioned")}
-                  onChange={() => handlePreferenceChange("associate", "Not Mentioned")}
-                  className="md:col-span-2"
-                />
-              </LabelInputContainer>
-              <KeywordsMultiSelect
-                value={searchOptions.education.associate.keywords}
-                onChange={(keywords) => handleKeywordsChange("associate", keywords)}
-                includeOptions={degreeTitles}
-                excludeOptions={degreeTitles}
-                includePlaceholder="Include Degree Titles"
-                excludePlaceholder="Exclude Degree Titles"
-              />
-            </AccordionContent>
-          </AccordionItem>
+    <FilterContainer categoryId="education" chrome="stream">
+      {DEGREE_ROWS.map(({ key, label }) => {
+        const row = searchOptions.education[key];
+        const fields = includeList(row.keywords);
+        const fieldOptions = mergeBlankOptions(degreeTitles, fields);
+        const preference = selectedPreference(row.preferences) ?? "Not Mentioned";
 
-          <AccordionItem
-            value="bachelor"
-            className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
-          >
-            <AccordionTrigger className="text-base font-medium">Bachelor&apos;s Degree</AccordionTrigger>
-            <AccordionContent className="space-y-3 p-2 pb-4">
-              <LabelInputContainer midColCount={4} lgColCount={4}>
-                <LabelCheckbox label="Required" checked={isPreferenceSelected("bachelor", "Required")} onChange={() => handlePreferenceChange("bachelor", "Required")} />
-                <LabelCheckbox label="Preferred" checked={isPreferenceSelected("bachelor", "Preferred")} onChange={() => handlePreferenceChange("bachelor", "Preferred")} />
-                <LabelCheckbox
-                  label="Not Mentioned"
-                  checked={isPreferenceSelected("bachelor", "Not Mentioned")}
-                  onChange={() => handlePreferenceChange("bachelor", "Not Mentioned")}
-                  className="md:col-span-2"
-                />
-              </LabelInputContainer>
-              <KeywordsMultiSelect
-                value={searchOptions.education.bachelor.keywords}
-                onChange={(keywords) => handleKeywordsChange("bachelor", keywords)}
-                includeOptions={degreeTitles}
-                excludeOptions={degreeTitles}
-                includePlaceholder="Include Degree Titles"
-                excludePlaceholder="Exclude Degree Titles"
-              />
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem
-            value="master"
-            className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
-          >
-            <AccordionTrigger className="text-base font-medium">Master&apos;s Degree</AccordionTrigger>
-            <AccordionContent className="space-y-3 p-2 pb-4">
-              <LabelInputContainer midColCount={4} lgColCount={4}>
-                <LabelCheckbox label="Required" checked={isPreferenceSelected("master", "Required")} onChange={() => handlePreferenceChange("master", "Required")} />
-                <LabelCheckbox label="Preferred" checked={isPreferenceSelected("master", "Preferred")} onChange={() => handlePreferenceChange("master", "Preferred")} />
-                <LabelCheckbox
-                  label="Not Mentioned"
-                  checked={isPreferenceSelected("master", "Not Mentioned")}
-                  onChange={() => handlePreferenceChange("master", "Not Mentioned")}
-                  className="md:col-span-2"
-                />
-              </LabelInputContainer>
-              <KeywordsMultiSelect
-                value={searchOptions.education.master.keywords}
-                onChange={(keywords) => handleKeywordsChange("master", keywords)}
-                includeOptions={degreeTitles}
-                excludeOptions={degreeTitles}
-                includePlaceholder="Include Degree Titles"
-                excludePlaceholder="Exclude Degree Titles"
-              />
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem
-            value="doctorate"
-            className="w-full last-of-type:border-b-0 border-b border-b-foreground/15 hover:border-b-foreground/45 transition-all duration-700 ease-in-out"
-          >
-            <AccordionTrigger className="text-base font-medium">PhD</AccordionTrigger>
-            <AccordionContent className="space-y-3 p-2 pb-4">
-              <LabelInputContainer midColCount={4} lgColCount={4}>
-                <LabelCheckbox label="Required" checked={isPreferenceSelected("doctorate", "Required")} onChange={() => handlePreferenceChange("doctorate", "Required")} />
-                <LabelCheckbox label="Preferred" checked={isPreferenceSelected("doctorate", "Preferred")} onChange={() => handlePreferenceChange("doctorate", "Preferred")} />
-                <LabelCheckbox
-                  label="Not Mentioned"
-                  checked={isPreferenceSelected("doctorate", "Not Mentioned")}
-                  onChange={() => handlePreferenceChange("doctorate", "Not Mentioned")}
-                  className="md:col-span-2"
-                />
-              </LabelInputContainer>
-              <KeywordsMultiSelect
-                value={searchOptions.education.doctorate.keywords}
-                onChange={(keywords) => handleKeywordsChange("doctorate", keywords)}
-                includeOptions={degreeTitles}
-                excludeOptions={degreeTitles}
-                includePlaceholder="Include Degree Titles"
-                excludePlaceholder="Exclude Degree Titles"
-              />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      )}
+        return (
+          <SentenceText key={key}>
+            {label} degree in
+            <SentenceBlankMultiSelect
+              ariaLabel={`${label} fields of study`}
+              options={fieldOptions}
+              values={fields}
+              onChange={(next) =>
+                handleKeywordsChange(key, {
+                  include: next,
+                  exclude: row.keywords.exclude,
+                })
+              }
+              placeholder={ANY_FIELD_TEXT}
+              formatOptions={{ conjunction: "or", n1: 3, noneText: ANY_FIELD_TEXT }}
+              contentClassName="max-h-64 overflow-y-auto"
+              searchPlaceholder="Search fields of study..."
+            />
+            should
+            <SentenceBlankSelect
+              ariaLabel={`${label} degree preference`}
+              options={PREFERENCE_OPTIONS}
+              value={preference}
+              onChange={(next) => {
+                const current = Array.isArray(row.preferences) ? row.preferences : [];
+                if (current.length === 1 && current[0] === next) return;
+                // Keep null (unedited) when the blank still reads as the default phrase.
+                const preferences = next === "Not Mentioned" && current.length === 0 ? null : [next];
+                updateSearchOptions({
+                  education: {
+                    ...searchOptions.education,
+                    [key]: { ...row, preferences },
+                  },
+                });
+              }}
+            />
+          </SentenceText>
+        );
+      })}
     </FilterContainer>
   );
 }

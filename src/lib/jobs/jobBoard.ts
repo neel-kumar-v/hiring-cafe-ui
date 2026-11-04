@@ -39,26 +39,14 @@ export function buildJobBoardDisplayedCollections(accumulatedRows: JobCardResult
 
   const collections: JobBoardCollection[] = [];
   for (const item of visibleRows) {
-    const companyKey =
-      stableCompanyKey(item.company, item.job) ||
-      item.company?.name?.trim() ||
-      item.job.companyId ||
-      "";
+    const companyKey = stableCompanyKey(item.company, item.job) || item.company?.name?.trim() || item.job.companyId || "";
 
     const lastCollection = collections[collections.length - 1];
     const lastCompanyKey = lastCollection
-      ? stableCompanyKey(lastCollection.company, lastCollection.jobs[0]) ||
-        lastCollection.company?.name?.trim() ||
-        lastCollection.jobs[0]?.companyId ||
-        ""
+      ? stableCompanyKey(lastCollection.company, lastCollection.jobs[0]) || lastCollection.company?.name?.trim() || lastCollection.jobs[0]?.companyId || ""
       : "";
 
-    if (
-      companyKey &&
-      lastCompanyKey &&
-      companyKey === lastCompanyKey &&
-      lastCollection.jobs.length < jobsPerCard
-    ) {
+    if (companyKey && lastCompanyKey && companyKey === lastCompanyKey && lastCollection.jobs.length < jobsPerCard) {
       lastCollection.jobs.push(item.job);
     } else {
       collections.push({

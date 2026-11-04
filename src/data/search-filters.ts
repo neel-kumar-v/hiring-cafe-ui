@@ -3,9 +3,9 @@ import { CategoryType, SettingsCategory } from "@/types/search";
 const filterGroupOrder: Array<{ name: string; type: CategoryType }> = [
   { name: "General", type: "general" },
   { name: "Compensation & Levels", type: "compensation" },
+  { name: "Requirements", type: "qualifications" },
   { name: "Location", type: "location" },
   { name: "Role & Department", type: "role-department" },
-  { name: "Qualifications", type: "qualifications" },
   { name: "Availability", type: "availability" },
   { name: "Company", type: "company" },
 ];
@@ -17,7 +17,7 @@ const generalContentExcludedIds = new Set(["filters", "saved"]);
  * Single-control General filters stacked inline under the General stream.
  * Shown in content; hidden as separate sidebar nav entries.
  */
-const generalStreamIds = new Set(["date-range", "sorting", "apply-form", "exclusion", "encouraged"]);
+const generalStreamIds = new Set(["date-range", "sorting", "apply-form", "exclusion"]);
 
 /** Multi-control General subsections that keep their own section chrome + sidebar entry. */
 const generalSectionIds = new Set(["activity-outcomes"]);
@@ -28,6 +28,18 @@ const generalSectionIds = new Set(["activity-outcomes"]);
  */
 const sidebarNavExcludedIds = new Set(["benefits", "commitment", "stage", "founding", "industry"]);
 
+/**
+ * Requirements sentence rows (Licenses, Security, Languages, Encouraged) stream directly under the
+ * Requirements header — only Education keeps a subheading, so only it gets a left-rail row.
+ */
+const qualificationsStreamIds = new Set(["licenses", "security", "languages", "encouraged"]);
+
+/**
+ * Group → first row in *content* order, used when the header click has no section-named filter and
+ * every earlier row is streamed/nested (Requirements opens with its sentence rows, not Education).
+ */
+const groupAnchorFilterIds: Partial<Record<CategoryType, string>> = { qualifications: "licenses" };
+
 const ribbonExcludedIds = new Set(["filters", "saved", "date-range", "sorting", "apply-form", "location", "workplace-activity"]);
 
 const locationTags = ["Location", "Workplace Type", "Options"];
@@ -36,11 +48,11 @@ const compensationLevelsTags = ["Salary", "Commitment", "Experience", "Benefits 
 
 const roleDepartmentTags = ["Departments", "Job Titles & Keywords"];
 
-const qualificationsTags = ["Education", "Licenses & Certifications", "Security Clearance", "Languages"];
+const qualificationsTags = ["Education", "Licenses & Certifications", "Security Clearance", "Languages", "Encouraged to Apply"];
 
 const availabilityTags = ["Shifts & Schedules", "Travel Requirement"];
 
-const miscellaneousTags = ["Encouraged to Apply"];
+const miscellaneousTags: string[] = [];
 
 const companyTags = ["Company", "Industry", "Stage & Funding", "Size", "Founding Year"];
 
@@ -53,7 +65,6 @@ const filters: SettingsCategory[] = [
   { id: "apply-form", name: "Apply Form Type", type: "general" },
   { id: "exclusion", name: "Exclusion", type: "general" },
   { id: "activity-outcomes", name: "Activity & Outcomes", type: "general" },
-  { id: "encouraged", name: "Encouraged to Apply", type: "general" },
 
   // Compensation Levels
   { id: "salary", name: "Salary", type: "compensation" },
@@ -65,11 +76,12 @@ const filters: SettingsCategory[] = [
   { id: "departments", name: "Departments", type: "role-department" },
   { id: "job-titles", name: "Job Titles & Keywords", type: "role-department" },
 
-  // Qualifications
+  // Requirements (type stays `qualifications` so existing deep links keep working)
   { id: "education", name: "Education", type: "qualifications" },
   { id: "licenses", name: "Licenses & Certifications", type: "qualifications" },
   { id: "security", name: "Security Clearance", type: "qualifications" },
   { id: "languages", name: "Languages", type: "qualifications" },
+  { id: "encouraged", name: "Encouraged to Apply", type: "qualifications" },
 
   // Availability
   { id: "shifts", name: "Shifts & Schedules", type: "availability" },
@@ -107,10 +119,12 @@ export {
   generalContentExcludedIds,
   generalSectionIds,
   generalStreamIds,
+  groupAnchorFilterIds,
   legacyFilterTags,
   locationTags,
   miscellaneousTags,
   orderedFilterIds,
+  qualificationsStreamIds,
   qualificationsTags,
   roleDepartmentTags,
   sidebarNavExcludedIds,

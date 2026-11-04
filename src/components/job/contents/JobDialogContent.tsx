@@ -189,7 +189,7 @@ const JobDialogContent = ({
         viewedCount={job.views}
       />
 
-      <div className="-mx-8 sticky top-0 z-20 bg-background px-8 dark:bg-card">
+      <div className="sticky-dialog-header -mx-8 sticky top-0 z-20 bg-background px-8 dark:bg-card">
         <DialogJobTitle
           companyName={companyData.name}
           fadeCompanyChrome={fadeCompanyChrome}

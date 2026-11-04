@@ -5,7 +5,7 @@ import { SearchState } from "@/types/search";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { defaultSearchOptions } from "./SearchContext";
 import { getAuthEmail, onAuthChanged } from "@/lib/local-auth";
-import { recordJobStatusEvent } from "@/lib/tracker/statusTimeline";
+import { recordJobStatusEvent, seedMissingJobEvents } from "@/lib/tracker/statusTimeline";
 import { decodeSearchState, encodeSearchState } from "@/lib/url-search-state";
 
 interface AppContextType {
@@ -78,6 +78,25 @@ const loadUserFromStorage = (email: string | null): User | null => {
   return null;
 };
 
+/** Normalize stored profiles and backfill status events for pre-jobEvents data. */
+function hydrateUser(stored: User | null, email: string | null): User {
+  const base = stored ? { ...defaultUser, ...stored, email: email ?? stored.email ?? "" } : { ...defaultUser, email: email ?? "" };
+  return {
+    ...base,
+    jobEvents: seedMissingJobEvents(
+      base.jobEvents,
+      {
+        saved: base.saved ?? [],
+        applied: base.applied ?? [],
+        interviewing: base.interviewing ?? [],
+        rejected: base.rejected ?? [],
+        hidden: base.hidden ?? [],
+      },
+      Date.now()
+    ),
+  };
+}
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -85,8 +104,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(() => {
     if (typeof window !== "undefined") {
       const email = getAuthEmail();
-      const storedUser = loadUserFromStorage(email);
-      return storedUser || { ...defaultUser, email: email ?? "" };
+      return hydrateUser(loadUserFromStorage(email), email);
     }
     return defaultUser;
   });
@@ -95,16 +113,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchOptions, setSearchOptions] = useState<SearchState>(defaultSearchOptions);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Save user data to localStorage whenever it changes (but not on initial render)
-  const isFirstRender = useRef(true);
+  // Persist workspace state (including any legacy jobEvents backfill from hydrate).
   const hasHydratedSearchStateRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return;
-      }
       saveUserToStorage(user, getAuthEmail());
     }
   }, [user]);
@@ -166,8 +179,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return onAuthChanged(() => {
       const email = getAuthEmail();
-      const stored = loadUserFromStorage(email);
-      setUser(stored || { ...defaultUser, email: email ?? "" });
+      setUser(hydrateUser(loadUserFromStorage(email), email));
     });
   }, []);
 

@@ -1,9 +1,16 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { filterGroupOrder, filters, generalContentExcludedIds, generalStreamIds, sidebarNavExcludedIds } from "@/data/search-filters";
+import {
+  filterGroupOrder,
+  filters,
+  generalContentExcludedIds,
+  generalStreamIds,
+  groupAnchorFilterIds,
+  qualificationsStreamIds,
+  sidebarNavExcludedIds,
+} from "@/data/search-filters";
 import type { CategoryId, CategoryType, SettingsCategory } from "@/types/search";
-import { cn } from "@/lib/utils";
 import { useApp } from "@/contexts/AppContext";
 import { getCategoryEditCount, getInitialPatchForCategory, initialSearchState, isCategoryEdited } from "@/lib/edited-filters";
 import { AvailabilityOptions, CompanyOptions, CompensationOptions, GeneralOptions, LocationOptions, QualificationsOptions, RoleDepartmentOptions } from "../filters";
@@ -13,7 +20,7 @@ import { FilterCategoryHeader } from "../filters/util/FilterSubsection";
 export const GENERAL_CONTENT_EXCLUDED = generalContentExcludedIds;
 
 /** Stream / nested filters + content-excluded — no dedicated sidebar nav rows. */
-export const GENERAL_NAV_EXCLUDED = new Set([...generalContentExcludedIds, ...generalStreamIds, ...sidebarNavExcludedIds]);
+export const GENERAL_NAV_EXCLUDED = new Set([...generalContentExcludedIds, ...generalStreamIds, ...sidebarNavExcludedIds, ...qualificationsStreamIds]);
 
 export function findCategoryByFrom(from?: string): SettingsCategory | undefined {
   if (!from) return undefined;
@@ -72,7 +79,12 @@ export function useCategoryState(from?: string, open?: boolean, defaultCategory:
 
   const handleHeaderClick = useCallback((categoryType: CategoryType) => {
     setSelectedCategory(categoryType);
-    const firstId = filters.find((category) => category.type === categoryType && !GENERAL_NAV_EXCLUDED.has(category.id))?.id;
+    // Prefer the filter that shares the group name (Location, Company) so the header lands on the section itself.
+    const groupName = filterGroupOrder.find((group) => group.type === categoryType)?.name;
+    const named = groupName
+      ? filters.find((category) => category.type === categoryType && category.name.localeCompare(groupName, undefined, { sensitivity: "accent" }) === 0)
+      : undefined;
+    const firstId = named?.id ?? groupAnchorFilterIds[categoryType] ?? filters.find((category) => category.type === categoryType && !GENERAL_NAV_EXCLUDED.has(category.id))?.id;
     setScrollToSection(firstId ?? undefined);
   }, []);
 
@@ -195,22 +207,15 @@ export const FilteredCategoriesContent = memo(function FilteredCategoriesContent
         const header = group.name;
         const filterIds = group.categories.map((category) => category.id);
         const forceMount = Boolean(scrollToSection && filterIds.includes(scrollToSection));
-        const isHidden = group.type === "qualifications";
 
         const isLocation = group.type === "location";
         const locationEdited = isLocation && isCategoryEdited(searchOptions, initialSearchState, "location");
         const locationEditCount = isLocation ? getCategoryEditCount(searchOptions, initialSearchState, "location") : 0;
-        const handleLocationClear = isLocation
-          ? () => updateSearchOptions(getInitialPatchForCategory("location", initialSearchState))
-          : undefined;
+        const handleLocationClear = isLocation ? () => updateSearchOptions(getInitialPatchForCategory("location", initialSearchState)) : undefined;
 
         return (
-          <section key={group.type} id={group.type} className={cn("scroll-mt-4 space-y-2 max-md:max-w-screen", isHidden && "hidden")}>
-            <FilterCategoryHeader
-              title={header}
-              editCount={locationEditCount}
-              onClear={locationEdited ? handleLocationClear : undefined}
-            />
+          <section key={group.type} id={group.type} className="scroll-mt-4 space-y-2 max-md:max-w-screen">
+            <FilterCategoryHeader title={header} editCount={locationEditCount} onClear={locationEdited ? handleLocationClear : undefined} />
             <LazyCategorySection force={forceMount}>
               {renderCategoryContent(
                 group.type,
@@ -246,7 +251,11 @@ export function renderFilteredCategoriesContent(
   );
 }
 
+let _cachedGroupedCategories: FilteredGroup[] | null = null;
+
 export function getGroupedCategories(): FilteredGroup[] {
+  if (_cachedGroupedCategories) return _cachedGroupedCategories;
+
   const groups = filterGroupOrder.map((group) => ({
     ...group,
     categories: filters.filter((category) => category.type === group.type),
@@ -263,7 +272,7 @@ export function getGroupedCategories(): FilteredGroup[] {
     groups.splice(quickIndex, 1);
   }
 
-  return groups.map((group) =>
+  _cachedGroupedCategories = groups.map((group) =>
     group.type === "general"
       ? {
           ...group,
@@ -271,6 +280,7 @@ export function getGroupedCategories(): FilteredGroup[] {
         }
       : group
   );
+  return _cachedGroupedCategories;
 }
 
 export { default as SearchContent } from "./SearchContent";

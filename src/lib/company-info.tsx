@@ -30,15 +30,7 @@ export const formatCompanyWebsite = (website: string | null | undefined): string
 export const cleanDomain = (domain: string | null | undefined): string | null => {
   if (!domain) return null;
   const trimmed = domain.trim();
-  if (
-    !trimmed ||
-    trimmed === "null" ||
-    trimmed === "undefined" ||
-    trimmed === "#" ||
-    trimmed === "/" ||
-    trimmed.toLowerCase() === "localhost" ||
-    trimmed === "127.0.0.1"
-  ) {
+  if (!trimmed || trimmed === "null" || trimmed === "undefined" || trimmed === "#" || trimmed === "/" || trimmed.toLowerCase() === "localhost" || trimmed === "127.0.0.1") {
     return null;
   }
 

@@ -1,12 +1,31 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defaultSearchOptions } from "../../src/contexts/SearchContext";
-import {
-  CATEGORY_CHIPS,
-  getCategoryActiveCount,
-  getCategoryCounts,
-} from "../../src/components/search/FilterPillBar";
+import { CATEGORY_CHIPS, getCategoryActiveCount, getCategoryCounts } from "../../src/components/search/FilterPillBar";
 import type { SearchState } from "../../src/types/search";
+
+test("FilterPillBar chips deep-link into search dialog via handleSearchIconClick(fromId)", () => {
+  const sourcePath = join(dirname(fileURLToPath(import.meta.url)), "../../src/components/search/FilterPillBar.tsx");
+  const source = readFileSync(sourcePath, "utf8");
+  assert.match(source, /useSearchUI/);
+  assert.match(source, /handleSearchIconClick/);
+  assert.match(source, /handleSearchIconClick\(fromId\)/);
+  assert.equal(source.includes("InlineFilterPanel"), false);
+  assert.equal(source.includes("toggleOpenCategory"), false);
+  assert.equal(source.includes("ChevronDown"), false);
+  assert.equal(source.includes("openCategory"), false);
+});
+
+test("CATEGORY_CHIPS fromIds match dialog deep-link categories", () => {
+  const expected = ["compensation", "qualifications", "location", "role-department", "availability", "company"];
+  assert.deepEqual(
+    CATEGORY_CHIPS.map((chip) => chip.fromId),
+    expected
+  );
+});
 
 test("getCategoryCounts returns 0 for all category chips by default", () => {
   const counts = getCategoryCounts(defaultSearchOptions);

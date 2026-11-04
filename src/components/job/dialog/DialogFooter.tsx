@@ -115,7 +115,7 @@ const DialogFooter = ({
   navigation?: DialogFooterNavigationProps;
 }) => {
   return (
-    <div className="sticky right-0 bottom-0 left-0 bg-background dark:bg-card">
+    <div className="sticky-dialog-header sticky right-0 bottom-0 left-0 bg-background dark:bg-card">
       <div className="relative md:border-t md:border-border dark:border-border">{navigation ? <DialogFooterNavigation {...navigation} /> : null}</div>
       <DialogActionButtons
         isApplied={isApplied}
@@ -155,7 +155,7 @@ export const DialogActionButtons = ({
       <div className={cn("flex flex-wrap items-center justify-center gap-1.5 py-2 md:py-3", showTopBorder && "md:border-t md:border-border", hasNavigation && "pt-6 md:pt-6")}>
         <Button className="flex items-center gap-2" onClick={onBookmarkToggle} size="sm" variant="outline">
           <Bookmark className={`size-4 ${isBookmarked ? "fill-current" : ""}`} />
-          {isBookmarked ? "Saved" : "Save"}
+          {isBookmarked ? "Unsave" : "Save"}
         </Button>
 
         <Button asChild size="sm" variant="outline">

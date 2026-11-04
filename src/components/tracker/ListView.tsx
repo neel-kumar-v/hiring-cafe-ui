@@ -115,10 +115,12 @@ const ListView = memo(({ jobs, visibleCategories, getJobStatus, onMoveJob, hasSa
 
   const isCompletelyEmpty = hasSavedJobs !== undefined ? !hasSavedJobs : jobs.length === 0;
 
+  // No inner scroll viewport: the tracker page owns the single vertical scroll,
+  // so wheeling past the last card continues into the Job flow diagram below.
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="w-full">
       {filteredJobs.length === 0 ? (
-        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center">
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center">
           <div className="mb-3 rounded-full bg-muted p-3 text-muted-foreground">
             <Bookmark className="size-6" />
           </div>

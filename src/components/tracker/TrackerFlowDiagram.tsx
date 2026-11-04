@@ -78,14 +78,20 @@ export function buildFlowData(paths: JobCategory[][]): SankeyData {
   return { nodes, links };
 }
 
+function pathsSignature(paths: JobCategory[][]) {
+  return paths.map((path) => path.join(">")).join("|");
+}
+
 export default function TrackerFlowDiagram({ paths }: TrackerFlowDiagramProps) {
   const total = paths.length;
-
-  const data = useMemo<SankeyData>(() => buildFlowData(paths), [paths]);
+  // Content signature so identical path sets keep a stable Sankey graph reference
+  // even when the parent passes a fresh array each render.
+  const signature = pathsSignature(paths);
+  const data = useMemo<SankeyData>(() => buildFlowData(paths), [signature]);
 
   if (total === 0) {
     return (
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="p-5">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-foreground">Job flow</h2>
           <span className="rounded-md bg-brand-soft px-2 py-1 text-sm font-medium text-brand-soft-foreground">0 total</span>
@@ -95,23 +101,13 @@ export default function TrackerFlowDiagram({ paths }: TrackerFlowDiagramProps) {
   }
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-5">
+    <section className="p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Job flow</h2>
-        </div>
+        <h2 className="text-lg font-semibold text-foreground">Job flow</h2>
         <span className="rounded-md bg-brand-soft px-2 py-1 text-sm font-medium text-brand-soft-foreground">{formatValue(total)} total</span>
       </div>
 
-      <SankeyChart
-        animationDuration={900}
-        aspectRatio="2.5 / 1"
-        data={data}
-        margin={{ bottom: 24, left: 132, right: 152, top: 24 }}
-        nodePadding={18}
-        nodeWidth={18}
-        revealSignature={paths.map((path) => path.join(">")).join("|")}
-      >
+      <SankeyChart animationDuration={900} aspectRatio="2.5 / 1" data={data} margin={{ bottom: 24, left: 132, right: 152, top: 24 }} nodePadding={18} nodeWidth={18}>
         <SankeyLink getNodeColor={(node) => getNodeColor(node)} strokeOpacity={0.45} />
         <SankeyNode getNodeColor={(node) => getNodeColor(node)} lineCap={5} />
         <SankeyTooltip formatValue={formatValue} />

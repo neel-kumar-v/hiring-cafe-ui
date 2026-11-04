@@ -168,7 +168,7 @@ function IconButtons({ variant, inputFocused, handleIconClick }: IconButtonsProp
       <IconButton
         className="hidden xs:block"
         icon={School}
-        label="Qualifications"
+        label="Requirements"
         onClick={() => handleIconClick("qualifications")}
         dataIconType="qualifications"
         clickable={!inputFocused}
@@ -486,6 +486,7 @@ export default function SearchBar({ placeholder, className = "", containerClassN
         salaryButton={salaryButton}
         searchButton={searchButton}
         showClearButton={!!inputValue}
+        suppressDropdown={isAgentMode}
         value={inputValue}
       />
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCompanyWebsite } from "@/lib/company-info";
 import { isInteractiveCardTarget } from "@/lib/jobs/cardClickTargets";
@@ -9,9 +9,8 @@ import { toCompensationRange } from "@/lib/jobs/toCompensationRange";
 import { toUiCompany } from "@/lib/jobs/toUiCompany";
 import { cn } from "@/lib/utils";
 import type { CompanyDTO, JobDTO } from "@/types/convexJobs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Bookmark, Briefcase, Building2, Clock, DollarSign, EyeOff, Link2, MapPin, MoreHorizontal, Send, type LucideIcon } from "lucide-react";
+import { Bookmark, Briefcase, Building2, Clock, DollarSign, EyeOff, Link2, MapPin, Send, type LucideIcon } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
@@ -102,7 +101,7 @@ const JobBoardListRow = memo(
 
     const handleCardClick = useCallback(
       (e: React.MouseEvent) => {
-        // Clicks on interactive chrome (role chips, Apply Now, Save, overflow)
+        // Clicks on interactive chrome (role chips, Apply, Save, icon actions)
         // stay on that control and never bubble up to the dialog opener.
         if (isInteractiveCardTarget(e.target)) return;
         onClick(e);
@@ -210,7 +209,7 @@ const JobBoardListRow = memo(
         data-job-card="true"
         onClick={handleCardClick}
         className={cn(
-          "group/row @container/row relative flex cursor-pointer flex-col gap-2.5 border bg-background p-3.5 shadow-sm sm:p-4",
+          "group/row @container/row relative flex cursor-pointer flex-col gap-2.5 border bg-background px-3.5 pt-3.5 pb-2.5 shadow-sm sm:px-4 sm:pt-4 sm:pb-2.5",
           isSelected ? "border-primary ring-2 ring-primary/30" : "border-border",
           selectionMode && "select-none"
         )}
@@ -284,9 +283,15 @@ const JobBoardListRow = memo(
           </div>
         ) : null}
 
-        {/* 3-zone footer: left stats | center roles | right actions */}
-        <div data-card-footer="true" className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <div className="flex shrink-0 items-center">
+        {/*
+          3-zone footer: left stats | center roles | right actions.
+          Layout is driven by the card's own width (`@container/row`), not the
+          viewport — a narrow list column on a wide screen must not try to fit
+          stats + chips + buttons on one line. Narrow cards get clean rows:
+          stats · chips (own full-width, horizontally scrollable row) · actions.
+        */}
+        <div data-card-footer="true" className="flex flex-wrap items-center gap-x-2 gap-y-2 pt-1 @[430px]/row:gap-x-3">
+          <div className="order-1 flex shrink-0 items-center">
             <CardStats
               appliedCount={currentJob.applies}
               isApplied={isApplied}
@@ -302,44 +307,51 @@ const JobBoardListRow = memo(
 
           {jobs.length > 1 ? (
             <div
-              className="order-3 flex w-full min-w-0 flex-wrap items-center justify-center gap-1.5 px-1 sm:order-none sm:w-auto sm:flex-1 sm:px-2"
+              className="order-3 flex w-full min-w-0 items-center overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden @[430px]/row:order-2 @[430px]/row:w-auto @[430px]/row:min-w-[6rem] @[430px]/row:flex-1"
               onClick={(e) => e.stopPropagation()}
             >
-              {jobs.map((roleJob, roleIndex) => {
-                const isSelectedRole = roleIndex === activeIndex;
-                const roleTitle = getCleanJobTitle(roleJob.title, companyName, roleJob.workplaceCities?.[0] ?? "", roleJob.skills ?? []) || roleJob.title || "Role";
-                return (
-                  <Button
-                    key={roleJob.externalId}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-pressed={isSelectedRole}
-                    className={cn(
-                      "h-7 max-w-[200px] truncate px-2.5 text-xs transition-colors sm:max-w-[260px]",
-                      isSelectedRole
-                        ? "border-primary bg-primary/10 font-medium text-primary hover:bg-primary/15 hover:border-primary"
-                        : "font-normal text-muted-foreground hover:border-primary/50 hover:bg-accent hover:text-foreground"
-                    )}
-                    onClick={(e) => handleRoleClick(e, roleIndex)}
-                    onMouseEnter={() => {
-                      prefetchNow(getDetailsLookupId(roleJob));
-                    }}
-                    title={roleTitle}
-                  >
-                    <span className="truncate">{roleTitle}</span>
-                  </Button>
-                );
-              })}
+              {/* Single-line chip rail: never wraps into a tall column. Inner
+                  `w-max` + auto margins center the chips when they fit and
+                  leave the rail scrollable from the first chip when they don't. */}
+              <div className="flex w-max items-center gap-1.5 @[430px]/row:mx-auto">
+                {jobs.map((roleJob, roleIndex) => {
+                  const isSelectedRole = roleIndex === activeIndex;
+                  const roleTitle = getCleanJobTitle(roleJob.title, companyName, roleJob.workplaceCities?.[0] ?? "", roleJob.skills ?? []) || roleJob.title || "Role";
+                  return (
+                    <Button
+                      key={roleJob.externalId}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-pressed={isSelectedRole}
+                      className={cn(
+                        // Narrow cards get a smaller chip; the card's own width
+                        // (not the viewport) decides when it grows back to full size.
+                        "h-5.5 max-w-[150px] shrink-0 gap-1 px-2 text-[11px] transition-colors @[430px]/row:h-6 @[430px]/row:gap-1.5 @[430px]/row:max-w-[200px] @[430px]/row:px-2.5 @[430px]/row:text-xs @[580px]/row:max-w-[260px]",
+                        isSelectedRole
+                          ? "border-primary bg-primary/10 font-medium text-primary hover:bg-primary/15 hover:border-primary"
+                          : "font-normal text-muted-foreground hover:border-primary/50 hover:bg-accent hover:text-foreground"
+                      )}
+                      onClick={(e) => handleRoleClick(e, roleIndex)}
+                      onMouseEnter={() => {
+                        prefetchNow(getDetailsLookupId(roleJob));
+                      }}
+                      title={roleTitle}
+                    >
+                      <span className="truncate">{roleTitle}</span>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
           ) : null}
 
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="order-2 ml-auto flex shrink-0 items-center gap-1.5 @[430px]/row:order-3 @[430px]/row:gap-2" onClick={(e) => e.stopPropagation()}>
             {currentJob.applyUrl ? (
               <Button asChild size="sm" variant="default" className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs hover:bg-primary/90">
                 <a href={currentJob.applyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                   <Send className="size-3.5" />
-                  <span>Apply Now</span>
+                  <span>Apply</span>
                 </a>
               </Button>
             ) : (
@@ -352,48 +364,63 @@ const JobBoardListRow = memo(
                 onClick={(e) => e.stopPropagation()}
               >
                 <Send className="size-3.5" />
-                <span>Apply Now</span>
+                <span>Apply</span>
               </Button>
             )}
 
             <Button type="button" size="sm" variant="outline" onClick={handleBookmarkToggle} className="h-8 gap-1.5 text-xs font-normal">
               <Bookmark className={cn("size-3.5", isBookmarked && "fill-primary text-primary")} />
-              <span>{isBookmarked ? "Saved" : "Save"}</span>
+              <span>{isBookmarked ? "Unsave" : "Save"}</span>
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            {companyWebsite ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a
+                    href={formatCompanyWebsite(companyWebsite)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Company link"
+                    onClick={(e) => e.stopPropagation()}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "size-8 p-0 text-muted-foreground hover:text-foreground")}
+                  >
+                    <Link2 className="size-4" />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent side="top" sideOffset={4}>
+                  Company link
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type="button" size="sm" variant="outline" disabled aria-label="Company link unavailable" className="size-8 p-0 text-muted-foreground">
+                    <Link2 className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" sideOffset={4}>
+                  No company website
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="size-8 p-0 text-muted-foreground hover:text-foreground"
-                  aria-label="More options"
-                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Hide"
+                  onClick={handleHide}
+                  className="size-8 p-0 text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                {companyWebsite ? (
-                  <DropdownMenuItem asChild>
-                    <a href={formatCompanyWebsite(companyWebsite)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer">
-                      <Link2 className="size-4" />
-                      <span>Company Link</span>
-                    </a>
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem disabled className="flex items-center gap-2">
-                    <Link2 className="size-4" />
-                    <span>Company Link</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={handleHide} className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-destructive focus:text-destructive">
                   <EyeOff className="size-4" />
-                  <span>Hide</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={4}>
+                Hide
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </Card>

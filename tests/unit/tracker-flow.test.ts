@@ -61,3 +61,16 @@ test("buildFlowData returns just the source node when nothing is tracked", () =>
   assert.equal(data.nodes.length, 1);
   assert.equal(data.links.length, 0);
 });
+
+test("buildFlowData routes mid-funnel legacy paths through Saved", () => {
+  // Events that start at Applied/Interviewing (seeded current-only) must still
+  // enter via Saved so Tracked jobs never skips the funnel starter.
+  const paths: JobCategory[][] = [logicalStatusPath(events("applied")), logicalStatusPath(events("interviewing")), logicalStatusPath(undefined, "applied")];
+  const data = buildFlowData(paths);
+
+  assert.equal(linkValue(data, "Tracked jobs", "Saved"), 3);
+  assert.equal(linkValue(data, "Tracked jobs", "Applied"), 0);
+  assert.equal(linkValue(data, "Tracked jobs", "Interviewing"), 0);
+  assert.equal(linkValue(data, "Saved", "Applied"), 2);
+  assert.equal(linkValue(data, "Saved", "Interviewing"), 1);
+});

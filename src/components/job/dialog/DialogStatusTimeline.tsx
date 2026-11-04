@@ -45,8 +45,10 @@ export default function DialogStatusTimeline({ jobId }: { jobId: string }) {
   const { user } = useApp();
   const events = statusHistoryFor(user.jobEvents, jobId);
 
+  // Parent only offers "Show timeline" when history exists and collapses when
+  // it becomes empty — render nothing rather than lying empty copy.
   if (events.length === 0) {
-    return <p className="text-sm text-muted-foreground">No status changes recorded yet.</p>;
+    return null;
   }
 
   return (

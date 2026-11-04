@@ -1,6 +1,7 @@
 "use client";
 
 import UniversalTooltip from "@/components/util/UniversalTooltip";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import { getExperienceInfo } from "@/lib/job-info";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,8 @@ const CardRequirements = ({
   minManagementAndLeadershipYoe?: number | null;
 }) => {
   const experienceInfo = getExperienceInfo(minIndustryAndRoleYoe, minManagementAndLeadershipYoe);
+  const { prefs } = useCardPrefs();
+  const hoverExpandDisabled = prefs.disableDescriptionHoverExpansion;
   const contentRef = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
   const [collapsedMaxHeight, setCollapsedMaxHeight] = useState("2lh");
@@ -164,9 +167,13 @@ const CardRequirements = ({
       className={cn(
         // The clamp is measured from the text (`2lh` is the pre-measurement
         // fallback); the wrapper carries the text's own metrics so `lh` means
-        // the same thing here as it does inside the text.
-        "pointer-fine:max-h-[var(--requirements-collapsed-max-h,2lh)] pointer-fine:group-hover/card:max-h-[var(--requirements-expanded-max-h)] pointer-fine:motion-reduce:max-h-none overflow-hidden transition-[max-height] duration-[750ms] ease-in-out pointer-coarse:max-h-none pointer-none:max-h-none text-xs leading-normal",
-        overflows && VIGNETTE_CLASSES
+        // the same thing here as it does inside the text. When the
+        // "Disable hover expansion — Description" pref is on, the block stays
+        // clamped at its rest height (no hover class, no fade vignette), so
+        // the visible lines stay fully readable.
+        "pointer-fine:max-h-[var(--requirements-collapsed-max-h,2lh)] pointer-fine:motion-reduce:max-h-none overflow-hidden transition-[max-height] duration-[750ms] ease-in-out pointer-coarse:max-h-none pointer-none:max-h-none text-xs leading-normal",
+        !hoverExpandDisabled && "pointer-fine:group-hover/card:max-h-[var(--requirements-expanded-max-h)]",
+        overflows && !hoverExpandDisabled && VIGNETTE_CLASSES
       )}
       style={
         {
@@ -182,7 +189,7 @@ const CardRequirements = ({
           // Trailing band: keeps the fade below the text once the block is
           // expanded (so the last line stays readable) while adding no space
           // to blocks that are not clipped in the first place.
-          overflows && "pointer-fine:motion-safe:pb-[max(1.25rem,1lh)]"
+          overflows && !hoverExpandDisabled && "pointer-fine:motion-safe:pb-[max(1.25rem,1lh)]"
         )}
       >
         {experienceInfo.hasAny && (

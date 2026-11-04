@@ -88,15 +88,15 @@ test("builds specific readable chips for mixed search settings", () => {
         "Lower bound $150,000 – any",
         "Upper bound $150,000 – any",
         "Paid Yearly",
+        "Associate's: Not Mentioned",
+        "Bachelor's: Required / Preferred",
+        "Master's: Preferred / Not Mentioned",
+        "Doctorate: Not Mentioned",
         "Engineering",
         "Software Development",
         "Information Technology",
         "Data and Analytics",
         `Tech: ("react" OR "vue") AND NOT ("django" OR "flask")`,
-        "Associate's: Not Mentioned",
-        "Bachelor's: Required / Preferred",
-        "Master's: Preferred / Not Mentioned",
-        "Doctorate: Not Mentioned",
       ].includes(label)
     ),
     [
@@ -109,20 +109,20 @@ test("builds specific readable chips for mixed search settings", () => {
       "Lower bound $150,000 – any",
       "Upper bound $150,000 – any",
       "Paid Yearly",
+      "Associate's: Not Mentioned",
+      "Bachelor's: Required / Preferred",
+      "Master's: Preferred / Not Mentioned",
+      "Doctorate: Not Mentioned",
       "Engineering",
       "Software Development",
       "Information Technology",
       "Data and Analytics",
       `Tech: ("react" OR "vue") AND NOT ("django" OR "flask")`,
-      "Associate's: Not Mentioned",
-      "Bachelor's: Required / Preferred",
-      "Master's: Preferred / Not Mentioned",
-      "Doctorate: Not Mentioned",
     ]
   );
 
   const groups = groupFilterChips(chips).map((group) => group.label);
-  assert.deepEqual(groups, ["Date Posted", "Apply Process", "Exclude Jobs", "Activity & Outcomes", "Salary", "Departments", "Job Titles & Keywords", "Education"]);
+  assert.deepEqual(groups, ["Date Posted", "Apply Process", "Exclude Jobs", "Activity & Outcomes", "Salary", "Education", "Departments", "Job Titles & Keywords"]);
 });
 
 test("orders chips to match the filter sidebar category sequence", () => {
@@ -150,7 +150,7 @@ test("orders chips to match the filter sidebar category sequence", () => {
 
   assert.deepEqual(
     groupFilterChips(getFilterChips(state)).map((group) => group.label),
-    ["Activity & Outcomes", "Salary", "Departments", "Licenses & Certifications"]
+    ["Activity & Outcomes", "Salary", "Licenses & Certifications", "Departments"]
   );
 });
 

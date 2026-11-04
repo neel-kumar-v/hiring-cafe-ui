@@ -7,7 +7,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useSearchUI, type JobBoardLayout } from "@/contexts/SearchContext";
 import type { SortOptions } from "@/types/search";
 import { cn } from "@/lib/utils";
-import { getJobGridColumnsForWidth, JOB_GRID_WIDTH_STEPS, useQuantizedContainerWidth } from "@/hooks/useContainerWidth";
+import { useJobBoardColumns } from "@/hooks/useContainerWidth";
 import { Bell, Check, ChevronDown, Share2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -85,17 +85,18 @@ function NotificationFrequencyMenu() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90 @min-[900px]:px-2.5 @min-[900px]:py-1 @min-[900px]:text-xs"
         >
           {frequency === "off" ? "Turn on" : current.label}
-          <ChevronDown className="size-3" />
+          <ChevronDown className="size-3 shrink-0" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => (
           <DropdownMenuItem key={option.value} onSelect={() => handleFrequencyChange(option.value)}>
-            <Check className={cn("mr-1 size-4", frequency === option.value ? "opacity-100" : "opacity-0")} />
+            {/* Label first, check last: the selected row stays flush left with the others. */}
             {option.label}
+            <Check className={cn("ml-auto size-4 shrink-0", frequency === option.value ? "opacity-100" : "opacity-0")} aria-hidden="true" />
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -118,22 +119,24 @@ export function SortControl({ className }: { className?: string } = {}) {
   const current = SORT_PRESETS.find((preset) => preset.value.by === searchOptions.sort.by && preset.value.order === searchOptions.sort.order) ?? SORT_PRESETS[0];
 
   return (
-    <div className={cn("flex items-center gap-1 text-sm whitespace-nowrap", className)}>
+    /* Type scales down with the band's `@container` so the row never needs to wrap;
+       `min-w-0` + truncation is the last-resort stop for very narrow containers. */
+    <div className={cn("flex min-w-0 items-center gap-1 whitespace-nowrap text-xs @min-[900px]:text-sm", className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="inline-flex items-center gap-1 rounded-md font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="inline-flex min-w-0 items-center gap-1 rounded-md font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            {current.label}
-            <ChevronDown className="size-3.5" />
+            <span className="truncate">{current.label}</span>
+            <ChevronDown className="size-3 shrink-0 @min-[900px]:size-3.5" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-44">
           {SORT_PRESETS.map((preset) => (
             <DropdownMenuItem key={preset.label} onSelect={() => updateSearchOptions({ sort: preset.value })}>
-              <Check className={cn("mr-1 size-4", current.label === preset.label ? "opacity-100" : "opacity-0")} />
               {preset.label}
+              <Check className={cn("ml-auto size-4 shrink-0", current.label === preset.label ? "opacity-100" : "opacity-0")} aria-hidden="true" />
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -161,25 +164,26 @@ export function BoardLayoutControl({ className }: { className?: string } = {}) {
       role="radiogroup"
       shape="pill"
       tone="primary"
-      size="sm"
+      size="xs"
       value={boardLayout}
       onChange={setBoardLayout}
       options={BOARD_LAYOUT_OPTIONS}
       className={cn("hidden @min-[640px]:inline-flex", className)}
-      tabClassName="h-7 px-3"
+      tabClassName="text-[11px] @min-[720px]:h-7 @min-[720px]:px-2.5 @min-[900px]:px-3 @min-[900px]:text-xs"
     />
   );
 }
 
 interface BoardActionsProps {
   unreadCount?: number;
-  isOneColumn?: boolean;
+  /** Off in the one-column/mobile state, which has no room for the alerts pill. */
+  showEmailAlerts?: boolean;
 }
 
 /** "All" shows every job, "Unread" narrows the board to the jobs labeled New. */
 type BoardView = "all" | "unread";
 
-export function BoardActions({ unreadCount: unreadCountProp, isOneColumn }: BoardActionsProps = {}) {
+export function BoardActions({ unreadCount: unreadCountProp, showEmailAlerts = true }: BoardActionsProps = {}) {
   const { unreadView, setUnreadView, unreadCount: unreadCountFromContext } = useSearchUI();
   // Count of loaded New jobs is published by JobBoard via SearchUI; the prop wins
   // for callers that render the band without a mounted board.
@@ -204,35 +208,42 @@ export function BoardActions({ unreadCount: unreadCountProp, isOneColumn }: Boar
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    /* One row at every container width: controls shed type/height/padding first. */
+    <div className="flex shrink-0 flex-nowrap items-center gap-1.5 @min-[720px]:gap-2 @min-[900px]:gap-3">
       {/* All / Unread sliding tabs — "Unread" shows only the jobs labeled New */}
       <SlidingTabs<BoardView>
         ariaLabel="Job view"
         role="radiogroup"
         shape="pill"
         tone="primary"
-        size="sm"
+        size="xs"
         value={unreadView ? "unread" : "all"}
         onChange={(next) => setUnreadView(next === "unread")}
         options={viewOptions}
-        tabClassName="h-7 px-3 [&:disabled]:pointer-events-none"
+        tabClassName="text-[11px] @min-[720px]:h-7 @min-[720px]:px-2.5 @min-[900px]:px-3 @min-[900px]:text-xs [&:disabled]:pointer-events-none"
       />
 
-      <Button type="button" size="sm" onClick={share} className="h-8 rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90">
-        <Share2 className="size-3.5" />
+      <Button
+        type="button"
+        size="sm"
+        onClick={share}
+        className="h-7 shrink-0 rounded-full bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 @min-[720px]:h-8 @min-[720px]:text-xs @min-[900px]:px-3"
+      >
+        <Share2 className="size-3 @min-[720px]:size-3.5" />
         Share
       </Button>
 
-      <div
-        className={cn(
-          "flex @max-[640px]:hidden h-8 items-center gap-2 rounded-full border border-primary/25 bg-primary/5 pl-3 pr-1 text-xs transition-colors hover:border-primary/40 hover:bg-primary/10 dark:bg-primary/10",
-          isOneColumn && "hidden"
-        )}
-      >
-        <Bell className="size-3.5 text-primary" />
-        <span className="text-xs font-medium text-primary">Email me new jobs</span>
-        <NotificationFrequencyMenu />
-      </div>
+      {/* `md:flex` (not `md:inline-flex`) keeps the pill's own mobile hide without
+          fighting the shell's breakpoint; `showEmailAlerts` covers a narrow
+          container on a wide viewport. */}
+      {showEmailAlerts ? (
+        <div className="hidden h-7 shrink-0 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 pl-2.5 pr-1 text-xs transition-colors hover:border-primary/40 hover:bg-primary/10 md:flex @min-[640px]:gap-2 @min-[640px]:pl-3 @min-[900px]:h-8 dark:bg-primary/10">
+          <Bell className="size-3 shrink-0 text-primary @min-[900px]:size-3.5" />
+          {/* Shrink at 720 first; drop the label only after that (~640) when space is still tight. */}
+          <span className="hidden text-xs font-medium text-primary @min-[640px]:inline">Email me new jobs</span>
+          <NotificationFrequencyMenu />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -251,20 +262,29 @@ export interface ResultsHeaderBandProps {
  * All/Unread toggle (with disabled 0 count), Share button, and Email me new jobs on the right.
  * No bottom border/divider (Feedback #5).
  * Reduced horizontal chrome padding (Feedback #3).
+ * In the one-column/mobile state the layout tabs and the alerts pill drop out:
+ * the board is list-only there, so neither control has anything to offer.
  */
 export default function ResultsHeaderBand({ jobCount, companyCount, showSortControl = true, unreadCount, className }: ResultsHeaderBandProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const containerWidth = useQuantizedContainerWidth(containerRef, JOB_GRID_WIDTH_STEPS);
-  const isOneColumn = containerWidth > 0 ? getJobGridColumnsForWidth(containerWidth) <= 1 : (typeof window !== "undefined" ? window.innerWidth < 640 : false);
+  const { isOneColumn } = useJobBoardColumns(containerRef);
 
   return (
     <div className={cn("px-4 py-3 transition-[padding] duration-500 ease-in-out lg:px-8", className)}>
-      <div ref={containerRef} className="@container flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-4">
-          {showSortControl && <SortControl />}
-          {!isOneColumn && <BoardLayoutControl />}
+      {/* `flex-nowrap`: the band keeps one row and scales its own type/spacing via
+          the `@container` steps below instead of stacking onto a second line. */}
+      <div ref={containerRef} className="@container flex flex-nowrap items-center justify-between gap-2 @min-[720px]:gap-3">
+        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 @min-[720px]:gap-3 @min-[900px]:gap-4">
+          {showSortControl && <SortControl className="min-w-0" />}
+          {!isOneColumn && (
+            /* The wrapper, not the tabs, carries the mobile hide: it settles the
+               one-column state before the width observer reports. */
+            <div className="max-md:hidden">
+              <BoardLayoutControl />
+            </div>
+          )}
         </div>
-        <BoardActions unreadCount={unreadCount} isOneColumn={isOneColumn} />
+        <BoardActions unreadCount={unreadCount} showEmailAlerts={!isOneColumn} />
       </div>
     </div>
   );
