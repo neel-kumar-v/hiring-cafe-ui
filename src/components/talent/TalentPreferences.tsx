@@ -3,12 +3,24 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { MultiLocationPicker } from "@/components/ui/multi-location-picker";
 import { cn } from "@/lib/utils";
-import { Banknote, ChevronDown, EyeOff, FileText, Github, Globe, Globe2, Link2, Linkedin, MapPin, Plus, Search, Upload } from "lucide-react";
+import type { Location } from "@/types/search";
+import { Banknote, EyeOff, FileText, Github, Globe, Globe2, Link2, Linkedin, MapPin, Plus, Upload } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from "react";
 
 const STORAGE_KEY = "talent-network-prefs-v2";
 const LEGACY_STORAGE_KEY = "talent-network-prefs";
+
+function locationFromLabel(label: string): Location {
+  return {
+    searched: false,
+    id: `location_${label}`,
+    types: ["Locality"],
+    address: { formatted: label, components: [] },
+    geographical: { latitude: 0, longitude: 0 },
+  };
+}
 
 function getLinkIcon(url: string) {
   const lower = url.trim().toLowerCase();
@@ -55,31 +67,16 @@ function PreferenceRow({ icon, label, children, action }: { icon: ReactNode; lab
   return (
     <div
       className={cn(
-        "grid grid-cols-1 gap-3 border-b border-border py-5 last:border-b-0 sm:items-start sm:gap-x-6",
-        action ? "sm:grid-cols-[11rem_minmax(0,1fr)_auto]" : "sm:grid-cols-[11rem_minmax(0,1fr)]"
+        "grid grid-cols-1 gap-3 border-b border-border py-4 last:border-b-0 md:items-start md:gap-x-6 md:py-5",
+        action ? "md:grid-cols-[11rem_minmax(0,1fr)_auto]" : "md:grid-cols-[11rem_minmax(0,1fr)]"
       )}
     >
-      <div className="flex items-start gap-2.5 pt-1 text-muted-foreground">
+      <div className="flex min-w-0 items-start gap-2.5 text-muted-foreground md:pt-1">
         <span className="mt-0.5 shrink-0 [&_svg]:size-4">{icon}</span>
-        <span className="text-sm font-medium leading-snug">{label}</span>
+        <span className="min-w-0 text-sm font-medium leading-snug wrap-break-word">{label}</span>
       </div>
       <div className="min-w-0">{children}</div>
-      {action ? <div className="flex justify-end sm:pt-0.5">{action}</div> : null}
-    </div>
-  );
-}
-
-function SearchField({ value, onChange, placeholder, trailing }: { value: string; onChange: (value: string) => void; placeholder?: string; trailing?: ReactNode }) {
-  return (
-    <div className="relative flex items-center">
-      <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={cn("h-10 bg-background pl-9 shadow-xs", trailing ? "pr-9" : undefined)}
-      />
-      {trailing ? <span className="absolute right-2.5 text-muted-foreground">{trailing}</span> : null}
+      {action ? <div className="flex min-w-0 justify-end md:pt-0.5">{action}</div> : null}
     </div>
   );
 }
@@ -90,7 +87,6 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
   const fileRef = useRef<HTMLInputElement>(null);
   const [prefs, setPrefs] = useState<TalentPrefs>(DEFAULT_PREFS);
   const [hydrated, setHydrated] = useState(false);
-  const [openToDraft, setOpenToDraft] = useState("");
   const [hiddenDraft, setHiddenDraft] = useState("");
   const [dragging, setDragging] = useState(false);
   const [managingResume, setManagingResume] = useState(false);
@@ -135,20 +131,6 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
     applyResumeFile(event.dataTransfer.files?.[0] ?? null);
   };
 
-  const addOpenTo = () => {
-    const next = openToDraft.trim();
-    if (!next) return;
-    if (prefs.openToLocations.includes(next)) {
-      setOpenToDraft("");
-      return;
-    }
-    update({
-      onlyWhereYouLive: false,
-      openToLocations: [...prefs.openToLocations, next],
-    });
-    setOpenToDraft("");
-  };
-
   const addHidden = () => {
     const next = hiddenDraft.trim().toLowerCase();
     if (!next) return;
@@ -175,28 +157,21 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
       onlyWhereYouLive: checked,
       ...(checked ? { openToLocations: [] } : {}),
     });
-    if (checked) setOpenToDraft("");
   };
 
   return (
     <section className="rounded-lg border border-border bg-card px-4 sm:px-5">
       <input ref={fileRef} id={fileInputId} type="file" accept=".pdf,.doc,.docx,application/pdf" className="sr-only" onChange={onFileChange} />
 
-      <PreferenceRow
-        icon={<FileText />}
-        label="Resume employers see"
-        action={
-          <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground" onClick={() => setManagingResume((v) => !v)}>
-            Manage
-          </Button>
-        }
-      >
+      <PreferenceRow icon={<FileText />} label="Resume employers see">
         {prefs.resumeName && !managingResume ? (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="text-sm font-medium text-foreground">{prefs.resumeName}</p>
             <button type="button" className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-2 hover:underline" onClick={onHowEmployersSeeIt}>
               How employers see it
             </button>
+            <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground" onClick={() => setManagingResume((v) => !v)}>
+              Manage
+            </Button>
           </div>
         ) : (
           <div
@@ -227,27 +202,24 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
       </PreferenceRow>
 
       <PreferenceRow icon={<MapPin />} label="Where you live">
-        <SearchField
-          value={prefs.homeLocation}
-          onChange={(homeLocation) => update({ homeLocation })}
+        <MultiLocationPicker
+          className="w-full min-w-0"
+          locations={[locationFromLabel(prefs.homeLocation)]}
+          onLocationsChange={(next) => {
+            const last = next[next.length - 1];
+            if (last) update({ homeLocation: last.address.formatted });
+          }}
           placeholder="City, state, or country"
-          trailing={<ChevronDown className="size-4" />}
+          theme={{
+            input: "h-10 w-full min-w-0 bg-background text-foreground shadow-xs",
+            searchButton: "size-10 shrink-0 p-0",
+            locateButton: "size-10 shrink-0 p-0",
+          }}
         />
       </PreferenceRow>
 
       <PreferenceRow icon={<Globe2 />} label="Open to working in">
         <div className="space-y-2">
-          {!prefs.onlyWhereYouLive ? (
-            <>
-              <SearchField value={openToDraft} onChange={setOpenToDraft} placeholder="Add a city, state, or country..." />
-              <div className="flex justify-end">
-                <Button type="button" variant="outline" size="sm" className="shrink-0" disabled={!openToDraft.trim()} onClick={addOpenTo}>
-                  Add
-                </Button>
-              </div>
-            </>
-          ) : null}
-
           <ul className="flex flex-wrap items-center gap-1.5">
             <li>
               <label
@@ -261,24 +233,52 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
                 Only where you live
               </label>
             </li>
-            {prefs.openToLocations.map((place) => (
-              <li key={place}>
-                <button
-                  type="button"
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
-                  onClick={() => update({ openToLocations: prefs.openToLocations.filter((p) => p !== place) })}
-                  title="Remove"
-                >
-                  {place} ×
-                </button>
-              </li>
-            ))}
           </ul>
+
+          {!prefs.onlyWhereYouLive ? (
+            <>
+              <MultiLocationPicker
+                className="w-full min-w-0"
+                locations={prefs.openToLocations.map(locationFromLabel)}
+                onLocationsChange={(next) => {
+                  update({
+                    onlyWhereYouLive: next.length > 0 ? false : prefs.onlyWhereYouLive,
+                    openToLocations: next.map((location) => location.address.formatted),
+                  });
+                }}
+                placeholder="Add a city, state, or country"
+                theme={{
+                  input: "h-10 w-full min-w-0 bg-background text-foreground shadow-xs",
+                  searchButton: "size-10 shrink-0 p-0",
+                  locateButton: "size-10 shrink-0 p-0",
+                }}
+              />
+              <ul className="flex flex-wrap items-center gap-1.5">
+                {prefs.openToLocations.map((place) => (
+                  <li key={place}>
+                    <button
+                      type="button"
+                      className="max-w-full break-words rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
+                      onClick={() => update({ openToLocations: prefs.openToLocations.filter((p) => p !== place) })}
+                      title="Remove"
+                    >
+                      {place} ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </div>
       </PreferenceRow>
 
       <PreferenceRow icon={<Banknote />} label="Minimum pay">
-        <Input value={prefs.minimumPay} onChange={(e) => update({ minimumPay: e.target.value })} className="h-10 w-28 bg-background shadow-xs" aria-label="Minimum pay" />
+        <Input
+          value={prefs.minimumPay}
+          onChange={(e) => update({ minimumPay: e.target.value })}
+          className="h-10 w-full min-w-0 bg-background shadow-xs md:w-28"
+          aria-label="Minimum pay"
+        />
       </PreferenceRow>
 
       <PreferenceRow icon={<Link2 />} label="Links">
@@ -286,9 +286,15 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
           {prefs.links.map((link, index) => {
             const Icon = getLinkIcon(link);
             return (
-              <div key={`link-${index}`} className="relative flex items-center">
-                <Icon className="pointer-events-none absolute left-3 size-4 text-muted-foreground" aria-hidden="true" />
-                <Input value={link} onChange={(e) => setLinkAt(index, e.target.value)} placeholder="https://" className="h-10 bg-background pl-9 shadow-xs" inputMode="url" />
+              <div key={`link-${index}`} className="relative w-full min-w-0">
+                <Icon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  value={link}
+                  onChange={(e) => setLinkAt(index, e.target.value)}
+                  placeholder="https://"
+                  className="h-10 w-full min-w-0 bg-background pl-10 shadow-xs"
+                  inputMode="url"
+                />
               </div>
             );
           })}
@@ -303,23 +309,7 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
 
       <PreferenceRow icon={<EyeOff />} label="Hidden from">
         <div className="space-y-2">
-          {prefs.hiddenCompanies.length > 0 ? (
-            <ul className="flex flex-wrap gap-1.5">
-              {prefs.hiddenCompanies.map((domain) => (
-                <li key={domain}>
-                  <button
-                    type="button"
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
-                    onClick={() => update({ hiddenCompanies: prefs.hiddenCompanies.filter((d) => d !== domain) })}
-                    title="Remove"
-                  >
-                    {domain} ×
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <div className="flex gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <Input
               value={hiddenDraft}
               onChange={(e) => setHiddenDraft(e.target.value)}
@@ -330,12 +320,28 @@ export default function TalentPreferences({ onHowEmployersSeeIt }: { onHowEmploy
                 }
               }}
               placeholder="Add a company domain (e.g. meta.com)"
-              className="h-10 bg-background shadow-xs"
+              className="h-10 w-full min-w-0 flex-1 bg-background shadow-xs"
             />
             <Button type="button" variant="outline" size="icon" className="size-10 shrink-0" onClick={addHidden} aria-label="Hide company">
               <Plus className="size-4" />
             </Button>
           </div>
+          {prefs.hiddenCompanies.length > 0 ? (
+            <ul className="flex flex-wrap gap-1.5">
+              {prefs.hiddenCompanies.map((domain) => (
+                <li key={domain}>
+                  <button
+                    type="button"
+                    className="max-w-full break-words rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
+                    onClick={() => update({ hiddenCompanies: prefs.hiddenCompanies.filter((d) => d !== domain) })}
+                    title="Remove"
+                  >
+                    {domain} ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </PreferenceRow>
     </section>

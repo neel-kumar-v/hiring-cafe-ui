@@ -3,13 +3,12 @@
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { filters } from "@/data/search-filters";
-import { getEditedTags, initialSearchState } from "@/lib/edited-filters";
+import { initialSearchState } from "@/lib/edited-filters";
 import { getFilterChips } from "@/lib/search/filter-chips";
+import { overflowEdgeMaskStyle, useOverflowScrollEdges } from "@/hooks/useOverflowScrollEdges";
 import { cn } from "@/lib/utils";
 import type { SearchState } from "@/types/search";
-import { RotateCcw } from "lucide-react";
 import { useMemo } from "react";
-import { toast } from "sonner";
 
 export interface CategoryChipDef {
   label: string;
@@ -19,10 +18,10 @@ export interface CategoryChipDef {
 
 /** Matches `filterGroupOrder` in search-filters (General has no pill). */
 export const CATEGORY_CHIPS: CategoryChipDef[] = [
-  { label: "Compensation & Levels", categoryType: "compensation", fromId: "compensation" },
+  { label: "Compensation", categoryType: "compensation", fromId: "compensation" },
   { label: "Requirements", categoryType: "qualifications", fromId: "qualifications" },
   { label: "Location", categoryType: "location", fromId: "location" },
-  { label: "Role & Department", categoryType: "role-department", fromId: "role-department" },
+  { label: "Role", categoryType: "role-department", fromId: "role-department" },
   { label: "Availability", categoryType: "availability", fromId: "availability" },
   { label: "Company", categoryType: "company", fromId: "company" },
 ];
@@ -64,24 +63,24 @@ export function CountChip({ count, className }: { count: number; className?: str
 }
 
 export default function FilterPillBar({ className }: { className?: string }) {
-  const { searchOptions, setSearchOptions, setHasUnsavedChanges } = useApp();
-  const { handleSearchIconClick } = useSearchUI();
-
-  const selectedChips = useMemo(() => getFilterChips(searchOptions, initialSearchState), [searchOptions]);
+  const { searchOptions } = useApp();
+  const { handleSearchIconClick, searchBarShowsLocation, searchBarShowsSalary } = useSearchUI();
+  // Compensation and Location already live as search-bar segments when those
+  // flags are set (mobile always; desktop only while the bar is wide enough).
+  // Keep the pills while the segments are off screen.
+  const visibleChips = useMemo(
+    () =>
+      CATEGORY_CHIPS.filter((chip) => {
+        if (chip.fromId === "location" && searchBarShowsLocation) return false;
+        if (chip.fromId === "compensation" && searchBarShowsSalary) return false;
+        return true;
+      }),
+    [searchBarShowsLocation, searchBarShowsSalary]
+  );
 
   const categoryCounts = useMemo(() => {
     return getCategoryCounts(searchOptions, initialSearchState);
   }, [searchOptions]);
-
-  const hasActiveFilters = useMemo(() => {
-    return selectedChips.length > 0 || getEditedTags(searchOptions).size > 0;
-  }, [selectedChips, searchOptions]);
-
-  const handleClearFilters = () => {
-    setSearchOptions(initialSearchState);
-    setHasUnsavedChanges(false);
-    toast.success("Filters cleared.");
-  };
 
   /**
    * Category chips deep-link into the existing search filters dialog/drawer
@@ -93,9 +92,23 @@ export default function FilterPillBar({ className }: { className?: string }) {
     handleSearchIconClick(fromId);
   };
 
+  // Mobile scroller vignette: only the edge that actually hides overflowing
+  // pills fades. On desktop the row wraps (no overflow), so the mask stays off
+  // and vertical/wrapped content is never faded.
+  const { ref: scrollRef, edges } = useOverflowScrollEdges<HTMLDivElement>();
+
   return (
-    <div className={cn("@container/pills flex flex-wrap items-center gap-1.5 @min-[720px]/pills:gap-2", className)}>
-      {CATEGORY_CHIPS.map((chip) => {
+    <div
+      ref={scrollRef}
+      style={overflowEdgeMaskStyle(edges)}
+      className={cn(
+        "@container/pills flex flex-wrap items-center gap-1.5 @min-[720px]/pills:gap-2",
+        // Mobile: one horizontally scrolling row — never wrap (desktop keeps wrapping).
+        "max-md:flex-nowrap max-md:overflow-x-auto max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden",
+        className
+      )}
+    >
+      {visibleChips.map((chip) => {
         const count = categoryCounts[chip.categoryType] ?? 0;
         const isActive = count > 0;
 
@@ -105,7 +118,7 @@ export default function FilterPillBar({ className }: { className?: string }) {
             type="button"
             onClick={(event) => handleChipClick(event, chip.fromId)}
             className={cn(
-              "flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] transition-colors @min-[720px]/pills:h-8 @min-[720px]/pills:gap-1.5 @min-[720px]/pills:px-3 @min-[720px]/pills:text-xs @min-[900px]/pills:h-9 @min-[900px]/pills:px-3.5 @min-[900px]/pills:text-sm",
+              "flex h-7 shrink-0 items-center gap-1 rounded-full px-2.5 text-[11px] transition-colors @min-[720px]/pills:h-8 @min-[720px]/pills:gap-1.5 @min-[720px]/pills:px-3 @min-[720px]/pills:text-xs @min-[900px]/pills:h-9 @min-[900px]/pills:px-3.5 @min-[900px]/pills:text-sm",
               isActive
                 ? "border border-primary/40 bg-primary/5 font-semibold text-primary hover:bg-primary/10"
                 : "border border-border bg-background font-medium text-foreground hover:bg-accent"
@@ -117,16 +130,6 @@ export default function FilterPillBar({ className }: { className?: string }) {
         );
       })}
 
-      {hasActiveFilters ? (
-        <button
-          type="button"
-          onClick={handleClearFilters}
-          className="flex h-7 items-center gap-1 rounded-full border border-border/80 bg-background px-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive @min-[720px]/pills:h-8 @min-[720px]/pills:gap-1.5 @min-[720px]/pills:px-3 @min-[720px]/pills:text-xs @min-[900px]/pills:h-9"
-        >
-          <RotateCcw className="size-3 @min-[900px]/pills:size-3.5" />
-          Clear filters
-        </button>
-      ) : null}
     </div>
   );
 }

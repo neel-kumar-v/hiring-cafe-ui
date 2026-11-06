@@ -493,7 +493,7 @@ function ClassicSearchItems({ activeId, onNavigate }: { activeId: string | null;
                           Rename
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive data-[highlighted]:text-destructive" onSelect={() => handleDelete(String(search._id))}>
-                          <Trash2 className="mr-1 size-4" />
+                          <Trash2 className="mr-1 size-4 text-destructive" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

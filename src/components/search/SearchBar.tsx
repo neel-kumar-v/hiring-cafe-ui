@@ -1,12 +1,13 @@
 "use client";
 
-import { Building2, CalendarClock, ChevronDown, DollarSign, IdCard, type LucideIcon, MapPin, School, Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Building2, CalendarClock, ChevronDown, DollarSign, IdCard, type LucideIcon, MapPin, School, Search, SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 
 import Autocomplete from "./Autocomplete";
 import SearchModeToggle from "./SearchModeToggle";
+import TalentAgentSearchDrawer from "./TalentAgentSearchDrawer";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI, type SearchMode } from "@/contexts/SearchContext";
 import { Hitbox } from "@/components/ui/hitbox";
@@ -17,6 +18,9 @@ import { useQuantizedContainerWidth } from "@/hooks/useContainerWidth";
 import type { AddressComponent, Location as SearchLocation, SearchState } from "@/types/search";
 import { cn } from "@/lib/utils";
 import { POPULAR_JOB_SEARCHES } from "@/lib/search/popular-job-searches";
+import { getEditedTags, initialSearchState } from "@/lib/edited-filters";
+import { getFilterChips } from "@/lib/search/filter-chips";
+import { toast } from "sonner";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -27,6 +31,8 @@ interface SearchBarProps {
   onSubmit?: (value: string) => void;
   onIconClick?: (category: string) => void;
   value?: string;
+  /** Hide the inline mode toggle (mobile renders the labeled slider above the field instead). */
+  showModeToggle?: boolean;
 }
 
 const workplaceTypeOptions = ["Remote", "Hybrid", "Onsite"];
@@ -340,20 +346,34 @@ function SearchButton({ mode, onClick }: { mode: SearchMode; onClick: () => void
       onClick={onClick}
       aria-label={isAgent ? "Ask Talent Agent" : "Search jobs"}
       title={isAgent ? "Ask Talent Agent" : "Search jobs"}
-      className="flex size-8 sm:size-8.5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-neutral-800 dark:text-primary dark:hover:bg-neutral-700 shrink-0"
+      className={
+        isAgent
+          ? "flex size-8 sm:size-8.5 items-center justify-center text-primary transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0"
+          : "flex size-8 sm:size-8.5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-neutral-800 dark:text-primary dark:hover:bg-neutral-700 shrink-0"
+      }
     >
       {isAgent ? <Sparkles className="size-4" /> : <Search className="size-4" />}
     </button>
   );
 }
 
-export default function SearchBar({ placeholder, className = "", containerClassName = "", onSearch, onSubmit, onIconClick, value: controlledValue }: SearchBarProps) {
+export default function SearchBar({
+  placeholder,
+  className = "",
+  containerClassName = "",
+  onSearch,
+  onSubmit,
+  onIconClick,
+  value: controlledValue,
+  showModeToggle = true,
+}: SearchBarProps) {
   const pathname = usePathname();
-  const { searchMode, handleSearchIconClick, setChatOpen } = useSearchUI();
-  const { searchOptions: currentSearchState } = useApp();
+  const { searchMode, handleSearchIconClick, setChatOpen, setSearchBarSegments } = useSearchUI();
+  const { searchOptions: currentSearchState, setSearchOptions, setHasUnsavedChanges } = useApp();
 
   const [inputValue, setInputValue] = useState(controlledValue || "");
   const [inputFocused, setInputFocused] = useState(false);
+  const [agentSheetOpen, setAgentSheetOpen] = useState(false);
 
   const convex = useConvex();
   const [jobTitles, setJobTitles] = useState<string[]>([]);
@@ -372,9 +392,11 @@ export default function SearchBar({ placeholder, className = "", containerClassN
   // whole search UI there, not a partial stub (Feedback: tracker search chrome).
   const isRouteAllowed = pathname === "/" || Boolean(pathname?.startsWith("/search/")) || Boolean(pathname?.startsWith("/tracker"));
   const isAgentMode = searchMode === "talent-agent";
+  const isMobileAgentMode = isAgentMode && isMobile;
 
-  // In talent-agent mode: HIDE location segment, salary/filter cluster, and filter ribbon
-  const showFilterControls = isRouteAllowed && !isAgentMode;
+  // Location, salary, and the filter cluster stay available in both search modes.
+  // Switching modes only changes the prompt vs keyword field — it does not drop filters.
+  const showFilterControls = isRouteAllowed;
 
   useEffect(() => {
     if (controlledValue !== undefined) setInputValue(controlledValue);
@@ -416,19 +438,45 @@ export default function SearchBar({ placeholder, className = "", containerClassN
     if (onSearch) onSearch(value);
   };
 
-  const handleClear = () => {
+  const handleClearSearch = () => {
     setInputValue("");
     setInputFocused(false);
     if (onSearch) onSearch("");
+    setSearchOptions(initialSearchState);
+    setHasUnsavedChanges(false);
+    toast.success("Search cleared.");
   };
 
   const handleSubmit = () => {
+    if (isMobileAgentMode) {
+      setAgentSheetOpen(true);
+      return;
+    }
     if (onSearch) onSearch(inputValue);
     onSubmit?.(inputValue);
     if (isAgentMode) {
       setChatOpen(true);
     }
   };
+
+  // Submit from the mobile agent sheet: run the normal agent submit path
+  // (fire callbacks + open the chat dock) and close the sheet.
+  const handleSheetSubmit = () => {
+    if (onSearch) onSearch(inputValue);
+    onSubmit?.(inputValue);
+    setAgentSheetOpen(false);
+    setChatOpen(true);
+  };
+
+  const handleInputFocus = () => {
+    setInputFocused(true);
+    if (isMobileAgentMode) {
+      setAgentSheetOpen(true);
+    }
+  };
+
+  // Same condition the old FilterPillBar clear pill used: selected chips or edited tags.
+  const hasActiveFilters = useMemo(() => getFilterChips(currentSearchState, initialSearchState).length > 0 || getEditedTags(currentSearchState).size > 0, [currentSearchState]);
 
   const locationDisplay = useMemo(() => {
     const locations = currentSearchState.location.location || [];
@@ -444,10 +492,13 @@ export default function SearchBar({ placeholder, className = "", containerClassN
   // Progressive segment collapse based on search bar container width:
   // When unmeasured (0, e.g. SSR / pre-mount), default to generous layout to prevent flash.
   // When space narrows (e.g. chat dock opens, taking ~400px via --shell-right):
-  // 1. Salary collapses first (< 880px)
-  // 2. Location collapses next (< 680px)
+  // 1. Salary collapses first (< 880px) — desktop CSS is `hidden @[880px]:block`
+  // 2. Location collapses next (< 680px) — desktop CSS is `hidden @[680px]:block`
   // 3. Icon cluster uses the single compact general-filters icon ("SlidersHorizontal")
   //    whenever chips are shown or width is constrained (< 980px)
+  // Mobile always mounts both segments (Autocomplete's MobileFiltersRow).
+  // Quantized width snaps to the breakpoint once it is reached, so `>=` matches
+  // the container-query visibility (a 900px bar reports 880 and still shows salary).
   const isMeasured = barWidth > 0;
   const showSalary = showFilterControls && (isMobile || !isMeasured || barWidth >= 880);
   const showLocation = showFilterControls && (isMobile || !isMeasured || barWidth >= 680);
@@ -464,30 +515,62 @@ export default function SearchBar({ placeholder, className = "", containerClassN
 
   const salaryButton = showSalary ? <SalaryButton currentSearchState={currentSearchState} handleIconClick={handleIconClick} showFilterControls={showFilterControls} /> : null;
 
+  // Tell the pill bar which of these segments are actually on screen so it can
+  // drop the duplicate Compensation / Location chips.
+  //
+  // `showLocation` / `showSalary` stay true while unmeasured (avoids a flash),
+  // but desktop Autocomplete still CSS-hides the segments below @[680px] /
+  // @[880px]. Pills must follow that visibility, not the mount flag. Mobile
+  // always shows both once the bar has layout width. The home page also mounts
+  // a second bar inside `md:hidden`; a `display:none` bar reports width 0, so
+  // only the visible bar publishes.
+  useEffect(() => {
+    if (!isMeasured) return;
+    // Read the viewport here instead of `useIsMobile`: that hook is false on
+    // the first client paint, which would publish the desktop rule for a phone
+    // and flash the Compensation / Location pills before hiding them.
+    const mobileViewport = window.matchMedia("(max-width: 767px)").matches;
+    const locationVisible = showFilterControls && (mobileViewport || barWidth >= 680);
+    const salaryVisible = showFilterControls && (mobileViewport || barWidth >= 880);
+    setSearchBarSegments({ location: locationVisible, salary: salaryVisible });
+  }, [isMeasured, barWidth, showFilterControls, setSearchBarSegments]);
+
   const effectivePlaceholder = placeholder ?? (isAgentMode ? "Describe what you're looking for, or ask the AI agent..." : "Search by role, company, or keyword...");
 
   const searchButton = <SearchButton mode={searchMode} onClick={handleSubmit} />;
-  const modeToggle = <SearchModeToggle size="sm" />;
+  const modeToggle = showModeToggle ? <SearchModeToggle size="sm" /> : null;
+
+  // One clear-all control for the whole bar: query text and/or filters. It only
+  // takes space when there is something to clear, so an empty bar has no gap.
+  const hasTypedQuery = inputValue.trim().length > 0;
+  const clearSearchButton =
+    hasTypedQuery || hasActiveFilters ? <IconButton icon={X} label="Clear search" onClick={handleClearSearch} dataIconType="clear-search" buttonClassName="size-9 p-0" /> : null;
 
   return (
-    <div ref={barRef} className={cn("relative flex-1 min-w-0 @container", containerClassName)}>
+    <div ref={barRef} className={cn("relative flex flex-1 items-center min-w-0 @container", containerClassName)}>
       <Autocomplete
         className={className}
+        clearSearchButton={clearSearchButton}
         iconButtons={iconButtons}
         locationButton={locationButton}
         modeToggle={modeToggle}
         onBlur={() => setInputFocused(false)}
         onChange={handleInputChange}
-        onClear={handleClear}
-        onFocus={() => setInputFocused(true)}
+        onFocus={handleInputFocus}
         onSubmit={handleSubmit}
         options={isAgentMode ? [] : jobTitles}
         placeholder={effectivePlaceholder}
         salaryButton={salaryButton}
         searchButton={searchButton}
-        showClearButton={!!inputValue}
         suppressDropdown={isAgentMode}
         value={inputValue}
+      />
+      <TalentAgentSearchDrawer
+        open={agentSheetOpen}
+        onOpenChange={setAgentSheetOpen}
+        value={inputValue}
+        onChange={handleInputChange}
+        onSubmit={handleSheetSubmit}
       />
     </div>
   );

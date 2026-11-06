@@ -483,4 +483,83 @@
   --chart-scale-pattern-color: oklch(0.145 0 0);
 }
 
-/* Invalidate Turbopack CSS cache */
+/*
+ * Square corners: one switch flattens every radius, including ones set in utilities.
+ * Zero the radius theme variables (utilities like `rounded-lg` resolve through them
+ * at runtime) and force every corner longhand to 0, so shorthand utilities
+ * (`rounded-full`), longhand utilities (`rounded-t-xl`), and logical-property
+ * utilities (`rounded-ss-lg`) all collapse.
+ * `html.square-corners *` is unlayered, so this beats normal layered Tailwind
+ * utilities; the `!`-important utilities (`rounded-b-sm!`) are additionally
+ * beaten by the layered copy CardPrefsContext injects at the end of <head>.
+ */
+html.square-corners {
+  --radius: 0px;
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+}
+
+html.square-corners,
+html.square-corners * {
+  border-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-start-start-radius: 0 !important;
+  border-start-end-radius: 0 !important;
+  border-end-start-radius: 0 !important;
+  border-end-end-radius: 0 !important;
+}
+
+/*
+ * Menu highlight trail. Off: the previous row clears as soon as the pointer leaves.
+ * On: the new row lights immediately (duration 0 on the highlighted state). The
+ * previous row fades out over 180ms with no delay — a delay holds the color solid
+ * and then the short ease-in-out reads as a pop, not a fade.
+ * `!important` so per-item transition utilities cannot shorten the trail.
+ */
+[data-slot="dropdown-menu-item"],
+[data-slot="dropdown-menu-checkbox-item"],
+[data-slot="dropdown-menu-radio-item"],
+[data-slot="dropdown-menu-sub-trigger"],
+[data-slot="select-item"],
+[data-slot="autocomplete-option"],
+[data-slot="mention-item"] {
+  transition-property: background-color, color !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  transition-timing-function: ease-out !important;
+}
+
+html.hover-trail [data-slot="dropdown-menu-item"],
+html.hover-trail [data-slot="dropdown-menu-checkbox-item"],
+html.hover-trail [data-slot="dropdown-menu-radio-item"],
+html.hover-trail [data-slot="dropdown-menu-sub-trigger"],
+html.hover-trail [data-slot="select-item"],
+html.hover-trail [data-slot="autocomplete-option"],
+html.hover-trail [data-slot="mention-item"] {
+  transition-property: background-color, color !important;
+  transition-duration: 180ms !important;
+  transition-timing-function: ease-out !important;
+  transition-delay: 0s !important;
+}
+
+html.hover-trail [data-slot="dropdown-menu-item"]:is(:hover, :focus, [data-highlighted]),
+html.hover-trail [data-slot="dropdown-menu-checkbox-item"]:is(:hover, :focus, [data-highlighted]),
+html.hover-trail [data-slot="dropdown-menu-radio-item"]:is(:hover, :focus, [data-highlighted]),
+html.hover-trail [data-slot="dropdown-menu-sub-trigger"]:is(:hover, :focus, [data-highlighted]),
+html.hover-trail [data-slot="select-item"]:is(:hover, :focus, [data-highlighted]),
+html.hover-trail [data-slot="autocomplete-option"]:is(:hover, :focus, [data-highlighted]),
+html.hover-trail [data-slot="mention-item"]:is(:hover, :focus, [data-highlighted]) {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+/* Invalidate Turbopack CSS cache: trail fade 180ms ease-out, no hold */

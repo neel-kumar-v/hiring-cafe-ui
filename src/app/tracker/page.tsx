@@ -2,6 +2,7 @@
 
 import { CategoryFilter, KanbanBoard, ListView, SearchBar, TrackerFlowDiagram, ViewToggle } from "@/components/tracker";
 import { useApp } from "@/contexts/AppContext";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useQuantizedContainerWidth } from "@/hooks/useContainerWidth";
 import { useTrackedJobs } from "@/hooks/useTrackedJobs";
 import { logicalStatusPath } from "@/lib/tracker/statusTimeline";
@@ -26,6 +27,9 @@ export default function TrackerPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const containerWidth = useQuantizedContainerWidth(containerRef, [1024]);
   const isLargeScreen = containerWidth >= 1024;
+  // Below md the Sankey's node labels collide with its bars, so the flow
+  // diagram is desktop-only — a colliding chart is worse than none.
+  const isMdUp = useMediaQuery("(min-width: 768px)");
 
   const trackedJobIds = useMemo(() => {
     const ids = [...user.saved, ...user.applied, ...user.interviewing, ...user.rejected, ...user.hidden];
@@ -131,9 +135,11 @@ export default function TrackerPage() {
             <ListView jobs={filteredJobs} visibleCategories={visibleCategories} getJobStatus={getJobStatus} onMoveJob={handleMoveJob} hasSavedJobs={userJobs.length > 0} />
           )}
         </div>
-        <div className="mt-6">
-          <TrackerFlowDiagram paths={logicalPaths} />
-        </div>
+        {isMdUp ? (
+          <div className="mt-6">
+            <TrackerFlowDiagram paths={logicalPaths} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -16,12 +16,12 @@ interface AutocompleteProps {
   placeholder?: string;
   className?: string;
   maxTotal?: number;
-  showClearButton?: boolean;
-  onClear?: () => void;
   onFocus?: () => void;
   onBlur?: () => void;
   onSubmit?: () => void;
   iconButtons?: React.ReactNode;
+  /** The pill's single clear-all control (query + filters), rendered immediately left of the filter icon cluster. */
+  clearSearchButton?: React.ReactNode;
   locationButton?: React.ReactNode;
   salaryButton?: React.ReactNode;
   searchButton?: React.ReactNode;
@@ -35,20 +35,23 @@ interface AutocompleteOptionProps {
   index: number;
   highlightedIndex: number;
   onClick: (option: string) => void;
+  onHighlight?: (index: number) => void;
   isMobile?: boolean;
 }
 
-function AutocompleteOption({ option, index, highlightedIndex, onClick, isMobile = false }: AutocompleteOptionProps) {
-  const baseClasses = isMobile
-    ? "cursor-pointer border-b border-border/60 px-4 py-3 text-base"
-    : "cursor-pointer px-3 py-2 text-sm transition-colors duration-300 hover:transition-none";
-
-  const highlightClasses =
-    index === highlightedIndex ? "bg-brand-soft text-brand-soft-foreground" : isMobile ? "text-foreground hover:bg-accent" : "text-foreground hover:bg-secondary";
+function AutocompleteOption({ option, index, highlightedIndex, onClick, onHighlight, isMobile = false }: AutocompleteOptionProps) {
+  const highlighted = index === highlightedIndex;
 
   return (
     <div
-      className={`${baseClasses} ${highlightClasses}`}
+      data-slot="autocomplete-option"
+      data-highlighted={highlighted ? "" : undefined}
+      className={cn(
+        "cursor-pointer text-foreground outline-hidden hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
+        isMobile ? "border-b border-border/60 px-4 py-3 text-base last:border-b-0" : "px-2 py-1.5 text-sm",
+        "first:rounded-t-sm last:rounded-b-sm!"
+      )}
+      onMouseEnter={() => onHighlight?.(index)}
       onClick={(e) => {
         if (isMobile) {
           e.preventDefault();
@@ -86,6 +89,7 @@ function DesktopDropdown({
   displayOptions,
   highlightedIndex,
   onOptionClick,
+  onHighlight,
   maxTotal,
   containerRef,
 }: {
@@ -94,6 +98,7 @@ function DesktopDropdown({
   displayOptions: string[];
   highlightedIndex: number;
   onOptionClick: (option: string) => void;
+  onHighlight?: (index: number) => void;
   maxTotal: number;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -115,11 +120,13 @@ function DesktopDropdown({
         left: 0,
       }}
     >
-      <div className="w-full max-h-[361px] min-h-[100px] overflow-y-auto">
+      <div className="w-full max-h-[361px] min-h-[100px] overflow-y-auto p-1" onMouseLeave={() => onHighlight?.(-1)}>
         {filteredOptions.length > 0 ? (
           displayOptions
             .slice(0, maxTotal)
-            .map((option, index) => <AutocompleteOption highlightedIndex={highlightedIndex} index={index} key={option} onClick={onOptionClick} option={option} />)
+            .map((option, index) => (
+              <AutocompleteOption highlightedIndex={highlightedIndex} index={index} key={option} onClick={onOptionClick} onHighlight={onHighlight} option={option} />
+            ))
         ) : (
           <NoResults />
         )}
@@ -233,12 +240,11 @@ export default function Autocomplete({
   placeholder = "Search",
   className = "",
   maxTotal = 20,
-  showClearButton = false,
-  onClear,
   onFocus,
   onBlur,
   onSubmit,
   iconButtons,
+  clearSearchButton,
   locationButton,
   salaryButton,
   searchButton,
@@ -347,7 +353,8 @@ export default function Autocomplete({
 
   const displayOptions = value.trim() ? Array.from(new Set([value.trim(), ...filteredOptions].filter((q) => q.trim()))) : filteredOptions;
 
-  const hasRightControls = Boolean(iconButtons || locationButton || salaryButton || searchButton);
+  const hasFilterIconControls = Boolean(iconButtons || clearSearchButton);
+  const hasRightControls = Boolean(hasFilterIconControls || locationButton || salaryButton || searchButton);
   const inputRoundedClasses = hasRightControls
     ? dropdownOpen
       ? "rounded-l-[24px] rounded-r-none rounded-b-none border-r-0"
@@ -369,12 +376,13 @@ export default function Autocomplete({
           <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <div className="relative flex h-11 items-center">
               {modeToggle ? <div className="flex items-center pl-1.5 shrink-0">{modeToggle}</div> : null}
+              {searchButton && <div className="flex items-center pl-1.5 pr-1.5 shrink-0">{searchButton}</div>}
               <div className="relative h-full flex-1 min-w-0">
                 <input
                   className={cn(
                     "h-full w-full bg-card text-[15px] placeholder:text-xs placeholder:text-muted-foreground placeholder:truncate text-foreground transition-[box-shadow] duration-200 !ring-0 ease-in-out focus:outline-none focus:ring-0",
-                    modeToggle ? "pl-1.5" : "pl-10",
-                    !iconButtons && searchButton ? "pr-1.5" : "pr-3",
+                    modeToggle || searchButton ? "pl-1.5" : "pl-3",
+                    !hasFilterIconControls ? "pr-1.5" : "pr-3",
                     className
                   )}
                   onBlur={handleInputBlur}
@@ -386,17 +394,13 @@ export default function Autocomplete({
                   type="text"
                   value={value}
                 />
-                {!modeToggle && <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground" />}
               </div>
-              {showClearButton && value && (
-                <Hitbox size="sm" radius="full">
-                  <button aria-label="Clear search" className="flex h-full items-center justify-center px-3 shrink-0" onClick={() => onClear?.()} type="button">
-                    <X className="size-4 cursor-pointer text-muted-foreground transition-[transform,opacity] hover:text-primary" />
-                  </button>
-                </Hitbox>
+              {hasFilterIconControls && (
+                <div className="flex h-full shrink-0 items-stretch justify-center">
+                  {clearSearchButton && <div className="flex h-full items-center justify-center pl-1">{clearSearchButton}</div>}
+                  {iconButtons}
+                </div>
               )}
-              {iconButtons && <div className="flex h-full items-stretch justify-center">{iconButtons}</div>}
-              {searchButton && <div className="flex items-center pl-1.5 pr-1.5 shrink-0">{searchButton}</div>}
             </div>
             <MobileFiltersRow salaryButton={salaryButton} locationButton={locationButton} />
           </div>
@@ -428,22 +432,24 @@ export default function Autocomplete({
                 <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 transform text-muted-foreground transition-[transform,opacity] duration-200 ease-in-out group-hover:text-primary" />
               )}
             </div>
-            {showClearButton && value && (
-              <Hitbox size="sm" radius="full">
-                <button aria-label="Clear search" className="flex h-full items-center justify-center px-2 shrink-0" onClick={() => onClear?.()} type="button">
-                  <X className="size-4 cursor-pointer text-muted-foreground transition-[transform,opacity] hover:text-primary" />
-                </button>
-              </Hitbox>
-            )}
             {locationButton && (
-              <div className={cn("h-full max-w-[30%] border-l border-border hidden @[680px]:block", !salaryButton && !iconButtons && !searchButton && "rounded-r-[24px]")}>
+              <div
+                className={cn("h-full max-w-[30%] border-l border-border hidden @[680px]:block", !salaryButton && !hasFilterIconControls && !searchButton && "rounded-r-[24px]")}
+              >
                 {locationButton}
               </div>
             )}
             {salaryButton && (
-              <div className={cn("h-full max-w-[20%] border-l border-border hidden @[880px]:block", !iconButtons && !searchButton && "rounded-r-[24px]")}>{salaryButton}</div>
+              <div className={cn("h-full max-w-[20%] border-l border-border hidden @[880px]:block", !hasFilterIconControls && !searchButton && "rounded-r-[24px]")}>
+                {salaryButton}
+              </div>
             )}
-            {iconButtons && <div className={cn("flex h-full items-stretch justify-end border-l border-border", !searchButton && "rounded-r-[24px]")}>{iconButtons}</div>}
+            {(clearSearchButton || iconButtons) && (
+              <div className={cn("flex h-full items-stretch justify-end border-l border-border", !searchButton && "rounded-r-[24px]")}>
+                {clearSearchButton && <div className="flex h-full items-center justify-center pl-1">{clearSearchButton}</div>}
+                {iconButtons}
+              </div>
+            )}
             {/* SearchButton on right */}
             {searchButton ? <div className="flex items-center pl-1.5 pr-1.5 shrink-0">{searchButton}</div> : null}
           </div>
@@ -454,6 +460,7 @@ export default function Autocomplete({
           filteredOptions={filteredOptions}
           highlightedIndex={highlightedIndex}
           isOpen={dropdownOpen}
+          onHighlight={setHighlightedIndex}
           onOptionClick={handleOptionClick}
           maxTotal={maxTotal}
         />

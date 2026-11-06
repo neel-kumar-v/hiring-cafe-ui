@@ -3,6 +3,9 @@ import { useMutation, usePaginatedQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActionBar, ActionBarGroup, ActionBarItem, ActionBarSelection, ActionBarSeparator } from "@/components/ui/action-bar";
+import { CardDisplaySettingsToolbar, isCardSettingsShortcut } from "@/components/settings/CardDisplaySettingsToolbar";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
+import { cn } from "@/lib/utils";
 import { buildSharePayload } from "@/lib/jobs/selection";
 import { CheckCheck, EyeOff, Share2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -52,6 +55,42 @@ function splitIntoColumns<T>(items: readonly T[], columnCount: number): T[][] {
     columnItems[index % columnItems.length].push(item);
   });
   return columnItems;
+}
+
+/**
+ * Floating card-display settings: one trigger pinned to the viewport's
+ * bottom-right. Stays up in list layout; the hover-expansion switches are
+ * disabled there because list rows do not expand. Sits above the mobile tab
+ * bar (3.5rem + safe area) and, at ≥xl, shifts left by `--shell-right` so it
+ * never sits under the docked chat rail. The talent-agent chat pill only
+ * exists below md, so the lift is phone-only too.
+ */
+function FloatingCardDisplayToolbar({ layout }: { layout: JobBoardLayout }) {
+  const { searchMode, chatOpen } = useSearchUI();
+  const { prefs, setPref } = useCardPrefs();
+  const aboveChatPill = searchMode === "talent-agent" && !chatOpen;
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!isCardSettingsShortcut(event) || !prefs.floatingToolbarHidden) return;
+      event.preventDefault();
+      setPref("floatingToolbarHidden", false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [prefs.floatingToolbarHidden, setPref]);
+
+  if (prefs.floatingToolbarHidden) return null;
+  return (
+    <div
+      className={cn(
+        "fixed right-4 z-30 rounded-xl border border-border bg-background/95 p-1 shadow-lg backdrop-blur-sm xl:right-[calc(var(--shell-right,0px)+1.25rem)]",
+        aboveChatPill ? "bottom-[calc(7rem+env(safe-area-inset-bottom))] md:bottom-5" : "bottom-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] md:bottom-5"
+      )}
+    >
+      <CardDisplaySettingsToolbar variant="ribbon" panelAlign="right" expansionsDisabled={layout === "list"} />
+    </div>
+  );
 }
 
 const JobBoard = ({ jobCount }: { jobCount?: number }) => {
@@ -782,6 +821,8 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
           </ActionBarItem>
         </ActionBarGroup>
       </ActionBar>
+
+      <FloatingCardDisplayToolbar layout={effectiveLayout} />
 
       <JobPreviewOverlay
         job={selectedJob}

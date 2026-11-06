@@ -5,33 +5,69 @@ import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { cn } from "@/lib/utils";
 import { SlidersHorizontal } from "lucide-react";
 import { useId, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
-function PrefRow({ id, label, checked, onCheckedChange }: { id: string; label: string; checked: boolean; onCheckedChange: (checked: boolean) => void }) {
+/** Ctrl/Cmd+Shift+Period. Browsers do not bind this chord. Shift makes `key` ">", so match `code`. */
+export function isCardSettingsShortcut(event: KeyboardEvent) {
+  if (event.repeat || event.altKey) return false;
+  if (!(event.metaKey || event.ctrlKey) || !event.shiftKey) return false;
+  return event.code === "Period";
+}
+
+export function cardSettingsShortcutLabel() {
+  const platform = typeof navigator === "undefined" ? "" : `${navigator.platform} ${navigator.userAgent}`;
+  return /Mac|iPhone|iPad|iPod/.test(platform) ? "⌘⇧." : "Ctrl+Shift+.";
+}
+
+function PrefRow({
+  id,
+  label,
+  checked,
+  onCheckedChange,
+  disabled = false,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md px-1.5 py-1.5 text-sm transition-colors hover:bg-primary/5">
+    <div className={cn("flex items-center justify-between gap-3 rounded-md px-1.5 py-1.5 text-sm transition-colors", !disabled && "hover:bg-primary/5", disabled && "opacity-50")}>
       {/* `button` is a labelable element, so htmlFor forwards label clicks to the Switch. */}
-      <label htmlFor={id} className="cursor-pointer select-none text-foreground/90">
+      <label htmlFor={id} className={cn("select-none text-foreground/90", disabled ? "cursor-not-allowed" : "cursor-pointer")}>
         {label}
       </label>
-      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch id={id} checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />
     </div>
   );
 }
 
 /**
- * Floating card-display settings toolbar. Sits at the bottom of the sidebar,
- * directly above the footer icon buttons (Employers / About / Reddit / theme),
- * so it never overlaps them. Collapses to a single trigger; the panel opens
- * upward. Rendered both in the expanded sidebar footer and in the collapsed
- * icon ribbon.
+ * Card-display settings toolbar. Collapses to a single trigger; the panel opens
+ * upward with one switch per hover-expansion pref (Skills / Description /
+ * Locations). In the sidebar it sits above the footer icon buttons; as a
+ * floating control it anchors to the viewport's bottom-right
+ * (`panelAlign="right"` keeps the panel on-screen there).
  */
-export function CardDisplaySettingsToolbar({ variant }: { variant: "expanded" | "ribbon" }) {
+export function CardDisplaySettingsToolbar({
+  variant,
+  panelAlign = "left",
+  expansionsDisabled = false,
+}: {
+  variant: "expanded" | "ribbon";
+  panelAlign?: "left" | "right";
+  /** List layout has no card hover expansion, so those switches stay visible but cannot be changed. */
+  expansionsDisabled?: boolean;
+}) {
   const { prefs, setPref } = useCardPrefs();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const skillsId = useId();
   const descriptionId = useId();
   const locationsId = useId();
+  const squareCornersId = useId();
+  const hoverTrailId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +86,11 @@ export function CardDisplaySettingsToolbar({ variant }: { variant: "expanded" | 
   }, [open]);
 
   const activeCount =
-    Number(prefs.disableSkillsHoverExpansion) + Number(prefs.disableDescriptionHoverExpansion) + Number(prefs.disableLocationsHoverExpansion);
+    Number(prefs.disableSkillsHoverExpansion) +
+    Number(prefs.disableDescriptionHoverExpansion) +
+    Number(prefs.disableLocationsHoverExpansion) +
+    Number(prefs.squareCorners) +
+    Number(!prefs.hoverTrail);
 
   const trigger =
     variant === "expanded" ? (
@@ -96,25 +136,51 @@ export function CardDisplaySettingsToolbar({ variant }: { variant: "expanded" | 
           aria-label="Card display settings"
           className={cn(
             "absolute bottom-full z-50 mb-2 w-64 rounded-lg border border-border bg-popover p-3 shadow-lg ring-1 ring-primary/10",
-            variant === "expanded" ? "left-0" : "left-1"
+            panelAlign === "right" ? "right-0" : variant === "expanded" ? "left-0" : "left-1"
           )}
         >
           <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Disable hover expansion</p>
           <div className="flex flex-col gap-1">
-            <PrefRow id={skillsId} label="Skills" checked={prefs.disableSkillsHoverExpansion} onCheckedChange={(checked) => setPref("disableSkillsHoverExpansion", checked)} />
+            <PrefRow
+              id={skillsId}
+              label="Skills"
+              checked={prefs.disableSkillsHoverExpansion}
+              disabled={expansionsDisabled}
+              onCheckedChange={(checked) => setPref("disableSkillsHoverExpansion", checked)}
+            />
             <PrefRow
               id={descriptionId}
               label="Description"
               checked={prefs.disableDescriptionHoverExpansion}
+              disabled={expansionsDisabled}
               onCheckedChange={(checked) => setPref("disableDescriptionHoverExpansion", checked)}
             />
             <PrefRow
               id={locationsId}
               label="Locations"
               checked={prefs.disableLocationsHoverExpansion}
+              disabled={expansionsDisabled}
               onCheckedChange={(checked) => setPref("disableLocationsHoverExpansion", checked)}
             />
           </div>
+          <p className="mt-3 mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Appearance</p>
+          <div className="flex flex-col gap-1">
+            <PrefRow id={squareCornersId} label="Square corners" checked={prefs.squareCorners} onCheckedChange={(checked) => setPref("squareCorners", checked)} />
+            <PrefRow id={hoverTrailId} label="Hover trail" checked={prefs.hoverTrail} onCheckedChange={(checked) => setPref("hoverTrail", checked)} />
+          </div>
+          {variant === "ribbon" ? (
+            <button
+              type="button"
+              className="mt-3 w-full rounded-md border-t border-border px-1.5 pt-2.5 pb-1.5 text-left text-sm text-muted-foreground transition-colors hover:bg-primary/5 hover:text-foreground"
+              onClick={() => {
+                setOpen(false);
+                setPref("floatingToolbarHidden", true);
+                toast(`Press ${cardSettingsShortcutLabel()} to show this again`);
+              }}
+            >
+              Hide this bar
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

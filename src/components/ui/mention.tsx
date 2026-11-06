@@ -53,7 +53,7 @@ function MentionItem({ className, children, ...props }: React.ComponentProps<typ
     <MentionPrimitive.Item
       data-slot="mention-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50",
+        "relative flex w-full cursor-default select-none items-center gap-2 px-2 py-1.5 text-sm outline-hidden first:rounded-t-sm last:rounded-b-sm! data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50",
         className
       )}
       {...props}

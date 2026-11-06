@@ -1,5 +1,6 @@
 "use client";
 
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DEMO_AGENT_FALLBACK_REPLY, DEMO_AGENT_INTRO, DEMO_AGENT_CHATS, type DemoChatMessage } from "@/data/agent-demo";
 import { useSearchUI } from "@/contexts/SearchContext";
@@ -7,7 +8,7 @@ import { useNotificationFrequency } from "@/components/search/ResultsMetaRow";
 import { useCollapsibleHeight } from "@/hooks/useCollapsibleHeight";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Bell, Check, ChevronDown, ChevronUp, EllipsisVertical, Lightbulb, MessagesSquare, Pencil, Pin, Search, Trash2 } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, ChevronUp, EllipsisVertical, Lightbulb, MessagesSquare, Pencil, Pin, Search, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type Ref } from "react";
 import { toast } from "sonner";
 
@@ -128,7 +129,7 @@ export function ChatRowOptions({ label, onPin, onRename, onDelete }: { label: st
               else toast.info("Deleting chats isn't wired up yet.");
             }}
           >
-            <Trash2 className="mr-1 size-4" />
+            <Trash2 className="mr-1 size-4 text-destructive" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -196,18 +197,18 @@ function AgentThinking({ text, children }: { text?: string; children?: ReactNode
 
 /**
  * Inline "Running job searches" card the agent posts after running searches
- * (green activity dot, chevron collapse, green-check rows with violet job pills).
+ * (pink activity dot, chevron collapse, pink-check rows with pink job pills).
  */
 function RunningSearchesCard({ rows }: { rows: { name: string; jobs: number }[] }) {
   const [open, setOpen] = useState(true);
   const { contentRef, containerProps } = useCollapsibleHeight(open);
   const totalJobs = rows.reduce((sum, row) => sum + row.jobs, 0);
   return (
-    <div className="mt-2 ml-6 w-full max-w-md rounded-xl border border-border bg-muted/60 px-4 py-3">
+    <div className="mt-2 ml-6 min-w-0 max-w-full max-w-md rounded-xl border border-border bg-muted/60 px-4 py-3">
       <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center gap-2.5 text-left" aria-expanded={open}>
         <Search className="size-4 shrink-0 text-foreground" />
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">Running job searches</span>
-        <span className="size-2 shrink-0 rounded-full bg-success" />
+        <span className="size-2 shrink-0 rounded-full bg-primary" />
         <ChevronDown className={cn("size-3.5 shrink-0 text-muted-foreground transition-transform duration-200", !open && "-rotate-90")} />
       </button>
       <div className="mt-0.5 text-xs text-muted-foreground">
@@ -218,9 +219,9 @@ function RunningSearchesCard({ rows }: { rows: { name: string; jobs: number }[] 
           <div className="space-y-1.5 pt-2.5">
             {rows.map((row) => (
               <div key={row.name} className="flex items-center gap-2.5">
-                <Check className="size-4 shrink-0 text-success" />
+                <Check className="size-4 shrink-0 text-primary" />
                 <span className="min-w-0 flex-1 truncate text-sm text-foreground">{row.name}</span>
-                <span className="shrink-0 rounded-full bg-agent px-2 py-0.5 text-[11px] font-semibold text-agent-foreground">{row.jobs} jobs</span>
+                <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">{row.jobs} jobs</span>
               </div>
             ))}
           </div>
@@ -369,14 +370,12 @@ function ChatBody({ chatId, className }: { chatId: string; className?: string })
       </div>
       <div className="border-t border-border pt-1">
         {notificationFrequency === "off" ? (
-          <div className="flex h-9 items-center justify-center gap-1.5">
-            <Bell className="size-4 text-foreground/70" />
-            <span className="text-sm">Get new jobs by email</span>
-            <button type="button" className="text-sm font-medium text-agent hover:underline" onClick={() => toast.info("Demo — email alerts aren't wired up yet.")}>
+          <p className="px-4 pb-1 text-center text-xs leading-snug text-muted-foreground">
+            Get new jobs by email.{" "}
+            <button type="button" className="font-medium text-agent hover:underline" onClick={() => toast.info("Demo — email alerts aren't wired up yet.")}>
               Turn on
             </button>
-            <ChevronUp className="size-3.5 text-muted-foreground" />
-          </div>
+          </p>
         ) : null}
         <ChatComposer onSend={handleSend} />
       </div>
@@ -385,8 +384,63 @@ function ChatBody({ chatId, className }: { chatId: string; className?: string })
 }
 
 /**
- * Right-side talent-agent chat rail from the new design (UI-only — no real agent).
- * ≥xl: docked column · below: overlay + backdrop (mirrors the screenshot).
+ * Chat switcher shown in the chat header on every surface (docked rail + mobile sheet).
+ * Opens a dropdown of the demo conversations and marks the active one.
+ */
+function ChatSwitcher({ chat }: { chat: (typeof DEMO_AGENT_CHATS)[number] }) {
+  const { setActiveChatId } = useSearchUI();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" className="flex max-w-full items-center gap-2 rounded-md px-2 py-1 text-foreground transition-colors hover:bg-accent">
+          <MessagesSquare className="size-[18px] shrink-0 text-muted-foreground" />
+          <span className="truncate text-sm font-semibold">{chat.name}</span>
+          <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="w-[320px]">
+        {DEMO_AGENT_CHATS.map((c) => (
+          <DropdownMenuItem key={c.id} onSelect={() => setActiveChatId(c.id)}>
+            <span className="truncate">{c.name}</span>
+            {c.id === chat.id ? <Check className="ml-auto size-4 shrink-0" /> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/**
+ * Floating pill shown only below md (phone) when the chat is closed and the
+ * search mode is "talent-agent" on a search route. One slim line above the
+ * mobile tab bar; tapping it opens the chat bottom sheet. From md up the
+ * navbar toggle owns opening, so the pill stays hidden.
+ */
+function ChatMobileTrigger() {
+  const { setChatOpen } = useSearchUI();
+  return (
+    <button
+      type="button"
+      aria-label="Open talent agent chat"
+      onClick={() => setChatOpen(true)}
+      className="fixed inset-x-4 bottom-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] z-30 flex items-center gap-2.5 rounded-full border border-border bg-background py-1.5 pl-1.5 pr-3 shadow-lg md:hidden"
+    >
+      <span className="flex size-7 shrink-0 items-center justify-center text-primary">
+        <Sparkles className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1 truncate text-left text-sm text-foreground">Ask your agent to refine these jobs</span>
+      <ChevronUp className="size-4 shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
+
+/**
+ * Right-side talent-agent chat rail (UI-only — no real agent).
+ * - below md: vaul bottom drawer, plus a slim floating pill above the mobile
+ *   tab bar while closed (talent-agent mode on search routes)
+ * - md up to just under xl: full-height overlay on the right edge (dim backdrop,
+ *   does not push the results)
+ * - xl and up: docked, resizable column that is part of the layout
  */
 export default function ChatPanel({
   docked,
@@ -400,18 +454,71 @@ export default function ChatPanel({
   /** Parent ref for drag-resize: per-frame widths are written straight to this element. */
   panelRef?: Ref<HTMLDivElement>;
 } = {}) {
-  const { chatOpen, setChatOpen, activeChatId, setActiveChatId } = useSearchUI();
+  const { chatOpen, setChatOpen, activeChatId, setActiveChatId, searchMode } = useSearchUI();
+  const isMdUp = useMediaQuery("(min-width: 768px)");
   const isDocked = useMediaQuery("(min-width: 1280px)");
+  const showOverlay = isMdUp && !isDocked;
+  // Lags `isMdUp` by a frame. The phone sheet keeps rendering on the crossing
+  // so the close below runs while vaul is still mounted (unmounting it open
+  // leaks its body scroll lock), then the overlay/dock takes over.
+  const [phoneLayout, setPhoneLayout] = useState(!isMdUp);
+
+  useEffect(() => {
+    if (!isMdUp) {
+      setPhoneLayout(true);
+      return;
+    }
+    if (!phoneLayout || !chatOpen) {
+      setPhoneLayout(false);
+      return;
+    }
+    setChatOpen(false);
+  }, [isMdUp, phoneLayout, chatOpen, setChatOpen]);
 
   // fallback to first demo chat when opened without a target conversation
   useEffect(() => {
     if (chatOpen && activeChatId == null) setActiveChatId(DEMO_AGENT_CHATS[0].id);
   }, [chatOpen, activeChatId, setActiveChatId]);
 
-  if (!chatOpen) return null;
-
   const chatId = activeChatId ?? DEMO_AGENT_CHATS[0].id;
   const activeChat = DEMO_AGENT_CHATS.find((chat) => chat.id === chatId) ?? DEMO_AGENT_CHATS[0];
+
+  // Phone only: vaul bottom drawer, held one frame past the md crossing so
+  // the close above can run. The pill is phone-only (`md:hidden`).
+  if (!docked && phoneLayout) {
+    return (
+      <>
+        {!chatOpen && searchMode === "talent-agent" ? <ChatMobileTrigger /> : null}
+        <Drawer open={chatOpen} onOpenChange={setChatOpen}>
+          <DrawerContent className="mx-auto h-[70vh] rounded-t-xl md:hidden">
+            <div className="flex h-12 shrink-0 items-center justify-center border-b border-border px-4">
+              <ChatSwitcher chat={activeChat} />
+            </div>
+            <ChatBody chatId={chatId} />
+            <div aria-hidden className="shrink-0 pb-[env(safe-area-inset-bottom)]" />
+          </DrawerContent>
+        </Drawer>
+      </>
+    );
+  }
+
+  if (!chatOpen) return null;
+
+  // Tablet (md–xl): overlay the page from the right. Same chat body as the
+  // docked rail, but it does not reserve layout space. Backdrop click closes.
+  if (!docked && showOverlay) {
+    return (
+      <>
+        <button type="button" aria-label="Close chat" className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
+        <div className="fixed inset-y-0 right-0 z-50 flex h-full w-[min(400px,calc(100vw-3rem))] flex-col border-l border-border bg-background shadow-xl">
+          <div className="flex h-16 shrink-0 items-center justify-center border-b border-border px-4">
+            <ChatSwitcher chat={activeChat} />
+          </div>
+          <ChatBody chatId={chatId} />
+        </div>
+      </>
+    );
+  }
 
   if (docked || isDocked) {
     return (
@@ -434,54 +541,10 @@ export default function ChatPanel({
           />
         ) : null}
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-border px-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="flex max-w-full items-center gap-2 rounded-md px-2 py-1 text-foreground transition-colors hover:bg-accent">
-                <MessagesSquare className="size-[18px] shrink-0 text-muted-foreground" />
-                <span className="truncate text-sm font-semibold">{activeChat.name}</span>
-                <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-[320px]">
-              {DEMO_AGENT_CHATS.map((chat) => (
-                <DropdownMenuItem key={chat.id} onSelect={() => setActiveChatId(chat.id)}>
-                  <span className="truncate">{chat.name}</span>
-                  {chat.id === chatId ? <Check className="ml-auto size-4 shrink-0" /> : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ChatSwitcher chat={activeChat} />
         </div>
         <ChatBody chatId={chatId} />
       </div>
     );
   }
-
-  return (
-    <>
-      <div aria-hidden className="fixed inset-0 z-40 bg-black/40" onClick={() => setChatOpen(false)} />
-      <div ref={panelRef} className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-[420px] flex-col bg-background shadow-2xl" style={{ width: Math.min(width, 420) }}>
-        <div className="flex h-16 shrink-0 items-center justify-center border-b border-border px-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="flex max-w-full items-center gap-2 rounded-md px-2 py-1 text-foreground transition-colors hover:bg-accent">
-                <MessagesSquare className="size-[18px] shrink-0 text-muted-foreground" />
-                <span className="truncate text-sm font-semibold">{activeChat.name}</span>
-                <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-[320px]">
-              {DEMO_AGENT_CHATS.map((chat) => (
-                <DropdownMenuItem key={chat.id} onSelect={() => setActiveChatId(chat.id)}>
-                  <span className="truncate">{chat.name}</span>
-                  {chat.id === chatId ? <Check className="ml-auto size-4 shrink-0" /> : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <ChatBody chatId={chatId} />
-      </div>
-    </>
-  );
 }

@@ -13,21 +13,35 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Bookmark, Briefcase, Building2, Clock, DollarSign, EyeOff, Link2, MapPin, Send, type LucideIcon } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useSearchUI } from "@/contexts/SearchContext";
-import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
+import { memo, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useJobDetailsPrefetch } from "@/hooks/useJobDetailsPrefetch";
 import { getDetailsLookupId } from "@/lib/jobs/getDetailsLookupId";
 import type { JobBoardCollection } from "@/lib/jobs/jobBoard";
 import NewBadge, { isJobNew, shouldShowNewBadge } from "./card/NewBadge";
 import CardStats from "./card/CardStats";
+import { LAST_LINE_FADE_CLASSES, useLastLineClamp } from "./card/lastLineClamp";
 import CompanyLogo from "./util/CompanyLogo";
+import MoreLocationsControl from "./util/MoreLocationsControl";
 import ScrapeTime from "./util/ScrapeTime";
 
+/*
+ * Footer action cluster sizing. Apply (solid primary) and Save (outline) share
+ * ACTION_BUTTON_SIZE_CLASS verbatim — same 32px height, horizontal padding,
+ * gap and text size — so the solid pink fill cannot render taller or chunkier
+ * than the outline beside it. Radius comes from Button's base `rounded-lg`,
+ * and both icon buttons take the same h-8, so all four controls sit on one
+ * baseline. Icons match too: the labelled buttons share one icon size.
+ */
+const ACTION_BUTTON_SIZE_CLASS = "h-8 gap-1.5 px-2.5 text-xs";
+const ACTION_BUTTON_ICON_CLASS = "size-3.5";
+const ACTION_ICON_BUTTON_CLASS = "h-8 w-8 p-0";
+
 /** Jobright-style meta fact: icon + plain text (no outline pill). */
-function FactLine({ icon: Icon, children, emphasize = false }: { icon: LucideIcon; children: ReactNode; emphasize?: boolean }) {
+function FactLine({ icon: Icon, children, emphasize = false, className }: { icon: LucideIcon; children: ReactNode; emphasize?: boolean; className?: string }) {
   if (children == null || children === false || children === "") return null;
   return (
-    <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+    <div className={cn("flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90", className)}>
       <Icon className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
       <span className={cn("truncate", emphasize && "font-medium tracking-[-0.01em] text-foreground tabular-nums")}>{children}</span>
     </div>
@@ -64,6 +78,12 @@ const JobBoardListRow = memo(
     const { unreadView, isJobSeen } = useSearchUI();
     const { prefetchNow } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 4, maxSeen: 600 });
     const [localJobIndex, setLocalJobIndex] = useState(0);
+    // The company blurb is the row's only prose. It rests at two lines with the
+    // same last-line vignette the card description uses, so a long tagline
+    // cannot push the facts and actions around; the measured clamp keeps the
+    // second line whole when the bold name span makes it taller.
+    const blurbRef = useRef<HTMLSpanElement>(null);
+    const blurbClamp = useLastLineClamp(blurbRef);
 
     const jobs = useMemo(() => {
       if (collection?.jobs && collection.jobs.length > 0) {
@@ -150,6 +170,14 @@ const JobBoardListRow = memo(
       [company?.canonicalDomain, company?.homepageUri]
     );
     const hasFacts = Boolean(primaryLocation || workplaceType || commitment || experienceLabel || compensation);
+    // Wide rows group the facts into up to three stacks (location/workplace ·
+    // commitment/level · salary). Missing facts collapse whole stacks, so the
+    // grid column count (and the reserved space) follows what is actually
+    // rendered — a job without salary cannot strand an empty third column.
+    const hasLocationColumn = Boolean(primaryLocation || workplaceType);
+    const hasCommitmentColumn = Boolean(commitment || experienceLabel);
+    const wideFactColumnCount = [hasLocationColumn, hasCommitmentColumn, Boolean(compensation)].filter(Boolean).length;
+    const wideFactsColumnClass = wideFactColumnCount >= 3 ? "@[560px]/row:grid-cols-3" : wideFactColumnCount === 2 ? "@[560px]/row:grid-cols-2" : "@[560px]/row:grid-cols-1";
 
     const isBookmarked = useMemo(
       () => user.saved.includes(currentJob.externalId) || user.applied.includes(currentJob.externalId) || user.interviewing.includes(currentJob.externalId),
@@ -226,9 +254,17 @@ const JobBoardListRow = memo(
 
             <div className="min-w-0 flex-1">
               <h3 className="truncate font-display text-[0.9375rem] font-semibold leading-[1.25] tracking-[-0.02em] text-foreground sm:text-[1.0625rem]">{title}</h3>
-              <p className="mt-0.5 text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]">
-                <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85 sm:text-sm">{companyName || "Unknown company"}</span>
-                {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
+              <p
+                className={cn(
+                  "mt-0.5 overflow-hidden text-[0.75rem] leading-snug tracking-[0.01em] text-muted-foreground sm:text-[0.8125rem]",
+                  blurbClamp.overflows && LAST_LINE_FADE_CLASSES
+                )}
+                style={blurbClamp.overflows ? { maxHeight: `${blurbClamp.collapsedHeight}px` } : undefined}
+              >
+                <span ref={blurbRef} className="block">
+                  <span className="text-[0.8125rem] font-semibold tracking-[-0.01em] text-foreground/85 sm:text-sm">{companyName || "Unknown company"}</span>
+                  {companyBlurb ? <span className="text-muted-foreground"> · {companyBlurb}</span> : null}
+                </span>
               </p>
             </div>
           </div>
@@ -243,40 +279,66 @@ const JobBoardListRow = memo(
           />
         </div>
 
-        {/* Jobright-style facts: 3 columns of icon + plain text (not outline pills). */}
+        {/*
+          Jobright-style facts: icon + plain text (not outline pills). Column
+          count follows the row's own width, not the viewport. Under 280px the
+          facts stack in one column. A phone row (~340-400px) is two columns
+          in reading order, and an empty fact renders nothing, so a missing
+          level cannot leave salary alone on the left.
+          Wide rows (≥560px) switch to grouped stacks: location/workplace in
+          column 1, commitment/level in column 2, salary top-aligned in
+          column 3. Only the stacks that have content are rendered, so a
+          missing group closes its column instead of leaving a hole.
+        */}
         {hasFacts ? (
-          <div className="grid grid-cols-1 gap-x-5 gap-y-1.5 @[380px]/row:grid-cols-3">
-            <div className="flex min-w-0 flex-col gap-1">
+          <div className={cn("grid grid-cols-1 gap-x-4 gap-y-1.5 @[280px]/row:grid-cols-2 @[560px]/row:gap-x-5", wideFactsColumnClass)}>
+            {/*
+              Reading-order variant: the individual facts the narrow rows ship.
+              `display: contents` lets its children join the grid directly;
+              once the row is wide the whole variant hides and the grouped
+              stacks below take over.
+            */}
+            <div className="contents @[560px]/row:hidden">
               {primaryLocation ? (
                 <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
                   <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
                   <span className="truncate">{primaryLocation}</span>
-                  {moreLocationCount > 0 ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <span
-                          tabIndex={0}
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex shrink-0 cursor-default items-center text-[0.8125rem] font-medium leading-snug tracking-[0.01em] text-foreground/50 underline-offset-2 transition-colors hover:text-foreground/75 hover:underline focus:outline-none focus-visible:text-foreground/75 focus-visible:underline"
-                        >
-                          +{moreLocationCount} more
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" sideOffset={4} className="max-h-60 max-w-xs overflow-y-auto text-xs">
-                        <p className="whitespace-pre-line leading-snug">{moreLocationsText}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : null}
+                  <MoreLocationsControl count={moreLocationCount} locationsText={moreLocationsText} />
                 </div>
               ) : null}
               <FactLine icon={Building2}>{workplaceType}</FactLine>
-            </div>
-            <div className="flex min-w-0 flex-col gap-1">
               <FactLine icon={Clock}>{commitment}</FactLine>
               <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
-            </div>
-            <div className="flex min-w-0 flex-col gap-1">
               <FactLine icon={DollarSign} emphasize>
+                {compensation}
+              </FactLine>
+            </div>
+
+            {/*
+              Wide variant: one stack per column; auto-placement fills the
+              columns left to right, so a null stack shifts the rest and no
+              column is reserved for missing facts.
+            */}
+            <div className="hidden @[560px]/row:contents">
+              {hasLocationColumn ? (
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  {primaryLocation ? (
+                    <div className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] leading-snug tracking-[0.01em] text-foreground/90">
+                      <MapPin className="size-3.5 shrink-0 text-foreground/65" aria-hidden />
+                      <span className="truncate">{primaryLocation}</span>
+                      <MoreLocationsControl count={moreLocationCount} locationsText={moreLocationsText} />
+                    </div>
+                  ) : null}
+                  <FactLine icon={Building2}>{workplaceType}</FactLine>
+                </div>
+              ) : null}
+              {hasCommitmentColumn ? (
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <FactLine icon={Clock}>{commitment}</FactLine>
+                  <FactLine icon={Briefcase}>{experienceLabel}</FactLine>
+                </div>
+              ) : null}
+              <FactLine icon={DollarSign} emphasize className="min-w-0">
                 {compensation}
               </FactLine>
             </div>
@@ -284,14 +346,19 @@ const JobBoardListRow = memo(
         ) : null}
 
         {/*
-          3-zone footer: left stats | center roles | right actions.
+          3-zone footer: left stats | middle role-chip lane | right actions.
           Layout is driven by the card's own width (`@container/row`), not the
-          viewport — a narrow list column on a wide screen must not try to fit
-          stats + chips + buttons on one line. Narrow cards get clean rows:
-          stats · chips (own full-width, horizontally scrollable row) · actions.
+          viewport. Below 430px: stats · full-width scrolling chip row ·
+          actions. 430–560px keeps the wrapped single-line flex arrangement.
+          At ≥560px the footer becomes three fixed lanes: stats left, actions
+          pinned right, and the chip rail confined to a scrolling middle lane
+          (min-width floors dropped, so many chips never reach Apply/Save).
         */}
-        <div data-card-footer="true" className="flex flex-wrap items-center gap-x-2 gap-y-2 pt-1 @[430px]/row:gap-x-3">
-          <div className="order-1 flex shrink-0 items-center">
+        <div
+          data-card-footer="true"
+          className="flex flex-wrap items-center gap-x-2 gap-y-2 pt-1 @[430px]/row:gap-x-3 @[560px]/row:grid @[560px]/row:grid-cols-[max-content_minmax(0,1fr)_max-content]"
+        >
+          <div className="order-1 flex shrink-0 items-center @[560px]/row:col-start-1">
             <CardStats
               appliedCount={currentJob.applies}
               isApplied={isApplied}
@@ -307,7 +374,7 @@ const JobBoardListRow = memo(
 
           {jobs.length > 1 ? (
             <div
-              className="order-3 flex w-full min-w-0 items-center overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden @[430px]/row:order-2 @[430px]/row:w-auto @[430px]/row:min-w-[6rem] @[430px]/row:flex-1"
+              className="order-3 flex w-full min-w-0 items-center overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden @[430px]/row:order-2 @[430px]/row:w-auto @[430px]/row:min-w-[6rem] @[430px]/row:flex-1 @[560px]/row:col-span-1 @[560px]/row:col-start-2 @[560px]/row:min-w-0"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Single-line chip rail: never wraps into a tall column. Inner
@@ -346,30 +413,26 @@ const JobBoardListRow = memo(
             </div>
           ) : null}
 
-          <div className="order-2 ml-auto flex shrink-0 items-center gap-1.5 @[430px]/row:order-3 @[430px]/row:gap-2" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="order-2 ml-auto flex shrink-0 items-center gap-1.5 @[430px]/row:order-3 @[430px]/row:gap-2 @[560px]/row:col-start-3 @[560px]/row:ml-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             {currentJob.applyUrl ? (
-              <Button asChild size="sm" variant="default" className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs hover:bg-primary/90">
+              <Button asChild size="sm" variant="default" className={cn(ACTION_BUTTON_SIZE_CLASS, "font-medium")}>
                 <a href={currentJob.applyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                  <Send className="size-3.5" />
+                  <Send className={ACTION_BUTTON_ICON_CLASS} />
                   <span>Apply</span>
                 </a>
               </Button>
             ) : (
-              <Button
-                type="button"
-                size="sm"
-                variant="default"
-                disabled
-                className="h-8 gap-1.5 bg-primary text-xs font-medium text-primary-foreground shadow-xs opacity-50"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Send className="size-3.5" />
+              <Button type="button" size="sm" variant="default" disabled className={cn(ACTION_BUTTON_SIZE_CLASS, "font-medium")} onClick={(e) => e.stopPropagation()}>
+                <Send className={ACTION_BUTTON_ICON_CLASS} />
                 <span>Apply</span>
               </Button>
             )}
 
-            <Button type="button" size="sm" variant="outline" onClick={handleBookmarkToggle} className="h-8 gap-1.5 text-xs font-normal">
-              <Bookmark className={cn("size-3.5", isBookmarked && "fill-primary text-primary")} />
+            <Button type="button" size="sm" variant="outline" onClick={handleBookmarkToggle} className={cn(ACTION_BUTTON_SIZE_CLASS, "font-normal")}>
+              <Bookmark className={cn(ACTION_BUTTON_ICON_CLASS, isBookmarked && "fill-primary text-primary")} />
               <span>{isBookmarked ? "Unsave" : "Save"}</span>
             </Button>
 
@@ -382,7 +445,7 @@ const JobBoardListRow = memo(
                     rel="noopener noreferrer"
                     aria-label="Company link"
                     onClick={(e) => e.stopPropagation()}
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "size-8 p-0 text-muted-foreground hover:text-foreground")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), ACTION_ICON_BUTTON_CLASS, "text-muted-foreground hover:text-foreground")}
                   >
                     <Link2 className="size-4" />
                   </a>
@@ -394,7 +457,14 @@ const JobBoardListRow = memo(
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" size="sm" variant="outline" disabled aria-label="Company link unavailable" className="size-8 p-0 text-muted-foreground">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled
+                    aria-label="Company link unavailable"
+                    className={cn(ACTION_ICON_BUTTON_CLASS, "text-muted-foreground")}
+                  >
                     <Link2 className="size-4" />
                   </Button>
                 </TooltipTrigger>
@@ -412,7 +482,7 @@ const JobBoardListRow = memo(
                   variant="outline"
                   aria-label="Hide"
                   onClick={handleHide}
-                  className="size-8 p-0 text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                  className={cn(ACTION_ICON_BUTTON_CLASS, "text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive")}
                 >
                   <EyeOff className="size-4" />
                 </Button>
