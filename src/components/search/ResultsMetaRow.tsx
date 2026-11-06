@@ -8,7 +8,8 @@ import { useSearchUI, type JobBoardLayout } from "@/contexts/SearchContext";
 import type { SortOptions } from "@/types/search";
 import { cn } from "@/lib/utils";
 import { useJobBoardColumns } from "@/hooks/useContainerWidth";
-import { Bell, Check, ChevronDown, Share2 } from "lucide-react";
+import { Bell, Check, ChevronDown, RefreshCw, Share2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -37,10 +38,6 @@ function readStoredNotificationFrequency(): NotificationFrequency {
   return "off";
 }
 
-/**
- * Button inside the "Email me new jobs" pill: opens the notification-frequency
- * menu and shows the current setting ("Turn on" while off, otherwise the cadence).
- */
 export function useNotificationFrequency() {
   const [frequency, setFrequencyState] = useState<NotificationFrequency>("off");
 
@@ -68,8 +65,9 @@ export function useNotificationFrequency() {
   return [frequency, setFrequency] as const;
 }
 
-function NotificationFrequencyMenu() {
+function NotificationFrequencyMenu({ variant }: { variant: "email" | "notify" }) {
   const [frequency, setFrequency] = useNotificationFrequency();
+  const isAlertsOn = frequency !== "off";
 
   const current = NOTIFICATION_FREQUENCY_OPTIONS.find((option) => option.value === frequency) ?? NOTIFICATION_FREQUENCY_OPTIONS[0];
 
@@ -80,17 +78,34 @@ function NotificationFrequencyMenu() {
     toast.success(option.value === "off" ? "Notification alerts turned off." : `Notification alerts set to ${option.label}.`);
   };
 
+  const trigger =
+    variant === "notify" ? (
+      <Button
+        type="button"
+        size="sm"
+        aria-pressed={isAlertsOn}
+        aria-label={isAlertsOn ? `Notify (${current.label})` : "Notify"}
+        className={cn(
+          "h-7 shrink-0 gap-1 rounded-full border border-border bg-background px-2.5 text-[11px] font-medium text-foreground shadow-none hover:bg-accent",
+          isAlertsOn && "ring-1 ring-primary/40"
+        )}
+      >
+        {isAlertsOn ? <Check className="size-3 shrink-0 text-primary" /> : <Bell className="size-3 shrink-0 text-primary" />}
+        Notify
+      </Button>
+    ) : (
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90 @min-[900px]:px-2.5 @min-[900px]:py-1 @min-[900px]:text-xs"
+      >
+        {frequency === "off" ? "Turn on" : current.label}
+        <ChevronDown className="size-3 shrink-0" />
+      </button>
+    );
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90 @min-[900px]:px-2.5 @min-[900px]:py-1 @min-[900px]:text-xs"
-        >
-          {frequency === "off" ? "Turn on" : current.label}
-          <ChevronDown className="size-3 shrink-0" />
-        </button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => (
           <DropdownMenuItem key={option.value} onSelect={() => handleFrequencyChange(option.value)}>
@@ -184,10 +199,26 @@ interface BoardActionsProps {
 type BoardView = "all" | "unread";
 
 export function BoardActions({ unreadCount: unreadCountProp, showEmailAlerts = true }: BoardActionsProps = {}) {
-  const { unreadView, setUnreadView, unreadCount: unreadCountFromContext } = useSearchUI();
+  const router = useRouter();
+  const { setSearchOptions } = useApp();
+  const { unreadView, setUnreadView, unreadCount: unreadCountFromContext, searchMode } = useSearchUI();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const showRefresh = searchMode === "talent-agent";
+
   // Count of loaded New jobs is published by JobBoard via SearchUI; the prop wins
   // for callers that render the band without a mounted board.
   const unreadCount = unreadCountProp ?? unreadCountFromContext;
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    router.refresh();
+    setSearchOptions((prev) => ({ ...prev }));
+    toast.success("Job results refreshed.");
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
+  }, [router, setSearchOptions]);
+
   const share = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -209,7 +240,7 @@ export function BoardActions({ unreadCount: unreadCountProp, showEmailAlerts = t
 
   return (
     /* One row at every container width: controls shed type/height/padding first. */
-    <div className="flex shrink-0 flex-nowrap items-center gap-1.5 @min-[720px]:gap-2 @min-[900px]:gap-3">
+    <div className="flex shrink-0 flex-nowrap items-center gap-1 @min-[360px]:gap-1.5 @min-[720px]:gap-2 @min-[900px]:gap-3">
       {/* All / Unread sliding tabs — "Unread" shows only the jobs labeled New */}
       <SlidingTabs<BoardView>
         ariaLabel="Job view"
@@ -223,27 +254,39 @@ export function BoardActions({ unreadCount: unreadCountProp, showEmailAlerts = t
         tabClassName="text-[11px] @min-[720px]:h-7 @min-[720px]:px-2.5 @min-[900px]:px-3 @min-[900px]:text-xs [&:disabled]:pointer-events-none"
       />
 
+      {showRefresh ? (
+        <Button
+          type="button"
+          size="sm"
+          onClick={handleRefresh}
+          className="h-7 shrink-0 gap-1 rounded-full border border-border bg-background px-2.5 text-[11px] font-medium text-foreground shadow-none hover:bg-accent"
+        >
+          <RefreshCw className={cn("size-3 shrink-0 text-primary", isRefreshing && "animate-spin")} />
+          Refresh
+        </Button>
+      ) : null}
+
+      {/* Notify is the phone stand-in. Wider screens keep the email pill. */}
+      <div className={showEmailAlerts ? "md:hidden" : undefined}>
+        <NotificationFrequencyMenu variant="notify" />
+      </div>
+      {showEmailAlerts ? (
+        <div className="hidden h-7 shrink-0 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 pl-2.5 pr-1 text-xs transition-colors hover:border-primary/40 hover:bg-primary/10 md:flex @min-[640px]:gap-2 @min-[640px]:pl-3 @min-[900px]:h-8 dark:bg-primary/10">
+          <Bell className="size-3 shrink-0 text-primary @min-[900px]:size-3.5" />
+          <span className="hidden text-xs font-medium text-primary @min-[640px]:inline">Email me new jobs</span>
+          <NotificationFrequencyMenu variant="email" />
+        </div>
+      ) : null}
+
       <Button
         type="button"
         size="sm"
         onClick={share}
-        className="h-7 shrink-0 rounded-full bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 @min-[720px]:h-8 @min-[720px]:text-xs @min-[900px]:px-3"
+        aria-label="Share"
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center gap-1 rounded-full border border-border bg-background p-0 text-[11px] font-medium text-foreground shadow-none hover:bg-accent"
       >
-        <Share2 className="size-3 @min-[720px]:size-3.5" />
-        Share
+        <Share2 className="size-3 text-primary" />
       </Button>
-
-      {/* `md:flex` (not `md:inline-flex`) keeps the pill's own mobile hide without
-          fighting the shell's breakpoint; `showEmailAlerts` covers a narrow
-          container on a wide viewport. */}
-      {showEmailAlerts ? (
-        <div className="hidden h-7 shrink-0 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 pl-2.5 pr-1 text-xs transition-colors hover:border-primary/40 hover:bg-primary/10 md:flex @min-[640px]:gap-2 @min-[640px]:pl-3 @min-[900px]:h-8 dark:bg-primary/10">
-          <Bell className="size-3 shrink-0 text-primary @min-[900px]:size-3.5" />
-          {/* Shrink at 720 first; drop the label only after that (~640) when space is still tight. */}
-          <span className="hidden text-xs font-medium text-primary @min-[640px]:inline">Email me new jobs</span>
-          <NotificationFrequencyMenu />
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -259,11 +302,11 @@ export interface ResultsHeaderBandProps {
 /**
  * Unified toolbar row:
  * Relevance sort control and the layout tabs on the left,
- * All/Unread toggle (with disabled 0 count), Share button, and Email me new jobs on the right.
+ * All/Unread toggle, Talent Agent refresh, Notify on phones, Email me new jobs on wider screens, and Share on the right.
  * No bottom border/divider (Feedback #5).
  * Reduced horizontal chrome padding (Feedback #3).
- * In the one-column/mobile state the layout tabs and the alerts pill drop out:
- * the board is list-only there, so neither control has anything to offer.
+ * In the one-column/mobile state the layout tabs drop out:
+ * the board is list-only there, so layout control has nothing to offer.
  */
 export default function ResultsHeaderBand({ jobCount, companyCount, showSortControl = true, unreadCount, className }: ResultsHeaderBandProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -273,7 +316,7 @@ export default function ResultsHeaderBand({ jobCount, companyCount, showSortCont
     <div className={cn("px-4 py-3 transition-[padding] duration-500 ease-in-out lg:px-8", className)}>
       {/* `flex-nowrap`: the band keeps one row and scales its own type/spacing via
           the `@container` steps below instead of stacking onto a second line. */}
-      <div ref={containerRef} className="@container flex flex-nowrap items-center justify-between gap-2 @min-[720px]:gap-3">
+      <div ref={containerRef} className="@container flex flex-nowrap items-center justify-between gap-1.5 @min-[720px]:gap-3">
         <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 @min-[720px]:gap-3 @min-[900px]:gap-4">
           {showSortControl && <SortControl className="min-w-0" />}
           {!isOneColumn && (

@@ -33,8 +33,8 @@ export default function TalentNetworkPage() {
   const education = "B.S. Computer Science";
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-background-body p-6 lg:p-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-10">
+    <div className="min-h-[calc(100vh-4rem)] bg-background-body p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Talent Network</h1>
           <div className="flex flex-wrap items-center gap-3">

@@ -130,7 +130,7 @@ const JobCard = memo(
                   <UniversalTooltip content={isApplied ? "Unmark applied" : "Mark applied"} side="top" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label={isApplied ? "Unmark applied" : "Mark applied"}
-                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-accent! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onApplyToggle}
                     >
                       <CheckCheck className="size-4" />
@@ -141,7 +141,7 @@ const JobCard = memo(
                   <UniversalTooltip content="Share" side="top" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label="Share job"
-                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-accent! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onShare}
                     >
                       <Share2 className="size-4" />
@@ -152,7 +152,7 @@ const JobCard = memo(
                   <UniversalTooltip content="Report" side="bottom" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label="Report job"
-                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-accent! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onReport}
                     >
                       <MessageSquareWarning className="size-4 text-destructive!" />
@@ -163,7 +163,7 @@ const JobCard = memo(
                   <UniversalTooltip content="Hide" side="bottom" removeOnMobile={true}>
                     <SpeedDialAction
                       aria-label="Hide job"
-                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-foreground/10! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
+                      className="bg-background! shadow-none transition-all duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.05] hover:bg-accent! hover:opacity-100 active:translate-y-0 active:scale-[0.97]"
                       onClick={onHide}
                     >
                       <EyeOff className="size-4 text-destructive!" />

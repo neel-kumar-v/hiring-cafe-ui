@@ -1,9 +1,9 @@
 "use client";
 
 import ChatPanel from "@/components/chat/ChatPanel";
-import { MobileTopBar } from "@/components/shell/AvatarPill";
 import AppSidebar from "@/components/shell/AppSidebar";
 import Navbar from "@/components/shell/Navbar";
+import MobileTabBar from "@/components/shell/MobileTabBar";
 import SearchSubHeader from "@/components/shell/SearchSubHeader";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -117,16 +117,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
           } as CSSProperties
         }
       >
-        {!isSearchRoute ? <MobileTopBar /> : null}
         <Navbar className="hidden md:flex" />
         {isSearchRoute ? <SearchSubHeader className="hidden md:block" /> : null}
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
 
       {isSearchRoute ? (
         <ChatPanel panelRef={chatPanelRef} width={chat.width} onResizeStart={isChatDocked ? (event: ReactPointerEvent) => chat.startResize(event, { edge: "left" }) : undefined} />
       ) : null}
+
+      <MobileTabBar />
     </div>
   );
 }

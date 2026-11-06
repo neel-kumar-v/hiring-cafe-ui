@@ -170,6 +170,16 @@ interface SearchUIContextType {
   /** Active search experience mode: 'classic' keyword/filters vs 'talent-agent' AI prompt */
   searchMode: SearchMode;
   setSearchMode: (mode: SearchMode) => void;
+
+  /**
+   * Whether the shared search bar is currently showing its Location and
+   * Compensation segments. FilterPillBar hides those chips while true so the
+   * same control isn't rendered twice. Published by SearchBar from the same
+   * width rules Autocomplete uses to show the segments.
+   */
+  searchBarShowsLocation: boolean;
+  searchBarShowsSalary: boolean;
+  setSearchBarSegments: (segments: { location: boolean; salary: boolean }) => void;
 }
 
 const SIDEBAR_STORAGE_KEY = "hiring-cafe-sidebar-open";
@@ -272,6 +282,8 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [navbarTitle, setNavbarTitle] = useState("Home");
+  const [searchBarShowsLocation, setSearchBarShowsLocation] = useState(false);
+  const [searchBarShowsSalary, setSearchBarShowsSalary] = useState(false);
   const [searchMode, setSearchMode] = useState<SearchMode>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -296,6 +308,7 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSearchModeChange = (mode: SearchMode) => {
+    // Mode only. Filters (`searchOptions`) stay as they are.
     setSearchMode(mode);
     try {
       localStorage.setItem(SEARCH_MODE_STORAGE_KEY, mode);
@@ -303,6 +316,11 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
       // ignore storage failures
     }
   };
+
+  const setSearchBarSegments = useCallback((segments: { location: boolean; salary: boolean }) => {
+    setSearchBarShowsLocation((previous) => (previous === segments.location ? previous : segments.location));
+    setSearchBarShowsSalary((previous) => (previous === segments.salary ? previous : segments.salary));
+  }, []);
 
   const handleBoardLayoutChange = (layout: JobBoardLayout) => {
     setBoardLayoutState(layout);
@@ -352,6 +370,9 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
       setNavbarTitle,
       searchMode,
       setSearchMode: handleSearchModeChange,
+      searchBarShowsLocation,
+      searchBarShowsSalary,
+      setSearchBarSegments,
     }),
     [
       searchDialogOpen,
@@ -371,6 +392,9 @@ export function SearchUIProvider({ children }: { children: ReactNode }) {
       activeChatId,
       navbarTitle,
       searchMode,
+      searchBarShowsLocation,
+      searchBarShowsSalary,
+      setSearchBarSegments,
     ]
   );
 

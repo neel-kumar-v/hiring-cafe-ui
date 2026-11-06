@@ -84,15 +84,6 @@ const AVAILABILITY_PRESETS = [
   "Flexible anytime this week between 11:00 AM – 4:00 PM EST",
 ];
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
 export default function InboxPage() {
   const searchParams = useSearchParams();
   const threadParam = searchParams?.get("thread") ?? null;
@@ -237,14 +228,14 @@ export default function InboxPage() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="h-[calc(100vh-4rem)] w-full overflow-hidden bg-background">
+      <div className="flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] min-h-0 w-full flex-col overflow-hidden bg-background md:h-[calc(100dvh-4rem)]">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full items-stretch">
           {/* Left Pane: Message List */}
           <ResizablePanel
             defaultSize={40}
             minSize={28}
             maxSize={55}
-            className={cn("flex flex-col border-r border-border bg-background", mobileView === "detail" ? "hidden md:flex" : "flex")}
+            className={cn("flex h-full min-h-0 flex-col border-r border-border bg-background", mobileView === "detail" ? "hidden md:flex" : "flex")}
           >
             {/* Header: Search + All mail / Unread toggle */}
             <div className="flex h-14 shrink-0 items-center justify-between gap-2 px-4">
@@ -336,11 +327,11 @@ export default function InboxPage() {
           <ResizableHandle className="hidden w-1 bg-transparent after:hidden md:flex" />
 
           {/* Right Pane: Message Detail & Quick Action Bar */}
-          <ResizablePanel defaultSize={60} minSize={40} className={cn("flex flex-col bg-background", mobileView === "list" ? "hidden md:flex" : "flex")}>
+          <ResizablePanel defaultSize={60} minSize={40} className={cn("flex h-full min-h-0 flex-col bg-background", mobileView === "list" ? "hidden md:flex" : "flex")}>
             {/* Message Detail Header */}
             {selectedThread ? (
               <>
-                <div className="flex items-start justify-between p-4 gap-4">
+                <div className="flex shrink-0 items-start justify-between gap-4 p-4">
                   <div className="flex items-start gap-3">
                     <Button
                       variant="ghost"
@@ -351,9 +342,7 @@ export default function InboxPage() {
                     >
                       <ArrowLeft className="size-4" />
                     </Button>
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground ring-1 ring-border">
-                      {getInitials(selectedThread.name)}
-                    </div>
+                    <CompanyLogo companyData={getThreadCompanyData(selectedThread)} size="sm" variant="inbox" className="size-10" />
                     <div className="grid gap-0.5">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm text-foreground">{selectedThread.name}</span>
@@ -377,7 +366,7 @@ export default function InboxPage() {
                 <Separator />
 
                 {/* Email Body & Replies */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
                   <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{selectedThread.text}</div>
 
                   {currentReplies.length > 0 && (

@@ -27,6 +27,13 @@ test("CATEGORY_CHIPS fromIds match dialog deep-link categories", () => {
   );
 });
 
+test("CATEGORY_CHIPS use short pill labels", () => {
+  assert.deepEqual(
+    CATEGORY_CHIPS.map((chip) => chip.label),
+    ["Compensation", "Requirements", "Location", "Role", "Availability", "Company"]
+  );
+});
+
 test("getCategoryCounts returns 0 for all category chips by default", () => {
   const counts = getCategoryCounts(defaultSearchOptions);
   for (const chip of CATEGORY_CHIPS) {

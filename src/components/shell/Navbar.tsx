@@ -1,7 +1,6 @@
 "use client";
 
 import SearchBar from "@/components/search/SearchBar";
-import { AvatarPill } from "@/components/shell/AvatarPill";
 import { Button } from "@/components/ui/button";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { cn } from "@/lib/utils";
@@ -72,12 +71,7 @@ export default function Navbar({ className, searchLeadingSlot, searchTrailingSlo
   const { boardSearchQuery, setBoardSearchQuery, handleSearchIconClick } = useSearchUI();
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-background-header px-2 dark:bg-background",
-        className
-      )}
-    >
+    <header className={cn("sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-background-header px-2 dark:bg-background", className)}>
       {/* Left zone: left sidebar control — flush to sidebar edge */}
       <div className="flex shrink-0 items-center">
         <LeftSidebarToggle />
@@ -102,10 +96,9 @@ export default function Navbar({ className, searchLeadingSlot, searchTrailingSlo
         </div>
       </div>
 
-      {/* Right zone: rewired AI chat sidebar toggle + mobile menu hamburger */}
+      {/* Right zone: rewired AI chat sidebar toggle (mobile nav lives in the bottom tab bar) */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <SidebarToggle />
-        <AvatarPill className="md:hidden" />
       </div>
     </header>
   );

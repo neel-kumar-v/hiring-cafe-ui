@@ -2,6 +2,8 @@
 
 import JobBoardCardSkeleton from "@/components/job/JobBoardCardSkeleton";
 import HomeCompactHeader from "@/components/search/HomeCompactHeader";
+import MobileSavedSearchCards from "@/components/search/MobileSavedSearchCards";
+import MobileSearchModeSlider from "@/components/search/MobileSearchModeSlider";
 import ResultsHeaderBand from "@/components/search/ResultsMetaRow";
 import SearchBar from "@/components/search/SearchBar";
 import { useSearchUI } from "@/contexts/SearchContext";
@@ -37,11 +39,13 @@ export default function Page() {
   return (
     <>
       <div className="border-b border-border bg-background-header md:hidden dark:border-border dark:bg-background">
-        <HomeCompactHeader />
-        <div className="px-4 pb-4">
-          <SearchBar value={boardSearchQuery} onSearch={handleSearch} onIconClick={handleSearchIconClick} />
+        <MobileSearchModeSlider className="pt-3" />
+        <MobileSavedSearchCards className="pt-3" />
+        <div className="px-4 pt-3 pb-4">
+          <SearchBar value={boardSearchQuery} onSearch={handleSearch} onIconClick={handleSearchIconClick} showModeToggle={false} />
         </div>
-        <ResultsHeaderBand jobCount={jobCount} companyCount={companyCount} className="border-t border-border px-4 py-2" />
+        <HomeCompactHeader />
+        <ResultsHeaderBand jobCount={jobCount} companyCount={companyCount} className="py-2" />
       </div>
 
       <div className="h-full overflow-x-hidden">
