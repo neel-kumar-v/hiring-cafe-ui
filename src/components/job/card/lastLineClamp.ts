@@ -14,10 +14,9 @@ import { useState, type RefObject } from "react";
  *
  * The band is anchored to the bottom edge of the *box* rather than of the
  * text, so it travels with the box while the block grows and shrinks: the
- * collapsed view fades its last line, an expanded view fades the empty band
- * that sits below the text, and a collapse fades the text out exactly as the
- * edge passes over it. Because the fade follows the geometry it needs no
- * hover toggle, so the collapse can never snap a mask on or off mid-animation.
+ * collapsed view fades its last line, and a collapse fades the text out
+ * exactly as the edge passes over it. Callers that expand on hover clear the
+ * mask once open so the last line is not faded into empty space.
  *
  * Pointer-agnostic on purpose: a touch device never expands, so the fade is
  * the only cue that the block continues past its clamp.
