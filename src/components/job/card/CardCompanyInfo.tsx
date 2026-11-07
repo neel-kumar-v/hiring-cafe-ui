@@ -57,7 +57,7 @@ const CardCompanyInfo = ({ companyData, tagline }: { companyData: ProcessedCompa
           )}
         </div>
 
-        <div className="line-clamp-2 cursor-text text-muted-foreground text-xs dark:text-muted-foreground">{tagline}</div>
+        <div className="line-clamp-2 text-muted-foreground text-xs dark:text-muted-foreground">{tagline}</div>
       </div>
     </div>
   );

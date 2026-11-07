@@ -214,9 +214,16 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     nextAriaLabel: "Next kanban job",
   });
 
+  const handleJobMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!(e.shiftKey || e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    window.getSelection()?.removeAllRanges();
+  }, []);
+
   const handleJobSelect = useCallback(
     (jobId: string, e: React.MouseEvent) => {
       const isModifier = e.shiftKey || e.ctrlKey || e.metaKey;
+      if (isModifier) window.getSelection()?.removeAllRanges();
       if (isModifier && !selectionMode) {
         onSelectionModeChange?.(true);
         setSelectedJobIds(new Set([jobId]));
@@ -321,21 +328,51 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
     }
   }, [columnOrder, getCurrentStatus, moveJob, selectedJobIds]);
 
+  const allSelectedSaved = useMemo(
+    () => selectedRows.length > 0 && selectedRows.every((row) => getCurrentStatus(row.job.externalId) === "saved"),
+    [getCurrentStatus, selectedRows]
+  );
+  const allSelectedApplied = useMemo(
+    () =>
+      selectedRows.length > 0 &&
+      selectedRows.every((row) => {
+        const status = getCurrentStatus(row.job.externalId);
+        return status === "applied" || status === "interviewing";
+      }),
+    [getCurrentStatus, selectedRows]
+  );
+
   const handleBulkSave = useCallback(() => {
+    if (allSelectedSaved) {
+      for (const row of selectedRows) {
+        const current = getCurrentStatus(row.job.externalId);
+        if (current === "saved") moveJob(row.job.externalId, "saved", "hidden");
+      }
+      toast.success(`Unsaved ${selectedRows.length} job${selectedRows.length === 1 ? "" : "s"}.`);
+      return;
+    }
     for (const row of selectedRows) {
       const current = getCurrentStatus(row.job.externalId);
       if (current !== "saved") moveJob(row.job.externalId, current as JobStatus, "saved");
     }
     toast.success(`Saved ${selectedRows.length} job${selectedRows.length === 1 ? "" : "s"}.`);
-  }, [getCurrentStatus, moveJob, selectedRows]);
+  }, [allSelectedSaved, getCurrentStatus, moveJob, selectedRows]);
 
   const handleBulkApply = useCallback(() => {
+    if (allSelectedApplied) {
+      for (const row of selectedRows) {
+        const current = getCurrentStatus(row.job.externalId);
+        if (current === "applied" || current === "interviewing") moveJob(row.job.externalId, current as JobStatus, "saved");
+      }
+      toast.success(`Unmarked ${selectedRows.length} job${selectedRows.length === 1 ? "" : "s"} as applied.`);
+      return;
+    }
     for (const row of selectedRows) {
       const current = getCurrentStatus(row.job.externalId);
       if (current !== "applied") moveJob(row.job.externalId, current as JobStatus, "applied");
     }
     toast.success(`Marked ${selectedRows.length} job${selectedRows.length === 1 ? "" : "s"} as applied.`);
-  }, [getCurrentStatus, moveJob, selectedRows]);
+  }, [allSelectedApplied, getCurrentStatus, moveJob, selectedRows]);
 
   const handleBulkShare = useCallback(async () => {
     const payload = buildSharePayload(
@@ -453,8 +490,9 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
                     id={item.id}
                     name={item.name}
                     column={item.column}
-                    className={`mb-2 transition-shadow duration-200 hover:shadow-md ${selectedJobIds.has(row.job.externalId) ? "ring-2 ring-primary/40" : ""}`}
+                    className={`mb-2 select-none transition-shadow duration-200 hover:shadow-md ${selectedJobIds.has(row.job.externalId) ? "ring-2 ring-primary/40" : ""}`}
                     onJobClick={(e) => handleJobSelect(row.job.externalId, e)}
+                    onJobMouseDown={handleJobMouseDown}
                     dragHandleOnly={true}
                   >
                     <KanbanJobCardContents job={row.job} company={row.company} />
@@ -478,11 +516,11 @@ const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = 
         </ActionBarSelection>
         <ActionBarGroup>
           <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkSave}>
-            Save
+            {allSelectedSaved ? "Unsave" : "Save"}
           </ActionBarItem>
           <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkApply}>
             <CheckCheck className="size-4" />
-            Mark Applied
+            {allSelectedApplied ? "Unmark Applied" : "Mark Applied"}
           </ActionBarItem>
           <ActionBarItem onSelect={(e) => e.preventDefault()} onClick={handleBulkShare}>
             <Share2 className="size-4" />

@@ -352,6 +352,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
     selectedIds: selectedJobIds,
     clear: clearSelectionMode,
     handleCardClick: handleCardSelectionClick,
+    handleCardMouseDown: handleCardSelectionMouseDown,
   } = useJobBoardSelection({
     orderedIds: flatSelectionOrder.map((item) => item.id),
     selectionMode: jobBoardSelectionMode,
@@ -412,23 +413,51 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
     addJob(selectedJob.externalId, "applied");
   }, [addJob, isApplied, removeJob, selectedJob, user.applied, user.interviewing]);
 
+  const allSelectedSaved = useMemo(
+    () => selectedJobs.length > 0 && selectedJobs.every((row) => row && user.saved.includes(row.externalId)),
+    [selectedJobs, user.saved]
+  );
+  const allSelectedApplied = useMemo(
+    () =>
+      selectedJobs.length > 0 &&
+      selectedJobs.every((row) => row && (user.applied.includes(row.externalId) || user.interviewing.includes(row.externalId))),
+    [selectedJobs, user.applied, user.interviewing]
+  );
+
   const handleBulkSave = useCallback(() => {
+    if (allSelectedSaved) {
+      for (const row of selectedJobs) {
+        if (!row) continue;
+        if (user.saved.includes(row.externalId)) removeJob(row.externalId, "saved");
+      }
+      toast.success(`Unsaved ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"}.`);
+      return;
+    }
     for (const row of selectedJobs) {
       if (!row) continue;
       const jobId = row.externalId;
       if (!user.saved.includes(jobId)) addJob(jobId, "saved");
     }
     toast.success(`Saved ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"}.`);
-  }, [addJob, selectedJobs, user.saved]);
+  }, [addJob, allSelectedSaved, removeJob, selectedJobs, user.saved]);
 
   const handleBulkApply = useCallback(() => {
+    if (allSelectedApplied) {
+      for (const row of selectedJobs) {
+        if (!row) continue;
+        if (user.applied.includes(row.externalId)) removeJob(row.externalId, "applied");
+        if (user.interviewing.includes(row.externalId)) removeJob(row.externalId, "interviewing");
+      }
+      toast.success(`Unmarked ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"} as applied.`);
+      return;
+    }
     for (const row of selectedJobs) {
       if (!row) continue;
       const jobId = row.externalId;
-      if (!user.applied.includes(jobId)) addJob(jobId, "applied");
+      if (!user.applied.includes(jobId) && !user.interviewing.includes(jobId)) addJob(jobId, "applied");
     }
     toast.success(`Marked ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"} as applied.`);
-  }, [addJob, selectedJobs, user.applied]);
+  }, [addJob, allSelectedApplied, removeJob, selectedJobs, user.applied, user.interviewing]);
 
   const handleBulkShare = useCallback(async () => {
     const payload = buildSharePayload(
@@ -676,6 +705,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
           onJobIndexChange={updateCollectionJobIndex}
           onOpenJob={openJobDetails}
           onCardClick={handleCardSelectionClick}
+          onCardMouseDown={handleCardSelectionMouseDown}
           isSelectionMode={jobBoardSelectionMode}
           isSelected={selectedJobIds.has(collection.jobs[jobIndexByCollection[key] ?? 0]?.externalId ?? "")}
         />
@@ -776,6 +806,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
                   isSelected={isSelected}
                   selectionMode={jobBoardSelectionMode}
                   onClick={(event) => handleCardSelectionClick(event, currentJob.externalId)}
+                  onMouseDown={handleCardSelectionMouseDown}
                 />
               );
             })}
@@ -796,11 +827,11 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
         </ActionBarSelection>
         <ActionBarGroup>
           <ActionBarItem disabled={selectedJobIds.size === 0} onSelect={(e) => e.preventDefault()} onClick={handleBulkSave}>
-            Save
+            {allSelectedSaved ? "Unsave" : "Save"}
           </ActionBarItem>
           <ActionBarItem disabled={selectedJobIds.size === 0} onSelect={(e) => e.preventDefault()} onClick={handleBulkApply}>
             <CheckCheck className="size-4" />
-            Mark Applied
+            {allSelectedApplied ? "Unmark Applied" : "Mark Applied"}
           </ActionBarItem>
           <ActionBarItem disabled={selectedJobIds.size === 0} onSelect={(e) => e.preventDefault()} onClick={handleBulkShare}>
             <Share2 className="size-4" />

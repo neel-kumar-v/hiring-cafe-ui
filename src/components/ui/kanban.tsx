@@ -102,6 +102,7 @@ export type KanbanCardWithDragHandleProps<T extends KanbanItemProps = KanbanItem
   children?: ReactNode;
   className?: string;
   onJobClick?: (e: React.MouseEvent) => void;
+  onJobMouseDown?: (e: React.MouseEvent) => void;
   dragHandleOnly?: boolean;
 };
 
@@ -111,6 +112,7 @@ export const KanbanCardWithDragHandle = <T extends KanbanItemProps = KanbanItemP
   children,
   className,
   onJobClick,
+  onJobMouseDown,
   dragHandleOnly = false,
 }: KanbanCardWithDragHandleProps<T>) => {
   const { attributes, listeners, setNodeRef, transition, transform, isDragging } = useSortable({
@@ -125,11 +127,12 @@ export const KanbanCardWithDragHandle = <T extends KanbanItemProps = KanbanItemP
 
   const handleContentMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      onJobMouseDown?.(e);
       if (dragHandleOnly) {
         e.stopPropagation();
       }
     },
-    [dragHandleOnly]
+    [dragHandleOnly, onJobMouseDown]
   );
 
   const handleContentClick = useCallback(
