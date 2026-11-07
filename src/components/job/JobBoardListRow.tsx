@@ -65,6 +65,7 @@ interface JobBoardListRowProps {
   isSelected?: boolean;
   selectionMode?: boolean;
   onClick: (event: React.MouseEvent) => void;
+  onMouseDown?: (event: React.MouseEvent) => void;
   onHide?: (event: React.MouseEvent) => void;
 }
 
@@ -74,7 +75,19 @@ interface JobBoardListRowProps {
  * then footer (stats · sibling roles · Apply/Save/···). No match-% panel.
  */
 const JobBoardListRow = memo(
-  ({ job, company, collection, collectionIndex, currentJobIndex, onJobIndexChange, isSelected = false, selectionMode = false, onClick, onHide }: JobBoardListRowProps) => {
+  ({
+    job,
+    company,
+    collection,
+    collectionIndex,
+    currentJobIndex,
+    onJobIndexChange,
+    isSelected = false,
+    selectionMode = false,
+    onClick,
+    onMouseDown,
+    onHide,
+  }: JobBoardListRowProps) => {
     const { unreadView, isJobSeen } = useSearchUI();
     const { prefetchNow } = useJobDetailsPrefetch({ delayMs: 160, maxInflight: 4, maxSeen: 600 });
     const [localJobIndex, setLocalJobIndex] = useState(0);
@@ -236,10 +249,10 @@ const JobBoardListRow = memo(
       <Card
         data-job-card="true"
         onClick={handleCardClick}
+        onMouseDown={onMouseDown}
         className={cn(
-          "group/row @container/row relative flex cursor-pointer flex-col gap-2.5 border bg-background px-3.5 pt-3.5 pb-2.5 shadow-sm sm:px-4 sm:pt-4 sm:pb-2.5",
-          isSelected ? "border-primary ring-2 ring-primary/30" : "border-border",
-          selectionMode && "select-none"
+          "group/row @container/row relative flex cursor-pointer select-none flex-col gap-2.5 border bg-background px-3.5 pt-3.5 pb-2.5 shadow-sm sm:px-4 sm:pt-4 sm:pb-2.5",
+          isSelected ? "border-primary ring-2 ring-primary/30" : "border-border"
         )}
       >
         {showBadge ? (

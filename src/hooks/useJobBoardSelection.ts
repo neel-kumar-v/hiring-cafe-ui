@@ -37,9 +37,19 @@ export function useJobBoardSelection({ orderedIds, selectionMode, setSelectionMo
     });
   }, []);
 
+  /** Stops the browser from painting a text selection during shift/ctrl range picks. */
+  const handleCardMouseDown = useCallback((event: React.MouseEvent) => {
+    if (!(event.shiftKey || event.ctrlKey || event.metaKey)) return;
+    event.preventDefault();
+    window.getSelection()?.removeAllRanges();
+  }, []);
+
   const handleCardClick = useCallback(
     (event: React.MouseEvent, jobId: string) => {
       const hasModifier = event.shiftKey || event.ctrlKey || event.metaKey;
+      if (hasModifier) {
+        window.getSelection()?.removeAllRanges();
+      }
       if (hasModifier && !selectionMode) {
         setSelectionMode(true);
         setSelectedIds(new Set([jobId]));
@@ -100,5 +110,6 @@ export function useJobBoardSelection({ orderedIds, selectionMode, setSelectionMo
     anchorId,
     clear,
     handleCardClick,
+    handleCardMouseDown,
   };
 }

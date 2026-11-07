@@ -44,6 +44,7 @@ interface JobCardProps {
   onNext: () => void;
   onJobSelect: (index: number) => void;
   onClick: (e: React.MouseEvent) => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
   isSelected?: boolean;
   selectionMode?: boolean;
   isSeen?: boolean;
@@ -68,6 +69,7 @@ const JobCard = memo(
     onNext,
     onJobSelect,
     onClick,
+    onMouseDown,
     isSelected = false,
     selectionMode = false,
     isSeen = false,
@@ -110,9 +112,10 @@ const JobCard = memo(
     return (
       <CardSwipeIndicator onNext={onNext} onPrevious={onPrevious} totalJobs={jobCollection.jobs.length}>
         <Card
-          className={`group/card @container/card group relative min-h-full cursor-pointer border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50 ${isSelected ? "border-primary ring-2 ring-primary/30" : "border-border"} ${selectionMode ? "select-none" : ""}`}
+          className={`group/card @container/card group relative min-h-full cursor-pointer select-none border bg-background shadow-sm transition-all duration-300 ease-in hover:border-primary/30 hover:shadow-lg dark:hover:border-primary/50 dark:hover:bg-accent/50 ${isSelected ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
           key={cardKey}
           onClick={handleCardClick}
+          onMouseDown={onMouseDown}
           data-job-card="true"
         >
           <div className="absolute top-2 right-2 z-20">
@@ -233,12 +236,23 @@ interface JobBoardCardProps {
   onJobIndexChange: (collectionIndex: number, nextJobIndex: number) => void;
   onOpenJob: (collectionIndex: number, jobIndex: number) => void;
   onCardClick?: (e: React.MouseEvent, jobExternalId: string) => void;
+  onCardMouseDown?: (e: React.MouseEvent) => void;
   isSelectionMode?: boolean;
   isSelected?: boolean;
 }
 
 const JobBoardCard = memo(
-  ({ jobCollection, collectionIndex, currentJobIndex, onJobIndexChange, onOpenJob, onCardClick, isSelectionMode = false, isSelected = false }: JobBoardCardProps) => {
+  ({
+    jobCollection,
+    collectionIndex,
+    currentJobIndex,
+    onJobIndexChange,
+    onOpenJob,
+    onCardClick,
+    onCardMouseDown,
+    isSelectionMode = false,
+    isSelected = false,
+  }: JobBoardCardProps) => {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const { isDesktop } = useResponsiveBreakpoint();
     const { addJob, removeJob, user } = useApp();
@@ -429,6 +443,7 @@ const JobBoardCard = memo(
         onHide={handleHideClick}
         onReport={handleReportClick}
         onClick={handleOpenJob}
+        onMouseDown={onCardMouseDown}
         onJobSelect={handleJobIndexChange}
         onNext={handleNextJob}
         onPrevious={handlePreviousJob}

@@ -69,7 +69,7 @@ const CardRequirements = ({
         } as CSSProperties
       }
     >
-      <div ref={contentRef} className="cursor-text text-foreground/80 text-xs leading-normal dark:text-foreground/80">
+      <div ref={contentRef} className="text-foreground/80 text-xs leading-normal dark:text-foreground/80">
         {experienceInfo.hasAny && (
           <>
             {experienceInfo.industryBadge && experienceInfo.leadershipBadge ? (
