@@ -62,19 +62,19 @@ export default function Founding() {
     <SentenceText>
       Founded between
       <SentenceRangeBlank
+        ariaLabel="Founding year range"
         minAriaLabel="Earliest founding year"
         maxAriaLabel="Latest founding year"
-        minLabel="Earliest founding year"
-        maxLabel="Latest founding year"
         minValue={minYear}
         maxValue={maxYear}
         onChangeMin={setMinYear}
         onChangeMax={setMaxYear}
         onCommit={commit}
         separator="-"
-        minPlaceholder="min"
-        maxPlaceholder="max"
-        widthClassName="w-14"
+        sliderMin={1800}
+        sliderMax={currentYear}
+        sliderStep={1}
+        emptyLabel="unspecified"
       />
     </SentenceText>
   );

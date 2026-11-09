@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { type CountedListOptions, formatCountedList } from "@/lib/search/sentence-query";
+import { RangeSlider, type RangeSliderValue } from "@/components/ui/range-slider";
 import MinMax from "./MinMax";
 
 // ---------------------------------------------------------------------------
@@ -692,38 +693,74 @@ export interface SentenceRangeBlankProps {
   onChangeMin: (value: string) => void;
   onChangeMax: (value: string) => void;
   /**
-   * Commits the range. Popover blanks pass a patch with the field just edited so
+   * Commits the range. Popover blanks pass a patch with both bounds so
    * callers can avoid stale React state; inline blanks call with no patch.
    */
   onCommit?: (patch?: SentenceRangeCommitPatch) => void;
   minAriaLabel?: string;
   maxAriaLabel?: string;
+  /** Combined aria-label for the single popover trigger. */
+  ariaLabel?: string;
   minPlaceholder?: string;
   maxPlaceholder?: string;
   separator?: React.ReactNode;
   widthClassName?: string;
   className?: string;
   /**
-   * `popover` — underlined blanks that open a range popover (Salary, Founding, Experience, etc.).
+   * `popover` — one underlined blank that opens a range slider.
    * `inline` — dashed bordered inputs in the sentence.
    */
   variant?: "inline" | "popover";
-  /** Formats each amount's trigger text when `variant="popover"`. */
+  /** Formats each bound for the trigger / preview when `variant="popover"`. */
   formatDisplay?: (value: string) => string;
   minLabel?: string;
   maxLabel?: string;
-  /** `money` prefixes the popover inputs with a currency symbol. */
+  /** @deprecated Kept for callers; popover uses a slider, not money inputs. */
   inputVariant?: "number" | "money";
-  /** Currency symbol used by the `money` input variant. */
+  /** @deprecated Kept for callers; unused with the range slider popover. */
   currencySymbol?: string;
+  /** Inclusive lower bound of the range slider. Defaults to 0. */
+  sliderMin?: number;
+  /** Inclusive upper bound of the range slider. Defaults to 100. */
+  sliderMax?: number;
+  /** Slider step. Defaults to 1. Use larger steps for salary-like ranges. */
+  sliderStep?: number;
+  /**
+   * Trigger text when both bounds are unset.
+   * Experience years use `"0 - 20"`; salary-like fields keep `"unspecified"`.
+   */
+  emptyLabel?: string;
+  /**
+   * When true (default), committing the full `[sliderMin, sliderMax]` span
+   * clears the filter (empty strings) instead of writing the extremes.
+   */
+  fullRangeMeansUnset?: boolean;
+  /** Debounce for live parent updates while dragging. Default 120ms. */
+  debounceMs?: number;
+}
+
+const DEFAULT_RANGE_DEBOUNCE_MS = 120;
+
+function parseBoundNumber(raw: string | null | undefined): number | null {
+  if (raw == null) return null;
+  const cleaned = String(raw).replace(/[^0-9]/g, "");
+  if (!cleaned) return null;
+  const parsed = Number.parseInt(cleaned, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function boundsFromStrings(minValue: string, maxValue: string, sliderMin: number, sliderMax: number): RangeSliderValue {
+  const parsedMin = parseBoundNumber(minValue);
+  const parsedMax = parseBoundNumber(maxValue);
+  const low = parsedMin == null ? sliderMin : Math.min(sliderMax, Math.max(sliderMin, parsedMin));
+  const high = parsedMax == null ? sliderMax : Math.min(sliderMax, Math.max(sliderMin, parsedMax));
+  return low <= high ? [low, high] : [high, low];
 }
 
 /**
- * Interactive range blank inside a sentence-query title with paired min/max values.
- * When `variant="popover"` (default), each bound is its own underlined trigger that
- * opens a popover holding a number input for that amount, so a range reads as
- * "between 50k - 100k" with both amounts directly editable.
- * Wired for Founding year, Experience years, Size employees, and Salary amounts.
+ * Interactive range blank inside a sentence-query title.
+ * Popover mode: one combined blank that opens a dual-thumb RangeSlider.
+ * Inline mode: paired dashed number inputs.
  */
 export function SentenceRangeBlank({
   minValue,
@@ -733,6 +770,7 @@ export function SentenceRangeBlank({
   onCommit,
   minAriaLabel = "Minimum value",
   maxAriaLabel = "Maximum value",
+  ariaLabel,
   minPlaceholder = "min",
   maxPlaceholder = "max",
   separator = "-",
@@ -740,12 +778,13 @@ export function SentenceRangeBlank({
   className,
   variant = "popover",
   formatDisplay,
-  minLabel,
-  maxLabel,
-  inputVariant = "number",
-  currencySymbol,
+  sliderMin = 0,
+  sliderMax = 100,
+  sliderStep = 1,
+  emptyLabel = UNSPECIFIED_BLANK,
+  fullRangeMeansUnset = true,
+  debounceMs = DEFAULT_RANGE_DEBOUNCE_MS,
 }: SentenceRangeBlankProps) {
-  // Latest drafts of both bounds, so a commit never relies on stale props.
   const draftRef = useRef({ min: minValue, max: maxValue });
   useEffect(() => {
     draftRef.current = { min: minValue, max: maxValue };
@@ -763,11 +802,9 @@ export function SentenceRangeBlank({
 
   const commitRange = (side: "min" | "max", committed: string) => {
     draftRef.current = side === "min" ? { ...draftRef.current, min: committed } : { ...draftRef.current, max: committed };
-    // Always hand both bounds so callers never read stale React state mid-commit.
     onCommit?.({ min: draftRef.current.min, max: draftRef.current.max });
   };
 
-  // Range separator stays a short ASCII hyphen; blank *values* use "unspecified".
   const rangeSeparator = typeof separator === "string" && isDashBlank(separator) ? "-" : (separator ?? "-");
 
   if (variant === "inline") {
@@ -799,39 +836,195 @@ export function SentenceRangeBlank({
     );
   }
 
-  const inputMinPlaceholder = unspecifiedBlank(minPlaceholder, "min");
-  const inputMaxPlaceholder = unspecifiedBlank(maxPlaceholder, "max");
+  return (
+    <SentenceRangeSliderBlank
+      minValue={minValue}
+      maxValue={maxValue}
+      onChangeMin={onChangeMin}
+      onChangeMax={onChangeMax}
+      onCommit={onCommit}
+      ariaLabel={ariaLabel ?? `${minAriaLabel} to ${maxAriaLabel}`}
+      separator={rangeSeparator}
+      className={className}
+      formatDisplay={formatDisplay}
+      sliderMin={sliderMin}
+      sliderMax={sliderMax}
+      sliderStep={sliderStep}
+      emptyLabel={emptyLabel}
+      fullRangeMeansUnset={fullRangeMeansUnset}
+      debounceMs={debounceMs}
+    />
+  );
+}
+
+function SentenceRangeSliderBlank({
+  minValue,
+  maxValue,
+  onChangeMin,
+  onChangeMax,
+  onCommit,
+  ariaLabel,
+  separator,
+  className,
+  formatDisplay,
+  sliderMin,
+  sliderMax,
+  sliderStep,
+  emptyLabel,
+  fullRangeMeansUnset,
+  debounceMs,
+}: {
+  minValue: string;
+  maxValue: string;
+  onChangeMin: (value: string) => void;
+  onChangeMax: (value: string) => void;
+  onCommit?: (patch?: SentenceRangeCommitPatch) => void;
+  ariaLabel: string;
+  separator: React.ReactNode;
+  className?: string;
+  formatDisplay?: (value: string) => string;
+  sliderMin: number;
+  sliderMax: number;
+  sliderStep: number;
+  emptyLabel: string;
+  fullRangeMeansUnset: boolean;
+  debounceMs: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<RangeSliderValue>(() => boundsFromStrings(minValue, maxValue, sliderMin, sliderMax));
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const debounceTimerRef = useRef<number | null>(null);
+  const pendingCommitRef = useRef(false);
+  const latestPropsRef = useRef({ minValue, maxValue });
+  latestPropsRef.current = { minValue, maxValue };
+
+  const formatBound = useCallback(
+    (n: number) => {
+      const raw = String(n);
+      if (formatDisplay) return formatDisplay(raw);
+      return raw;
+    },
+    [formatDisplay]
+  );
+
+  const formatPair = useCallback(
+    (low: number, high: number, asUnset: boolean) => {
+      if (asUnset) return emptyLabel;
+      const left = formatBound(low);
+      const right = formatBound(high);
+      return (
+        <>
+          <span>{left}</span>
+          <span aria-hidden="true" className="mx-1 select-none font-normal text-foreground opacity-100">
+            {separator}
+          </span>
+          <span>{right}</span>
+        </>
+      );
+    },
+    [emptyLabel, formatBound, separator]
+  );
+
+  const toPatch = useCallback(
+    (value: RangeSliderValue): SentenceRangeCommitPatch => {
+      const [low, high] = value;
+      if (fullRangeMeansUnset && low <= sliderMin && high >= sliderMax) {
+        return { min: "", max: "" };
+      }
+      return { min: String(low), max: String(high) };
+    },
+    [fullRangeMeansUnset, sliderMax, sliderMin]
+  );
+
+  const flushCommit = useCallback(
+    (value: RangeSliderValue) => {
+      if (debounceTimerRef.current != null) {
+        window.clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      pendingCommitRef.current = false;
+      const patch = toPatch(value);
+      onChangeMin(patch.min ?? "");
+      onChangeMax(patch.max ?? "");
+      onCommit?.(patch);
+    },
+    [onChangeMin, onChangeMax, onCommit, toPatch]
+  );
+
+  /** Debounce parent/search updates while dragging; flush immediately on pointer-up / close. */
+  const scheduleCommit = useCallback(
+    (value: RangeSliderValue) => {
+      pendingCommitRef.current = true;
+      if (debounceTimerRef.current != null) window.clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = window.setTimeout(() => {
+        debounceTimerRef.current = null;
+        if (!pendingCommitRef.current) return;
+        flushCommit(value);
+      }, debounceMs);
+    },
+    [debounceMs, flushCommit]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current != null) window.clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const next = boundsFromStrings(latestPropsRef.current.minValue, latestPropsRef.current.maxValue, sliderMin, sliderMax);
+    // Unset → full span so the thumbs start at the extremes.
+    const unset = !latestPropsRef.current.minValue.trim() && !latestPropsRef.current.maxValue.trim();
+    setDraft(unset ? [sliderMin, sliderMax] : next);
+  }, [open, sliderMin, sliderMax]);
+
+  const propsUnset = !minValue.trim() && !maxValue.trim();
+  const closedBounds = boundsFromStrings(minValue, maxValue, sliderMin, sliderMax);
+  const triggerContent = open
+    ? formatPair(draft[0], draft[1], fullRangeMeansUnset && draft[0] <= sliderMin && draft[1] >= sliderMax)
+    : formatPair(closedBounds[0], closedBounds[1], propsUnset);
+
+  const previewUnset = fullRangeMeansUnset && draft[0] <= sliderMin && draft[1] >= sliderMax;
+  const previewLabel = previewUnset ? emptyLabel : `${formatBound(draft[0])} – ${formatBound(draft[1])}`;
 
   return (
-    <span className={cn("inline-flex flex-wrap items-center gap-1", className)} onClick={(event) => event.stopPropagation()}>
-      <SentenceNumberBlank
-        value={minValue}
-        onChange={handleChangeMin}
-        onCommit={(committed) => commitRange("min", committed)}
-        ariaLabel={minAriaLabel}
-        label={minLabel}
-        placeholder={UNSPECIFIED_BLANK}
-        inputPlaceholder={inputMinPlaceholder}
-        formatDisplay={formatDisplay}
-        variant={inputVariant}
-        currencySymbol={currencySymbol}
-      />
-      <span aria-hidden="true" className="select-none font-normal text-foreground opacity-100">
-        {rangeSeparator}
-      </span>
-      <SentenceNumberBlank
-        value={maxValue}
-        onChange={handleChangeMax}
-        onCommit={(committed) => commitRange("max", committed)}
-        ariaLabel={maxAriaLabel}
-        label={maxLabel}
-        placeholder={UNSPECIFIED_BLANK}
-        inputPlaceholder={inputMaxPlaceholder}
-        formatDisplay={formatDisplay}
-        variant={inputVariant}
-        currencySymbol={currencySymbol}
-      />
-    </span>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) flushCommit(draftRef.current);
+        setOpen(next);
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button type="button" aria-label={ariaLabel} className={cn(sentenceBlankTriggerClasses, className)} onClick={(event) => event.stopPropagation()}>
+          <span className="inline-flex items-center">{triggerContent}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 space-y-3 p-3" align="start" sideOffset={6} onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between gap-2 text-xs font-medium text-foreground">
+          <span>{previewLabel}</span>
+        </div>
+        <RangeSlider
+          aria-label={ariaLabel}
+          value={draft}
+          min={sliderMin}
+          max={sliderMax}
+          step={sliderStep}
+          onValueChange={(next) => {
+            setDraft(next);
+            draftRef.current = next;
+            scheduleCommit(next);
+          }}
+          onValueCommit={(next) => {
+            setDraft(next);
+            draftRef.current = next;
+            flushCommit(next);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 

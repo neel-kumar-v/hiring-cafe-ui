@@ -68,7 +68,7 @@ function splitIntoColumns<T>(items: readonly T[], columnCount: number): T[][] {
 function FloatingCardDisplayToolbar({ layout }: { layout: JobBoardLayout }) {
   const { searchMode, chatOpen } = useSearchUI();
   const { prefs, setPref } = useCardPrefs();
-  const aboveChatPill = searchMode === "talent-agent" && !chatOpen;
+  const aboveChatPill = !prefs.noAi && searchMode === "talent-agent" && !chatOpen;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

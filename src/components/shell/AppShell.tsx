@@ -5,6 +5,7 @@ import AppSidebar from "@/components/shell/AppSidebar";
 import Navbar from "@/components/shell/Navbar";
 import MobileTabBar from "@/components/shell/MobileTabBar";
 import SearchSubHeader from "@/components/shell/SearchSubHeader";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResizableWidth } from "@/hooks/useResizableWidth";
@@ -23,7 +24,9 @@ const DEFAULT_TITLES: Record<string, string> = {
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { sidebarOpen, setSidebarOpen, chatOpen, setNavbarTitle, setChatOpen } = useSearchUI();
+  const { sidebarOpen, setSidebarOpen, chatOpen, setNavbarTitle, setChatOpen, setSearchMode } = useSearchUI();
+  const { prefs } = useCardPrefs();
+  const noAi = prefs.noAi;
   const isChatDocked = useMediaQuery("(min-width: 1280px)");
 
   const sidebarRailRef = useRef<HTMLDivElement>(null);
@@ -80,9 +83,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
     if (match) setNavbarTitle(DEFAULT_TITLES[match]);
   }, [pathname, setNavbarTitle, setChatOpen]);
 
+  // Hydrate / persist: No AI keeps classic search and tears down the chat rail.
+  useEffect(() => {
+    if (!noAi) return;
+    setSearchMode("classic");
+    setChatOpen(false);
+  }, [noAi, setSearchMode, setChatOpen]);
+
   const isSearchRoute = pathname ? pathname === "/" || pathname.startsWith("/search/") : false;
   const leftWidth = sidebarOpen ? sidebar.width : SIDEBAR_RIBBON_WIDTH;
-  const showDockedChat = Boolean(isSearchRoute && chatOpen && isChatDocked);
+  const showDockedChat = Boolean(!noAi && isSearchRoute && chatOpen && isChatDocked);
 
   return (
     <div className="min-h-screen bg-background-body">
@@ -123,7 +133,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
 
-      {isSearchRoute ? (
+      {!noAi && isSearchRoute ? (
         <ChatPanel panelRef={chatPanelRef} width={chat.width} onResizeStart={isChatDocked ? (event: ReactPointerEvent) => chat.startResize(event, { edge: "left" }) : undefined} />
       ) : null}
 

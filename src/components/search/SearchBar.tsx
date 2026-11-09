@@ -9,6 +9,7 @@ import Autocomplete from "./Autocomplete";
 import SearchModeToggle from "./SearchModeToggle";
 import TalentAgentSearchDrawer from "./TalentAgentSearchDrawer";
 import { useApp } from "@/contexts/AppContext";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { useSearchUI, type SearchMode } from "@/contexts/SearchContext";
 import { Hitbox } from "@/components/ui/hitbox";
 import { useConvex } from "convex/react";
@@ -369,6 +370,7 @@ export default function SearchBar({
 }: SearchBarProps) {
   const pathname = usePathname();
   const { searchMode, handleSearchIconClick, setChatOpen, setSearchBarSegments } = useSearchUI();
+  const { prefs } = useCardPrefs();
   const { searchOptions: currentSearchState, setSearchOptions, setHasUnsavedChanges } = useApp();
 
   const [inputValue, setInputValue] = useState(controlledValue || "");
@@ -538,7 +540,7 @@ export default function SearchBar({
   const effectivePlaceholder = placeholder ?? (isAgentMode ? "Describe what you're looking for, or ask the AI agent..." : "Search by role, company, or keyword...");
 
   const searchButton = <SearchButton mode={searchMode} onClick={handleSubmit} />;
-  const modeToggle = showModeToggle ? <SearchModeToggle size="sm" /> : null;
+  const modeToggle = showModeToggle && !prefs.noAi ? <SearchModeToggle size="sm" /> : null;
 
   // One clear-all control for the whole bar: query text and/or filters. It only
   // takes space when there is something to clear, so an empty bar has no gap.
@@ -565,13 +567,15 @@ export default function SearchBar({
         suppressDropdown={isAgentMode}
         value={inputValue}
       />
-      <TalentAgentSearchDrawer
-        open={agentSheetOpen}
-        onOpenChange={setAgentSheetOpen}
-        value={inputValue}
-        onChange={handleInputChange}
-        onSubmit={handleSheetSubmit}
-      />
+      {!prefs.noAi ? (
+        <TalentAgentSearchDrawer
+          open={agentSheetOpen}
+          onOpenChange={setAgentSheetOpen}
+          value={inputValue}
+          onChange={handleInputChange}
+          onSubmit={handleSheetSubmit}
+        />
+      ) : null}
     </div>
   );
 }

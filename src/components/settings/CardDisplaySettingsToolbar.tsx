@@ -2,6 +2,7 @@
 
 import { Switch } from "@/components/ui/switch";
 import { useCardPrefs } from "@/contexts/CardPrefsContext";
+import { useSearchUI } from "@/contexts/SearchContext";
 import { cn } from "@/lib/utils";
 import { SlidersHorizontal } from "lucide-react";
 import { useId, useEffect, useRef, useState } from "react";
@@ -61,6 +62,7 @@ export function CardDisplaySettingsToolbar({
   expansionsDisabled?: boolean;
 }) {
   const { prefs, setPref } = useCardPrefs();
+  const { setSearchMode, setChatOpen } = useSearchUI();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const skillsId = useId();
@@ -68,6 +70,7 @@ export function CardDisplaySettingsToolbar({
   const locationsId = useId();
   const squareCornersId = useId();
   const hoverTrailId = useId();
+  const noAiId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -90,7 +93,8 @@ export function CardDisplaySettingsToolbar({
     Number(prefs.disableDescriptionHoverExpansion) +
     Number(prefs.disableLocationsHoverExpansion) +
     Number(prefs.squareCorners) +
-    Number(!prefs.hoverTrail);
+    Number(!prefs.hoverTrail) +
+    Number(prefs.noAi);
 
   const trigger =
     variant === "expanded" ? (
@@ -167,6 +171,21 @@ export function CardDisplaySettingsToolbar({
           <div className="flex flex-col gap-1">
             <PrefRow id={squareCornersId} label="Square corners" checked={prefs.squareCorners} onCheckedChange={(checked) => setPref("squareCorners", checked)} />
             <PrefRow id={hoverTrailId} label="Hover trail" checked={prefs.hoverTrail} onCheckedChange={(checked) => setPref("hoverTrail", checked)} />
+          </div>
+          <p className="mt-3 mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">AI</p>
+          <div className="flex flex-col gap-1">
+            <PrefRow
+              id={noAiId}
+              label="No AI"
+              checked={prefs.noAi}
+              onCheckedChange={(checked) => {
+                setPref("noAi", checked);
+                if (checked) {
+                  setSearchMode("classic");
+                  setChatOpen(false);
+                }
+              }}
+            />
           </div>
           {variant === "ribbon" ? (
             <button
