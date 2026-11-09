@@ -9,6 +9,7 @@ import { DrawerClose } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/contexts/AppContext";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { defaultSearchOptions, useSearchUI } from "@/contexts/SearchContext";
 import { demoNewCount, DEMO_AGENT_CHATS } from "@/data/agent-demo";
@@ -511,7 +512,17 @@ function ClassicSearchItems({ activeId, onNavigate }: { activeId: string | null;
 }
 
 /** Small icon ribbon rendered when the left sidebar is collapsed (Feedback #14). */
-function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSavedId: string | null; activeChatId: string | null; onSelectChat?: (id: string) => void }) {
+function IconRibbon({
+  activeSavedId,
+  activeChatId,
+  onSelectChat,
+  noAi = false,
+}: {
+  activeSavedId: string | null;
+  activeChatId: string | null;
+  onSelectChat?: (id: string) => void;
+  noAi?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
@@ -601,37 +612,43 @@ function IconRibbon({ activeSavedId, activeChatId, onSelectChat }: { activeSaved
             <TooltipContent side="right">Inbox</TooltipContent>
           </Tooltip>
 
-          <hr className="my-2 w-8 border-border" />
+          {!noAi ? (
+            <>
+              <hr className="my-2 w-8 border-border" />
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label="Talent Agent"
-                onClick={() => {
-                  if (onSelectChat) {
-                    onSelectChat(activeChatId ?? DEMO_AGENT_CHATS[0].id);
-                  } else {
-                    const isMainSearch = pathname === "/" || Boolean(pathname?.startsWith("/search"));
-                    if (!isMainSearch) {
-                      router.push("/");
-                    }
-                    setChatOpen(true);
-                  }
-                }}
-                className={cn(
-                  "flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-                  activeChatId && "bg-muted text-foreground"
-                )}
-              >
-                <span className="relative flex items-center justify-center">
-                  <Sparkles className="size-5" />
-                  <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-muted-foreground ring-2 ring-background" />
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Talent Agent</TooltipContent>
-          </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Talent Agent"
+                    onClick={() => {
+                      if (onSelectChat) {
+                        onSelectChat(activeChatId ?? DEMO_AGENT_CHATS[0].id);
+                      } else {
+                        const isMainSearch = pathname === "/" || Boolean(pathname?.startsWith("/search"));
+                        if (!isMainSearch) {
+                          router.push("/");
+                        }
+                        setChatOpen(true);
+                      }
+                    }}
+                    className={cn(
+                      "flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+                      activeChatId && "bg-muted text-foreground"
+                    )}
+                  >
+                    <span className="relative flex items-center justify-center">
+                      <Sparkles className="size-5" />
+                      <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-muted-foreground ring-2 ring-background" />
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Talent Agent</TooltipContent>
+              </Tooltip>
+            </>
+          ) : (
+            <hr className="my-2 w-8 border-border" />
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -802,6 +819,8 @@ export default function AppSidebar({
   const router = useRouter();
   const activeSavedId = pathname?.startsWith("/search/") ? decodeURIComponent(pathname.slice("/search/".length)) : null;
   const { activeChatId, setActiveChatId, setChatOpen } = useSearchUI();
+  const { prefs } = useCardPrefs();
+  const noAi = prefs.noAi;
 
   const isMainSearchPage = pathname === "/" || Boolean(pathname?.startsWith("/search"));
 
@@ -818,16 +837,20 @@ export default function AppSidebar({
     <aside ref={sidebarRef} className={cn("flex h-full w-full min-w-0 flex-col bg-background", className)}>
       <BrandHeader isRibbon={isRibbon} onClose={onNavigate} />
       {isRibbon ? (
-        <IconRibbon activeSavedId={activeSavedId} activeChatId={activeChatId} onSelectChat={openChat} />
+        <IconRibbon activeSavedId={activeSavedId} activeChatId={activeChatId} onSelectChat={openChat} noAi={noAi} />
       ) : (
         <>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <NavigationOptions onNavigate={onNavigate} />
             <hr className="my-1 border-border" />
-            <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent" headerHoverBg={false}>
-              <AgentChatItems activeChatId={activeChatId} onSelect={openChat} />
-            </GroupSection>
-            <hr className="my-2 border-border" />
+            {!noAi ? (
+              <>
+                <GroupSection icon={Sparkles} iconClassName="text-muted-foreground" label="Talent Agent" headerHoverBg={false}>
+                  <AgentChatItems activeChatId={activeChatId} onSelect={openChat} />
+                </GroupSection>
+                <hr className="my-2 border-border" />
+              </>
+            ) : null}
             <GroupSection icon={Search} iconClassName="text-muted-foreground" iconDot label="Classic Searches" headerHoverBg={false}>
               <ClassicSearchItems activeId={activeSavedId} onNavigate={onNavigate} />
             </GroupSection>

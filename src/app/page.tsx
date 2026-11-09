@@ -6,6 +6,7 @@ import MobileSavedSearchCards from "@/components/search/MobileSavedSearchCards";
 import MobileSearchModeSlider from "@/components/search/MobileSearchModeSlider";
 import ResultsHeaderBand from "@/components/search/ResultsMetaRow";
 import SearchBar from "@/components/search/SearchBar";
+import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { useSearchUI } from "@/contexts/SearchContext";
 import { useQuery } from "convex/react";
 import { Suspense, lazy } from "react";
@@ -25,6 +26,8 @@ const LoadingFallback = () => (
 
 export default function Page() {
   const { boardSearchQuery, setBoardSearchQuery, handleSearchIconClick } = useSearchUI();
+  const { prefs } = useCardPrefs();
+  const noAi = prefs.noAi;
   const liveJobCount = useQuery(api.jobs.count, {});
   const liveCompanyCount = useQuery(api.companies.count, {});
   const jobCountFallback = 2_057_770;
@@ -39,7 +42,7 @@ export default function Page() {
   return (
     <>
       <div className="border-b border-border bg-background-header md:hidden dark:border-border dark:bg-background">
-        <MobileSearchModeSlider className="pt-3" />
+        {!noAi ? <MobileSearchModeSlider className="pt-3" /> : null}
         <MobileSavedSearchCards className="pt-3" />
         <div className="px-4 pt-3 pb-4">
           <SearchBar value={boardSearchQuery} onSearch={handleSearch} onIconClick={handleSearchIconClick} showModeToggle={false} />

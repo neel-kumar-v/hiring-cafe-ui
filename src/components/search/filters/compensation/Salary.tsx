@@ -232,7 +232,7 @@ export default function Salary() {
 
   const formatAmountBlank = (raw: string) => {
     const parsed = Number.parseInt(raw, 10);
-    if (!raw || !Number.isFinite(parsed) || parsed <= 0) return UNSPECIFIED_BLANK;
+    if (!raw || !Number.isFinite(parsed)) return UNSPECIFIED_BLANK;
     return formatCompactNumber(parsed);
   };
 
@@ -241,10 +241,9 @@ export default function Salary() {
       Must pay between
       <SentenceRangeBlank
         variant="popover"
+        ariaLabel="Salary range"
         minAriaLabel="Minimum salary"
         maxAriaLabel="Maximum salary"
-        minLabel="Minimum salary"
-        maxLabel="Maximum salary"
         minValue={minAmount}
         maxValue={maxAmount}
         onChangeMin={setMinAmount}
@@ -252,8 +251,11 @@ export default function Salary() {
         onCommit={commitRange}
         formatDisplay={formatAmountBlank}
         separator="-"
-        inputVariant="money"
-        currencySymbol={getCurrencySymbol(salary.currency || "USD")}
+        sliderMin={0}
+        sliderMax={500_000}
+        sliderStep={5_000}
+        emptyLabel={UNSPECIFIED_BLANK}
+        debounceMs={180}
       />
       <SentenceBlankSelect
         ariaLabel="Salary currency"

@@ -17,6 +17,11 @@ export interface CardPrefs {
   hoverTrail: boolean;
   /** When true, the floating card-settings control stays off until the shortcut. */
   floatingToolbarHidden: boolean;
+  /**
+   * When true, every talent-agent / chat / AI search surface is hidden and
+   * the app stays on classic search only.
+   */
+  noAi: boolean;
 }
 
 const STORAGE_KEY = "hiring-cafe-card-prefs";
@@ -93,6 +98,7 @@ const DEFAULT_PREFS: CardPrefs = {
   squareCorners: false,
   hoverTrail: true,
   floatingToolbarHidden: false,
+  noAi: false,
 };
 
 function parseStoredPrefs(stored: string): Partial<CardPrefs> | null {
@@ -130,6 +136,7 @@ export function CardPrefsProvider({ children }: { children: React.ReactNode }) {
           squareCorners: parsed.squareCorners === true,
           hoverTrail: parsed.hoverTrail !== false,
           floatingToolbarHidden: parsed.floatingToolbarHidden === true,
+          noAi: parsed.noAi === true,
         });
       }
     } catch {

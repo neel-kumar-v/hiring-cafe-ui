@@ -281,38 +281,44 @@ export default function Stage() {
       <SentenceText>
         Latest round between
         <SentenceRangeBlank
+          ariaLabel="Latest round year range"
           minAriaLabel="Earliest latest-round year"
           maxAriaLabel="Latest latest-round year"
-          minLabel="Earliest latest-round year"
-          maxLabel="Latest latest-round year"
           minValue={latestRoundMin}
           maxValue={latestRoundMax}
           onChangeMin={setLatestRoundMin}
           onChangeMax={setLatestRoundMax}
           onCommit={commitLatestRound}
           separator="-"
-          minPlaceholder="min"
-          maxPlaceholder="max"
-          widthClassName="w-14"
+          sliderMin={1800}
+          sliderMax={currentYear}
+          sliderStep={1}
+          emptyLabel="unspecified"
         />
       </SentenceText>
 
       <SentenceText>
         Latest round amount between
         <SentenceRangeBlank
+          ariaLabel="Latest round amount range"
           minAriaLabel="Minimum latest-round amount"
           maxAriaLabel="Maximum latest-round amount"
-          minLabel="Minimum latest-round amount"
-          maxLabel="Maximum latest-round amount"
           minValue={latestRoundAmountMin}
           maxValue={latestRoundAmountMax}
           onChangeMin={setLatestRoundAmountMin}
           onChangeMax={setLatestRoundAmountMax}
           onCommit={commitLatestRoundAmount}
           separator="-"
-          minPlaceholder="min"
-          maxPlaceholder="max"
-          widthClassName="w-16"
+          formatDisplay={(raw) => {
+            const parsed = Number.parseInt(raw, 10);
+            if (!raw || !Number.isFinite(parsed)) return "unspecified";
+            return formatCompactNumber(parsed);
+          }}
+          sliderMin={0}
+          sliderMax={500_000_000}
+          sliderStep={1_000_000}
+          emptyLabel="unspecified"
+          debounceMs={180}
         />
       </SentenceText>
     </FilterContainer>

@@ -92,16 +92,20 @@ export default function Size() {
     <SentenceText>
       Company has between
       <SentenceRangeBlank
+        ariaLabel="Employee count range"
         minAriaLabel="Minimum employees"
         maxAriaLabel="Maximum employees"
-        minLabel="Minimum employees"
-        maxLabel="Maximum employees"
         minValue={minEmployees}
         maxValue={maxEmployees}
         onChangeMin={setMinEmployees}
         onChangeMax={setMaxEmployees}
         onCommit={commit}
         separator="-"
+        sliderMin={0}
+        sliderMax={10_000}
+        sliderStep={50}
+        emptyLabel="unspecified"
+        debounceMs={150}
       />
       employees
     </SentenceText>

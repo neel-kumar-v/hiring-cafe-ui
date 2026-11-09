@@ -262,19 +262,19 @@ export default function Experience() {
       <SentenceText>
         Must have
         <SentenceRangeBlank
+          ariaLabel="Individual contributor experience years"
           minAriaLabel="Minimum IC experience years"
           maxAriaLabel="Maximum IC experience years"
-          minLabel="Minimum IC experience years"
-          maxLabel="Maximum IC experience years"
           minValue={icMin}
           maxValue={icMax}
           onChangeMin={setIcMin}
           onChangeMax={setIcMax}
           onCommit={commitIndividualContributor}
           separator="-"
-          minPlaceholder="min"
-          maxPlaceholder="max"
-          widthClassName="w-10"
+          sliderMin={0}
+          sliderMax={20}
+          sliderStep={1}
+          emptyLabel="0 - 20"
         />
         years of individual contributor experience
       </SentenceText>
@@ -282,19 +282,19 @@ export default function Experience() {
       <SentenceText>
         Must have
         <SentenceRangeBlank
+          ariaLabel="People manager experience years"
           minAriaLabel="Minimum PM experience years"
           maxAriaLabel="Maximum PM experience years"
-          minLabel="Minimum PM experience years"
-          maxLabel="Maximum PM experience years"
           minValue={pmMin}
           maxValue={pmMax}
           onChangeMin={setPmMin}
           onChangeMax={setPmMax}
           onCommit={commitPeopleManager}
           separator="-"
-          minPlaceholder="min"
-          maxPlaceholder="max"
-          widthClassName="w-10"
+          sliderMin={0}
+          sliderMax={20}
+          sliderStep={1}
+          emptyLabel="0 - 20"
         />
         years of people manager experience
       </SentenceText>
