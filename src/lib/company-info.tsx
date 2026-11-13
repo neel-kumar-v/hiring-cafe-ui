@@ -105,6 +105,12 @@ export const isFaviconServiceUrl = (url: string | null | undefined): boolean => 
   return raw.includes("icons.duckduckgo.com") || raw.includes("s2.googleusercontent.com/s2/favicons") || /\.ico(\?|$)/i.test(raw) || /\/favicon(\.[a-z]+)?(\?|$)/i.test(raw);
 };
 
+/** Detects whether a URL targets the internal OpenBrand extraction API endpoint. */
+export const isOpenBrandUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  return url.startsWith("/api/openbrand-logo") || url.includes("/api/openbrand-logo");
+};
+
 export interface LogoExpandableOptions {
   /** Minimum pixel width/height required to consider an image expandable (e.g. 64). */
   minDimension?: number;
@@ -118,6 +124,8 @@ export interface LogoExpandableOptions {
   isSvg?: boolean;
   /** If true, allows favicon service URLs to qualify if they satisfy dimensions / aspect ratio. Defaults to false. */
   allowFavicons?: boolean;
+  /** If true, permits wide brand wordmarks (aspect ratio up to 6.5) while ensuring adequate resolution. Defaults to false. */
+  allowWordmarks?: boolean;
 }
 
 /**
@@ -129,8 +137,9 @@ export const isExpandableLogo = (width: number, height: number, options?: LogoEx
     return false;
   }
 
-  const minAspectRatio = options?.minAspectRatio ?? 0.75;
-  const maxAspectRatio = options?.maxAspectRatio ?? 1.35;
+  const allowWordmarks = options?.allowWordmarks ?? false;
+  const minAspectRatio = options?.minAspectRatio ?? (allowWordmarks ? 0.4 : 0.75);
+  const maxAspectRatio = options?.maxAspectRatio ?? (allowWordmarks ? 6.5 : 1.35);
   const aspectRatio = width / height;
 
   if (aspectRatio < minAspectRatio || aspectRatio > maxAspectRatio) {
@@ -141,7 +150,11 @@ export const isExpandableLogo = (width: number, height: number, options?: LogoEx
 
   if (!isSvg) {
     const minDimension = options?.minDimension ?? 64;
-    if (width < minDimension || height < minDimension) {
+    if (allowWordmarks) {
+      if (Math.max(width, height) < minDimension || Math.min(width, height) < 16) {
+        return false;
+      }
+    } else if (width < minDimension || height < minDimension) {
       return false;
     }
   }

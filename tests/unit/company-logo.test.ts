@@ -13,6 +13,7 @@ import {
   getCompanyLogoSources,
   isExpandableLogo,
   isFaviconServiceUrl,
+  isOpenBrandUrl,
 } from "../../src/lib/company-info";
 
 test("cleanDomain normalizes domains and strips www", () => {
@@ -295,4 +296,65 @@ test("isExpandableLogo validates square and properly filling logos", () => {
   assert.equal(isExpandableLogo(24, 24, { src: "https://example.com/logo.svg" }), true);
   // But letterboxed SVGs are still rejected
   assert.equal(isExpandableLogo(100, 24, { isSvg: true }), false);
+});
+
+test("isOpenBrandUrl identifies internal openbrand-logo API endpoints", () => {
+  assert.equal(isOpenBrandUrl("/api/openbrand-logo?domain=stripe.com"), true);
+  assert.equal(isOpenBrandUrl("https://example.com/api/openbrand-logo?domain=openai.com"), true);
+  assert.equal(isOpenBrandUrl("https://images.stripeassets.com/favicon.svg"), false);
+  assert.equal(isOpenBrandUrl("https://s2.googleusercontent.com/s2/favicons?domain=stripe.com"), false);
+  assert.equal(isOpenBrandUrl(null), false);
+  assert.equal(isOpenBrandUrl(""), false);
+});
+
+test("isExpandableLogo with allowWordmarks accepts genuine brand wordmarks while rejecting low-res icons", () => {
+  // Wide SVGs like Booz Allen Hamilton (192.6x30, aspect 6.42) or Trust Wallet (102.8x27.8, aspect 3.7)
+  assert.equal(isExpandableLogo(193, 30, { isSvg: true, allowWordmarks: true }), true);
+  assert.equal(isExpandableLogo(103, 28, { isSvg: true, allowWordmarks: true }), true);
+  assert.equal(isExpandableLogo(300, 100, { isSvg: true, allowWordmarks: true }), true); // 3.0 ratio
+  assert.equal(isExpandableLogo(400, 100, { isSvg: true, allowWordmarks: true }), true); // 4.0 ratio
+
+  // Wide raster images with sufficient width and height (e.g. 300x60 PNG, 200x50 PNG)
+  assert.equal(isExpandableLogo(300, 60, { allowWordmarks: true, minDimension: 64 }), true);
+  assert.equal(isExpandableLogo(240, 48, { allowWordmarks: true, minDimension: 44 }), true);
+
+  // Rejects extreme aspect ratios (ratio > 6.5 or ratio < 0.4)
+  assert.equal(isExpandableLogo(800, 50, { isSvg: true, allowWordmarks: true }), false); // 16.0 ratio
+  assert.equal(isExpandableLogo(30, 100, { isSvg: true, allowWordmarks: true }), false); // 0.3 ratio
+
+  // Rejects tiny raster icons (<44px or <16px height)
+  assert.equal(isExpandableLogo(32, 32, { allowWordmarks: true, minDimension: 64 }), false);
+  assert.equal(isExpandableLogo(16, 16, { allowWordmarks: true, minDimension: 64 }), false);
+  assert.equal(isExpandableLogo(200, 12, { allowWordmarks: true, minDimension: 64 }), false); // height < 16
+});
+
+test("isExpandableLogo with allowFavicons permits high-res favicons extracted by OpenBrand", () => {
+  // Stripe 512x512 favicon.svg
+  assert.equal(
+    isExpandableLogo(512, 512, {
+      src: "https://images.stripeassets.com/favicon.svg",
+      isSvg: true,
+      allowFavicons: true,
+    }),
+    true
+  );
+
+  // EA 256x256 favicon.ico
+  assert.equal(
+    isExpandableLogo(256, 256, {
+      src: "https://ea.com/static/media/favicon.ico",
+      allowFavicons: true,
+    }),
+    true
+  );
+
+  // Disallowed favicon URLs without allowFavicons flag are rejected
+  assert.equal(
+    isExpandableLogo(512, 512, {
+      src: "https://images.stripeassets.com/favicon.svg",
+      isSvg: true,
+      allowFavicons: false,
+    }),
+    false
+  );
 });
