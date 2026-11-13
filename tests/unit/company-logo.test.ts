@@ -7,6 +7,7 @@ import {
   companyDuckDuckGoFaviconUrl,
   companyFaviconUrl,
   companyGoogleFaviconV2Url,
+  companyOpenBrandUrl,
   companyUnavatarUrl,
   extractDomainFromCompanyWebsite,
   getCompanyLogoSources,
@@ -55,6 +56,9 @@ test("url builder helpers construct expected endpoints", () => {
   assert.equal(companyBrandfetchUrl("stripe.com", "test-client-id"), "https://cdn.brandfetch.io/stripe.com/logo?c=test-client-id");
   assert.equal(companyClearbitUrl("stripe.com"), "https://logo.clearbit.com/stripe.com");
   assert.equal(companyDuckDuckGoFaviconUrl("stripe.com"), "https://icons.duckduckgo.com/ip3/stripe.com.ico");
+  assert.equal(companyOpenBrandUrl("stripe.com"), "/api/openbrand-logo?domain=stripe.com");
+  assert.equal(companyOpenBrandUrl("www.stripe.com"), "/api/openbrand-logo?domain=stripe.com");
+  assert.equal(companyOpenBrandUrl("https://www.stripe.com/careers"), "/api/openbrand-logo?domain=stripe.com");
 });
 
 test("getCompanyLogoSources prioritizes explicit image_url first", () => {
@@ -170,18 +174,67 @@ test("getCompanyLogoSources with includeFavicons: false excludes low-res favicon
   assert.ok(!sources.some((s) => s.includes("icons.duckduckgo.com")));
 });
 
+test("getCompanyLogoSources places OpenBrand immediately after explicit image_url and before external favicon services", () => {
+  const imageUrl = "https://cdn.example.com/logo.png";
+  const sources = getCompanyLogoSources(
+    {
+      image_url: imageUrl,
+      canonical_domain: "stripe.com",
+      website: "https://www.stripe.com",
+    },
+    256
+  );
+
+  assert.equal(sources[0], imageUrl, "explicit image_url must remain first");
+  assert.equal(sources[1], companyOpenBrandUrl("stripe.com"), "OpenBrand must be candidate #2");
+
+  const openbrandIdx = sources.findIndex((s) => s.startsWith("/api/openbrand-logo"));
+  const brandfetchIdx = sources.findIndex((s) => s.includes("cdn.brandfetch.io"));
+  const clearbitIdx = sources.findIndex((s) => s.includes("logo.clearbit.com"));
+  const gstaticIdx = sources.findIndex((s) => s.includes("gstatic.com/faviconV2"));
+  const ddgIdx = sources.findIndex((s) => s.includes("icons.duckduckgo.com"));
+
+  assert.ok(openbrandIdx !== -1, "OpenBrand must be present");
+  assert.ok(openbrandIdx < gstaticIdx, "OpenBrand must precede Google Favicon V2");
+  assert.ok(openbrandIdx < ddgIdx, "OpenBrand must precede DuckDuckGo favicon");
+  if (brandfetchIdx !== -1) assert.ok(openbrandIdx < brandfetchIdx, "OpenBrand must precede Brandfetch");
+  if (clearbitIdx !== -1) assert.ok(openbrandIdx < clearbitIdx, "OpenBrand must precede Clearbit");
+});
+
+test("getCompanyLogoSources places OpenBrand first when image_url is absent", () => {
+  const sources = getCompanyLogoSources(
+    {
+      canonical_domain: "stripe.com",
+      website: "https://www.stripe.com",
+    },
+    256
+  );
+
+  const openbrandIdx = sources.findIndex((s) => s.startsWith("/api/openbrand-logo"));
+  const gstaticIdx = sources.findIndex((s) => s.includes("gstatic.com/faviconV2"));
+  const ddgIdx = sources.findIndex((s) => s.includes("icons.duckduckgo.com"));
+
+  assert.equal(sources[0], companyOpenBrandUrl("stripe.com"), "OpenBrand must be the first candidate when image_url is missing");
+  assert.ok(openbrandIdx < gstaticIdx, "OpenBrand must precede Google Favicon V2");
+  assert.ok(openbrandIdx < ddgIdx, "OpenBrand must precede DuckDuckGo favicon");
+});
+
 test("getCompanyLogoSources candidate order prioritizes high-res sources over unavatar and fallbacks", () => {
   const sources = getCompanyLogoSources({ canonical_domain: "hcltech.com" }, 128);
+  const openbrandIdx = sources.findIndex((s) => s.startsWith("/api/openbrand-logo"));
   const gstaticIdx = sources.findIndex((s) => s.includes("gstatic.com/faviconV2"));
   const unavatarIdx = sources.findIndex((s) => s.includes("unavatar.io"));
   const ddgIdx = sources.findIndex((s) => s.includes("icons.duckduckgo.com"));
   const googleFaviconIdx = sources.findIndex((s) => s.includes("googleusercontent.com/s2/favicons"));
 
+  assert.ok(openbrandIdx !== -1, "OpenBrand must be present");
   assert.ok(gstaticIdx !== -1, "gstatic_v2 must be present");
   assert.ok(unavatarIdx !== -1, "unavatar must be present");
   assert.ok(ddgIdx !== -1, "ddg must be present");
   assert.ok(googleFaviconIdx !== -1, "google favicon must be present");
 
+  // OpenBrand should be tried before lower-quality fallback chains
+  assert.ok(openbrandIdx < gstaticIdx, "OpenBrand must precede Google Favicon V2");
   // Higher-quality free Google Favicon V2 must precede unavatar
   assert.ok(gstaticIdx < unavatarIdx, "Google Favicon V2 must precede unavatar");
   // Unavatar precedes low-res favicon fallbacks

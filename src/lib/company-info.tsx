@@ -53,7 +53,7 @@ export const cleanDomain = (domain: string | null | undefined): string | null =>
     }
     return host;
   } catch {
-    let host = trimmed
+    const host = trimmed
       .toLowerCase()
       .replace(/^[a-z]+:\/\//i, "")
       .split(/[/?#:]/)[0]
@@ -164,18 +164,21 @@ export interface CompanyLogoSourcesOptions {
   includeFavicons?: boolean;
 }
 
+export const companyOpenBrandUrl = (domain: string): string => `/api/openbrand-logo?domain=${encodeURIComponent(cleanDomain(domain) || domain)}`;
+
 /**
  * Builds an ordered list of image candidates for high-fidelity rendering.
  * Priority order:
  * 1. Direct explicit image asset (career page/OG/DB scraped logo)
- * 2. Brandfetch (if NEXT_PUBLIC_BRANDFETCH_CLIENT_ID is configured)
- * 3. Clearbit (if NEXT_PUBLIC_CLEARBIT_LOGO_URL or NEXT_PUBLIC_ENABLE_CLEARBIT is set)
- * 4. Logo.dev (if NEXT_PUBLIC_LOGO_DEV_TOKEN is configured)
- * 5. Google Favicon V2 (high-fidelity zero-auth resolver up to 256px, reliable non-unavatar candidate)
- * 6. Unavatar (free zero-secret SVG/Apple-Touch-Icon resolver, mid/low priority)
- * 7. DuckDuckGo Favicon service (reliable favicon fallback fetching site's genuine favicon.ico)
- * 8. Google Favicon service (universal zero-auth fallback favicon)
- * 9. Secondary website domain if distinct from canonical domain
+ * 2. OpenBrand (extract brand assets from the company's own website)
+ * 3. Brandfetch (if NEXT_PUBLIC_BRANDFETCH_CLIENT_ID is configured)
+ * 4. Clearbit (if NEXT_PUBLIC_CLEARBIT_LOGO_URL or NEXT_PUBLIC_ENABLE_CLEARBIT is set)
+ * 5. Logo.dev (if NEXT_PUBLIC_LOGO_DEV_TOKEN is configured)
+ * 6. Google Favicon V2 (high-fidelity zero-auth resolver up to 256px, reliable non-unavatar candidate)
+ * 7. Unavatar (free zero-secret SVG/Apple-Touch-Icon resolver, mid/low priority)
+ * 8. DuckDuckGo Favicon service (reliable favicon fallback fetching site's genuine favicon.ico)
+ * 9. Google Favicon service (universal zero-auth fallback favicon)
+ * 10. Secondary website domain if distinct from canonical domain
  */
 export const getCompanyLogoSources = (companyData: CompanyLogoSourcesInput, sizePx: number = 256, options?: CompanyLogoSourcesOptions): string[] => {
   const chain: string[] = [];
@@ -201,14 +204,17 @@ export const getCompanyLogoSources = (companyData: CompanyLogoSourcesInput, size
   const primaryDomain = cleanDomain(companyData.canonical_domain) || extractDomainFromCompanyWebsite(companyData.website);
 
   if (primaryDomain) {
-    // 2. Brandfetch (if client ID is provided)
+    // 2. OpenBrand: extract high-quality logos from the company's own website
+    chain.push(companyOpenBrandUrl(primaryDomain));
+
+    // 3. Brandfetch (if client ID is provided)
     const brandfetchId = process.env.NEXT_PUBLIC_BRANDFETCH_CLIENT_ID;
     if (brandfetchId) {
       chain.push(companyBrandfetchUrl(primaryDomain, brandfetchId, "icon"));
       chain.push(companyBrandfetchUrl(primaryDomain, brandfetchId, "logo"));
     }
 
-    // 3. Clearbit (if enabled or custom proxy configured)
+    // 4. Clearbit (if enabled or custom proxy configured)
     const clearbitUrl = process.env.NEXT_PUBLIC_CLEARBIT_LOGO_URL;
     if (clearbitUrl) {
       chain.push(companyClearbitUrl(primaryDomain, clearbitUrl));
@@ -216,24 +222,24 @@ export const getCompanyLogoSources = (companyData: CompanyLogoSourcesInput, size
       chain.push(companyClearbitUrl(primaryDomain));
     }
 
-    // 4. Logo.dev (if keyed via NEXT_PUBLIC_LOGO_DEV_TOKEN)
+    // 5. Logo.dev (if keyed via NEXT_PUBLIC_LOGO_DEV_TOKEN)
     const logoDevToken = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
     if (logoDevToken) {
       chain.push(`https://img.logo.dev/${encodeURIComponent(primaryDomain)}?token=${logoDevToken}&size=${sizePx}`);
     }
 
-    // 5. Google Favicon V2: high-fidelity, zero-auth resolver providing crisp vector/JPEG/PNG brand logos (up to 256px)
+    // 6. Google Favicon V2: high-fidelity, zero-auth resolver providing crisp vector/JPEG/PNG brand logos (up to 256px)
     // Always provided in the primary candidate chain (even with includeFavicons: false)
     chain.push(companyGoogleFaviconV2Url(primaryDomain, sizePx));
 
-    // 6. Unavatar: free, zero secrets fallback (demoted to mid/low priority after Google Favicon V2)
+    // 7. Unavatar: free, zero secrets fallback (demoted to mid/low priority after Google Favicon V2)
     chain.push(companyUnavatarUrl(primaryDomain));
 
     if (includeFavicons) {
-      // 7. DuckDuckGo icon service (primary favicon fallback, fetches genuine site favicon.ico)
+      // 8. DuckDuckGo icon service (primary favicon fallback, fetches genuine site favicon.ico)
       chain.push(companyDuckDuckGoFaviconUrl(primaryDomain));
 
-      // 8. Google Favicon service (universal zero-auth fallback)
+      // 9. Google Favicon service (universal zero-auth fallback)
       chain.push(companyFaviconUrl(primaryDomain, sizePx));
 
       // If website domain is different from canonical domain, also try website domain as fallback
