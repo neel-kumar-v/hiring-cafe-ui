@@ -1,12 +1,10 @@
 import {
   analyzeImageBackground,
-  cleanDomain,
-  companyFaviconUrl,
-  extractDomainFromCompanyWebsite,
   getCompanyAbbreviation,
   getCompanyLogoSources,
   isExpandableLogo,
   isFaviconServiceUrl,
+  isOpenBrandUrl,
   renderCompanyAbbreviationGrid,
 } from "@/lib/company-info";
 import type { ProcessedCompanyData } from "@/types/job";
@@ -70,8 +68,13 @@ const CompanyLogoInner = memo(
     const validateAndProcessImage = useCallback(
       (img: HTMLImageElement) => {
         const { naturalWidth, naturalHeight } = img;
-        const isSvg = Boolean(activeSrc && (/\.svg(\?|$)/i.test(activeSrc) || activeSrc.startsWith("data:image/svg+xml")));
-        const isFavicon = Boolean(activeSrc && isFaviconServiceUrl(activeSrc));
+        const resolvedSrc = img.currentSrc || img.src || activeSrc || "";
+        const isSvg = Boolean(
+          (activeSrc && (/\.svg(\?|$)/i.test(activeSrc) || activeSrc.startsWith("data:image/svg+xml"))) ||
+          (resolvedSrc && (/\.svg(\?|$)/i.test(resolvedSrc) || resolvedSrc.startsWith("data:image/svg+xml")))
+        );
+        const isOpenBrand = Boolean(activeSrc && isOpenBrandUrl(activeSrc));
+        const isFavicon = Boolean(activeSrc && !isOpenBrand && isFaviconServiceUrl(activeSrc));
 
         if (isFavicon) {
           // Favicon fallbacks: accept valid decoded icons with a reasonable aspect ratio
@@ -86,14 +89,16 @@ const CompanyLogoInner = memo(
           return;
         }
 
-        // Verify that primary logo candidates can properly expand and fill the square slot without
+        // For OpenBrand brand-extracted logos, allow genuine brand wordmarks and SVGs while rejecting
+        // broken decodes or tiny low-res icons.
+        // For standard primary logo candidates, verify they properly expand and fill the square slot without
         // unsightly letterboxing, tiny low-res pixelation, or broken decodes.
         const expandable = isExpandableLogo(naturalWidth, naturalHeight, {
           minDimension,
-          minAspectRatio: 0.75,
-          maxAspectRatio: 1.35,
-          src: activeSrc,
+          src: resolvedSrc || activeSrc,
           isSvg,
+          allowWordmarks: isOpenBrand,
+          allowFavicons: isOpenBrand,
         });
 
         if (!expandable) {
@@ -197,6 +202,7 @@ const CompanyLogoInner = memo(
                 loading="lazy"
                 onError={handleImageError}
                 onLoad={handleImageLoad}
+                referrerPolicy="no-referrer"
                 src={activeSrc}
               />
             </>
