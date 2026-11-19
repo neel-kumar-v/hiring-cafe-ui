@@ -5,9 +5,7 @@ import HomeCompactHeader from "@/components/search/HomeCompactHeader";
 import MobileSavedSearchCards from "@/components/search/MobileSavedSearchCards";
 import MobileSearchModeSlider from "@/components/search/MobileSearchModeSlider";
 import ResultsHeaderBand from "@/components/search/ResultsMetaRow";
-import SearchBar from "@/components/search/SearchBar";
 import { useCardPrefs } from "@/contexts/CardPrefsContext";
-import { useSearchUI } from "@/contexts/SearchContext";
 import { useQuery } from "convex/react";
 import { Suspense, lazy } from "react";
 import { api } from "../../convex/_generated/api";
@@ -25,7 +23,6 @@ const LoadingFallback = () => (
 );
 
 export default function Page() {
-  const { boardSearchQuery, setBoardSearchQuery, handleSearchIconClick } = useSearchUI();
   const { prefs } = useCardPrefs();
   const noAi = prefs.noAi;
   const liveJobCount = useQuery(api.jobs.count, {});
@@ -35,18 +32,12 @@ export default function Page() {
   const jobCount = liveJobCount ?? jobCountFallback;
   const companyCount = liveCompanyCount ?? companyCountFallback;
 
-  const handleSearch = (value: string) => {
-    setBoardSearchQuery(value);
-  };
-
   return (
     <>
+      {/* Phone-only browse chrome; the search field itself lives in the shared sticky Navbar */}
       <div className="border-b border-border bg-background-header md:hidden dark:border-border dark:bg-background">
         {!noAi ? <MobileSearchModeSlider className="pt-3" /> : null}
         <MobileSavedSearchCards className="pt-3" />
-        <div className="px-4 pt-3 pb-4">
-          <SearchBar value={boardSearchQuery} onSearch={handleSearch} onIconClick={handleSearchIconClick} showModeToggle={false} />
-        </div>
         <HomeCompactHeader />
         <ResultsHeaderBand jobCount={jobCount} companyCount={companyCount} className="py-2" />
       </div>

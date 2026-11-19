@@ -57,11 +57,13 @@ interface NavbarProps {
 }
 
 /**
- * Slim navbar of the new app frame:
- * - Left: control for left AppSidebar
+ * Slim navbar of the new app frame — the one top bar for every route and every
+ * breakpoint (search, inbox, tracker, account, talent network):
+ * - Sticky at the top of the viewport, so it never scrolls out of view
+ * - Left: control for left AppSidebar (desktop only; mobile nav lives in the
+ *   bottom tab bar)
  * - Center: the shared SearchBar on every route, so the sticky top bar always
- *   exposes the same search component regardless of the page (search, inbox,
- *   tracker, account, talent network)
+ *   exposes the same search component regardless of the page
  * - Right: AI chat sidebar toggle (when chat is available)
  */
 export default function Navbar({ className, searchLeadingSlot, searchTrailingSlot }: NavbarProps) {
@@ -71,9 +73,14 @@ export default function Navbar({ className, searchLeadingSlot, searchTrailingSlo
   const { boardSearchQuery, setBoardSearchQuery, handleSearchIconClick } = useSearchUI();
 
   return (
-    <header className={cn("sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-background-header px-2 dark:bg-background", className)}>
-      {/* Left zone: left sidebar control — flush to sidebar edge */}
-      <div className="flex shrink-0 items-center">
+    <header
+      className={cn(
+        "sticky top-0 z-40 flex h-16 w-full shrink-0 items-center justify-between gap-3 border-b border-border bg-background-header px-2 dark:bg-background",
+        className
+      )}
+    >
+      {/* Left zone: left sidebar control — desktop only (the sidebar rail is md+) */}
+      <div className="hidden shrink-0 items-center md:flex">
         <LeftSidebarToggle />
       </div>
 

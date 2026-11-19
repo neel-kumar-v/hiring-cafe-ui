@@ -127,7 +127,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
           } as CSSProperties
         }
       >
-        <Navbar className="hidden md:flex" />
+        {/* Sticky navbar renders the same top bar on every route and breakpoint */}
+        <Navbar />
         {isSearchRoute ? <SearchSubHeader className="hidden md:block" /> : null}
 
         <main className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>

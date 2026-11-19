@@ -228,7 +228,7 @@ export default function InboxPage() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] min-h-0 w-full flex-col overflow-hidden bg-background md:h-[calc(100dvh-4rem)]">
+      <div className="flex h-[calc(100dvh-4rem-3.5rem-env(safe-area-inset-bottom))] min-h-0 w-full flex-col overflow-hidden bg-background md:h-[calc(100dvh-4rem)]">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full items-stretch">
           {/* Left Pane: Message List */}
           <ResizablePanel
