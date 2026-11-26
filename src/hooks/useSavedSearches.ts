@@ -4,16 +4,16 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { SearchState } from "@/types/search";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { toast } from "sonner";
 
 export function useSavedSearches() {
   const { user: convexUser, email } = useCurrentUser();
-  const savedSearches = useQuery(api.savedSearches.listByUser, convexUser ? { userId: convexUser._id } : "skip");
-  const createSavedSearch = useMutation(api.savedSearches.create);
-  const renameSavedSearch = useMutation(api.savedSearches.rename);
-  const removeSavedSearch = useMutation(api.savedSearches.remove);
-  const setAlertsEnabledMutation = useMutation(api.savedSearches.setAlertsEnabled);
+  const savedSearches = useConvexQuery(api.savedSearches.listByUser, convexUser ? { userId: convexUser._id } : "skip");
+  const createSavedSearch = useConvexMutation(api.savedSearches.create);
+  const renameSavedSearch = useConvexMutation(api.savedSearches.rename);
+  const removeSavedSearch = useConvexMutation(api.savedSearches.remove);
+  const setAlertsEnabledMutation = useConvexMutation(api.savedSearches.setAlertsEnabled);
 
   const setAlerts = async (id: Id<"savedSearches">, alertsEnabled: boolean) => {
     if (!convexUser) {

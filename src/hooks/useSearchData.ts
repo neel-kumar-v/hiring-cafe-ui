@@ -1,6 +1,6 @@
 import type { AutocompleteType } from "../../convex/autocompleteTypes";
 import { api } from "../../convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useConvexQuery } from "@/hooks/use-convex-query";
 import { useMemo } from "react";
 
 // These options are filtered locally by the controls. Keep the initial
@@ -9,7 +9,7 @@ import { useMemo } from "react";
 const SEARCH_DATA_LIMIT = 250;
 
 export function useSearchData(type: string, uppercase: boolean = false) {
-  const result = useQuery(api.autocomplete.getOptions, {
+  const result = useConvexQuery(api.autocomplete.getOptions, {
     type: type as AutocompleteType,
     limit: SEARCH_DATA_LIMIT,
   });
