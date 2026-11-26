@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "../../convex/_generated/api";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAuthEmail, setAuthEmail } from "@/lib/local-auth";
 
@@ -12,8 +12,8 @@ export function useCurrentUser() {
     setEmail(getAuthEmail());
   }, []);
 
-  const ensureByEmail = useMutation(api.users.ensureByEmail);
-  const user = useQuery(api.users.getByEmail, email ? { email } : "skip");
+  const ensureByEmail = useConvexMutation(api.users.ensureByEmail);
+  const user = useConvexQuery(api.users.getByEmail, email ? { email } : "skip");
 
   const login = useCallback(
     async (nextEmail: string, name?: string) => {

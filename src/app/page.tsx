@@ -8,7 +8,7 @@ import ResultsHeaderBand from "@/components/search/ResultsMetaRow";
 import SearchBar from "@/components/search/SearchBar";
 import { useCardPrefs } from "@/contexts/CardPrefsContext";
 import { useSearchUI } from "@/contexts/SearchContext";
-import { useQuery } from "convex/react";
+import { useConvexQuery } from "@/hooks/use-convex-query";
 import { Suspense, lazy } from "react";
 import { api } from "../../convex/_generated/api";
 
@@ -28,8 +28,8 @@ export default function Page() {
   const { boardSearchQuery, setBoardSearchQuery, handleSearchIconClick } = useSearchUI();
   const { prefs } = useCardPrefs();
   const noAi = prefs.noAi;
-  const liveJobCount = useQuery(api.jobs.count, {});
-  const liveCompanyCount = useQuery(api.companies.count, {});
+  const liveJobCount = useConvexQuery(api.jobs.count, {});
+  const liveCompanyCount = useConvexQuery(api.companies.count, {});
   const jobCountFallback = 2_057_770;
   const companyCountFallback = 72_936;
   const jobCount = liveJobCount ?? jobCountFallback;

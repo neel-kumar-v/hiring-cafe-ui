@@ -10,7 +10,7 @@ import type { JobStatus } from "@/types/app";
 import type { JobCardResultDTO } from "@/types/convexJobs";
 import type { JobCategory } from "@/types/tracker";
 import { api } from "../../../convex/_generated/api";
-import { useMutation } from "convex/react";
+import { useConvexMutation } from "@/hooks/use-convex-query";
 import { CheckCheck, Copy, EyeOff, MoveHorizontal, Share2, X } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useContainerWidth } from "@/hooks/useContainerWidth";
@@ -52,7 +52,7 @@ function maxKanbanColumnsForWidth(width: number): number {
 
 const KanbanBoard = memo(({ jobs, className, visibleCategories, selectionMode = false, onSelectionModeChange }: KanbanBoardProps) => {
   const { user, moveJob } = useApp();
-  const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
+  const hideForCurrentUser = useConvexMutation(api.jobs.hideForCurrentUser);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const containerWidth = useContainerWidth(containerRef);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);

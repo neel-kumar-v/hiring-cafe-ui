@@ -1,5 +1,5 @@
 import type { JobCardResultDTO } from "@/types/convexJobs";
-import { useMutation, usePaginatedQuery } from "convex/react";
+import { useConvexMutation, useConvexPaginatedQuery } from "@/hooks/use-convex-query";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActionBar, ActionBarGroup, ActionBarItem, ActionBarSelection, ActionBarSeparator } from "@/components/ui/action-bar";
@@ -96,7 +96,7 @@ function FloatingCardDisplayToolbar({ layout }: { layout: JobBoardLayout }) {
 const JobBoard = ({ jobCount }: { jobCount?: number }) => {
   const { boardSearchQuery, boardLayout, jobBoardSelectionMode, setJobBoardSelectionMode, unreadView, setUnreadCount, isJobSeen, markJobSeen } = useSearchUI();
   const { searchOptions, user, addJob, removeJob } = useApp();
-  const hideForCurrentUser = useMutation(api.jobs.hideForCurrentUser);
+  const hideForCurrentUser = useConvexMutation(api.jobs.hideForCurrentUser);
   const { isDesktop, dialogOpen, setDialogOpen, drawerOpen, setDrawerOpen, isTransitioning, fadeCompanyChrome, prefetch, prefetchNow, openPreview, closePreview, runTransition } =
     useJobPreviewChrome({ delayMs: 140, maxInflight: 3, maxSeen: 600 });
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -133,7 +133,7 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
     status,
     loadMore,
     isLoading,
-  } = usePaginatedQuery(
+  } = useConvexPaginatedQuery(
     api.jobs.search,
     { q: debouncedQuery || undefined, filters: convexFilters, sort: { by: debouncedQuery ? "relevance" : "recent", order: "desc" }, viewerEmail: getAuthEmail() ?? undefined },
     { initialNumItems: JOB_BOARD_PAGE_LIMIT }
@@ -413,14 +413,9 @@ const JobBoard = ({ jobCount }: { jobCount?: number }) => {
     addJob(selectedJob.externalId, "applied");
   }, [addJob, isApplied, removeJob, selectedJob, user.applied, user.interviewing]);
 
-  const allSelectedSaved = useMemo(
-    () => selectedJobs.length > 0 && selectedJobs.every((row) => row && user.saved.includes(row.externalId)),
-    [selectedJobs, user.saved]
-  );
+  const allSelectedSaved = useMemo(() => selectedJobs.length > 0 && selectedJobs.every((row) => row && user.saved.includes(row.externalId)), [selectedJobs, user.saved]);
   const allSelectedApplied = useMemo(
-    () =>
-      selectedJobs.length > 0 &&
-      selectedJobs.every((row) => row && (user.applied.includes(row.externalId) || user.interviewing.includes(row.externalId))),
+    () => selectedJobs.length > 0 && selectedJobs.every((row) => row && (user.applied.includes(row.externalId) || user.interviewing.includes(row.externalId))),
     [selectedJobs, user.applied, user.interviewing]
   );
 

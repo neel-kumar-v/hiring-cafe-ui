@@ -2,7 +2,7 @@
 
 import FilterPillBar from "@/components/search/FilterPillBar";
 import ResultsHeaderBand from "@/components/search/ResultsMetaRow";
-import { useQuery } from "convex/react";
+import { useConvexQuery } from "@/hooks/use-convex-query";
 import { api } from "../../../convex/_generated/api";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -24,8 +24,10 @@ interface SearchSubHeaderProps {
  * Rendered on md+ only - mobile keeps its own compact band.
  */
 export default function SearchSubHeader({ className, headerSlot, children }: SearchSubHeaderProps) {
-  const liveJobCount = useQuery(api.jobs.count, {});
-  const liveCompanyCount = useQuery(api.companies.count, {});
+  const liveJobCount = useConvexQuery(api.jobs.count, {});
+  const liveCompanyCount = useConvexQuery(api.companies.count, {});
+  const jobCountFallback = 2_057_770;
+  const companyCountFallback = 72_936;
   const hasCustomHeader = Boolean(headerSlot ?? children);
 
   return (
@@ -34,7 +36,7 @@ export default function SearchSubHeader({ className, headerSlot, children }: Sea
       <div className="px-4 py-2.5 transition-[padding] duration-500 ease-in-out lg:px-8">
         <FilterPillBar />
       </div>
-      <ResultsHeaderBand jobCount={liveJobCount ?? null} companyCount={liveCompanyCount ?? null} />
+      <ResultsHeaderBand jobCount={liveJobCount ?? jobCountFallback} companyCount={liveCompanyCount ?? companyCountFallback} />
     </div>
   );
 }

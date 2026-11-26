@@ -5,6 +5,7 @@ import { SearchUIProvider } from "@/contexts/SearchContext";
 import { CardPrefsProvider } from "@/contexts/CardPrefsContext";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
 import AppShell from "@/components/shell/AppShell";
+import { ConvexOutageBanner } from "@/components/convex-outage-banner";
 import { AgentationDev } from "@/components/dev/AgentationDev";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
@@ -98,6 +99,7 @@ export default function RootLayout({
                 <SearchUIProvider>
                   <CardPrefsProvider>
                     <div className="min-h-screen transition-colors duration-300">
+                      <ConvexOutageBanner />
                       <AppShell>
                         <Suspense fallback={null}>
                           <SearchDialogWrapper />
